@@ -1,4 +1,3 @@
 *.wasm
-*.ts
 *.js
 package.json
