@@ -9,5 +9,5 @@ impl Default for Viewport {
 }
 
 impl MainLoop for Viewport {
-    fn process(app: &mut App) {}
+    fn process(&mut self, app: &mut App) {}
 }
