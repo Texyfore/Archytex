@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="en" style="height: 100%; overflow: hidden;">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Archytex debugger</title>
+</head>
+
+<body style="height: 100%; background-color: black; display: flex; justify-content: center; align-items: center;">
+    <canvas id="viewport" style="border: 1px solid white;"></canvas>
+    <script type="module">
+        import init from "./entry.js";
+        init().then(wasm => {
+            wasm.main();
+        });
+    </script>
+</body>
+
+</html>
