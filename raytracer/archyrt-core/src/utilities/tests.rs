@@ -1,3 +1,5 @@
+use std::f64::{consts::PI};
+
 use crate::{
     matrix,
     utilities::math::{Matrix, Vec2, Vec3},
@@ -45,10 +47,28 @@ fn vector_mul_scalar() {
     assert_eq!(v1, vector!(2.0, 4.0, 6.0));
 }
 #[test]
+fn vector_div_scalar() {
+    let v1 = vector!(1.0, 2.0, 3.0);
+    assert_eq!(v1 / 2.0, vector!(0.5, 1.0, 1.5));
+    let mut v1 = v1;
+    v1 /= 2.0;
+    assert_eq!(v1, vector!(0.5, 1.0, 1.5));
+}
+#[test]
 fn vector_dot_product() {
     let v1 = vector!(1.0, 2.0, 3.0);
     let v2 = vector!(4.0, 5.0, 6.0);
     assert_eq!(v1.dot(v2), 1.0 * 4.0 + 2.0 * 5.0 + 3.0 * 6.0);
+}
+#[test]
+fn vector_normalized(){
+    const EPSILON: f64 = 0.01;
+    let v1 = vector!(0.4, 0.3, 0.8);
+     //Make sure distance from 1.0 is within error margins
+    assert!((v1.normalized().length()-1.0).abs() < EPSILON);
+    let v2 = vector!(1.5, PI, 7.8);
+     //Make sure distance from 1.0 is within error margins
+    assert!((v2.normalized().length()-1.0).abs() < EPSILON);
 }
 #[test]
 fn vec3() {
@@ -59,6 +79,20 @@ fn vec3() {
     assert_eq!(v1.x(), 1.0);
     assert_eq!(v1.y(), 2.0);
     assert_eq!(v1.z(), 3.0);
+}
+#[test]
+fn cross(){
+    let v1 = Vec3::new(1.0, 0.0, 0.0);
+    let v2 = Vec3::new(0.0, 1.0, 0.0);
+    assert_eq!(v1.cross(v2), vector!(0.0, 0.0, 1.0));
+
+    let v1 = Vec3::new(0.0, 0.0, 1.0);
+    let v2 = Vec3::new(-1.0, 0.0, 0.0);
+    assert_eq!(v1.cross(v2), vector!(0.0, -1.0, 0.0));
+
+    let v1 = Vec3::new(1.0, 0.0, 0.0);
+    let v2 = Vec3::new(0.0, 0.0, 1.0);
+    assert_eq!(v1.cross(v2), vector!(0.0, -1.0, 0.0));
 }
 #[test]
 fn vec2() {

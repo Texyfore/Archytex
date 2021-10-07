@@ -1,7 +1,4 @@
-use std::{
-    fmt::Debug,
-    ops::{Add, AddAssign, Index, IndexMut, Mul, MulAssign, Sub, SubAssign},
-};
+use std::{fmt::Debug, ops::{Add, AddAssign, Div, DivAssign, Index, IndexMut, Mul, MulAssign, Sub, SubAssign}};
 
 #[derive(Clone, Copy, PartialEq)]
 pub struct Vector<const N: usize> {
@@ -20,6 +17,9 @@ impl<const N: usize> Vector<N> {
     }
     pub fn length(self) -> f64 {
         self.length_squared().sqrt()
+    }
+    pub fn normalized(self) -> Self{
+        self/self.length()
     }
 }
 
@@ -116,6 +116,22 @@ impl<const N: usize> Mul<Vector<N>> for f64 {
 impl<const N: usize> MulAssign<f64> for Vector<N> {
     fn mul_assign(&mut self, rhs: f64) {
         *self = *self * rhs;
+    }
+}
+impl<const N: usize> Div<f64> for Vector<N> {
+    type Output = Self;
+
+    fn div(self, rhs: f64) -> Self::Output {
+        let mut o = self;
+        for a in o.inner.iter_mut() {
+            *a /= rhs;
+        }
+        o
+    }
+}
+impl<const N: usize> DivAssign<f64> for Vector<N> {
+    fn div_assign(&mut self, rhs: f64) {
+        *self = *self / rhs;
     }
 }
 
@@ -230,6 +246,13 @@ impl Vec3 {
     }
     pub fn z(self) -> f64 {
         self[2]
+    }
+    pub fn cross(self, rhs: Self) -> Self{
+        vector!(
+            self.y()*rhs.z()-self.z()*rhs.y(),
+            self.z()*rhs.x()-self.x()*rhs.z(),
+            self.x()*rhs.y()-self.y()*rhs.x()
+        )
     }
 }
 pub type Vec2 = Vector<2>;
