@@ -194,9 +194,6 @@ macro_rules! matrix {
     };
 }
 
-
-
-
 pub type Vec3 = Vector<3>;
 
 impl Vec3 {

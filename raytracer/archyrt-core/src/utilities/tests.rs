@@ -1,8 +1,8 @@
-
-use crate::{matrix, utilities::math::{Matrix, Vec2, Vec3}, vector};
-
-
-
+use crate::{
+    matrix,
+    utilities::math::{Matrix, Vec2, Vec3},
+    vector,
+};
 
 #[test]
 fn vector_creation() {
