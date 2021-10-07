@@ -182,7 +182,13 @@ mod matrices {
 
 #[cfg(test)]
 mod rays {
-    use crate::{utilities::{math::Vec3, ray::{IntersectionBuilder, Ray}}, vector};
+    use crate::{
+        utilities::{
+            math::Vec3,
+            ray::{IntersectionBuilder, Ray},
+        },
+        vector,
+    };
 
     #[test]
     fn intersection_builder() {
@@ -191,34 +197,57 @@ mod rays {
         let pos = Some(Vec3::new(7.0, 8.0, 9.0));
         let distance = Some(0.5);
         let distance_squared = Some(0.25);
-        let ray = Ray { origin: vector!(0.1, 0.2, 0.3), direction: vector!(0.4, 0.5, 0.5) };
-        let intersection = IntersectionBuilder{
-            color,normal,distance,distance_squared,pos,ray
-        }.build();
+        let ray = Ray {
+            origin: vector!(0.1, 0.2, 0.3),
+            direction: vector!(0.4, 0.5, 0.5),
+        };
+        let intersection = IntersectionBuilder {
+            color,
+            normal,
+            distance,
+            distance_squared,
+            pos,
+            ray,
+        }
+        .build();
         assert_eq!(color, intersection.get_color());
         assert_eq!(normal, intersection.get_normal());
         assert_eq!(pos.unwrap(), intersection.get_pos());
         assert_eq!(distance.unwrap(), intersection.get_distance());
-        assert_eq!(distance_squared.unwrap(), intersection.get_distance_squared());
+        assert_eq!(
+            distance_squared.unwrap(),
+            intersection.get_distance_squared()
+        );
     }
     #[test]
     fn intersection_conversion() {
-        
-        let i1 = IntersectionBuilder{
-            ray: Ray{direction: vector!(0.0, 0.0, 1.0), ..Default::default()},
+        let i1 = IntersectionBuilder {
+            ray: Ray {
+                direction: vector!(0.0, 0.0, 1.0),
+                ..Default::default()
+            },
             pos: Some(Vec3::new(0.0, 0.0, 2.0)),
             ..Default::default()
-        }.build();
-        let i2 = IntersectionBuilder{
-            ray: Ray{direction: vector!(0.0, 0.0, 1.0), ..Default::default()},
+        }
+        .build();
+        let i2 = IntersectionBuilder {
+            ray: Ray {
+                direction: vector!(0.0, 0.0, 1.0),
+                ..Default::default()
+            },
             distance: Some(2.0),
             ..Default::default()
-        }.build();
-        let i3 = IntersectionBuilder{
-            ray: Ray{direction: vector!(0.0, 0.0, 1.0), ..Default::default()},
+        }
+        .build();
+        let i3 = IntersectionBuilder {
+            ray: Ray {
+                direction: vector!(0.0, 0.0, 1.0),
+                ..Default::default()
+            },
             distance_squared: Some(4.0),
             ..Default::default()
-        }.build();
+        }
+        .build();
 
         assert_eq!(i1.get_distance_squared(), 4.0);
         assert_eq!(i1.get_distance(), 2.0);
@@ -226,6 +255,5 @@ mod rays {
         assert_eq!(i2.get_pos(), Vec3::new(0.0, 0.0, 2.0));
         assert_eq!(i3.get_distance(), 2.0);
         assert_eq!(i3.get_pos(), Vec3::new(0.0, 0.0, 2.0));
-
     }
 }
