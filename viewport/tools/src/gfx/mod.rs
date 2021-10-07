@@ -1,18 +1,19 @@
 mod color;
 mod gl;
+mod mesh;
 
 pub use color::Color;
+pub use mesh::{Tri, Vert};
 
 use gl::WebGL;
-use std::rc::Rc;
 
 pub struct Graphics {
-    gl: Rc<WebGL>,
+    gl: WebGL,
 }
 
 impl Default for Graphics {
     fn default() -> Self {
-        let gl = Rc::new(WebGL::default());
+        let gl = WebGL::default();
         gl.enable_depth_test();
         gl.set_clear_color(Color::new(0.25, 0.25, 0.25, 1.0));
 
