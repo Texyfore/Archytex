@@ -1,5 +1,4 @@
 pub mod event;
-mod web_util;
 
 use crate::gfx::Graphics;
 use event::Event;
