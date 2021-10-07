@@ -1,6 +1,7 @@
 pub mod event;
 
 use crate::gfx::Graphics;
+use crate::web_util;
 use event::Event;
 use std::collections::VecDeque;
 use winit::{
@@ -18,7 +19,7 @@ pub struct App {
 
 impl Default for App {
     fn default() -> Self {
-        let graphics = Graphics::new();
+        let graphics = Graphics::default();
         let event_queue = VecDeque::new();
 
         Self {
