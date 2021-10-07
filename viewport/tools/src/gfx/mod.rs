@@ -1,9 +1,7 @@
-use web_sys::HtmlCanvasElement;
-
 pub struct Graphics;
 
 impl Graphics {
-    pub fn new(canvas: &HtmlCanvasElement) -> Self {
+    pub fn new() -> Self {
         Self
     }
 
