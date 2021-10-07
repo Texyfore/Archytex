@@ -1,0 +1,25 @@
+name: ArchyRT Core
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    env:
+        cwd: ./raytracer/archyrt-core
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Build
+      run: cargo build --verbose
+      working-directory: ${{cwd}}
+    - name: Run tests
+      run: cargo test --verbose
+      working-directory: ${{cwd}}
