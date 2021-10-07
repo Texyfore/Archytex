@@ -40,10 +40,7 @@ impl Intersection {
         if let Some(pos) = self.0.pos {
             return pos;
         }
-        if let Some(distance) = self.0.distance {
-            return distance * self.0.ray.direction + self.0.ray.origin;
-        }
-        if let Some(_) = self.0.distance_squared {
+        if self.0.distance.is_some() || self.0.distance_squared.is_some() {
             return self.get_distance() * self.0.ray.direction + self.0.ray.origin;
         }
         panic!("Invalid intersection object: could not reconstruct position");
@@ -52,10 +49,7 @@ impl Intersection {
         if let Some(distance) = self.0.distance {
             return distance;
         }
-        if let Some(_) = self.0.distance_squared {
-            return self.get_distance_squared().sqrt();
-        }
-        if let Some(_) = self.0.pos {
+        if self.0.distance_squared.is_some() || self.0.pos.is_some() {
             return self.get_distance_squared().sqrt();
         }
         panic!("Invalid intersection object: could not reconstruct distance")
