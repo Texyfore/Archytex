@@ -1,10 +1,9 @@
 pub mod event;
+mod web_util;
 
 use crate::gfx::Graphics;
 use event::Event;
 use std::collections::VecDeque;
-use wasm_bindgen::JsCast;
-use web_sys::HtmlCanvasElement;
 use winit::{
     dpi::{PhysicalSize, Size},
     event::{Event as WinitEvent, WindowEvent},
@@ -20,7 +19,7 @@ pub struct App {
 
 impl Default for App {
     fn default() -> Self {
-        let graphics = Graphics::new(&get_canvas());
+        let graphics = Graphics::new();
         let event_queue = VecDeque::new();
 
         Self {
@@ -37,7 +36,7 @@ impl App {
         let event_loop = EventLoop::new();
 
         WindowBuilder::new()
-            .with_canvas(Some(get_canvas()))
+            .with_canvas(Some(web_util::get_canvas()))
             .with_inner_size(Size::Physical(PhysicalSize::new(640, 480)))
             .build(&event_loop)
             .expect("Failed to create window");
@@ -73,15 +72,4 @@ impl App {
 
 pub trait MainLoop: 'static {
     fn process(&mut self, app: &mut App);
-}
-
-fn get_canvas() -> HtmlCanvasElement {
-    let window = web_sys::window().unwrap();
-    let document = window.document().unwrap();
-
-    document
-        .get_element_by_id("viewport")
-        .unwrap()
-        .dyn_into::<HtmlCanvasElement>()
-        .unwrap()
 }
