@@ -1,7 +1,7 @@
 pub mod event;
-mod web_util;
 
 use crate::gfx::Graphics;
+use crate::web_util;
 use event::Event;
 use std::collections::VecDeque;
 use winit::{
@@ -19,7 +19,7 @@ pub struct App {
 
 impl Default for App {
     fn default() -> Self {
-        let graphics = Graphics::new();
+        let graphics = Graphics::default();
         let event_queue = VecDeque::new();
 
         Self {
@@ -41,6 +41,7 @@ impl App {
             .build(&event_loop)
             .expect("Failed to create window");
 
+        self.graphics.resize_viewport(640, 480);
         self.event_queue.push_back(Event::Initialized);
 
         event_loop.run(move |event, _, flow| {
