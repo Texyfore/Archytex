@@ -41,6 +41,7 @@ impl App {
             .build(&event_loop)
             .expect("Failed to create window");
 
+        self.graphics.resize_viewport(640, 480);
         self.event_queue.push_back(Event::Initialized);
 
         event_loop.run(move |event, _, flow| {

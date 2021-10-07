@@ -194,16 +194,17 @@ impl Drop for Program {
 }
 
 pub struct VertexLayout {
+    ctx: Rc<Context>,
     stride: i32,
     attribs: Vec<VertexAttribute>,
 }
 
 impl VertexLayout {
-    fn bind(&self, ctx: &Context) {
+    pub fn bind(&self) {
         unsafe {
             for attrib in &self.attribs {
-                ctx.enable_vertex_attrib_array(attrib.location);
-                ctx.vertex_attrib_pointer_f32(
+                self.ctx.enable_vertex_attrib_array(attrib.location);
+                self.ctx.vertex_attrib_pointer_f32(
                     attrib.location,
                     attrib.components,
                     FLOAT,
@@ -215,9 +216,9 @@ impl VertexLayout {
         }
     }
 
-    fn unbind(&self, ctx: &Context) {
+    pub fn unbind(&self) {
         for attrib in &self.attribs {
-            unsafe { ctx.disable_vertex_attrib_array(attrib.location) };
+            unsafe { self.ctx.disable_vertex_attrib_array(attrib.location) };
         }
     }
 }
@@ -229,8 +230,8 @@ pub struct VertexLayoutBuilder {
 }
 
 impl VertexLayoutBuilder {
-    pub fn with_stride(mut self, stride: i32) -> Self {
-        self.stride = stride;
+    pub fn with_stride(mut self, stride: usize) -> Self {
+        self.stride = stride as i32;
         self
     }
 
@@ -243,8 +244,9 @@ impl VertexLayoutBuilder {
         self
     }
 
-    pub fn build(self) -> VertexLayout {
+    pub fn build(self, gl: &WebGL) -> VertexLayout {
         VertexLayout {
+            ctx: gl.ctx.clone(),
             stride: self.stride,
             attribs: self.attribs,
         }
