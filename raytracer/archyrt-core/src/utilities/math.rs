@@ -231,6 +231,13 @@ impl Vec3 {
     pub fn z(self) -> f64 {
         self[2]
     }
+    pub fn cross(self, rhs: Self) -> Self{
+        vector!(
+            self.y()*rhs.z()-self.z()*rhs.y(),
+            self.z()*rhs.x()-self.x()*rhs.z(),
+            self.x()*rhs.y()-self.y()*rhs.x()
+        )
+    }
 }
 pub type Vec2 = Vector<2>;
 
