@@ -1,3 +1,3 @@
+pub mod math;
 #[cfg(test)]
 mod tests;
-pub mod math;

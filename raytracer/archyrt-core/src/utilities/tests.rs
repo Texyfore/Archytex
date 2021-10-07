@@ -1,8 +1,8 @@
-
-use crate::{matrix, utilities::math::{Matrix, Vec3}, vector};
-
-
-
+use crate::{
+    matrix,
+    utilities::math::{Matrix, Vec2, Vec3},
+    vector,
+};
 
 #[test]
 fn vector_creation() {
@@ -59,6 +59,15 @@ fn vec3() {
     assert_eq!(v1.x(), 1.0);
     assert_eq!(v1.y(), 2.0);
     assert_eq!(v1.z(), 3.0);
+}
+#[test]
+fn vec2() {
+    let v1 = Vec2::new(1.0, 2.0);
+    let v2 = vector!(1.0, 2.0);
+
+    assert_eq!(v1, v2);
+    assert_eq!(v1.x(), 1.0);
+    assert_eq!(v1.y(), 2.0);
 }
 #[test]
 fn matrix_equal() {

@@ -97,23 +97,6 @@ impl<const N: usize> MulAssign<f64> for Vector<N> {
     }
 }
 
-pub type Vec3 = Vector<3>;
-
-impl Vec3 {
-    pub fn new(x: f64, y: f64, z: f64) -> Self {
-        Self::from_array([x, y, z])
-    }
-    pub fn x(self) -> f64 {
-        self[0]
-    }
-    pub fn y(self) -> f64 {
-        self[1]
-    }
-    pub fn z(self) -> f64 {
-        self[2]
-    }
-}
-
 #[derive(Clone, Copy, PartialEq)]
 pub struct Matrix<const N: usize, const M: usize> {
     pub inner: [Vector<N>; M],
@@ -209,4 +192,34 @@ macro_rules! matrix {
     ( $($x:expr),* ) => {
         $crate::utilities::math::Matrix::from_vectors([$($x, )*])
     };
+}
+
+pub type Vec3 = Vector<3>;
+
+impl Vec3 {
+    pub fn new(x: f64, y: f64, z: f64) -> Self {
+        Self::from_array([x, y, z])
+    }
+    pub fn x(self) -> f64 {
+        self[0]
+    }
+    pub fn y(self) -> f64 {
+        self[1]
+    }
+    pub fn z(self) -> f64 {
+        self[2]
+    }
+}
+pub type Vec2 = Vector<2>;
+
+impl Vec2 {
+    pub fn new(x: f64, y: f64) -> Self {
+        Self::from_array([x, y])
+    }
+    pub fn x(self) -> f64 {
+        self[0]
+    }
+    pub fn y(self) -> f64 {
+        self[1]
+    }
 }
