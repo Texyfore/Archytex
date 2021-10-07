@@ -3,8 +3,12 @@ name: ArchyRT Core
 on:
   push:
     branches: [ master ]
+    paths:
+     - 'raytracer/archyrt-core/**'
   pull_request:
     branches: [ master ]
+    paths:
+     - 'raytracer/archyrt-core/**'
 
 env:
   CARGO_TERM_COLOR: always
