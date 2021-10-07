@@ -1,6 +1,6 @@
 use std::{
     fmt::Debug,
-    ops::{Add, AddAssign, Index, IndexMut, Mul, MulAssign},
+    ops::{Add, AddAssign, Index, IndexMut, Mul, MulAssign, Sub, SubAssign},
 };
 
 #[derive(Clone, Copy, PartialEq)]
@@ -14,6 +14,12 @@ impl<const N: usize> Vector<N> {
     }
     pub fn dot(self, b: Self) -> f64 {
         self.inner.iter().zip(b.inner).map(|(a, b)| a * b).sum()
+    }
+    pub fn length_squared(self) -> f64 {
+        self.dot(self)
+    }
+    pub fn length(self) -> f64 {
+        self.length_squared().sqrt()
     }
 }
 
@@ -66,6 +72,22 @@ impl<const N: usize> Add for Vector<N> {
 impl<const N: usize> AddAssign for Vector<N> {
     fn add_assign(&mut self, rhs: Self) {
         *self = *self + rhs
+    }
+}
+impl<const N: usize> Sub for Vector<N> {
+    type Output = Self;
+
+    fn sub(self, rhs: Self) -> Self::Output {
+        let mut o = self;
+        for (a, b) in o.inner.iter_mut().zip(rhs.inner) {
+            *a -= b;
+        }
+        o
+    }
+}
+impl<const N: usize> SubAssign for Vector<N> {
+    fn sub_assign(&mut self, rhs: Self) {
+        *self = *self - rhs
     }
 }
 impl<const N: usize> MulAssign for Vector<N> {
