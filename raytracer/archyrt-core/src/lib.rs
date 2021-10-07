@@ -1,4 +1,4 @@
 pub mod api;
-pub mod basic_renderer;
+pub mod renderers;
 pub mod utilities;
 pub mod cameras;
