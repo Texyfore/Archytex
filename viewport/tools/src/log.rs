@@ -9,6 +9,6 @@ extern "C" {
 #[macro_export]
 macro_rules! console {
     ($($t:tt)*) => {
-        tools::log::log(&format_args!($($t)*).to_string())
+        $crate::log::log(&format_args!($($t)*).to_string())
     };
 }
