@@ -271,3 +271,25 @@ impl Vec2 {
         self[1]
     }
 }
+
+pub enum QuadraticResult {
+    TwoResults(f64, f64),
+    OneResult(f64),
+    NoResults,
+}
+
+fn solve_for_determinant_sqrt(d: f64, b: f64, a: f64) -> f64 {
+    (-b + d) / (2.0 * a)
+}
+
+pub fn solve_quadratic(a: f64, b: f64, c: f64) -> QuadraticResult {
+    let d = b * b - 4.0 * a * c;
+    match d {
+        n if n == 0.0 => QuadraticResult::OneResult(solve_for_determinant_sqrt(0.0, b, a)),
+        n if n > 0.0 => QuadraticResult::TwoResults(
+            solve_for_determinant_sqrt(d.sqrt(), b, a),
+            solve_for_determinant_sqrt(-d.sqrt(), b, a),
+        ),
+        _ => QuadraticResult::NoResults,
+    }
+}
