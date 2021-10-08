@@ -7,4 +7,4 @@ edition = "2018"
 
 [dependencies]
 archyrt_core = {path="../archyrt-core"}
-image = "0.23.14"
+anyhow = "1.0.44"
