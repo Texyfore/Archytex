@@ -10,7 +10,8 @@ use crate::{
 struct ArrayCollector {}
 
 impl<T: FragmentRender> FragmentCollector<T> for ArrayCollector {
-    fn collect(&self, fragment_render: T, width: usize, height: usize) -> Vec<Vec<Vec3>> {
+    type Output = Vec<Vec<Vec3>>;
+    fn collect(&self, fragment_render: T, width: usize, height: usize) -> Self::Output {
         let ctx = FragmentContext {
             width: width as _,
             height: height as _,
