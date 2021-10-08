@@ -1,5 +1,3 @@
-use crate::utilities::math::Vec3;
-
 use super::fragment_render::FragmentRender;
 
 pub trait FragmentCollector<T: FragmentRender> {

@@ -11,7 +11,7 @@ mod array_collector {
     struct DummyRenderer {}
 
     impl FragmentRender for DummyRenderer {
-        fn render_fragment(&self, ctx: &FragmentContext, pos: Vec2) -> Vec3 {
+        fn render_fragment(&self, _: &FragmentContext, pos: Vec2) -> Vec3 {
             let c = (pos.x() + pos.y()) / 2.0;
             Vec3::new(c, c, c)
         }
