@@ -1,21 +1,23 @@
+use crate::{
+    api::fragment_render::{FragmentContext, FragmentRender},
+    utilities::math::{Vec2, Vec3},
+};
+
+struct DummyRenderer {}
+
+impl FragmentRender for DummyRenderer {
+    fn render_fragment(&self, _: &FragmentContext, pos: Vec2) -> Vec3 {
+        let c = (pos.x() + pos.y()) / 2.0;
+        Vec3::new(c, c, c)
+    }
+}
+
 mod array_collector {
     use crate::{
-        api::{
-            fragment_collector::FragmentCollector,
-            fragment_render::{FragmentContext, FragmentRender},
-        },
-        collector::array_collector::ArrayCollector,
-        utilities::math::{Vec2, Vec3},
+        api::fragment_collector::FragmentCollector,
+        collector::{array_collector::ArrayCollector, tests::DummyRenderer},
+        utilities::math::Vec3,
     };
-
-    struct DummyRenderer {}
-
-    impl FragmentRender for DummyRenderer {
-        fn render_fragment(&self, _: &FragmentContext, pos: Vec2) -> Vec3 {
-            let c = (pos.x() + pos.y()) / 2.0;
-            Vec3::new(c, c, c)
-        }
-    }
 
     const EPSILON: f64 = 0.0001;
 
@@ -56,5 +58,23 @@ mod array_collector {
             .collect();
         //Make sure they are the same value, given a certain error margin
         assert!(image_eq(&expected, &image));
+    }
+}
+
+mod image_collector {
+    use crate::{
+        api::fragment_collector::FragmentCollector, collector::image_collector::ImageCollector,
+    };
+
+    use super::DummyRenderer;
+
+    #[test]
+    fn render() {
+        let collector = ImageCollector {};
+        let renderer = DummyRenderer {};
+        let image = collector.collect(renderer, 4, 4).unwrap();
+        assert_eq!(image.get_pixel(0, 0).0[0], 0);
+        assert_eq!(image.get_pixel(1, 1).0[0], 85);
+        assert_eq!(image.get_pixel(3, 1).0[0], 170);
     }
 }
