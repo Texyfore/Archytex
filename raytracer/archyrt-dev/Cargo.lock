@@ -15,6 +15,12 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "aae1277d39aeec15cb388266ecc24b11c80469deae6067e17a1a7aa9e5c1f234"
 
 [[package]]
+name = "anyhow"
+version = "1.0.44"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "61604a8f862e1d5c3229fdd78f8b02c68dcf73a4c4b05fd636d12240aaa242c1"
+
+[[package]]
 name = "archyrt_core"
 version = "0.1.0"
 
@@ -22,6 +28,7 @@ version = "0.1.0"
 name = "archyrt_dev"
 version = "0.1.0"
 dependencies = [
+ "anyhow",
  "archyrt_core",
  "image",
 ]
