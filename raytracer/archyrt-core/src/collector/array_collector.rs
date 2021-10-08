@@ -19,9 +19,9 @@ impl<T: FragmentRender> FragmentCollector<T> for ArrayCollector {
         let mut rows = Vec::with_capacity(height);
         for y in 0..height {
             let mut row = Vec::with_capacity(width);
-            let y = y as f64 / (ctx.height-1.0);
+            let y = y as f64 / (ctx.height - 1.0);
             for x in 0..width {
-                let x = x as f64 / (ctx.width-1.0);
+                let x = x as f64 / (ctx.width - 1.0);
                 let fragment = fragment_render.render_fragment(&ctx, vector!(x, y));
                 row.push(fragment);
             }
