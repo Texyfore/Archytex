@@ -55,6 +55,9 @@ impl App {
                     WindowEvent::Resized(PhysicalSize { width, height }) => {
                         self.graphics.resize_viewport(width as i32, height as i32);
                     }
+                    WindowEvent::KeyboardInput{device_id: _, input, ..} => {
+                        todo!()
+                    }
                     _ => {}
                 },
                 WinitEvent::MainEventsCleared => {
