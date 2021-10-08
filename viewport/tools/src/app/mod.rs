@@ -1,12 +1,11 @@
 pub mod event;
 
-use crate::gfx::Graphics;
-use crate::web_util;
+use crate::{console, gfx::Graphics, web_util};
 use event::Event;
 use std::collections::VecDeque;
 use winit::{
     dpi::{PhysicalSize, Size},
-    event::{Event as WinitEvent, WindowEvent},
+    event::{Event as WinitEvent, KeyboardInput, WindowEvent},
     event_loop::{ControlFlow, EventLoop},
     platform::web::WindowBuilderExtWebSys,
     window::WindowBuilder,
@@ -55,8 +54,20 @@ impl App {
                     WindowEvent::Resized(PhysicalSize { width, height }) => {
                         self.graphics.resize_viewport(width as i32, height as i32);
                     }
-                    WindowEvent::KeyboardInput{device_id: _, input, ..} => {
-                        todo!()
+                    WindowEvent::CursorMoved { .. } => {
+                        console!("Cursor");
+                    }
+                    WindowEvent::KeyboardInput {
+                        device_id: _,
+                        input:
+                            KeyboardInput {
+                                state,
+                                virtual_keycode: Some(key),
+                                ..
+                            },
+                        ..
+                    } => {
+                        console!("Keyboard input!");
                     }
                     _ => {}
                 },
