@@ -23,6 +23,9 @@ checksum = "61604a8f862e1d5c3229fdd78f8b02c68dcf73a4c4b05fd636d12240aaa242c1"
 [[package]]
 name = "archyrt_core"
 version = "0.1.0"
+dependencies = [
+ "image",
+]
 
 [[package]]
 name = "archyrt_dev"
@@ -30,7 +33,6 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "archyrt_core",
- "image",
 ]
 
 [[package]]
