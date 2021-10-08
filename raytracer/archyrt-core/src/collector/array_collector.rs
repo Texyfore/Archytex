@@ -7,7 +7,7 @@ use crate::{
     vector,
 };
 
-struct ArrayCollector {}
+pub struct ArrayCollector {}
 
 impl<T: FragmentRender> FragmentCollector<T> for ArrayCollector {
     type Output = Vec<Vec<Vec3>>;
