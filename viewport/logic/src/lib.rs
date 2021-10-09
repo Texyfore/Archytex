@@ -1,18 +1,19 @@
-use tools::{
-    app::{App, MainLoop},
-    console,
-};
+mod input;
 
-pub struct Viewport;
+use input::InputMapper;
+use tools::app::{App, MainLoop};
+
+pub struct Viewport {
+    input_mapper: InputMapper,
+}
 
 impl Default for Viewport {
     fn default() -> Self {
-        Self
+        let mut input_mapper = InputMapper::default();
+        Self { input_mapper }
     }
 }
 
 impl MainLoop for Viewport {
-    fn process(&mut self, app: &mut App) {
-        console!("Hello, World!");
-    }
+    fn process(&mut self, app: &mut App) {}
 }
