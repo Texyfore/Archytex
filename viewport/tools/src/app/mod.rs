@@ -1,4 +1,5 @@
 pub mod event;
+pub mod input;
 
 use crate::{gfx::Graphics, web_util};
 use event::{Event, RawInputKind};
