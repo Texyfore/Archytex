@@ -1,4 +1,4 @@
-use super::{Color, Tri, Vert};
+use super::{Color, Image, Tri, Vert};
 use crate::{math::Mat4, web_util};
 use glow::*;
 use std::rc::Rc;
@@ -17,7 +17,17 @@ impl Default for WebGL {
 
 impl WebGL {
     pub fn enable_depth_test(&self) {
-        unsafe { self.ctx.enable(DEPTH_TEST) };
+        unsafe {
+            self.ctx.enable(DEPTH_TEST);
+            self.ctx.depth_func(LEQUAL);
+        }
+    }
+
+    pub fn cull_back_faces(&self) {
+        unsafe {
+            self.ctx.enable(CULL_FACE);
+            self.ctx.cull_face(BACK);
+        }
     }
 
     pub fn set_clear_color(&self, color: Color) {
@@ -181,6 +191,8 @@ impl Program {
         unsafe {
             let location =
                 self.ctx.get_uniform_location(self.inner, uniform).unwrap() as UniformLocation;
+
+            self.ctx.use_program(Some(self.inner));
             self.ctx
                 .uniform_matrix_4_f32_slice(Some(&location), false, value.as_ref());
         }
@@ -257,4 +269,52 @@ struct VertexAttribute {
     location: u32,
     components: i32,
     offset: i32,
+}
+
+pub struct Texture {
+    ctx: Rc<Context>,
+    inner: WebTextureKey,
+}
+
+impl Texture {
+    pub fn new(gl: &WebGL, image: &Image) -> Self {
+        let ctx = gl.ctx.clone();
+        let inner = unsafe {
+            let texture = ctx.create_texture().unwrap();
+
+            ctx.bind_texture(TEXTURE_2D, Some(texture));
+            ctx.tex_parameter_i32(TEXTURE_2D, TEXTURE_WRAP_S, REPEAT as i32);
+            ctx.tex_parameter_i32(TEXTURE_2D, TEXTURE_WRAP_S, REPEAT as i32);
+            ctx.tex_parameter_i32(TEXTURE_2D, TEXTURE_MIN_FILTER, LINEAR as i32);
+            ctx.tex_parameter_i32(TEXTURE_2D, TEXTURE_MAG_FILTER, LINEAR as i32);
+            ctx.tex_image_2d(
+                TEXTURE_2D,
+                0,
+                RGBA as i32,
+                image.width() as i32,
+                image.height() as i32,
+                0,
+                RGBA,
+                UNSIGNED_BYTE,
+                Some(image.data()),
+            );
+
+            texture
+        };
+
+        Self { ctx, inner }
+    }
+
+    pub fn bind(&self) {
+        unsafe {
+            self.ctx.active_texture(TEXTURE0);
+            self.ctx.bind_texture(TEXTURE_2D, Some(self.inner));
+        }
+    }
+}
+
+impl Drop for Texture {
+    fn drop(&mut self) {
+        unsafe { self.ctx.delete_texture(self.inner) };
+    }
 }
