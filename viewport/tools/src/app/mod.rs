@@ -80,6 +80,17 @@ impl App {
                             button.into(),
                         ))),
 
+                    WindowEvent::CursorMoved {
+                        device_id: _,
+                        position,
+                        ..
+                    } => self
+                        .event_queue
+                        .push_back(Event::RawInput(RawInputKind::Movement(
+                            position.x as f32,
+                            position.y as f32,
+                        ))),
+
                     _ => {}
                 },
 
