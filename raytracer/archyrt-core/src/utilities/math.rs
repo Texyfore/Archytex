@@ -30,6 +30,9 @@ impl<const N: usize> Vector<N> {
     pub fn ones() -> Self {
         Self::from_single(1.0)
     }
+    pub fn sum(self) -> f64{
+        self.dot(Self::ones())
+    }
 }
 
 impl<const N: usize> Default for Vector<N> {
