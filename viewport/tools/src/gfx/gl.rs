@@ -17,7 +17,17 @@ impl Default for WebGL {
 
 impl WebGL {
     pub fn enable_depth_test(&self) {
-        unsafe { self.ctx.enable(DEPTH_TEST) };
+        unsafe {
+            self.ctx.enable(DEPTH_TEST);
+            self.ctx.depth_func(LEQUAL);
+        }
+    }
+
+    pub fn cull_back_faces(&self) {
+        unsafe {
+            self.ctx.enable(CULL_FACE);
+            self.ctx.cull_face(BACK);
+        }
     }
 
     pub fn set_clear_color(&self, color: Color) {
@@ -181,7 +191,7 @@ impl Program {
         unsafe {
             let location =
                 self.ctx.get_uniform_location(self.inner, uniform).unwrap() as UniformLocation;
-                
+
             self.ctx.use_program(Some(self.inner));
             self.ctx
                 .uniform_matrix_4_f32_slice(Some(&location), false, value.as_ref());
