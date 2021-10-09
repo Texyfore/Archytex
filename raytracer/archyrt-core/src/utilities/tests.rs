@@ -89,6 +89,16 @@ mod vectors {
         assert!((v2.normalized().length() - 1.0).abs() < EPSILON);
     }
     #[test]
+    fn powi() {
+        let v1 = vector!(1.0, 2.0, 3.0).powi(2);
+        assert_eq!(v1, vector!(1.0, 4.0, 9.0));
+    }
+    #[test]
+    fn powf() {
+        let v1 = vector!(1.0, 4.0, 9.0).powf(0.5);
+        assert_eq!(v1, vector!(1.0, 2.0, 3.0));
+    }
+    #[test]
     fn vec3() {
         let v1 = Vec3::new(1.0, 2.0, 3.0);
         let v2 = vector!(1.0, 2.0, 3.0);

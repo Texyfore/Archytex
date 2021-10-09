@@ -30,8 +30,22 @@ impl<const N: usize> Vector<N> {
     pub fn ones() -> Self {
         Self::from_single(1.0)
     }
-    pub fn sum(self) -> f64{
+    pub fn sum(self) -> f64 {
         self.dot(Self::ones())
+    }
+    pub fn powi(self, n: i32) -> Self {
+        let mut o = self;
+        for v in o.inner.iter_mut() {
+            *v = v.powi(n);
+        }
+        o
+    }
+    pub fn powf(self, n: f64) -> Self {
+        let mut o = self;
+        for v in o.inner.iter_mut() {
+            *v = v.powf(n);
+        }
+        o
     }
 }
 
