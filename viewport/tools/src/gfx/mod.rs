@@ -17,6 +17,7 @@ impl Default for Graphics {
     fn default() -> Self {
         let gl = WebGL::default();
         gl.enable_depth_test();
+        gl.cull_back_faces();
         gl.set_clear_color(Color::new(0.25, 0.25, 0.25, 1.0));
 
         let mesh_program = Program::new(
