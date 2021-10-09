@@ -12,6 +12,8 @@ use winit::{
     window::WindowBuilder,
 };
 
+const WINDOW_SIZE: (u32, u32) = (1024, 768);
+
 pub struct App {
     graphics: Graphics,
     event_queue: VecDeque<Event>,
@@ -37,11 +39,14 @@ impl App {
 
         let _window = WindowBuilder::new()
             .with_canvas(Some(web_util::get_canvas()))
-            .with_inner_size(Size::Physical(PhysicalSize::new(640, 480)))
+            .with_inner_size(Size::Physical(PhysicalSize::new(
+                WINDOW_SIZE.0,
+                WINDOW_SIZE.1,
+            )))
             .build(&event_loop)
             .expect("Failed to create window");
 
-        self.graphics.resize_viewport(640, 480);
+        self.graphics.resize_viewport(WINDOW_SIZE.0 as i32, WINDOW_SIZE.1 as i32);
         self.event_queue.push_back(Event::Initialized);
 
         event_loop.run(move |event, _, flow| {
