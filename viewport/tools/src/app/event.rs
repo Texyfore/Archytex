@@ -1,4 +1,4 @@
-use winit::event::{ElementState, VirtualKeyCode};
+use winit::event::{ElementState, MouseButton, VirtualKeyCode};
 
 pub enum Event {
     Initialized,
@@ -44,4 +44,15 @@ pub enum ButtonKind {
     Right,
     Middle,
     Unknown,
+}
+
+impl From<MouseButton> for ButtonKind {
+    fn from(value: MouseButton) -> Self {
+        match value {
+            MouseButton::Left => Self::Left,
+            MouseButton::Right => Self::Right,
+            MouseButton::Middle => Self::Middle,
+            MouseButton::Other(_) => Self::Unknown,
+        }
+    }
 }
