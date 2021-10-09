@@ -5,6 +5,7 @@ use input::InputMapper;
 use mesh::MeshBuilder;
 use tools::{
     app::{event::Event, App, MainLoop},
+    gfx::{Image, Texture},
     math::{Mat4, Vec3},
 };
 
@@ -97,11 +98,15 @@ impl MainLoop for Viewport {
 
             builder.build(app.graphics())
         };
+
+        let texture = Texture::new(app.graphics(), &Image::load(include_bytes!("dummy.png")));
+
         mesh.draw(
             app.graphics(),
             Mat4::translation(Vec3::fill(-0.5))
                 * Mat4::rotation(Vec3::new(0.0, self.a, 0.0))
                 * Mat4::translation(Vec3::new(0.0, (self.a * 0.5).sin() * 1.5, -5.0)),
+            &texture,
         );
 
         self.a += 0.025;
