@@ -45,7 +45,7 @@ impl App {
         self.event_queue.push_back(Event::Initialized);
 
         event_loop.run(move |event, _, flow| {
-            *flow = ControlFlow::Wait;
+            *flow = ControlFlow::Poll;
 
             match event {
                 WinitEvent::WindowEvent {
