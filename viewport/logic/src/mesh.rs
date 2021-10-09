@@ -21,11 +21,14 @@ impl MeshBuilder {
             idx: [t0, t0 + 2, t0 + 3],
         });
 
-        for point in points {
+        // TODO: Dirty hack, remove ASAP
+        const uv: [[f32; 2]; 4] = [[0.0, 0.0], [1.0, 0.0], [1.0, 1.0], [0.0, 1.0]];
+
+        for (point, i) in points.iter().copied().zip(0..points.len()) {
             self.verts.push(Vert {
                 pos: point.into(),
                 normal: normal.into(),
-                uv: [1.0, 1.0],
+                uv: uv[i],
             })
         }
     }
