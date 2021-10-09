@@ -108,6 +108,10 @@ impl App {
     pub fn poll_event(&mut self) -> Option<Event> {
         self.event_queue.pop_front()
     }
+
+    pub fn graphics(&self) -> &Graphics {
+        &self.graphics
+    }
 }
 
 pub trait MainLoop: 'static {

@@ -181,6 +181,8 @@ impl Program {
         unsafe {
             let location =
                 self.ctx.get_uniform_location(self.inner, uniform).unwrap() as UniformLocation;
+                
+            self.ctx.use_program(Some(self.inner));
             self.ctx
                 .uniform_matrix_4_f32_slice(Some(&location), false, value.as_ref());
         }
