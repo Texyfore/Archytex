@@ -3,7 +3,7 @@ mod vectors {
     use std::f64::consts::PI;
 
     use crate::{
-        utilities::math::{Vec2, Vec3},
+        utilities::math::{Vec2, Vec3, Vector},
         vector,
     };
 
@@ -11,6 +11,23 @@ mod vectors {
     fn creation() {
         let v = vector!(1.0, 2.0, 3.0);
         assert_eq!(v.inner, [1.0, 2.0, 3.0]);
+    }
+    #[test]
+    fn from_single() {
+        assert_eq!(
+            Vector::<5>::from_single(1.0),
+            vector!(1.0, 1.0, 1.0, 1.0, 1.0)
+        );
+        assert_eq!(
+            Vector::<5>::from_single(5.0),
+            vector!(5.0, 5.0, 5.0, 5.0, 5.0)
+        );
+        assert_eq!(Vector::<3>::from_single(2.0), vector!(2.0, 2.0, 2.0));
+    }
+    #[test]
+    fn ones() {
+        assert_eq!(Vector::<5>::ones(), vector!(1.0, 1.0, 1.0, 1.0, 1.0));
+        assert_eq!(Vector::<3>::ones(), vector!(1.0, 1.0, 1.0));
     }
     #[test]
     fn equality() {

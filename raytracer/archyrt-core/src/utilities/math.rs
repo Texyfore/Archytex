@@ -24,6 +24,12 @@ impl<const N: usize> Vector<N> {
     pub fn normalized(self) -> Self {
         self / self.length()
     }
+    pub fn from_single(single: f64) -> Self {
+        Self { inner: [single; N] }
+    }
+    pub fn ones() -> Self {
+        Self::from_single(1.0)
+    }
 }
 
 impl<const N: usize> Default for Vector<N> {
