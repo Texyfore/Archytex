@@ -3,7 +3,7 @@ mod vectors {
     use std::f64::consts::PI;
 
     use crate::{
-        utilities::math::{Vec2, Vec3},
+        utilities::math::{Vec2, Vec3, Vector},
         vector,
     };
 
@@ -11,6 +11,23 @@ mod vectors {
     fn creation() {
         let v = vector!(1.0, 2.0, 3.0);
         assert_eq!(v.inner, [1.0, 2.0, 3.0]);
+    }
+    #[test]
+    fn from_single() {
+        assert_eq!(
+            Vector::<5>::from_single(1.0),
+            vector!(1.0, 1.0, 1.0, 1.0, 1.0)
+        );
+        assert_eq!(
+            Vector::<5>::from_single(5.0),
+            vector!(5.0, 5.0, 5.0, 5.0, 5.0)
+        );
+        assert_eq!(Vector::<3>::from_single(2.0), vector!(2.0, 2.0, 2.0));
+    }
+    #[test]
+    fn ones() {
+        assert_eq!(Vector::<5>::ones(), vector!(1.0, 1.0, 1.0, 1.0, 1.0));
+        assert_eq!(Vector::<3>::ones(), vector!(1.0, 1.0, 1.0));
     }
     #[test]
     fn equality() {
@@ -70,6 +87,16 @@ mod vectors {
         let v2 = vector!(1.5, PI, 7.8);
         //Make sure distance from 1.0 is within error margins
         assert!((v2.normalized().length() - 1.0).abs() < EPSILON);
+    }
+    #[test]
+    fn powi() {
+        let v1 = vector!(1.0, 2.0, 3.0).powi(2);
+        assert_eq!(v1, vector!(1.0, 4.0, 9.0));
+    }
+    #[test]
+    fn powf() {
+        let v1 = vector!(1.0, 4.0, 9.0).powf(0.5);
+        assert_eq!(v1, vector!(1.0, 2.0, 3.0));
     }
     #[test]
     fn vec3() {
@@ -258,28 +285,28 @@ mod rays {
     }
 }
 
-mod quadratic{
-    use crate::utilities::math::{QuadraticResult, solve_quadratic};
+mod quadratic {
+    use crate::utilities::math::{solve_quadratic, QuadraticResult};
 
     #[test]
     fn solve() {
         //1. 3(x-5)(x-3)=3x^2-9x-15x+45=3x^2-24x+45
         if let QuadraticResult::TwoResults(a, b) = solve_quadratic(3.0, -24.0, 45.0) {
-            if !((a == 5.0 && b == 3.0) || (a==3.0) && (b==5.0)) {
+            if !((a == 5.0 && b == 3.0) || (a == 3.0) && (b == 5.0)) {
                 panic!("1. test: The solutions are not 5.0 and 3.0");
             }
-        }else {
-                panic!("1. test: Invalid number of solutions");
+        } else {
+            panic!("1. test: Invalid number of solutions");
         }
         //3. 3(x-5)(x-5)=3*(x^2-10x+25)=3x^2-30x+75
         if let QuadraticResult::OneResult(a) = solve_quadratic(3.0, -30.0, 75.0) {
             assert_eq!(a, 5.0);
-        }else {
+        } else {
             panic!("2. test: Invalid number of solutions");
         }
         //3. 3(x-5i)(x+5i)=3*(x^2-(5i)^2)=3*x^2+0x+75
         if let QuadraticResult::NoResults = solve_quadratic(3.0, 0.0, 75.0) {
-        }else {
+        } else {
             panic!("3. test: Invalid number of solutions");
         }
     }

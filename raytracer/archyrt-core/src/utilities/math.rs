@@ -24,6 +24,29 @@ impl<const N: usize> Vector<N> {
     pub fn normalized(self) -> Self {
         self / self.length()
     }
+    pub fn from_single(single: f64) -> Self {
+        Self { inner: [single; N] }
+    }
+    pub fn ones() -> Self {
+        Self::from_single(1.0)
+    }
+    pub fn sum(self) -> f64 {
+        self.dot(Self::ones())
+    }
+    pub fn powi(self, n: i32) -> Self {
+        let mut o = self;
+        for v in o.inner.iter_mut() {
+            *v = v.powi(n);
+        }
+        o
+    }
+    pub fn powf(self, n: f64) -> Self {
+        let mut o = self;
+        for v in o.inner.iter_mut() {
+            *v = v.powf(n);
+        }
+        o
+    }
 }
 
 impl<const N: usize> Default for Vector<N> {
