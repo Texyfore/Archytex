@@ -1,10 +1,11 @@
 use crate::math::Mat4;
 
 use super::{
-    gl::{IndexBuffer, VertexBuffer},
+    gl::{self, IndexBuffer, VertexBuffer},
     Graphics,
 };
 use bytemuck::{Pod, Zeroable};
+use image::{EncodableLayout, GenericImageView};
 
 #[repr(C)]
 #[derive(Default, Clone, Copy, Pod, Zeroable)]
@@ -49,12 +50,16 @@ impl Mesh {
         }
     }
 
-    pub fn draw(&self, gfx: &Graphics, model: Mat4) {
-        gfx.mesh_program.upload_mat4("model", model);
+    pub fn draw(&self, gfx: &Graphics, model: Mat4, texture: &Texture) {
         gfx.mesh_program.bind();
+        gfx.mesh_program.upload_mat4("model", model);
+
         gfx.vertex_layout.bind();
+        texture.inner.bind();
+
         gfx.gl
             .draw_triangles(&self.verts, &self.tris, self.idx_count);
+
         gfx.vertex_layout.unbind();
     }
 }
@@ -81,5 +86,54 @@ impl Default for Color {
 impl Color {
     pub fn new(r: f32, g: f32, b: f32, a: f32) -> Self {
         Self { r, g, b, a }
+    }
+}
+
+pub struct Image {
+    data: Box<[u8]>,
+    width: u32,
+    height: u32,
+}
+
+impl Image {
+    pub fn load(buf: &[u8]) -> Self {
+        let image = image::load_from_memory(buf).unwrap();
+        let (width, height) = image.dimensions();
+        let data = image
+            .as_rgba8()
+            .unwrap()
+            .as_bytes()
+            .to_vec()
+            .into_boxed_slice();
+
+        Self {
+            data,
+            width,
+            height,
+        }
+    }
+
+    pub fn data(&self) -> &[u8] {
+        &self.data
+    }
+
+    pub fn width(&self) -> u32 {
+        self.width
+    }
+
+    pub fn height(&self) -> u32 {
+        self.height
+    }
+}
+
+pub struct Texture {
+    inner: gl::Texture,
+}
+
+impl Texture {
+    pub fn new(gfx: &Graphics, image: &Image) -> Self {
+        Self {
+            inner: gl::Texture::new(&gfx.gl, image),
+        }
     }
 }
