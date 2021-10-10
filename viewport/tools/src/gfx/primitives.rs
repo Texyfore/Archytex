@@ -1,5 +1,4 @@
 use crate::math::Mat4;
-
 use super::{
     gl::{self, IndexBuffer, VertexBuffer},
     Graphics,
