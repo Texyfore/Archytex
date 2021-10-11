@@ -38,3 +38,63 @@ mod sphere {
         assert!(sphere.intersect(ray).is_none())
     }
 }
+
+mod surface {
+    use crate::{
+        intersectables::surface::Surface,
+        utilities::{
+            math::Vec3,
+            ray::{Intersectable, Ray},
+        },
+    };
+
+    #[test]
+    fn intersect() {
+        let ray = Ray {
+            origin: Vec3::new(0.0, 2.0, 0.0),
+            direction: Vec3::new(0.0, -1.0, 0.0),
+        };
+        let surface = Surface {
+            normal: Vec3::new(0.0, 1.0, 0.0),
+            distance: 0.0,
+            ..Default::default()
+        };
+        let intersection = surface.intersect(ray).unwrap();
+        assert_eq!(intersection.get_distance(), 2.0);
+        assert_eq!(intersection.get_distance_squared(), 4.0);
+        assert_eq!(intersection.get_pos(), Vec3::new(0.0, 0.0, 0.0));
+    }
+    #[test]
+    fn intersect_from_points() {
+        let ray = Ray {
+            origin: Vec3::new(0.0, 2.0, 0.0),
+            direction: Vec3::new(0.0, -1.0, 0.0),
+        };
+        let surface = Surface::from_points(
+            [
+                Vec3::new(0.0, -0.0, 0.0),
+                Vec3::new(-1.0, -0.0, 1.0),
+                Vec3::new(1.0, -0.0, 1.0),
+            ],
+            Default::default(),
+        );
+        let intersection = surface.intersect(ray).unwrap();
+        assert_eq!(intersection.get_distance(), 2.0);
+        assert_eq!(intersection.get_distance_squared(), 4.0);
+        assert_eq!(intersection.get_pos(), Vec3::new(0.0, 0.0, 0.0));
+    }
+    #[test]
+    fn intersect_fail() {
+        let ray = Ray {
+            origin: Vec3::new(0.0, 2.0, 0.0),
+            direction: Vec3::new(0.0, 1.0, 0.0),
+        };
+        let surface = Surface {
+            normal: Vec3::new(0.0, 1.0, 0.0),
+            distance: 0.0,
+            ..Default::default()
+        };
+        let intersection = surface.intersect(ray);
+        assert!(intersection.is_none());
+    }
+}
