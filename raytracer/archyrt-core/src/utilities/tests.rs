@@ -99,6 +99,10 @@ mod vectors {
         assert_eq!(v1, vector!(1.0, 2.0, 3.0));
     }
     #[test]
+    fn neg() {
+        assert_eq!(-vector!(1.0, 2.0, 3.0), vector!(-1.0, -2.0, -3.0));
+    }
+    #[test]
     fn vec3() {
         let v1 = Vec3::new(1.0, 2.0, 3.0);
         let v2 = vector!(1.0, 2.0, 3.0);

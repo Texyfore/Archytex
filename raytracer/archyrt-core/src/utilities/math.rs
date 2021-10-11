@@ -1,6 +1,6 @@
 use std::{
     fmt::Debug,
-    ops::{Add, AddAssign, Div, DivAssign, Index, IndexMut, Mul, MulAssign, Sub, SubAssign},
+    ops::{Add, AddAssign, Div, DivAssign, Index, IndexMut, Mul, MulAssign, Neg, Sub, SubAssign},
 };
 
 #[derive(Clone, Copy, PartialEq)]
@@ -158,6 +158,18 @@ impl<const N: usize> Div<f64> for Vector<N> {
 impl<const N: usize> DivAssign<f64> for Vector<N> {
     fn div_assign(&mut self, rhs: f64) {
         *self = *self / rhs;
+    }
+}
+
+impl<const N: usize> Neg for Vector<N> {
+    type Output = Self;
+
+    fn neg(self) -> Self::Output {
+        let mut o = self;
+        for v in o.inner.iter_mut() {
+            *v = -*v;
+        }
+        o
     }
 }
 
