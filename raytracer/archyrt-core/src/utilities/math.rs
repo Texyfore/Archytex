@@ -303,6 +303,22 @@ impl Matrix3x3 {
             - self[1][0] * (self[0][1] * self[2][2] - self[2][1] * self[0][2])
             + self[2][0] * (self[0][1] * self[1][2] - self[1][1] * self[0][2])
     }
+    pub fn cramer(self, b: Vec3) -> Option<Vec3> {
+        let det = self.det();
+        if det == 0.0 {
+            return None;
+        }
+        let mut o = Vec3::from_single(0.0);
+        for (i, v) in o.inner.iter_mut().enumerate() {
+            let m = {
+                let mut m = self;
+                m[i] = b;
+                m
+            };
+            *v = m.det() / det;
+        }
+        Some(o)
+    }
 }
 
 pub enum QuadraticResult {
