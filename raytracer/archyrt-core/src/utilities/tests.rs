@@ -99,6 +99,10 @@ mod vectors {
         assert_eq!(v1, vector!(1.0, 2.0, 3.0));
     }
     #[test]
+    fn neg() {
+        assert_eq!(-vector!(1.0, 2.0, 3.0), vector!(-1.0, -2.0, -3.0));
+    }
+    #[test]
     fn vec3() {
         let v1 = Vec3::new(1.0, 2.0, 3.0);
         let v2 = vector!(1.0, 2.0, 3.0);
@@ -135,7 +139,11 @@ mod vectors {
 
 #[cfg(test)]
 mod matrices {
-    use crate::{matrix, utilities::math::Matrix, vector};
+    use crate::{
+        matrix,
+        utilities::math::{Matrix, Matrix3x3, Vec3},
+        vector,
+    };
 
     #[test]
     fn equal() {
@@ -204,6 +212,32 @@ mod matrices {
         let product = m1 * m2;
         assert_eq!(product[0], vector!(13.0, 16.0, 19.0));
         assert_eq!(product[1], vector!(41.0, 52.0, 63.0));
+    }
+    #[test]
+    fn det() {
+        let a: Matrix3x3 = matrix!(
+            vector!(1.0, 2.0, 3.0),
+            vector!(4.0, 5.0, 6.0),
+            vector!(7.0, 8.0, 9.0)
+        );
+        let b: Matrix3x3 = matrix!(
+            vector!(1.0, -3.0, 2.0),
+            vector!(3.0, -1.0, 3.0),
+            vector!(2.0, -3.0, 1.0)
+        );
+        assert_eq!(a.det(), 0.0);
+        assert_eq!(b.det(), -15.0);
+    }
+    #[test]
+    fn cramer() {
+        let m: Matrix3x3 = matrix!(
+            vector!(1.0, -3.0, 2.0),
+            vector!(3.0, -1.0, 3.0),
+            vector!(2.0, -3.0, 1.0)
+        );
+        let res = Vec3::new(7.0, 2.0, 8.0);
+        let solution = m.cramer(res).unwrap();
+        assert_eq!(solution, Vec3::new(-2.0 / 5.0, 17.0 / 5.0, -7.0 / 5.0));
     }
 }
 

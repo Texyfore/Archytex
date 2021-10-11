@@ -1,6 +1,6 @@
 use std::{
     fmt::Debug,
-    ops::{Add, AddAssign, Div, DivAssign, Index, IndexMut, Mul, MulAssign, Sub, SubAssign},
+    ops::{Add, AddAssign, Div, DivAssign, Index, IndexMut, Mul, MulAssign, Neg, Sub, SubAssign},
 };
 
 #[derive(Clone, Copy, PartialEq)]
@@ -161,6 +161,18 @@ impl<const N: usize> DivAssign<f64> for Vector<N> {
     }
 }
 
+impl<const N: usize> Neg for Vector<N> {
+    type Output = Self;
+
+    fn neg(self) -> Self::Output {
+        let mut o = self;
+        for v in o.inner.iter_mut() {
+            *v = -*v;
+        }
+        o
+    }
+}
+
 #[derive(Clone, Copy, PartialEq)]
 pub struct Matrix<const N: usize, const M: usize> {
     pub inner: [Vector<N>; M],
@@ -292,6 +304,32 @@ impl Vec2 {
     }
     pub fn y(self) -> f64 {
         self[1]
+    }
+}
+
+pub type Matrix3x3 = Matrix<3, 3>;
+
+impl Matrix3x3 {
+    pub fn det(self) -> f64 {
+        self[0][0] * (self[1][1] * self[2][2] - self[2][1] * self[1][2])
+            - self[1][0] * (self[0][1] * self[2][2] - self[2][1] * self[0][2])
+            + self[2][0] * (self[0][1] * self[1][2] - self[1][1] * self[0][2])
+    }
+    pub fn cramer(self, b: Vec3) -> Option<Vec3> {
+        let det = self.det();
+        if det == 0.0 {
+            return None;
+        }
+        let mut o = Vec3::from_single(0.0);
+        for (i, v) in o.inner.iter_mut().enumerate() {
+            let m = {
+                let mut m = self;
+                m[i] = b;
+                m
+            };
+            *v = m.det() / det;
+        }
+        Some(o)
     }
 }
 

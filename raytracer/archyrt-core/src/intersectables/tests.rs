@@ -98,3 +98,48 @@ mod surface {
         assert!(intersection.is_none());
     }
 }
+
+mod triangle {
+    use crate::{
+        intersectables::triangle::Triangle,
+        utilities::{
+            math::Vec3,
+            ray::{Intersectable, Ray},
+        },
+    };
+
+    #[test]
+    fn intersect() {
+        let triangle = Triangle::new(
+            [
+                Vec3::new(0.0, -1.0, 1.0),
+                Vec3::new(1.0, -1.0, -1.0),
+                Vec3::new(-1.0, -1.0, -1.0),
+            ],
+            Vec3::from_single(1.0),
+        );
+        let ray = Ray {
+            origin: Vec3::from_single(0.0),
+            direction: Vec3::new(0.0, -1.0, 0.0),
+        };
+        let intersection = triangle.intersect(ray).unwrap();
+        assert_eq!(intersection.get_pos(), Vec3::new(0.0, -1.0, 0.0));
+    }
+    #[test]
+    fn intersect_fail() {
+        let triangle = Triangle::new(
+            [
+                Vec3::new(0.0, -1.0, 1.0),
+                Vec3::new(1.0, -1.0, -1.0),
+                Vec3::new(-1.0, -1.0, -1.0),
+            ],
+            Vec3::from_single(1.0),
+        );
+        let ray = Ray {
+            origin: Vec3::new(0.0, 0.0, 5.0),
+            direction: Vec3::new(0.0, -1.0, 0.0),
+        };
+        let intersection = triangle.intersect(ray);
+        assert!(intersection.is_none());
+    }
+}
