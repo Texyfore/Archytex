@@ -11,3 +11,4 @@ winit = { version = "0.25.0", features = ["web-sys"] }
 glow = "0.11.0"
 bytemuck = { version = "1.7.2", features = ["derive"] }
 image = "0.23.14"
+cgmath = "0.18.0"
