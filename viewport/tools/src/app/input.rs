@@ -15,7 +15,7 @@ impl From<ElementState> for InputState {
     }
 }
 
-#[derive(PartialEq, Eq, Hash, Clone, Copy)]
+#[derive(PartialEq, Eq, Hash)]
 pub enum KeyKind {
     LControl,
     Unknown,
@@ -30,7 +30,7 @@ impl From<VirtualKeyCode> for KeyKind {
     }
 }
 
-#[derive(PartialEq, Eq, Hash, Clone, Copy)]
+#[derive(PartialEq, Eq, Hash)]
 pub enum ButtonKind {
     Left,
     Right,

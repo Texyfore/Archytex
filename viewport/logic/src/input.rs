@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::{cell::Cell, collections::HashMap};
 use tools::app::{
     event::RawInputKind,
     input::{ButtonKind, InputState, KeyKind},
@@ -9,7 +9,7 @@ pub struct InputMapper {
     key_state: HashMap<KeyKind, InputState>,
     button_state: HashMap<ButtonKind, InputState>,
     mouse_pos: (f32, f32),
-    actions: HashMap<String, Vec<ActionKind>>,
+    actions: HashMap<String, Action>,
 }
 
 impl InputMapper {
@@ -27,49 +27,71 @@ impl InputMapper {
         };
     }
 
-    pub fn register_action(&mut self, name: &str, elements: &[ActionKind]) {
+    pub fn register_action(&mut self, name: &str, elements: Vec<ElementKind>) {
         let name = name.to_owned();
-        let elements = elements.to_vec();
-        self.actions.insert(name, elements);
+        self.actions.insert(
+            name,
+            Action {
+                elements,
+                queried: Cell::new(false),
+            },
+        );
     }
 
     pub fn query_action(&self, action: &str) -> bool {
-        if let Some(actions) = self.actions.get(action) {
-            for action in actions {
-                match action {
-                    ActionKind::Key(key) => {
-                        if !self.query_key(key) {
-                            return false;
-                        }
-                    }
-                    ActionKind::Button(button) => {
-                        if !self.query_button(button) {
-                            return false;
-                        }
-                    }
-                }
+        if let Some(action) = self.actions.get(action) {
+            if self.query_action_inner(action) {
+                action.queried.set(true);
+                return true;
             }
-            true
-        } else {
-            false
         }
+        false
+    }
+
+    pub fn query_action_once(&self, action: &str) -> bool {
+        if let Some(action) = self.actions.get(action) {
+            if self.query_action_inner(action) && !action.queried.get() {
+                action.queried.set(true);
+                return true;
+            }
+        }
+        false
     }
 
     pub fn query_mouse_pos(&self) -> (f32, f32) {
         self.mouse_pos
     }
 
-    fn query_key(&self, key: &KeyKind) -> bool {
-        matches!(self.key_state.get(key), Some(InputState::Pressed))
-    }
-
-    fn query_button(&self, button: &ButtonKind) -> bool {
-        matches!(self.button_state.get(button), Some(InputState::Pressed))
+    fn query_action_inner(&self, action: &Action) -> bool {
+        for element in &action.elements {
+            match element {
+                ElementKind::Key(key) => {
+                    if matches!(self.key_state.get(key), None | Some(InputState::Released)) {
+                        action.queried.set(false);
+                        return false;
+                    }
+                }
+                ElementKind::Button(button) => {
+                    if matches!(
+                        self.button_state.get(button),
+                        None | Some(InputState::Released)
+                    ) {
+                        action.queried.set(false);
+                        return false;
+                    }
+                }
+            }
+        }
+        true
     }
 }
 
-#[derive(Clone, Copy)]
-pub enum ActionKind {
+pub enum ElementKind {
     Key(KeyKind),
     Button(ButtonKind),
+}
+
+struct Action {
+    elements: Vec<ElementKind>,
+    queried: Cell<bool>,
 }
