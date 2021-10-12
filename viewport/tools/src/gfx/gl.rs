@@ -50,6 +50,13 @@ impl WebGL {
                 .draw_elements(TRIANGLES, idx_count, UNSIGNED_SHORT, 0);
         }
     }
+
+    pub fn draw_lines(&self, verts: &VertexBuffer, vert_count: i32) {
+        unsafe {
+            self.ctx.bind_buffer(ARRAY_BUFFER, Some(verts.inner));
+            self.ctx.draw_arrays(LINES, 0, vert_count);
+        }
+    }
 }
 
 pub struct VertexBuffer {

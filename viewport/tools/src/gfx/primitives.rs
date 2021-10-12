@@ -53,13 +53,47 @@ impl Mesh {
         gfx.mesh_program.bind();
         gfx.mesh_program.upload_mat4("model", model);
 
-        gfx.vertex_layout.bind();
+        gfx.mesh_layout.bind();
         texture.inner.bind();
 
         gfx.gl
             .draw_triangles(&self.verts, &self.tris, self.idx_count);
 
-        gfx.vertex_layout.unbind();
+        gfx.mesh_layout.unbind();
+    }
+}
+
+#[repr(C)]
+#[derive(Default, Clone, Copy, Pod, Zeroable)]
+pub struct LineVert {
+    pub pos: [f32; 3],
+}
+
+pub struct LineMesh {
+    verts: VertexBuffer,
+    vert_count: i32,
+}
+
+impl LineMesh {
+    pub fn new(gfx: &Graphics, verts: &[LineVert]) -> Self {
+        let vert_count = verts.len() as i32;
+
+        let verts = {
+            let buf = VertexBuffer::new(&gfx.gl);
+            buf.upload_verts(bytemuck::cast_slice(verts));
+            buf
+        };
+
+        Self { verts, vert_count }
+    }
+
+    pub fn draw(&self, gfx: &Graphics, model: Mat4) {
+        gfx.line_program.bind();
+        gfx.line_program.upload_mat4("model", model);
+
+        gfx.line_layout.bind();
+        gfx.gl.draw_lines(&self.verts, self.vert_count);
+        gfx.line_layout.unbind();
     }
 }
 
