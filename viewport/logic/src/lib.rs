@@ -1,6 +1,5 @@
 mod input;
 mod mesh;
-mod model;
 
 use input::InputMapper;
 use tools::app::{event::Event, App, MainLoop};
