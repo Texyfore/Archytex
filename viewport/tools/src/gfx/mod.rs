@@ -3,7 +3,7 @@ mod primitives;
 
 pub use primitives::*;
 
-use crate::math::Mat4;
+use crate::math::{perspective, Deg, Mat4, SquareMatrix};
 use bytemuck::offset_of;
 use gl::{Program, Shader, ShaderKind, VertexLayout, VertexLayoutBuilder, WebGL};
 
@@ -48,12 +48,7 @@ impl Graphics {
         self.gl.set_viewport_size(width, height);
         self.mesh_program.upload_mat4(
             "projection",
-            Mat4::perspective(
-                width as f32 / height as f32,
-                std::f32::consts::FRAC_2_PI,
-                0.1,
-                100.0,
-            ),
+            perspective(Deg(60.0), width as f32 / height as f32, 0.1, 100.0),
         );
     }
 

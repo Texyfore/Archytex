@@ -194,7 +194,7 @@ impl Program {
 
             self.ctx.use_program(Some(self.inner));
             self.ctx
-                .uniform_matrix_4_f32_slice(Some(&location), false, value.as_ref());
+                .uniform_matrix_4_f32_slice(Some(&location), false, AsRef::<[f32; 16]>::as_ref(&value));
         }
     }
 }
