@@ -24,7 +24,7 @@ impl Surface {
         let [a, b, c] = points;
         let b = b - a;
         let c = c - a;
-        let normal = b.cross(c);
+        let normal = b.cross(c).normalized();
         let distance = normal.dot(a);
         Self {
             color,
