@@ -17,7 +17,7 @@ pub struct Triangle {
 impl Triangle {
     pub fn new(vertices: [Vec3; 3], color: Vec3) -> Self {
         let [a, b, c] = vertices;
-        let normal = (b - a).cross(c - a);
+        let normal = (b - a).cross(c - a).normalized();
         Self {
             a,
             b,
