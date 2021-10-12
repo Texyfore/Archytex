@@ -1,4 +1,5 @@
 mod input;
+mod model;
 
 use input::InputMapper;
 use tools::{
