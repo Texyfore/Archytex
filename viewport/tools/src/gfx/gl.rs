@@ -64,11 +64,11 @@ impl VertexBuffer {
         Self { ctx, inner }
     }
 
-    pub fn upload_verts(&self, verts: &[Vert]) {
+    pub fn upload_verts(&self, verts: &[u8]) {
         unsafe {
             self.ctx.bind_buffer(ARRAY_BUFFER, Some(self.inner));
             self.ctx
-                .buffer_data_u8_slice(ARRAY_BUFFER, bytemuck::cast_slice(verts), STATIC_DRAW);
+                .buffer_data_u8_slice(ARRAY_BUFFER, verts, STATIC_DRAW);
         }
     }
 }
@@ -193,8 +193,11 @@ impl Program {
                 self.ctx.get_uniform_location(self.inner, uniform).unwrap() as UniformLocation;
 
             self.ctx.use_program(Some(self.inner));
-            self.ctx
-                .uniform_matrix_4_f32_slice(Some(&location), false, AsRef::<[f32; 16]>::as_ref(&value));
+            self.ctx.uniform_matrix_4_f32_slice(
+                Some(&location),
+                false,
+                AsRef::<[f32; 16]>::as_ref(&value),
+            );
         }
     }
 }

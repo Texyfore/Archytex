@@ -1,8 +1,8 @@
-use crate::math::Mat4;
 use super::{
     gl::{self, IndexBuffer, VertexBuffer},
     Graphics,
 };
+use crate::math::Mat4;
 use bytemuck::{Pod, Zeroable};
 use image::{EncodableLayout, GenericImageView};
 
@@ -32,7 +32,7 @@ impl Mesh {
 
         let verts = {
             let buf = VertexBuffer::new(&gfx.gl);
-            buf.upload_verts(verts);
+            buf.upload_verts(bytemuck::cast_slice(verts));
             buf
         };
 
