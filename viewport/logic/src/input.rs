@@ -38,7 +38,7 @@ impl InputMapper {
         );
     }
 
-    fn query_action(&self, action: &str) -> bool {
+    pub fn query_action(&self, action: &str) -> bool {
         if let Some(action) = self.actions.get(action) {
             if self.query_action_inner(action) {
                 action.queried.set(true);
@@ -48,7 +48,7 @@ impl InputMapper {
         false
     }
 
-    fn query_action_once(&self, action: &str) -> bool {
+    pub fn query_action_once(&self, action: &str) -> bool {
         if let Some(action) = self.actions.get(action) {
             if self.query_action_inner(action) && !action.queried.get() {
                 action.queried.set(true);
