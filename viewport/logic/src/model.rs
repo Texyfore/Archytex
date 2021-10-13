@@ -73,6 +73,7 @@ fn to_verts(idx: Vec<u16>, points: &Points) -> Vec<LineVert> {
         .flatten()
         .map(|p| LineVert {
             pos: (*points.get(*p).unwrap()).into(),
+            color: [1.0; 4],
         })
         .collect::<Vec<_>>()
 }

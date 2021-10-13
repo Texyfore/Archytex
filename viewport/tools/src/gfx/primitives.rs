@@ -67,6 +67,7 @@ impl Mesh {
 #[derive(Default, Clone, Copy, Pod, Zeroable)]
 pub struct LineVert {
     pub pos: [f32; 3],
+    pub color: [f32; 4],
 }
 
 pub struct LineMesh {
@@ -119,6 +120,12 @@ impl Default for Color {
 impl Color {
     pub fn new(r: f32, g: f32, b: f32, a: f32) -> Self {
         Self { r, g, b, a }
+    }
+}
+
+impl From<Color> for [f32; 4] {
+    fn from(color: Color) -> Self {
+        [color.r, color.g, color.b, color.a]
     }
 }
 

@@ -48,6 +48,7 @@ impl Default for Graphics {
         let line_layout = VertexLayoutBuilder::default()
             .with_stride(std::mem::size_of::<LineVert>())
             .with_attribute(0, 3, offset_of!(LineVert, pos))
+            .with_attribute(1, 4, offset_of!(LineVert, color))
             .build(&gl);
 
         Self {
