@@ -2,6 +2,7 @@ use super::input::{ButtonKind, InputState, KeyKind};
 
 pub enum Event {
     Initialized,
+    Resized(u32, u32),
     RawInput(RawInputKind),
 }
 

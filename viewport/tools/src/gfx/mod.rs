@@ -3,7 +3,7 @@ mod primitives;
 
 pub use primitives::*;
 
-use crate::math::{perspective, Deg, Mat4, SquareMatrix};
+use crate::math::Mat4;
 use bytemuck::offset_of;
 use gl::{Program, Shader, ShaderKind, VertexLayout, VertexLayoutBuilder, WebGL};
 
@@ -62,16 +62,20 @@ impl Default for Graphics {
 
 impl Graphics {
     pub fn resize_viewport(&self, width: i32, height: i32) {
-        let projection = perspective(Deg(60.0), width as f32 / height as f32, 0.1, 100.0);
-
         self.gl.set_viewport_size(width, height);
-        self.mesh_program.upload_mat4("projection", projection);
-        self.line_program.upload_mat4("projection", projection);
     }
 
     pub fn begin(&self) {
         self.gl.clear();
-        self.mesh_program.upload_mat4("view", Mat4::identity());
-        self.line_program.upload_mat4("view", Mat4::identity());
+    }
+
+    pub fn set_camera_projection(&self, matrix: Mat4) {
+        self.mesh_program.upload_mat4("projection", matrix);
+        self.line_program.upload_mat4("projection", matrix);
+    }
+
+    pub fn set_camera_view(&self, matrix: Mat4) {
+        self.mesh_program.upload_mat4("view", matrix);
+        self.line_program.upload_mat4("view", matrix);
     }
 }

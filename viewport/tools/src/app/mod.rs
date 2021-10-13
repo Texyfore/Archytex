@@ -46,7 +46,10 @@ impl App {
             .build(&event_loop)
             .expect("Failed to create window");
 
-        self.graphics.resize_viewport(WINDOW_SIZE.0 as i32, WINDOW_SIZE.1 as i32);
+        self.graphics
+            .resize_viewport(WINDOW_SIZE.0 as i32, WINDOW_SIZE.1 as i32);
+        self.event_queue
+            .push_back(Event::Resized(WINDOW_SIZE.0, WINDOW_SIZE.1));
         self.event_queue.push_back(Event::Initialized);
 
         event_loop.run(move |event, _, flow| {
@@ -59,6 +62,7 @@ impl App {
                 } => match event {
                     WindowEvent::Resized(PhysicalSize { width, height }) => {
                         self.graphics.resize_viewport(width as i32, height as i32);
+                        self.event_queue.push_back(Event::Resized(width, height));
                     }
 
                     WindowEvent::KeyboardInput {

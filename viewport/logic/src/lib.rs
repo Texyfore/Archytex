@@ -1,5 +1,6 @@
 mod input;
 mod model;
+mod camera;
 
 use input::InputMapper;
 use model::{Points, Polygon};
@@ -34,6 +35,7 @@ impl MainLoop for Viewport {
                     self.input_mapper
                         .register_action("add_point", vec![ElementKind::Button(ButtonKind::Left)]);
                 }
+                Event::Resized(width, height) => {}
                 Event::RawInput(input) => self.input_mapper.process_raw_input(input),
             };
         }
