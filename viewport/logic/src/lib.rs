@@ -7,11 +7,7 @@ use crate::input::ElementKind;
 use camera::Camera;
 use grid::Grid;
 use input::InputMapper;
-use tools::{
-    app::{event::Event, input::ButtonKind, App, MainLoop},
-    gfx::Graphics,
-    math::{Mat4, Vec3},
-};
+use tools::{app::{event::Event, input::ButtonKind, App, MainLoop}, gfx::{Color, Graphics}, math::{Mat4, Vec3}};
 
 pub struct Viewport {
     input_mapper: InputMapper,
@@ -60,7 +56,7 @@ impl InnerLogic {
     pub fn new(gfx: &Graphics) -> Self {
         Self {
             camera: Camera::new(60.0, 0.1, 100.0),
-            grid: Grid::new(5, gfx),
+            grid: Grid::new(10, Color::new(0.5, 0.5, 0.5, 1.0), gfx),
         }
     }
 
