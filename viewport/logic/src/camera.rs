@@ -1,13 +1,11 @@
-use tools::{
-    gfx::Graphics,
-    math::{perspective, Deg, Mat4, SquareMatrix},
-};
+use tools::math::{perspective, Deg, Mat4, SquareMatrix};
 
 pub struct Camera {
-    fov: f32,
-    near: f32,
-    far: f32,
-    view: Mat4,
+    pub fov: f32,
+    pub near: f32,
+    pub far: f32,
+    pub view: Mat4,
+    pub projection: Mat4,
 }
 
 impl Camera {
@@ -17,20 +15,11 @@ impl Camera {
             near,
             far,
             view: Mat4::identity(),
+            projection: Mat4::identity(),
         }
     }
 
-    pub fn set_view(&mut self, view: Mat4) {
-        self.view = view;
-    }
-
-    pub fn update_graphics(&self, gfx: &Graphics, width: u32, height: u32) {
-        gfx.set_camera_projection(perspective(
-            Deg(self.fov),
-            width as f32 / height as f32,
-            self.near,
-            self.far,
-        ));
-        gfx.set_camera_view(self.view);
+    pub fn calculate_projection(&mut self, aspect: f32) {
+        self.projection = perspective(Deg(self.fov), aspect, self.near, self.far)
     }
 }

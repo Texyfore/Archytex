@@ -46,11 +46,12 @@ impl App {
             .build(&event_loop)
             .expect("Failed to create window");
 
+        self.event_queue.push_back(Event::Initialized);
+
         self.graphics
             .resize_viewport(WINDOW_SIZE.0 as i32, WINDOW_SIZE.1 as i32);
         self.event_queue
             .push_back(Event::Resized(WINDOW_SIZE.0, WINDOW_SIZE.1));
-        self.event_queue.push_back(Event::Initialized);
 
         event_loop.run(move |event, _, flow| {
             *flow = ControlFlow::Poll;
