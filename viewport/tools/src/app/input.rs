@@ -18,6 +18,10 @@ impl From<ElementState> for InputState {
 #[derive(PartialEq, Eq, Hash)]
 pub enum KeyKind {
     LControl,
+    Left,
+    Right,
+    Up,
+    Down,
     Unknown,
 }
 
@@ -25,6 +29,10 @@ impl From<VirtualKeyCode> for KeyKind {
     fn from(value: VirtualKeyCode) -> Self {
         match value {
             VirtualKeyCode::LControl => Self::LControl,
+            VirtualKeyCode::Left => Self::Left,
+            VirtualKeyCode::Right => Self::Right,
+            VirtualKeyCode::Up => Self::Up,
+            VirtualKeyCode::Down => Self::Down,
             _ => Self::Unknown,
         }
     }
