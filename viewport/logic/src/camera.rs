@@ -1,12 +1,12 @@
 use crate::transform::Transform;
-use tools::math::{perspective, Deg, Mat4, SquareMatrix};
+use tools::math::{perspective, Deg, Matrix4, SquareMatrix};
 
 pub struct Camera {
     pub transform: Transform,
     pub fov: f32,
     pub near: f32,
     pub far: f32,
-    pub projection: Mat4,
+    pub projection: Matrix4<f32>,
 }
 
 impl Camera {
@@ -16,7 +16,7 @@ impl Camera {
             fov,
             near,
             far,
-            projection: Mat4::identity(),
+            projection: Matrix4::identity(),
         }
     }
 

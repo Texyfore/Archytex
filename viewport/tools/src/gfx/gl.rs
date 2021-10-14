@@ -1,5 +1,5 @@
-use super::{Color, Image, Tri, Vert};
-use crate::{math::Mat4, web_util};
+use super::{Color, Image, Tri};
+use crate::{math::Matrix4, web_util};
 use glow::*;
 use std::rc::Rc;
 
@@ -194,7 +194,7 @@ impl Program {
         unsafe { self.ctx.use_program(Some(self.inner)) };
     }
 
-    pub fn upload_mat4(&self, uniform: &str, value: Mat4) {
+    pub fn upload_mat4(&self, uniform: &str, value: Matrix4<f32>) {
         unsafe {
             let location =
                 self.ctx.get_uniform_location(self.inner, uniform).unwrap() as UniformLocation;

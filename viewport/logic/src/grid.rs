@@ -1,6 +1,6 @@
 use tools::{
     gfx::{Color, Graphics, LineMesh, LineVert},
-    math::{Mat4, SquareMatrix},
+    math::{Matrix4, SquareMatrix},
 };
 
 pub struct Grid {
@@ -40,6 +40,6 @@ impl Grid {
     }
 
     pub fn draw(&self, gfx: &Graphics) {
-        self.mesh.draw(gfx, Mat4::identity());
+        self.mesh.draw(gfx, Matrix4::identity());
     }
 }

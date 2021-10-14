@@ -3,7 +3,7 @@ mod primitives;
 
 pub use primitives::*;
 
-use crate::math::Mat4;
+use crate::math::Matrix4;
 use bytemuck::offset_of;
 use gl::{Program, Shader, ShaderKind, VertexLayout, VertexLayoutBuilder, WebGL};
 
@@ -70,12 +70,12 @@ impl Graphics {
         self.gl.clear();
     }
 
-    pub fn set_camera_projection(&self, matrix: Mat4) {
+    pub fn set_camera_projection(&self, matrix: Matrix4<f32>) {
         self.mesh_program.upload_mat4("projection", matrix);
         self.line_program.upload_mat4("projection", matrix);
     }
 
-    pub fn set_camera_view(&self, matrix: Mat4) {
+    pub fn set_camera_view(&self, matrix: Matrix4<f32>) {
         self.mesh_program.upload_mat4("view", matrix);
         self.line_program.upload_mat4("view", matrix);
     }

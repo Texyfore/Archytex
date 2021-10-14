@@ -1,16 +1,16 @@
 use tools::{
     gfx::{Graphics, LineMesh, LineVert},
-    math::Vec3,
+    math::Vector3,
 };
 
 #[derive(Default)]
 pub struct Points {
-    storage: Vec<Option<Vec3>>,
+    storage: Vec<Option<Vector3<f32>>>,
     free_ids: Vec<usize>,
 }
 
 impl Points {
-    pub fn insert(&mut self, point: Vec3) -> u16 {
+    pub fn insert(&mut self, point: Vector3<f32>) -> u16 {
         if let Some(id) = self.free_ids.pop() {
             self.storage[id] = Some(point);
             id as u16
@@ -28,7 +28,7 @@ impl Points {
         }
     }
 
-    pub fn get(&self, id: u16) -> Option<&Vec3> {
+    pub fn get(&self, id: u16) -> Option<&Vector3<f32>> {
         if let Some(point) = self.storage.get(id as usize) {
             point.as_ref()
         } else {
@@ -36,7 +36,7 @@ impl Points {
         }
     }
 
-    pub fn get_mut(&mut self, id: u16) -> Option<&mut Vec3> {
+    pub fn get_mut(&mut self, id: u16) -> Option<&mut Vector3<f32>> {
         if let Some(point) = self.storage.get_mut(id as usize) {
             point.as_mut()
         } else {

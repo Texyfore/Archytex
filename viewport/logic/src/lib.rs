@@ -8,11 +8,15 @@ use crate::input::ElementKind;
 use camera::Camera;
 use grid::Grid;
 use input::InputMapper;
-use tools::{app::{
+use tools::{
+    app::{
         event::Event,
         input::{ButtonKind, KeyKind},
         App, MainLoop,
-    }, gfx::{Color, Graphics}, math::{Zero, Vec2, Vec3}};
+    },
+    gfx::{Color, Graphics},
+    math::{Vector2, Vector3, Zero},
+};
 
 pub struct Viewport {
     input_mapper: InputMapper,
@@ -64,18 +68,18 @@ impl MainLoop for Viewport {
 struct InnerLogic {
     camera: Camera,
     grid: Grid,
-    mouse_before: Vec2,
+    mouse_before: Vector2<f32>,
 }
 
 impl InnerLogic {
     pub fn new(gfx: &Graphics) -> Self {
         let mut camera = Camera::new(60.0, 0.1, 100.0);
-        camera.transform.position = Vec3::new(0.0, 5.0, 20.0);
+        camera.transform.position = Vector3::new(0.0, 5.0, 20.0);
 
         Self {
             camera,
             grid: Grid::new(10, Color::new(0.5, 0.5, 0.5, 1.0), gfx),
-            mouse_before: Vec2::zero(),
+            mouse_before: Vector2::zero(),
         }
     }
 
@@ -87,26 +91,24 @@ impl InnerLogic {
     pub fn process(&mut self, input: &InputMapper, gfx: &Graphics) {
         let mouse = {
             let (x, y) = input.query_mouse_pos();
-            Vec2::new(x, y)
+            Vector2::new(x, y)
         };
 
         let delta = mouse - self.mouse_before;
 
-        
-
         const SPEED: f32 = 0.05;
 
         if input.query_action("left") {
-            self.camera.transform.position += Vec3::new(-1.0, 0.0, 0.0) * SPEED;
+            self.camera.transform.position += Vector3::new(-1.0, 0.0, 0.0) * SPEED;
         }
         if input.query_action("right") {
-            self.camera.transform.position += Vec3::new(1.0, 0.0, 0.0) * SPEED;
+            self.camera.transform.position += Vector3::new(1.0, 0.0, 0.0) * SPEED;
         }
         if input.query_action("up") {
-            self.camera.transform.position += Vec3::new(0.0, 0.0, -1.0) * SPEED;
+            self.camera.transform.position += Vector3::new(0.0, 0.0, -1.0) * SPEED;
         }
         if input.query_action("down") {
-            self.camera.transform.position += Vec3::new(0.0, 0.0, 1.0) * SPEED;
+            self.camera.transform.position += Vector3::new(0.0, 0.0, 1.0) * SPEED;
         }
 
         self.mouse_before = mouse;
