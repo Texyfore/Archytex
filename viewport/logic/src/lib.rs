@@ -2,12 +2,17 @@ mod camera;
 mod grid;
 mod input;
 mod model;
+mod transform;
 
 use crate::input::ElementKind;
 use camera::Camera;
 use grid::Grid;
 use input::InputMapper;
-use tools::{app::{event::Event, input::ButtonKind, App, MainLoop}, gfx::{Color, Graphics}, math::{Mat4, Vec3}};
+use tools::{app::{
+        event::Event,
+        input::{ButtonKind, KeyKind},
+        App, MainLoop,
+    }, gfx::{Color, Graphics}, math::{Zero, Vec2, Vec3}};
 
 pub struct Viewport {
     input_mapper: InputMapper,
@@ -30,6 +35,15 @@ impl MainLoop for Viewport {
                 Event::Initialized => {
                     self.input_mapper
                         .register_action("add_point", vec![ElementKind::Button(ButtonKind::Left)]);
+                    self.input_mapper
+                        .register_action("left", vec![ElementKind::Key(KeyKind::Left)]);
+                    self.input_mapper
+                        .register_action("right", vec![ElementKind::Key(KeyKind::Right)]);
+                    self.input_mapper
+                        .register_action("up", vec![ElementKind::Key(KeyKind::Up)]);
+                    self.input_mapper
+                        .register_action("down", vec![ElementKind::Key(KeyKind::Down)]);
+
                     self.inner_logic = Some(InnerLogic::new(app.graphics()));
                 }
                 Event::Resized(width, height) => {
@@ -42,7 +56,7 @@ impl MainLoop for Viewport {
         }
 
         if let Some(logic) = &mut self.inner_logic {
-            logic.process(app.graphics());
+            logic.process(&self.input_mapper, app.graphics());
         }
     }
 }
@@ -50,13 +64,18 @@ impl MainLoop for Viewport {
 struct InnerLogic {
     camera: Camera,
     grid: Grid,
+    mouse_before: Vec2,
 }
 
 impl InnerLogic {
     pub fn new(gfx: &Graphics) -> Self {
+        let mut camera = Camera::new(60.0, 0.1, 100.0);
+        camera.transform.position = Vec3::new(0.0, 5.0, 20.0);
+
         Self {
-            camera: Camera::new(60.0, 0.1, 100.0),
+            camera,
             grid: Grid::new(10, Color::new(0.5, 0.5, 0.5, 1.0), gfx),
+            mouse_before: Vec2::zero(),
         }
     }
 
@@ -65,10 +84,34 @@ impl InnerLogic {
             .calculate_projection(width as f32 / height as f32);
     }
 
-    pub fn process(&mut self, gfx: &Graphics) {
-        self.camera.view = Mat4::from_translation(Vec3::new(0.0, 5.0, 10.0));
+    pub fn process(&mut self, input: &InputMapper, gfx: &Graphics) {
+        let mouse = {
+            let (x, y) = input.query_mouse_pos();
+            Vec2::new(x, y)
+        };
 
-        gfx.set_camera_view(self.camera.view);
+        let delta = mouse - self.mouse_before;
+
+        
+
+        const SPEED: f32 = 0.05;
+
+        if input.query_action("left") {
+            self.camera.transform.position += Vec3::new(-1.0, 0.0, 0.0) * SPEED;
+        }
+        if input.query_action("right") {
+            self.camera.transform.position += Vec3::new(1.0, 0.0, 0.0) * SPEED;
+        }
+        if input.query_action("up") {
+            self.camera.transform.position += Vec3::new(0.0, 0.0, -1.0) * SPEED;
+        }
+        if input.query_action("down") {
+            self.camera.transform.position += Vec3::new(0.0, 0.0, 1.0) * SPEED;
+        }
+
+        self.mouse_before = mouse;
+
+        gfx.set_camera_view(self.camera.transform.calculate_matrix());
         gfx.set_camera_projection(self.camera.projection);
         self.grid.draw(gfx);
     }

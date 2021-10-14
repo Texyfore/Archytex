@@ -1,20 +1,21 @@
+use crate::transform::Transform;
 use tools::math::{perspective, Deg, Mat4, SquareMatrix};
 
 pub struct Camera {
+    pub transform: Transform,
     pub fov: f32,
     pub near: f32,
     pub far: f32,
-    pub view: Mat4,
     pub projection: Mat4,
 }
 
 impl Camera {
     pub fn new(fov: f32, near: f32, far: f32) -> Self {
         Self {
+            transform: Transform::identity(),
             fov,
             near,
             far,
-            view: Mat4::identity(),
             projection: Mat4::identity(),
         }
     }
