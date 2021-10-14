@@ -40,7 +40,7 @@ function App() {
       divider: "#f5f0f6",
     },
     shape: {
-      borderRadius: 4,
+      borderRadius: 1,
     },
     typography: {
       fontFamily: "Poppins",
