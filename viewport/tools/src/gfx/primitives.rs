@@ -2,7 +2,7 @@ use super::{
     gl::{self, IndexBuffer, VertexBuffer},
     Graphics,
 };
-use crate::math::Mat4;
+use crate::math::Matrix4;
 use bytemuck::{Pod, Zeroable};
 use image::{EncodableLayout, GenericImageView};
 
@@ -49,7 +49,7 @@ impl Mesh {
         }
     }
 
-    pub fn draw(&self, gfx: &Graphics, model: Mat4, texture: &Texture) {
+    pub fn draw(&self, gfx: &Graphics, model: Matrix4<f32>, texture: &Texture) {
         gfx.mesh_program.bind();
         gfx.mesh_program.upload_mat4("model", model);
 
@@ -88,7 +88,7 @@ impl LineMesh {
         Self { verts, vert_count }
     }
 
-    pub fn draw(&self, gfx: &Graphics, model: Mat4) {
+    pub fn draw(&self, gfx: &Graphics, model: Matrix4<f32>) {
         gfx.line_program.bind();
         gfx.line_program.upload_mat4("model", model);
 
