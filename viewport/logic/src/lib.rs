@@ -30,15 +30,19 @@ impl MainLoop for Viewport {
             match event {
                 Event::Initialized => {
                     self.input_mapper
-                        .register_action("add_point", vec![ElementKind::Button(ButtonKind::Left)]);
+                        .register_action("forward", vec![ElementKind::Key(KeyKind::Up)]);
+                    self.input_mapper
+                        .register_action("backward", vec![ElementKind::Key(KeyKind::Down)]);
                     self.input_mapper
                         .register_action("left", vec![ElementKind::Key(KeyKind::Left)]);
                     self.input_mapper
                         .register_action("right", vec![ElementKind::Key(KeyKind::Right)]);
                     self.input_mapper
-                        .register_action("up", vec![ElementKind::Key(KeyKind::Up)]);
+                        .register_action("up", vec![ElementKind::Key(KeyKind::LShift)]);
                     self.input_mapper
-                        .register_action("down", vec![ElementKind::Key(KeyKind::Down)]);
+                        .register_action("down", vec![ElementKind::Key(KeyKind::LControl)]);
+                    self.input_mapper
+                        .register_action("look", vec![ElementKind::Button(ButtonKind::Right)]);
 
                     self.inner_logic = Some(InnerLogic::new(app.graphics()));
                 }

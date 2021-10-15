@@ -75,9 +75,13 @@ impl App {
                                 ..
                             },
                         ..
-                    } => self
-                        .event_queue
-                        .push_back(Event::RawInput(RawInputKind::Key(state.into(), key.into()))),
+                    } => {
+                        self.event_queue
+                            .push_back(Event::RawInput(RawInputKind::Key(
+                                state.into(),
+                                key.into(),
+                            )));
+                    }
 
                     WindowEvent::MouseInput {
                         device_id: _,

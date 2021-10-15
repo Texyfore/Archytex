@@ -8,7 +8,7 @@ use camera::Camera;
 use grid::Grid;
 use tools::{
     gfx::{Color, Graphics},
-    math::{Vector2, Vector3, Zero},
+    math::{num_traits::clamp, Deg, Quaternion, Rad, Rotation3, Vector2, Vector3, Zero},
 };
 
 pub struct InnerLogic {
@@ -42,19 +42,38 @@ impl InnerLogic {
 
         let delta = mouse - self.mouse_before;
 
-        const SPEED: f32 = 0.05;
+        const SPEED: f32 = 0.1;
 
         if input.query_action("left") {
-            self.camera.transform.position += Vector3::new(-1.0, 0.0, 0.0) * SPEED;
+            self.camera.transform.position -= self.camera.transform.right() * SPEED;
         }
+
         if input.query_action("right") {
-            self.camera.transform.position += Vector3::new(1.0, 0.0, 0.0) * SPEED;
+            self.camera.transform.position += self.camera.transform.right() * SPEED;
         }
+
+        if input.query_action("forward") {
+            self.camera.transform.position += self.camera.transform.forward() * SPEED;
+        }
+
+        if input.query_action("backward") {
+            self.camera.transform.position -= self.camera.transform.forward() * SPEED;
+        }
+
         if input.query_action("up") {
-            self.camera.transform.position += Vector3::new(0.0, 0.0, -1.0) * SPEED;
+            self.camera.transform.position += Vector3::unit_y() * SPEED;
         }
+
         if input.query_action("down") {
-            self.camera.transform.position += Vector3::new(0.0, 0.0, 1.0) * SPEED;
+            self.camera.transform.position -= Vector3::unit_y() * SPEED;
+        }
+
+        if input.query_action("look") {
+            const SENSITIVITY: f32 = 0.6;
+            self.camera
+                .transform
+                .rotate(Vector3::new(-delta.y, -delta.x, 0.0) * SENSITIVITY);
+            self.camera.transform.rotation.x = clamp(self.camera.transform.rotation.x, -90.0, 90.0);
         }
 
         self.mouse_before = mouse;
