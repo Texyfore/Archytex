@@ -1,8 +1,8 @@
-use crate::math::Mat4;
 use super::{
     gl::{self, IndexBuffer, VertexBuffer},
     Graphics,
 };
+use crate::math::Matrix4;
 use bytemuck::{Pod, Zeroable};
 use image::{EncodableLayout, GenericImageView};
 
@@ -32,7 +32,7 @@ impl Mesh {
 
         let verts = {
             let buf = VertexBuffer::new(&gfx.gl);
-            buf.upload_verts(verts);
+            buf.upload_verts(bytemuck::cast_slice(verts));
             buf
         };
 
@@ -49,17 +49,52 @@ impl Mesh {
         }
     }
 
-    pub fn draw(&self, gfx: &Graphics, model: Mat4, texture: &Texture) {
+    pub fn draw(&self, gfx: &Graphics, model: Matrix4<f32>, texture: &Texture) {
         gfx.mesh_program.bind();
         gfx.mesh_program.upload_mat4("model", model);
 
-        gfx.vertex_layout.bind();
+        gfx.mesh_layout.bind();
         texture.inner.bind();
 
         gfx.gl
             .draw_triangles(&self.verts, &self.tris, self.idx_count);
 
-        gfx.vertex_layout.unbind();
+        gfx.mesh_layout.unbind();
+    }
+}
+
+#[repr(C)]
+#[derive(Default, Clone, Copy, Pod, Zeroable)]
+pub struct LineVert {
+    pub pos: [f32; 3],
+    pub color: [f32; 4],
+}
+
+pub struct LineMesh {
+    verts: VertexBuffer,
+    vert_count: i32,
+}
+
+impl LineMesh {
+    pub fn new(gfx: &Graphics, verts: &[LineVert]) -> Self {
+        let vert_count = verts.len() as i32;
+
+        let verts = {
+            let buf = VertexBuffer::new(&gfx.gl);
+            buf.upload_verts(bytemuck::cast_slice(verts));
+            buf
+        };
+
+        Self { verts, vert_count }
+    }
+
+    pub fn draw(&self, gfx: &Graphics, model: Matrix4<f32>) {
+        gfx.line_program.bind();
+        gfx.line_program.upload_mat4("model", model);
+
+        gfx.line_layout.bind();
+        gfx.gl.draw_lines(&self.verts, self.vert_count);
+        gfx.line_layout.unbind();
     }
 }
 
@@ -85,6 +120,12 @@ impl Default for Color {
 impl Color {
     pub fn new(r: f32, g: f32, b: f32, a: f32) -> Self {
         Self { r, g, b, a }
+    }
+}
+
+impl From<Color> for [f32; 4] {
+    fn from(color: Color) -> Self {
+        [color.r, color.g, color.b, color.a]
     }
 }
 

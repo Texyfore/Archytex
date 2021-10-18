@@ -3,14 +3,16 @@ mod primitives;
 
 pub use primitives::*;
 
-use crate::math::Mat4;
+use crate::math::Matrix4;
 use bytemuck::offset_of;
 use gl::{Program, Shader, ShaderKind, VertexLayout, VertexLayoutBuilder, WebGL};
 
 pub struct Graphics {
     gl: WebGL,
     mesh_program: Program,
-    vertex_layout: VertexLayout,
+    mesh_layout: VertexLayout,
+    line_program: Program,
+    line_layout: VertexLayout,
 }
 
 impl Default for Graphics {
@@ -28,17 +30,33 @@ impl Default for Graphics {
             ],
         );
 
-        let vertex_layout = VertexLayoutBuilder::default()
+        let mesh_layout = VertexLayoutBuilder::default()
             .with_stride(std::mem::size_of::<Vert>())
             .with_attribute(0, 3, offset_of!(Vert, pos))
             .with_attribute(1, 3, offset_of!(Vert, normal))
             .with_attribute(2, 2, offset_of!(Vert, uv))
             .build(&gl);
 
+        let line_program = Program::new(
+            &gl,
+            &[
+                Shader::new(&gl, ShaderKind::Vertex, include_str!("shaders/line.vert")),
+                Shader::new(&gl, ShaderKind::Fragment, include_str!("shaders/line.frag")),
+            ],
+        );
+
+        let line_layout = VertexLayoutBuilder::default()
+            .with_stride(std::mem::size_of::<LineVert>())
+            .with_attribute(0, 3, offset_of!(LineVert, pos))
+            .with_attribute(1, 4, offset_of!(LineVert, color))
+            .build(&gl);
+
         Self {
             gl,
             mesh_program,
-            vertex_layout,
+            mesh_layout,
+            line_program,
+            line_layout,
         }
     }
 }
@@ -46,19 +64,19 @@ impl Default for Graphics {
 impl Graphics {
     pub fn resize_viewport(&self, width: i32, height: i32) {
         self.gl.set_viewport_size(width, height);
-        self.mesh_program.upload_mat4(
-            "projection",
-            Mat4::perspective(
-                width as f32 / height as f32,
-                std::f32::consts::FRAC_2_PI,
-                0.1,
-                100.0,
-            ),
-        );
     }
 
     pub fn begin(&self) {
         self.gl.clear();
-        self.mesh_program.upload_mat4("view", Mat4::identity());
+    }
+
+    pub fn set_camera_projection(&self, matrix: Matrix4<f32>) {
+        self.mesh_program.upload_mat4("projection", matrix);
+        self.line_program.upload_mat4("projection", matrix);
+    }
+
+    pub fn set_camera_view(&self, matrix: Matrix4<f32>) {
+        self.mesh_program.upload_mat4("view", matrix);
+        self.line_program.upload_mat4("view", matrix);
     }
 }

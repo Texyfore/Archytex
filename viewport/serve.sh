@@ -1,1 +1,0 @@
-miniserve entry/pkg
