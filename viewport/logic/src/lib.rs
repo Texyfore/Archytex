@@ -30,17 +30,17 @@ impl MainLoop for Viewport {
             match event {
                 Event::Initialized => {
                     self.input_mapper
-                        .register_action("forward", vec![ElementKind::Key(KeyKind::Up)]);
+                        .register_action("forward", vec![ElementKind::Key(KeyKind::W)]);
                     self.input_mapper
-                        .register_action("backward", vec![ElementKind::Key(KeyKind::Down)]);
+                        .register_action("backward", vec![ElementKind::Key(KeyKind::S)]);
                     self.input_mapper
-                        .register_action("left", vec![ElementKind::Key(KeyKind::Left)]);
+                        .register_action("left", vec![ElementKind::Key(KeyKind::A)]);
                     self.input_mapper
-                        .register_action("right", vec![ElementKind::Key(KeyKind::Right)]);
+                        .register_action("right", vec![ElementKind::Key(KeyKind::D)]);
                     self.input_mapper
-                        .register_action("up", vec![ElementKind::Key(KeyKind::LShift)]);
+                        .register_action("up", vec![ElementKind::Key(KeyKind::E)]);
                     self.input_mapper
-                        .register_action("down", vec![ElementKind::Key(KeyKind::LControl)]);
+                        .register_action("down", vec![ElementKind::Key(KeyKind::Q)]);
                     self.input_mapper
                         .register_action("look", vec![ElementKind::Button(ButtonKind::Right)]);
 
@@ -56,7 +56,9 @@ impl MainLoop for Viewport {
         }
 
         if let Some(logic) = &mut self.inner_logic {
-            logic.process(&self.input_mapper, app.graphics());
+            logic.process(&self.input_mapper, app);
         }
+
+        self.input_mapper.clear();
     }
 }
