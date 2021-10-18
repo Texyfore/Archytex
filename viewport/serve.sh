@@ -1,2 +1,0 @@
-clear
-miniserve entry/pkg
