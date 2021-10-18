@@ -5,18 +5,20 @@ use crate::{gfx::Graphics, web_util};
 use event::{Event, RawInputKind};
 use std::collections::VecDeque;
 use winit::{
-    dpi::{PhysicalSize, Size},
-    event::{Event as WinitEvent, KeyboardInput, WindowEvent},
+    dpi::{PhysicalPosition, PhysicalSize, Size},
+    event::{Event as WinitEvent, KeyboardInput, MouseScrollDelta, WindowEvent},
     event_loop::{ControlFlow, EventLoop},
     platform::web::WindowBuilderExtWebSys,
-    window::WindowBuilder,
+    window::{Window, WindowBuilder},
 };
 
 const WINDOW_SIZE: (u32, u32) = (1024, 768);
 
 pub struct App {
+    window: Option<Window>,
     graphics: Graphics,
     event_queue: VecDeque<Event>,
+    cursor_visible: bool,
 }
 
 impl Default for App {
@@ -25,8 +27,10 @@ impl Default for App {
         let event_queue = VecDeque::new();
 
         Self {
+            window: None,
             graphics,
             event_queue,
+            cursor_visible: true,
         }
     }
 }
@@ -37,14 +41,16 @@ impl App {
 
         let event_loop = EventLoop::new();
 
-        let _window = WindowBuilder::new()
-            .with_canvas(Some(web_util::get_canvas()))
-            .with_inner_size(Size::Physical(PhysicalSize::new(
-                WINDOW_SIZE.0,
-                WINDOW_SIZE.1,
-            )))
-            .build(&event_loop)
-            .expect("Failed to create window");
+        self.window = Some(
+            WindowBuilder::new()
+                .with_canvas(Some(web_util::get_canvas()))
+                .with_inner_size(Size::Physical(PhysicalSize::new(
+                    WINDOW_SIZE.0,
+                    WINDOW_SIZE.1,
+                )))
+                .build(&event_loop)
+                .expect("Failed to create window"),
+        );
 
         self.event_queue.push_back(Event::Initialized);
 
@@ -57,17 +63,13 @@ impl App {
             *flow = ControlFlow::Poll;
 
             match event {
-                WinitEvent::WindowEvent {
-                    window_id: _,
-                    event,
-                } => match event {
+                WinitEvent::WindowEvent { event, .. } => match event {
                     WindowEvent::Resized(PhysicalSize { width, height }) => {
                         self.graphics.resize_viewport(width as i32, height as i32);
                         self.event_queue.push_back(Event::Resized(width, height));
                     }
 
                     WindowEvent::KeyboardInput {
-                        device_id: _,
                         input:
                             KeyboardInput {
                                 state,
@@ -83,28 +85,31 @@ impl App {
                             )));
                     }
 
-                    WindowEvent::MouseInput {
-                        device_id: _,
-                        state,
-                        button,
-                        ..
-                    } => self
-                        .event_queue
-                        .push_back(Event::RawInput(RawInputKind::Button(
-                            state.into(),
-                            button.into(),
-                        ))),
+                    WindowEvent::MouseInput { state, button, .. } => {
+                        self.event_queue
+                            .push_back(Event::RawInput(RawInputKind::Button(
+                                state.into(),
+                                button.into(),
+                            )))
+                    }
 
-                    WindowEvent::CursorMoved {
-                        device_id: _,
-                        position,
-                        ..
-                    } => self
-                        .event_queue
-                        .push_back(Event::RawInput(RawInputKind::Movement(
-                            position.x as f32,
-                            position.y as f32,
-                        ))),
+                    WindowEvent::CursorMoved { position, .. } => {
+                        self.event_queue
+                            .push_back(Event::RawInput(RawInputKind::Movement(
+                                position.x as f32,
+                                position.y as f32,
+                            )))
+                    }
+
+                    WindowEvent::MouseWheel { delta, .. } => {
+                        self.event_queue
+                            .push_back(Event::RawInput(RawInputKind::Wheel(match delta {
+                                MouseScrollDelta::LineDelta(y, ..) => y.signum(),
+                                MouseScrollDelta::PixelDelta(PhysicalPosition { y, .. }) => {
+                                    y.signum() as f32
+                                }
+                            })));
+                    }
 
                     _ => {}
                 },
@@ -125,6 +130,15 @@ impl App {
 
     pub fn graphics(&self) -> &Graphics {
         &self.graphics
+    }
+
+    pub fn set_cursor_visible(&mut self, visible: bool) {
+        if self.cursor_visible != visible {
+            if let Some(window) = &self.window {
+                window.set_cursor_visible(visible);
+            }
+        }
+        self.cursor_visible = visible;
     }
 }
 
