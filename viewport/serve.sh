@@ -1,1 +1,2 @@
+clear
 miniserve entry/pkg
