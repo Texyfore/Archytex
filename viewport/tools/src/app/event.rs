@@ -10,4 +10,5 @@ pub enum RawInputKind {
     Key(InputState, KeyKind),
     Button(InputState, ButtonKind),
     Movement(f32, f32),
+    Wheel(f32),
 }

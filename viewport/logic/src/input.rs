@@ -9,6 +9,7 @@ pub struct InputMapper {
     key_state: HashMap<KeyKind, InputState>,
     button_state: HashMap<ButtonKind, InputState>,
     mouse_pos: (f32, f32),
+    wheel_delta: f32,
     actions: HashMap<String, Action>,
 }
 
@@ -24,7 +25,14 @@ impl InputMapper {
             RawInputKind::Movement(x, y) => {
                 self.mouse_pos = (x, y);
             }
+            RawInputKind::Wheel(delta) => {
+                self.wheel_delta = delta;
+            }
         };
+    }
+
+    pub fn clear(&mut self) {
+        self.wheel_delta = 0.0;
     }
 
     pub fn register_action(&mut self, name: &str, elements: Vec<ElementKind>) {
@@ -60,6 +68,10 @@ impl InputMapper {
 
     pub fn query_mouse_pos(&self) -> (f32, f32) {
         self.mouse_pos
+    }
+
+    pub fn query_wheel_delta(&self) -> f32 {
+        self.wheel_delta
     }
 
     fn query_action_inner(&self, action: &Action) -> bool {

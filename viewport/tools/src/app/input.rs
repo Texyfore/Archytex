@@ -34,7 +34,7 @@ impl From<ElementState> for InputState {
     }
 }
 
-keys![LShift, LControl, Up, Down, Left, Right,];
+keys![LShift, LControl, W, S, A, D, E, Q,];
 
 #[derive(PartialEq, Eq, Hash)]
 pub enum ButtonKind {
