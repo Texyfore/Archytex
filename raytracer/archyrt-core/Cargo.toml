@@ -8,6 +8,7 @@ edition = "2018"
 [dependencies]
 image = "0.23.14"
 gltf = "0.16.0"
+anyhow = "1.0.44"
 
 [dev-dependencies]
 criterion = "0.3.5"
