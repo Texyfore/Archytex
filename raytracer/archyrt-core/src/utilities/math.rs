@@ -47,6 +47,20 @@ impl<const N: usize> Vector<N> {
         }
         o
     }
+    pub fn min(self, rhs: Self) -> Self{
+        let mut o = self;
+        for (a, b) in o.inner.iter_mut().zip(rhs.inner){
+            *a = a.min(b);
+        }
+        o
+    }
+    pub fn max(self, rhs: Self) -> Self{
+        let mut o = self;
+        for (a, b) in o.inner.iter_mut().zip(rhs.inner){
+            *a = a.max(b);
+        }
+        o
+    }
 }
 
 impl<const N: usize> Default for Vector<N> {
