@@ -70,7 +70,9 @@ impl AABB {
             return None;
         }
         let tmin = tmin.max(tzmin);
-        let tmax = tmax.min(tzmax);
+        if tmin < 0.0 {
+            return None;
+        }
         Some(tmin)
     }
 }
