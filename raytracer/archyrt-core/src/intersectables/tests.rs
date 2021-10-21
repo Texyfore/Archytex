@@ -143,3 +143,33 @@ mod triangle {
         assert!(intersection.is_none());
     }
 }
+
+mod aabb{
+    use crate::{intersectables::aabb::AABB, utilities::{math::Vec3, ray::Ray}};
+
+    #[test]
+    fn intersect() {
+        let ray = Ray::new(
+            Vec3::default(),
+            Vec3::new(0.0, 0.0, 1.0)
+        );
+        let aabb = AABB::new(Vec3::new(-1.0, -1.0, 5.0), Vec3::new(1.0, 1.0, 7.0));
+        assert!(aabb.intersect(ray).is_some());
+    }
+    #[test]
+    fn intersect_fail() {
+        let ray = Ray::new(
+            Vec3::default(),
+            Vec3::new(0.0, 1.0, 0.0)
+        );
+        let aabb = AABB::new(Vec3::new(-1.0, -1.0, 5.0), Vec3::new(1.0, 1.0, 7.0));
+        assert!(aabb.intersect(ray).is_none());
+
+        let ray = Ray::new(
+            Vec3::default(),
+            Vec3::new(0.0, 0.0, -1.0)
+        );
+        let aabb = AABB::new(Vec3::new(-1.0, -1.0, 5.0), Vec3::new(1.0, 1.0, 7.0));
+        assert!(aabb.intersect(ray).is_none());
+    }
+}
