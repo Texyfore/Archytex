@@ -8,25 +8,10 @@ pub struct AABB {
     pub max: Vec3,
 }
 
-fn min_vec(a: Vec3, b: Vec3) -> Vec3 {
-    let mut o = a;
-    for (a, b) in o.inner.iter_mut().zip(b.inner) {
-        *a = a.min(b);
-    }
-    o
-}
-fn max_vec(a: Vec3, b: Vec3) -> Vec3 {
-    let mut o = a;
-    for (a, b) in o.inner.iter_mut().zip(b.inner) {
-        *a = a.max(b);
-    }
-    o
-}
-
 impl AABB {
     pub fn new(a: Vec3, b: Vec3) -> AABB {
-        let min = min_vec(a, b);
-        let max = max_vec(a, b);
+        let min = a.min(b);
+        let max = a.max(b);
 
         Self { min, max }
     }
