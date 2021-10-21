@@ -1,17 +1,10 @@
 import React from "react";
-import { Close, Inbox, MailOutline, MenuOutlined } from "@mui/icons-material";
-import {
-  Box,
-  Divider,
-  IconButton,
-  List,
-  ListItem,
-  ListItemIcon,
-  ListItemText,
-} from "@mui/material";
+import { Close, MenuOutlined } from "@mui/icons-material";
+import { Box, IconButton } from "@mui/material";
 import MuiDrawer from "@mui/material/Drawer";
 import { styled, Theme, CSSObject } from "@mui/material/styles";
 import DashboardUserData from "./DashboardUserData";
+import DashboardControllerButtons from "./DashboardControllerButtons";
 
 const drawerWidth = 300;
 
@@ -85,36 +78,18 @@ export default function DashboardMiniDrawer({
       sx={{ display: { xs: "none", md: "flex", lg: "none" } }}
     >
       <DrawerHeader />
+
       <DrawerHeader>
         <IconButton onClick={toggleDrawerOpen}>
           {open ? <Close /> : <MenuOutlined />}
         </IconButton>
       </DrawerHeader>
+
       <Box width='100%' display={open ? "block" : "none"}>
         <DashboardUserData />
       </Box>
-      <Divider />
-      <List>
-        {["Inbox", "Starred", "Send email", "Drafts"].map((text, index) => (
-          <ListItem button key={text}>
-            <ListItemIcon>
-              {index % 2 === 0 ? <Inbox /> : <MailOutline />}
-            </ListItemIcon>
-            <ListItemText primary={text} />
-          </ListItem>
-        ))}
-      </List>
-      <Divider />
-      <List>
-        {["All mail", "Trash", "Spam"].map((text, index) => (
-          <ListItem button key={text}>
-            <ListItemIcon>
-              {index % 2 === 0 ? <Inbox /> : <MailOutline />}
-            </ListItemIcon>
-            <ListItemText primary={text} />
-          </ListItem>
-        ))}
-      </List>
+
+      <DashboardControllerButtons />
     </Drawer>
   );
 }

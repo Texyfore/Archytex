@@ -1,20 +1,24 @@
 import React from "react";
-import { Paper, Box } from "@mui/material";
+import { Paper } from "@mui/material";
 import { styled } from "@mui/material/styles";
 import DashboardUserData from "./DashboardUserData";
+import DashboardControllerButtons from "./DashboardControllerButtons";
+import DashboardLogOut from "./DashboardLogOut";
 
 const ColumnPaper = styled(Paper)(({ theme }) => ({
   width: "100%",
   height: "100%",
   display: "flex",
   flexDirection: "column",
+  justifyContent: "space-between",
 }));
 
 export default function DashboardLeftContent() {
   return (
-    <ColumnPaper sx={{ display: "flex" }}>
+    <ColumnPaper>
       <DashboardUserData />
-      {/* <DashboardControllerButtons /> */}
+      <DashboardControllerButtons />
+      <DashboardLogOut />
     </ColumnPaper>
   );
 }
