@@ -37,8 +37,8 @@ function DashboardAppBar({ open, handleOpenChange }: AppBarProps) {
           <ArchytexIcon />
           <Typography
             variant='h6'
-            component='div'
-            sx={{ display: { xs: "none", sm: "block" } }}
+            component='h2'
+            sx={{ display: { xs: "none", sm: "block" }, paddingTop: 0.4 }}
           >
             ARCHYTEX
           </Typography>
@@ -54,9 +54,9 @@ function DashboardAppBar({ open, handleOpenChange }: AppBarProps) {
         </Typography>
         <Box sx={{ display: "flex" }}>
           <Typography
-            variant='h6'
-            component='div'
-            sx={{ display: { xs: "none", sm: "block" } }}
+            fontSize={22}
+            fontWeight={400}
+            sx={{ display: { xs: "none", md: "block" }, paddingTop: 0.4 }}
           >
             Test User
           </Typography>

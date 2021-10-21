@@ -23,7 +23,7 @@ function App() {
       },
       background: {
         default: "#0c0c0c",
-        paper: "#1b1b1a",
+        paper: "#1E2227",
       },
       error: {
         main: "#fb4d3d",
