@@ -3,6 +3,7 @@ use crate::utilities::{
     ray::{Intersectable, Intersection, IntersectionBuilder, Ray},
 };
 
+#[derive(Clone, Copy)]
 pub struct AABB {
     pub min: Vec3,
     pub max: Vec3,
@@ -14,6 +15,12 @@ impl AABB {
         let max = a.max(b);
 
         Self { min, max }
+    }
+    pub fn union(self, rhs: Self) -> AABB{
+        AABB{
+            min: self.min.min(rhs.min),
+            max: self.max.max(rhs.max),
+        }
     }
 }
 
