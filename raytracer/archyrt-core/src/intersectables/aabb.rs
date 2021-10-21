@@ -94,11 +94,11 @@ impl Intersectable for AABBRay {
             .max_by(|a, b| a.1.partial_cmp(&b.1).unwrap())
             .unwrap();
         let normal = if d[i] > 0.0 {
-            let mut v = Vec3::default();
+            let mut v = Vec3::from_single(0.0);
             v[i] = 1.0;
             v
         } else {
-            let mut v = Vec3::default();
+            let mut v = Vec3::from_single(0.0);
             v[i] = -1.0;
             v
         };
