@@ -50,6 +50,7 @@ export default function CollapsibleTable() {
     };
 
   return (
+    //TODO: make the container the same height as its parent component
     <TableContainer sx={{ maxHeight: "600px" }}>
       <Table stickyHeader>
         <TableHead>
