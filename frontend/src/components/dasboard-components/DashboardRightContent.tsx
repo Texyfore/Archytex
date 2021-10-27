@@ -1,7 +1,8 @@
 import React from "react";
-import { Paper, Box, Typography, Button } from "@mui/material";
+import { Paper, Box, Typography } from "@mui/material";
 import { styled } from "@mui/material/styles";
 import { blue } from "@mui/material/colors";
+import ProjectBrowser from "./ProjectBrowser";
 
 const ColumnPaper = styled(Paper)(({ theme }) => ({
   width: "100%",
@@ -26,6 +27,7 @@ export default function DashboardRightContent() {
           PROJECTS
         </Typography>
       </ColumnHeader>
+      <ProjectBrowser />
     </ColumnPaper>
   );
 }
