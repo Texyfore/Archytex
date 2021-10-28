@@ -70,6 +70,7 @@ function DashboardAppBar({ open, handleOpenChange }: AppBarProps) {
         </Tooltip>
         <Typography
           variant='h6'
+          fontSize='.9em'
           component='div'
           sx={{
             display: { xs: "none", sm: "block" },
