@@ -1,18 +1,11 @@
 import React, { useState } from "react";
-import { styled } from "@mui/material/styles";
-import Box from "@mui/material/Box";
-import { Grid } from "@mui/material";
+import { styled, useTheme } from "@mui/material/styles";
+import { Grid, useMediaQuery } from "@mui/material";
 import DashboardAppBar from "../components/dasboard-components/DashboardAppBar";
 import DashboardMiniDrawer from "../components/dasboard-components/DashboardMiniDrawer";
 import DashboardSwipeableDrawer from "../components/dasboard-components/DashboardSwipeableDrawer";
 import DashboardLeftContent from "../components/dasboard-components/DashboardLeftContent";
 import DashboardRightContent from "../components/dasboard-components/DashboardRightContent";
-
-const Offset = styled("div")(({ theme }) => ({
-  padding: theme.spacing(0, 1),
-  // necessary for content to be below app bar
-  ...theme.mixins.toolbar,
-}));
 
 const MaxHeightGrid = styled(Grid)(({ theme }) => ({
   marginTop: 56,
@@ -27,7 +20,7 @@ const MaxHeightGrid = styled(Grid)(({ theme }) => ({
   },
 }));
 
-const MyGridItem = styled(Grid)(({ theme }) => ({
+const CalcHeightGridItem = styled(Grid)(({ theme }) => ({
   height: `calc(100vh - 56px)`,
   [`${theme.breakpoints.up("xs")} and (orientation: landscape)`]: {
     height: `calc(100vh - 48px)`,
@@ -40,12 +33,15 @@ const MyGridItem = styled(Grid)(({ theme }) => ({
 export default function Dashboard() {
   const [open, setOpen] = useState(false);
 
+  const theme = useTheme();
+  const isContainer = useMediaQuery(theme.breakpoints.up("lg"));
+
   function handleOpenChange(value: boolean): void {
     setOpen(value);
   }
 
   return (
-    <MaxHeightGrid container direction='column' display='flex' key='left'>
+    <React.Fragment>
       <DashboardAppBar open={open} handleOpenChange={handleOpenChange} />
 
       <DashboardSwipeableDrawer
@@ -53,23 +49,40 @@ export default function Dashboard() {
         handleOpenChange={handleOpenChange}
       />
 
-      <DashboardMiniDrawer open={open} handleOpenChange={handleOpenChange} />
-
-      <Grid
-        item
+      <MaxHeightGrid
         container
-        component='main'
-        sx={{ flexGrow: 1 }}
-        columnSpacing={{ xs: 0, lg: 10 }}
-        padding={{ lg: 4 }}
+        display='flex'
+        direction={{ lg: "column" }}
+        key='left'
       >
-        <MyGridItem item xs={12} md={4} display={{ xs: "none", lg: "flex" }}>
-          <DashboardLeftContent />
-        </MyGridItem>
-        <MyGridItem item xs={12} lg={8}>
-          <DashboardRightContent />
-        </MyGridItem>
-      </Grid>
-    </MaxHeightGrid>
+        <Grid item>
+          <DashboardMiniDrawer
+            open={open}
+            handleOpenChange={handleOpenChange}
+          />
+        </Grid>
+
+        <Grid
+          item
+          container={isContainer}
+          component='main'
+          sx={{ flexGrow: 1 }}
+          columnSpacing={{ xs: 0, lg: 10 }}
+          padding={{ lg: 4 }}
+        >
+          <CalcHeightGridItem
+            item
+            xs={12}
+            md={4}
+            display={{ xs: "none", lg: "flex" }}
+          >
+            <DashboardLeftContent />
+          </CalcHeightGridItem>
+          <CalcHeightGridItem item xs={12} lg={8}>
+            <DashboardRightContent />
+          </CalcHeightGridItem>
+        </Grid>
+      </MaxHeightGrid>
+    </React.Fragment>
   );
 }

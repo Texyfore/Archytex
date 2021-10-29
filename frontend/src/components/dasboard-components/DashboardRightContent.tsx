@@ -18,9 +18,6 @@ const ColumnHeader = styled(Box)(({ theme }) => ({
   justifyContent: "center",
   alignItems: "center",
 }));
-// const MainProjectBrowser = styled(ProjectBrowser)(({ theme }) => ({
-//   height: "calc(100% - 50px)",
-// }));
 
 export default function DashboardRightContent() {
   return (

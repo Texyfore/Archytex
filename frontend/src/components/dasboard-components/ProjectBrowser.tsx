@@ -38,7 +38,16 @@ const rows = [
 ];
 
 const ProjectTableContainer = styled(TableContainer)(({ theme }) => ({
-  height: "calc(100% - 50px)",
+  height: `calc(100vh - 56px - 50px)`,
+  [`${theme.breakpoints.up("xs")} and (orientation: landscape)`]: {
+    height: `calc(100vh - 48px - 50px)`,
+  },
+  [theme.breakpoints.up("sm")]: {
+    height: `calc(100vh - 64px - 50px)`,
+  },
+  [theme.breakpoints.up("lg")]: {
+    height: `calc(100% - 50px)`,
+  },
 }));
 
 export default function CollapsibleTable() {
@@ -50,7 +59,6 @@ export default function CollapsibleTable() {
     };
 
   return (
-    //TODO: make the container the same height as its parent component
     <ProjectTableContainer>
       <Table stickyHeader>
         <TableHead>
