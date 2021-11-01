@@ -24,7 +24,7 @@ export default function DashboardUserData() {
     <ContentBox
       sx={{
         paddingTop: { xs: 5, md: 0, lg: 5, xl: 6 },
-        marginBottom: { md: 4, lg: 0 },
+        marginBottom: { xs: 2, md: 4, lg: 2 },
         gap: { lg: 2 },
       }}
     >

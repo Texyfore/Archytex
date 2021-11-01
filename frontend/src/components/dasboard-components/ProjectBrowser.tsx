@@ -63,16 +63,18 @@ export default function CollapsibleTable() {
       <Table stickyHeader>
         <TableHead>
           <TableRow>
-            <TableCell width='10%'>
+            <TableCell width='10%' sx={{ border: "none" }}>
               <Box height='24px' width='24px' padding='10px' />
             </TableCell>
-            <TableCell>NAME</TableCell>
-            <TableCell align='right'>CREATED</TableCell>
+            <TableCell sx={{ border: "none" }}>NAME</TableCell>
+            <TableCell align='right' sx={{ border: "none" }}>
+              CREATED
+            </TableCell>
           </TableRow>
         </TableHead>
         <TableBody>
           <TableRow>
-            <TableCell padding='none' colSpan={3}>
+            <TableCell padding='none' colSpan={3} sx={{ border: "none" }}>
               {rows.map((row, index) => (
                 <ProjectRow
                   key={index}

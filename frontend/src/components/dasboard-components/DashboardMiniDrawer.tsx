@@ -75,7 +75,16 @@ export default function DashboardMiniDrawer({
     <Drawer
       variant='permanent'
       open={open}
-      sx={{ display: { xs: "none", md: "flex", lg: "none" } }}
+      sx={{
+        display: { xs: "none", md: "flex", lg: "none" },
+        // filter: "drop-shadow(0px 2px 8px rgba(0,0,0,0.5))",
+      }}
+      PaperProps={{
+        sx: {
+          border: "none",
+          filter: "drop-shadow(4px 0px 4px rgba(0,0,0,0.5))",
+        },
+      }}
     >
       <DrawerHeader />
 

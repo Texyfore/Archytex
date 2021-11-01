@@ -8,7 +8,7 @@ export default function ArchytexIcon() {
       src={logo}
       alt='ARCHYTEX_LOGO'
       variant='square'
-      sx={{ marginRight: 2 }}
+      sx={{ height: 35, width: 35, marginRight: 1 }}
     />
   );
 }

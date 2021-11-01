@@ -1,11 +1,5 @@
 import React from "react";
-import {
-  Close,
-  Logout,
-  MenuOutlined,
-  PersonAdd,
-  Settings,
-} from "@mui/icons-material";
+import { Close, Logout, MenuOutlined } from "@mui/icons-material";
 import {
   AppBar,
   Avatar,
@@ -17,7 +11,6 @@ import {
   Button,
   Menu,
   MenuItem,
-  Divider,
   ListItemIcon,
 } from "@mui/material";
 import ArchytexIcon from "../ArchytexIcon";
@@ -25,6 +18,7 @@ import { styled } from "@mui/material/styles";
 
 const CustomAppBar = styled(AppBar)(({ theme }) => ({
   zIndex: theme.zIndex.drawer + 1,
+  filter: "drop-shadow(0px 2px 4px rgba(0,0,0,0.5))",
 }));
 
 interface AppBarProps {
@@ -49,7 +43,7 @@ function DashboardAppBar({ open, handleOpenChange }: AppBarProps) {
   };
 
   return (
-    <CustomAppBar position='fixed'>
+    <CustomAppBar position='fixed' elevation={0}>
       <Toolbar sx={{ justifyContent: "space-between" }}>
         <Box display={{ xs: "flex", md: "none" }}>
           <IconButton onClick={handleDrawerToggle}>
@@ -57,20 +51,21 @@ function DashboardAppBar({ open, handleOpenChange }: AppBarProps) {
           </IconButton>
         </Box>
         <Tooltip title='Archytex version 0.0.1' placement='right'>
-          <Box display={{ xs: "none", md: "flex" }}>
+          <Box display={{ xs: "none", md: "flex" }} alignItems='center'>
             <ArchytexIcon />
             <Typography
               variant='h6'
               component='h2'
-              sx={{ display: { xs: "none", sm: "block" }, paddingTop: 0.5 }}
+              fontSize='1em'
+              sx={{ display: { xs: "none", sm: "block" } }}
             >
               ARCHYTEX
             </Typography>
           </Box>
         </Tooltip>
         <Typography
-          variant='h6'
-          fontSize='.9em'
+          variant='h3'
+          fontSize='1.1em'
           component='div'
           sx={{
             display: { xs: "none", sm: "block" },
@@ -91,9 +86,7 @@ function DashboardAppBar({ open, handleOpenChange }: AppBarProps) {
             }}
             color='inherit'
           >
-            <Typography fontSize={20} fontWeight={400}>
-              Test User
-            </Typography>
+            <Typography fontSize='1.2em'>Test User</Typography>
           </Button>
           <IconButton onClick={handleAvatarMenuClick}>
             <Avatar sx={{ backgroundColor: "#39A0ED" }} />
@@ -106,8 +99,9 @@ function DashboardAppBar({ open, handleOpenChange }: AppBarProps) {
               elevation: 0,
               sx: {
                 overflow: "visible",
-                filter: "drop-shadow(0px 2px 8px rgba(0,0,0,0.32))",
+                filter: "drop-shadow(0px 2px 8px rgba(0,0,0,0.5))",
                 mt: 1.5,
+                borderRadius: 2,
                 "&:before": {
                   content: '""',
                   display: "block",
@@ -116,7 +110,7 @@ function DashboardAppBar({ open, handleOpenChange }: AppBarProps) {
                   right: 25,
                   width: 10,
                   height: 10,
-                  bgcolor: "background.paper",
+                  bgcolor: "paper.background",
                   transform: "translateY(-50%) rotate(45deg)",
                   zIndex: 0,
                 },
