@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en" style="height: 100%; overflow: hidden;">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Archytex debugger</title>
+</head>
+
+<body style="height: 100%; background-color: black;" oncontextmenu="return false;">
+    <table>
+        <tr>
+            <td style="text-align: center;">
+                <canvas id="viewport" style="border: 1px solid white; margin: auto;"></canvas>
+            </td>
+        </tr>
+        <tr>
+            <td style="text-align: center;">
+                <textarea id="message-text" cols="30" rows="10" style="resize: none;"></textarea>
+            </td>
+        </tr>
+        <tr>
+            <td style="text-align: center;">
+                <button onclick="sendInputMessage();">Send Message</button>
+            </td>
+        </tr>
+    </table>
+
+    <script type="module">
+        import init, { main, sendMessage } from "./pkg/entry.js";
+
+        init().then(() => {
+            main();
+        })
+
+        window.sendInputMessage = function (message) {
+            let area = document.getElementById("message-text");
+            sendMessage(area.value);
+            area.value = "";
+        }
+    </script>
+</body>
+
+</html>

@@ -1,4 +1,5 @@
+.vscode
 **/*.rs.bk
 target
 Cargo.lock
-.vscode
+out
