@@ -12,7 +12,7 @@ use winit::{
     window::{Window, WindowBuilder},
 };
 
-const WINDOW_SIZE: (u32, u32) = (1024, 768);
+const WINDOW_SIZE: (u32, u32) = (640, 480);
 
 pub struct App {
     window: Option<Window>,
