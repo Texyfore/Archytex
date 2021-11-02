@@ -50,30 +50,34 @@ function DashboardAppBar({ open, handleOpenChange }: AppBarProps) {
             {open ? <Close /> : <MenuOutlined />}
           </IconButton>
         </Box>
-        <Tooltip title='Archytex version 0.0.1' placement='right'>
-          <Box display={{ xs: "none", md: "flex" }} alignItems='center'>
-            <ArchytexIcon />
-            <Typography
-              variant='h6'
-              component='h2'
-              fontSize='1em'
-              sx={{ display: { xs: "none", sm: "block" } }}
-            >
-              ARCHYTEX
-            </Typography>
-          </Box>
-        </Tooltip>
-        <Typography
-          variant='h3'
-          fontSize='1.1em'
-          component='div'
-          sx={{
-            display: { xs: "none", sm: "block" },
-          }}
-        >
-          DASHBOARD
-        </Typography>
-        <Box sx={{ display: "flex" }}>
+        <Box width='100%' height='100%'>
+          <Tooltip title='Archytex version 0.0.1' placement='bottom-start'>
+            <Box display={{ xs: "none", md: "flex" }} alignItems='center'>
+              <ArchytexIcon />
+              <Typography
+                variant='h6'
+                component='h2'
+                fontSize='1em'
+                sx={{ display: { xs: "none", sm: "block" } }}
+              >
+                ARCHYTEX
+              </Typography>
+            </Box>
+          </Tooltip>
+        </Box>
+        <Box marginX={2} height='100%' display='flex' justifyContent='center'>
+          <Typography
+            variant='h3'
+            fontSize='1.1em'
+            component='div'
+            sx={{
+              display: { xs: "none", sm: "block" },
+            }}
+          >
+            DASHBOARD
+          </Typography>
+        </Box>
+        <Box width='100%' height='100%' display='flex' justifyContent='end'>
           <Button
             onClick={handleAvatarMenuClick}
             variant='text'
@@ -86,7 +90,14 @@ function DashboardAppBar({ open, handleOpenChange }: AppBarProps) {
             }}
             color='inherit'
           >
-            <Typography fontSize='1.2em'>Test User</Typography>
+            <Typography
+              fontSize='1.2em'
+              noWrap
+              width={{ md: "280px", lg: "400px", xl: "500px" }}
+            >
+              Lorem Ipsum Dolor Sit Amet and other things to make this really
+              long
+            </Typography>
           </Button>
           <IconButton onClick={handleAvatarMenuClick}>
             <Avatar sx={{ backgroundColor: "#39A0ED" }} />
