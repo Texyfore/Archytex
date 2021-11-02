@@ -1,5 +1,11 @@
 import React from "react";
-import { Close, Logout, MenuOutlined } from "@mui/icons-material";
+import {
+  AccountCircle,
+  Close,
+  CreditCard,
+  Logout,
+  MenuOutlined,
+} from "@mui/icons-material";
 import {
   AppBar,
   Avatar,
@@ -12,6 +18,7 @@ import {
   Menu,
   MenuItem,
   ListItemIcon,
+  Divider,
 } from "@mui/material";
 import ArchytexIcon from "../ArchytexIcon";
 import { styled } from "@mui/material/styles";
@@ -79,14 +86,17 @@ function DashboardAppBar({ open, handleOpenChange }: AppBarProps) {
         </Box>
         <Box width='100%' height='100%' display='flex' justifyContent='end'>
           <Button
-            onClick={handleAvatarMenuClick}
             variant='text'
             disableRipple
             disableFocusRipple
+            disabled
             sx={{
               marginY: 1,
               textTransform: "none",
               display: { xs: "none", md: "block" },
+              ":disabled": {
+                color: "inherit",
+              },
             }}
             color='inherit'
           >
@@ -112,6 +122,7 @@ function DashboardAppBar({ open, handleOpenChange }: AppBarProps) {
                 overflow: "visible",
                 filter: "drop-shadow(0px 2px 8px rgba(0,0,0,0.5))",
                 mt: 1.5,
+                border: "2px solid #14151A",
                 borderRadius: 2,
                 "&:before": {
                   content: '""',
@@ -130,6 +141,19 @@ function DashboardAppBar({ open, handleOpenChange }: AppBarProps) {
             transformOrigin={{ horizontal: "right", vertical: "top" }}
             anchorOrigin={{ horizontal: "right", vertical: "bottom" }}
           >
+            <MenuItem>
+              <ListItemIcon>
+                <AccountCircle fontSize='small' />
+              </ListItemIcon>
+              Account
+            </MenuItem>
+            <MenuItem>
+              <ListItemIcon>
+                <CreditCard fontSize='small' />
+              </ListItemIcon>
+              Subscription
+            </MenuItem>
+            <Divider />
             <MenuItem>
               <ListItemIcon>
                 <Logout fontSize='small' />
