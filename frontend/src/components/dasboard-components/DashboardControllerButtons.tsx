@@ -11,19 +11,19 @@ export default function DashboardControllerButtons() {
   const buttonList = [
     {
       text: "Launch Archytex",
-      icon: <PlayCircleOutlined sx={{ fontSize: { lg: 30, xl: 40 } }} />,
+      icon: <PlayCircleOutlined sx={{ fontSize: { lg: 30, xl: 35 } }} />,
     },
     {
       text: "Projects",
-      icon: <Collections sx={{ fontSize: { lg: 30, xl: 36 } }} />,
+      icon: <Collections sx={{ fontSize: { lg: 30, xl: 32 } }} />,
     },
     {
       text: "Community portfolio",
-      icon: <ColorLens sx={{ fontSize: { lg: 30, xl: 36 } }} />,
+      icon: <ColorLens sx={{ fontSize: { lg: 30, xl: 32 } }} />,
     },
     {
       text: "Settings",
-      icon: <Settings sx={{ fontSize: { lg: 30, xl: 36 } }} />,
+      icon: <Settings sx={{ fontSize: { lg: 30, xl: 32 } }} />,
     },
   ];
 

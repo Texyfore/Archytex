@@ -1,10 +1,10 @@
 import React from "react";
 import {
+  AccountCircle,
   Close,
+  CreditCard,
   Logout,
   MenuOutlined,
-  PersonAdd,
-  Settings,
 } from "@mui/icons-material";
 import {
   AppBar,
@@ -17,14 +17,15 @@ import {
   Button,
   Menu,
   MenuItem,
-  Divider,
   ListItemIcon,
+  Divider,
 } from "@mui/material";
 import ArchytexIcon from "../ArchytexIcon";
 import { styled } from "@mui/material/styles";
 
 const CustomAppBar = styled(AppBar)(({ theme }) => ({
   zIndex: theme.zIndex.drawer + 1,
+  filter: "drop-shadow(0px 2px 4px rgba(0,0,0,0.5))",
 }));
 
 interface AppBarProps {
@@ -49,49 +50,63 @@ function DashboardAppBar({ open, handleOpenChange }: AppBarProps) {
   };
 
   return (
-    <CustomAppBar position='fixed'>
+    <CustomAppBar position='fixed' elevation={0}>
       <Toolbar sx={{ justifyContent: "space-between" }}>
         <Box display={{ xs: "flex", md: "none" }}>
           <IconButton onClick={handleDrawerToggle}>
             {open ? <Close /> : <MenuOutlined />}
           </IconButton>
         </Box>
-        <Tooltip title='Archytex version 0.0.1' placement='right'>
-          <Box display={{ xs: "none", md: "flex" }}>
-            <ArchytexIcon />
-            <Typography
-              variant='h6'
-              component='h2'
-              sx={{ display: { xs: "none", sm: "block" }, paddingTop: 0.5 }}
-            >
-              ARCHYTEX
-            </Typography>
-          </Box>
-        </Tooltip>
-        <Typography
-          variant='h6'
-          component='div'
-          sx={{
-            display: { xs: "none", sm: "block" },
-          }}
-        >
-          DASHBOARD
-        </Typography>
-        <Box sx={{ display: "flex" }}>
+        <Box width='100%' height='100%'>
+          <Tooltip title='Archytex version 0.0.1' placement='bottom-start'>
+            <Box display={{ xs: "none", md: "flex" }} alignItems='center'>
+              <ArchytexIcon />
+              <Typography
+                variant='h6'
+                component='h2'
+                fontSize='1em'
+                sx={{ display: { xs: "none", sm: "block" } }}
+              >
+                ARCHYTEX
+              </Typography>
+            </Box>
+          </Tooltip>
+        </Box>
+        <Box marginX={2} height='100%' display='flex' justifyContent='center'>
+          <Typography
+            variant='h3'
+            fontSize='1.1em'
+            component='div'
+            sx={{
+              display: { xs: "none", sm: "block" },
+            }}
+          >
+            DASHBOARD
+          </Typography>
+        </Box>
+        <Box width='100%' height='100%' display='flex' justifyContent='end'>
           <Button
-            onClick={handleAvatarMenuClick}
             variant='text'
             disableRipple
             disableFocusRipple
+            disabled
             sx={{
               marginY: 1,
               textTransform: "none",
               display: { xs: "none", md: "block" },
+              ":disabled": {
+                color: "inherit",
+              },
             }}
             color='inherit'
           >
-            <Typography fontSize={20} fontWeight={400}>
-              Test User
+            <Typography
+              fontSize='1.2em'
+              noWrap
+              width={{ md: "280px", lg: "400px", xl: "500px" }}
+            >
+              Lorem Ipsum Dolor Sit Amet and other things to make this really
+              long
             </Typography>
           </Button>
           <IconButton onClick={handleAvatarMenuClick}>
@@ -105,8 +120,10 @@ function DashboardAppBar({ open, handleOpenChange }: AppBarProps) {
               elevation: 0,
               sx: {
                 overflow: "visible",
-                filter: "drop-shadow(0px 2px 8px rgba(0,0,0,0.32))",
+                filter: "drop-shadow(0px 2px 8px rgba(0,0,0,0.5))",
                 mt: 1.5,
+                border: "2px solid #14151A",
+                borderRadius: 2,
                 "&:before": {
                   content: '""',
                   display: "block",
@@ -115,7 +132,7 @@ function DashboardAppBar({ open, handleOpenChange }: AppBarProps) {
                   right: 25,
                   width: 10,
                   height: 10,
-                  bgcolor: "background.paper",
+                  bgcolor: "paper.background",
                   transform: "translateY(-50%) rotate(45deg)",
                   zIndex: 0,
                 },
@@ -124,6 +141,19 @@ function DashboardAppBar({ open, handleOpenChange }: AppBarProps) {
             transformOrigin={{ horizontal: "right", vertical: "top" }}
             anchorOrigin={{ horizontal: "right", vertical: "bottom" }}
           >
+            <MenuItem>
+              <ListItemIcon>
+                <AccountCircle fontSize='small' />
+              </ListItemIcon>
+              Account
+            </MenuItem>
+            <MenuItem>
+              <ListItemIcon>
+                <CreditCard fontSize='small' />
+              </ListItemIcon>
+              Subscription
+            </MenuItem>
+            <Divider />
             <MenuItem>
               <ListItemIcon>
                 <Logout fontSize='small' />

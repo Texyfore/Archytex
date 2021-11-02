@@ -1,17 +1,9 @@
-import {
-  Delete,
-  KeyboardArrowUp,
-  KeyboardArrowDown,
-  ExpandMore,
-  KeyboardArrowRight,
-} from "@mui/icons-material";
+import { KeyboardArrowDown, KeyboardArrowRight } from "@mui/icons-material";
 import { styled } from "@mui/material/styles";
 import {
   Accordion,
   AccordionDetails,
   AccordionSummary,
-  Box,
-  Collapse,
   IconButton,
   Table,
   TableBody,
@@ -61,9 +53,24 @@ export default function ProjectRow(props: {
 
   return (
     <Accordion
+      disableGutters
       elevation={0}
       expanded={expanded === id}
       onChange={handleChange(id)}
+      sx={
+        expanded === id
+          ? {
+              backgroundColor: "#14151A",
+              borderRadius: 4,
+            }
+          : {
+              position: "static",
+              borderRadius: 4,
+              ".MuiAccordionSummary-root:hover": {
+                backgroundColor: "#14151A",
+              },
+            }
+      }
     >
       <AccordionSummary sx={{ paddingX: 0 }}>
         <Table>

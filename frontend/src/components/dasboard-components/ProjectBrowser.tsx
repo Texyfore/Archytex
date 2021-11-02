@@ -7,6 +7,7 @@ import TableHead from "@mui/material/TableHead";
 import TableRow from "@mui/material/TableRow";
 import ProjectRow from "./ProjectRow";
 import { Box } from "@mui/system";
+import { styled } from "@mui/material/styles";
 
 function createData(name: string, created: string) {
   return {
@@ -30,16 +31,24 @@ function createData(name: string, created: string) {
 const rows = [
   createData("Nice house", "2021.10.25"),
   createData("Another nice house", "2021.10.26"),
-  createData("An unfinished project", "2020.10.30"),
-  createData("An unfinished project", "2020.10.30"),
-  createData("An unfinished project", "2020.10.30"),
-  createData("An unfinished project", "2020.10.30"),
-  createData("An unfinished project", "2020.10.30"),
-  createData("An unfinished project", "2020.10.30"),
-  createData("An unfinished project", "2020.10.30"),
-  createData("An unfinished project", "2020.10.30"),
-  createData("An unfinished project", "2020.10.30"),
+  createData("Another nice house", "2021.10.26"),
+  createData("Another nice house", "2021.10.26"),
+  createData("Another nice house", "2021.10.26"),
+  createData("Another nice house", "2021.10.26"),
 ];
+
+const ProjectTableContainer = styled(TableContainer)(({ theme }) => ({
+  height: `calc(100vh - 56px - 50px)`,
+  [`${theme.breakpoints.up("xs")} and (orientation: landscape)`]: {
+    height: `calc(100vh - 48px - 50px)`,
+  },
+  [theme.breakpoints.up("sm")]: {
+    height: `calc(100vh - 64px - 50px)`,
+  },
+  [theme.breakpoints.up("lg")]: {
+    height: `calc(100% - 50px)`,
+  },
+}));
 
 export default function CollapsibleTable() {
   const [expanded, setExpanded] = React.useState<number | false>(false);
@@ -50,21 +59,22 @@ export default function CollapsibleTable() {
     };
 
   return (
-    //TODO: make the container the same height as its parent component
-    <TableContainer sx={{ maxHeight: "600px" }}>
+    <ProjectTableContainer>
       <Table stickyHeader>
         <TableHead>
           <TableRow>
-            <TableCell width='10%'>
+            <TableCell width='10%' sx={{ border: "none" }}>
               <Box height='24px' width='24px' padding='10px' />
             </TableCell>
-            <TableCell>NAME</TableCell>
-            <TableCell align='right'>CREATED</TableCell>
+            <TableCell sx={{ border: "none" }}>NAME</TableCell>
+            <TableCell align='right' sx={{ border: "none" }}>
+              CREATED
+            </TableCell>
           </TableRow>
         </TableHead>
         <TableBody>
           <TableRow>
-            <TableCell padding='none' colSpan={3}>
+            <TableCell padding='none' colSpan={3} sx={{ border: "none" }}>
               {rows.map((row, index) => (
                 <ProjectRow
                   key={index}
@@ -78,6 +88,6 @@ export default function CollapsibleTable() {
           </TableRow>
         </TableBody>
       </Table>
-    </TableContainer>
+    </ProjectTableContainer>
   );
 }
