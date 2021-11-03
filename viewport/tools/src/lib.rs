@@ -1,6 +1,6 @@
 pub mod app;
 pub mod gfx;
-pub mod math;
 pub mod log;
+pub use cgmath as math;
 
 mod web_util;
