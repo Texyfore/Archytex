@@ -72,7 +72,9 @@ impl Camera {
 
         if input.query_wheel_delta() > 0.1 {
             self.speed *= 1.1;
-        } else if input.query_wheel_delta() < -0.1 {
+        }
+
+        if input.query_wheel_delta() < -0.1 {
             self.speed /= 1.1;
         }
 

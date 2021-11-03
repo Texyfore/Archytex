@@ -5,7 +5,7 @@ use crate::{console_error, gfx::Graphics, web_util};
 use event::{Event, RawInputKind};
 use std::{collections::VecDeque, sync::mpsc::Receiver};
 use winit::{
-    dpi::{PhysicalPosition, PhysicalSize, Size},
+    dpi::{PhysicalSize, Size},
     event::{Event as WinitEvent, KeyboardInput, MouseScrollDelta, WindowEvent},
     event_loop::{ControlFlow, EventLoop},
     platform::web::WindowBuilderExtWebSys,
@@ -100,14 +100,12 @@ impl App {
                             )))
                     }
 
-                    WindowEvent::MouseWheel { delta, .. } => {
+                    WindowEvent::MouseWheel {
+                        delta: MouseScrollDelta::LineDelta(_, y),
+                        ..
+                    } => {
                         self.event_queue
-                            .push_back(Event::RawInput(RawInputKind::Wheel(match delta {
-                                MouseScrollDelta::LineDelta(y, ..) => y.signum(),
-                                MouseScrollDelta::PixelDelta(PhysicalPosition { y, .. }) => {
-                                    y.signum() as f32
-                                }
-                            })));
+                            .push_back(Event::RawInput(RawInputKind::Wheel(y)));
                     }
 
                     _ => {}
