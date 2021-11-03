@@ -1,9 +1,9 @@
 pub mod event;
 pub mod input;
 
-use crate::{gfx::Graphics, web_util};
+use crate::{console_error, gfx::Graphics, web_util};
 use event::{Event, RawInputKind};
-use std::collections::VecDeque;
+use std::{collections::VecDeque, sync::mpsc::Receiver};
 use winit::{
     dpi::{PhysicalPosition, PhysicalSize, Size},
     event::{Event as WinitEvent, KeyboardInput, MouseScrollDelta, WindowEvent},
@@ -12,17 +12,19 @@ use winit::{
     window::{Window, WindowBuilder},
 };
 
+use self::event::MessageKind;
+
 const WINDOW_SIZE: (u32, u32) = (640, 480);
 
 pub struct App {
     window: Option<Window>,
     graphics: Graphics,
     event_queue: VecDeque<Event>,
-    cursor_visible: bool,
+    message_receiver: Receiver<String>,
 }
 
-impl Default for App {
-    fn default() -> Self {
+impl App {
+    pub fn new(message_receiver: Receiver<String>) -> Self {
         let graphics = Graphics::default();
         let event_queue = VecDeque::new();
 
@@ -30,12 +32,10 @@ impl Default for App {
             window: None,
             graphics,
             event_queue,
-            cursor_visible: true,
+            message_receiver,
         }
     }
-}
 
-impl App {
     pub fn run<M: MainLoop>(mut self, mut main_loop: M) {
         console_error_panic_hook::set_once();
 
@@ -61,7 +61,6 @@ impl App {
 
         event_loop.run(move |event, _, flow| {
             *flow = ControlFlow::Poll;
-
             match event {
                 WinitEvent::WindowEvent { event, .. } => match event {
                     WindowEvent::Resized(PhysicalSize { width, height }) => {
@@ -115,6 +114,14 @@ impl App {
                 },
 
                 WinitEvent::MainEventsCleared => {
+                    if let Ok(msg) = self.message_receiver.try_recv() {
+                        if let Ok(msg) = serde_json::from_str::<MessageKind>(&msg) {
+                            self.event_queue.push_back(Event::FrontendMessage(msg));
+                        } else {
+                            console_error!("Received malformed message from frontend");
+                        }
+                    }
+
                     self.graphics.begin();
                     main_loop.process(&mut self);
                 }
@@ -130,15 +137,6 @@ impl App {
 
     pub fn graphics(&self) -> &Graphics {
         &self.graphics
-    }
-
-    pub fn set_cursor_visible(&mut self, visible: bool) {
-        if self.cursor_visible != visible {
-            if let Some(window) = &self.window {
-                window.set_cursor_visible(visible);
-            }
-        }
-        self.cursor_visible = visible;
     }
 }
 
