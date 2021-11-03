@@ -1,4 +1,1 @@
-*.wasm
-*.js
-package.json
-.netlify
+*

@@ -4,10 +4,13 @@ mod input;
 use crate::input::ElementKind;
 use inner_logic::InnerLogic;
 use input::InputMapper;
-use tools::app::{
-    event::Event,
-    input::{ButtonKind, KeyKind},
-    App, MainLoop,
+use tools::{
+    app::{
+        event::Event,
+        input::{ButtonKind, KeyKind},
+        App, MainLoop,
+    },
+    console,
 };
 
 pub struct Viewport {
@@ -52,6 +55,9 @@ impl MainLoop for Viewport {
                     }
                 }
                 Event::RawInput(input) => self.input_mapper.process_raw_input(input),
+                Event::FrontendMessage(msg) => {
+                    console!("Received message from frontend: `{:?}`", msg);
+                }
             };
         }
 
