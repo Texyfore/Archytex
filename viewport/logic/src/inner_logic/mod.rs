@@ -1,6 +1,5 @@
 mod camera;
 mod grid;
-mod model;
 mod transform;
 
 use crate::input::InputMapper;
