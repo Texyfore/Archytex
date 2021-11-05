@@ -158,6 +158,7 @@ export default function CollapsibleTable() {
           </TableBody>
         </Table>
       </ProjectTableContainer>
+
       <Modal
         open={modalOpen}
         onClose={handleModalClose}

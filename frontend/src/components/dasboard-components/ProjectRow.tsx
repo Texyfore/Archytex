@@ -1,13 +1,27 @@
-import { KeyboardArrowDown, KeyboardArrowRight } from "@mui/icons-material";
+import {
+  Close,
+  Delete,
+  Edit,
+  KeyboardArrowDown,
+  KeyboardArrowRight,
+} from "@mui/icons-material";
 import { styled } from "@mui/material/styles";
 import {
   Accordion,
   AccordionDetails,
   AccordionSummary,
+  Backdrop,
   Box,
+  Button,
+  Divider,
+  Fade,
   IconButton,
   LinearProgress,
   LinearProgressProps,
+  ListItemIcon,
+  Menu,
+  MenuItem,
+  Modal,
   Table,
   TableBody,
   TableCell,
@@ -16,6 +30,18 @@ import {
   Typography,
 } from "@mui/material";
 import React, { SyntheticEvent } from "react";
+
+const modalStyle = {
+  position: "absolute" as "absolute",
+  top: "50%",
+  left: "50%",
+  transform: "translate(-50%, -50%)",
+  width: { xs: 400, sm: 500, md: 600, lg: 600 },
+  bgcolor: "background.paper",
+  border: "1px solid #14151A",
+  boxShadow: 24,
+  p: 4,
+};
 
 const ProjectTableCell = styled(TableCell)(({ theme }) => ({
   padding: "none",
@@ -69,10 +95,11 @@ export default function ProjectRow(props: {
     | ((event: SyntheticEvent<Element, Event>, expanded: boolean) => void)
     | undefined;
 }) {
+  //props
   const { row, id, expanded, handleChange } = props;
 
+  //progress bar
   const [progress, setProgress] = React.useState(10);
-
   React.useEffect(() => {
     const timer = setInterval(() => {
       setProgress((prevProgress) =>
@@ -83,6 +110,24 @@ export default function ProjectRow(props: {
       clearInterval(timer);
     };
   }, []);
+
+  //edit project menu
+  const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
+  const editMenuOpen = Boolean(anchorEl);
+  const handleEditMenuClick = (event: React.MouseEvent<HTMLButtonElement>) => {
+    setAnchorEl(event.currentTarget);
+  };
+  const handleEditMenuClose = () => {
+    setAnchorEl(null);
+  };
+
+  //project delete modal
+  const [deleteModalOpen, setDeleteModalOpen] = React.useState(false);
+  const handleDeleteModalOpen = () => setDeleteModalOpen(true);
+  const handleDeleteModalClose = () => setDeleteModalOpen(false);
+
+  //project delete handling
+  const handleProjectDelete = () => handleDeleteModalClose();
 
   return (
     <Accordion
@@ -135,11 +180,111 @@ export default function ProjectRow(props: {
         </Table>
       </AccordionSummary>
       <AccordionDetails sx={{ paddingLeft: { md: 10, lg: 12 } }}>
+        <Box
+          display='flex'
+          justifyContent='end'
+          paddingY={1}
+          borderBottom='1px solid #F5F0F6'
+        >
+          <Button
+            startIcon={<Edit />}
+            color='inherit'
+            onClick={handleEditMenuClick}
+          >
+            Edit project
+          </Button>
+          <Menu
+            id='basic-menu'
+            anchorEl={anchorEl}
+            open={editMenuOpen}
+            onClose={handleEditMenuClose}
+            anchorOrigin={{
+              vertical: "bottom",
+              horizontal: "right",
+            }}
+            transformOrigin={{
+              vertical: "top",
+              horizontal: "right",
+            }}
+          >
+            <MenuItem onClick={handleEditMenuClose}>
+              <ListItemIcon>
+                <Edit />
+              </ListItemIcon>
+              Edit name
+            </MenuItem>
+            <Divider />
+            <MenuItem onClick={handleDeleteModalOpen}>
+              <ListItemIcon>
+                <Delete color='error' />
+              </ListItemIcon>
+              <Typography sx={{ color: "#fb4d3d" }}>Delete project</Typography>
+            </MenuItem>
+          </Menu>
+        </Box>
+        <Modal
+          open={deleteModalOpen}
+          onClose={handleDeleteModalClose}
+          closeAfterTransition
+          BackdropComponent={Backdrop}
+          BackdropProps={{
+            timeout: 500,
+          }}
+        >
+          <Fade in={deleteModalOpen}>
+            <Box
+              sx={modalStyle}
+              borderRadius={4}
+              display='flex'
+              flexDirection='column'
+              justifyContent='space-between'
+            >
+              <Box display='flex' justifyContent='space-between'>
+                <Typography
+                  id='transition-modal-title'
+                  variant='h6'
+                  component='h2'
+                >
+                  Delete project
+                </Typography>
+                <IconButton onClick={handleDeleteModalClose}>
+                  <Close />
+                </IconButton>
+              </Box>
+              <Box display='flex' flexDirection='column' marginY={3}>
+                <Typography variant='body1'>
+                  Are you sure you want to delete this project?
+                </Typography>
+                <Typography variant='body1' fontWeight='bold'>
+                  This action cannot be reversed.
+                </Typography>
+              </Box>
+              <Box>
+                <Button
+                  size='large'
+                  variant='contained'
+                  color='error'
+                  onClick={handleProjectDelete}
+                >
+                  Delete
+                </Button>
+                <Button
+                  size='large'
+                  variant='text'
+                  color='inherit'
+                  sx={{ marginLeft: 2 }}
+                  onClick={handleDeleteModalClose}
+                >
+                  Cancel
+                </Button>
+              </Box>
+            </Box>
+          </Fade>
+        </Modal>
         {/* TODO: RendersTable component */}
         <Table>
           <TableHead>
             <TableRow sx={{ fontStyle: "italic" }}>
-              <ProjectTableCell width='1px' padding='none'></ProjectTableCell>
               <ProjectTableCell align='left'>Renders</ProjectTableCell>
               <ProjectTableCell align='left'>Status</ProjectTableCell>
               <ProjectTableCell align='right'>Render time</ProjectTableCell>
@@ -148,11 +293,6 @@ export default function ProjectRow(props: {
           <TableBody>
             {row.renders.map((render) => (
               <TableRow>
-                <ProjectTableCell
-                  width='1px'
-                  padding='none'
-                  sx={{ backgroundColor: "#F5F0F6" }}
-                ></ProjectTableCell>
                 <ProjectTableCell align='left'>
                   <Box display={{ xs: "none", sm: "block" }}>
                     <Typography
