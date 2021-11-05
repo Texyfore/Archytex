@@ -6,14 +6,33 @@ import TableContainer from "@mui/material/TableContainer";
 import TableHead from "@mui/material/TableHead";
 import TableRow from "@mui/material/TableRow";
 import ProjectRow from "./ProjectRow";
-import { Box } from "@mui/system";
 import { styled } from "@mui/material/styles";
-import { Button, IconButton } from "@mui/material";
-import { LibraryAdd } from "@mui/icons-material";
+import {
+  Box,
+  Backdrop,
+  Button,
+  Fade,
+  IconButton,
+  Modal,
+  Typography,
+  TextField,
+} from "@mui/material";
+import { Close, LibraryAdd } from "@mui/icons-material";
 import SearchBar from "../SearchBar";
 
 const headerHeight = 50;
 const projectMenuHeight = 50;
+const modalStyle = {
+  position: "absolute" as "absolute",
+  top: "50%",
+  left: "50%",
+  transform: "translate(-50%, -50%)",
+  width: { xs: 400, sm: 500, md: 600, lg: 600 },
+  bgcolor: "background.paper",
+  border: "1px solid #14151A",
+  boxShadow: 24,
+  p: 4,
+};
 
 function createData(name: string, created: string) {
   return {
@@ -63,6 +82,9 @@ const ProjectTableContainer = styled(TableContainer)(({ theme }) => ({
 }));
 
 export default function CollapsibleTable() {
+  const [modalOpen, setModalOpen] = React.useState(false);
+  const handleModalOpen = () => setModalOpen(true);
+  const handleModalClose = () => setModalOpen(false);
   const [expanded, setExpanded] = React.useState<number | false>(false);
 
   const handleChange =
@@ -79,12 +101,17 @@ export default function CollapsibleTable() {
         paddingX={{ xs: 2, sm: 4 }}
       >
         <Box display={{ xs: "none", md: "block" }}>
-          <Button size='large' color='inherit' startIcon={<LibraryAdd />}>
+          <Button
+            size='large'
+            color='inherit'
+            startIcon={<LibraryAdd />}
+            onClick={handleModalOpen}
+          >
             New project
           </Button>
         </Box>
         <Box display={{ xs: "block", md: "none" }}>
-          <IconButton size='large'>
+          <IconButton size='large' onClick={handleModalOpen}>
             <LibraryAdd />
           </IconButton>
         </Box>
@@ -131,6 +158,52 @@ export default function CollapsibleTable() {
           </TableBody>
         </Table>
       </ProjectTableContainer>
+      <Modal
+        open={modalOpen}
+        onClose={handleModalClose}
+        closeAfterTransition
+        BackdropComponent={Backdrop}
+        BackdropProps={{
+          timeout: 500,
+        }}
+      >
+        <Fade in={modalOpen}>
+          <Box
+            sx={modalStyle}
+            borderRadius={4}
+            display='flex'
+            flexDirection='column'
+            justifyContent='space-between'
+          >
+            <Box display='flex' justifyContent='space-between'>
+              <Typography
+                id='transition-modal-title'
+                variant='h6'
+                component='h2'
+              >
+                Create new project
+              </Typography>
+              <IconButton onClick={handleModalClose}>
+                <Close />
+              </IconButton>
+            </Box>
+            <Box display='flex' flexDirection='column' marginBottom={3}>
+              <TextField
+                required
+                id='standard-required'
+                label='Project name'
+                variant='standard'
+                margin='normal'
+              />
+            </Box>
+            <Box>
+              <Button size='large' variant='contained'>
+                Create
+              </Button>
+            </Box>
+          </Box>
+        </Fade>
+      </Modal>
     </React.Fragment>
   );
 }
