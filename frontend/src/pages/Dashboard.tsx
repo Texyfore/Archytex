@@ -41,6 +41,7 @@ export default function Dashboard() {
   }
 
   return (
+    // TODO: pattern.css
     <React.Fragment>
       <DashboardAppBar open={open} handleOpenChange={handleOpenChange} />
 
