@@ -22,6 +22,7 @@ import {
   TableCell,
   TableHead,
   TableRow,
+  TextField,
   Typography,
 } from "@mui/material";
 import { styled } from "@mui/material/styles";
@@ -144,6 +145,15 @@ export default function ProjectRow(props: {
     handleDeletedSnackbarOpen();
   };
 
+  //title edit handling
+  const [underEdit, setUnderEdit] = useState(false);
+  const handleUnderEditStart = () => setUnderEdit(true);
+  const handleUnderEditEnd = () => setUnderEdit(false);
+
+  const handleSaveEdit = () => {
+    handleUnderEditEnd();
+  };
+
   return (
     <Accordion
       disableGutters
@@ -185,9 +195,27 @@ export default function ProjectRow(props: {
                 </IconButton>
               </ProjectTableCell>
               <ProjectTableCell align='left' width='auto'>
-                <Typography variant='body1' textAlign='start'>
-                  {row.name}
-                </Typography>
+                <React.Fragment>
+                  <Box display={underEdit ? "none" : "block"}>
+                    <Typography variant='body1' textAlign='start'>
+                      {row.name}
+                    </Typography>
+                  </Box>
+                  <Box display={underEdit ? "flex" : "none"} gap={1}>
+                    <TextField
+                      autoFocus
+                      defaultValue={row.name}
+                      id='standard-required'
+                      label='Project name'
+                      variant='standard'
+                      margin='none'
+                    />
+                    <Button onClick={handleSaveEdit}>Save</Button>
+                    <Button onClick={handleUnderEditEnd} color='inherit'>
+                      Cancel
+                    </Button>
+                  </Box>
+                </React.Fragment>
               </ProjectTableCell>
               <ProjectTableCell align='right'>{row.created}</ProjectTableCell>
             </TableRow>
@@ -222,7 +250,7 @@ export default function ProjectRow(props: {
               horizontal: "right",
             }}
           >
-            <MenuItem onClick={handleEditMenuClose}>
+            <MenuItem onClick={handleUnderEditStart}>
               <ListItemIcon>
                 <Edit />
               </ListItemIcon>
@@ -311,6 +339,7 @@ export default function ProjectRow(props: {
             Project deleted successfully!
           </Alert>
         </Snackbar>
+
         {/* TODO: RendersTable component */}
         <Table>
           <TableHead>
