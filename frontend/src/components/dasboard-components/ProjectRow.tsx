@@ -10,6 +10,7 @@ import {
   Accordion,
   AccordionDetails,
   AccordionSummary,
+  Alert,
   Backdrop,
   Box,
   Button,
@@ -22,6 +23,7 @@ import {
   Menu,
   MenuItem,
   Modal,
+  Snackbar,
   Table,
   TableBody,
   TableCell,
@@ -29,7 +31,7 @@ import {
   TableRow,
   Typography,
 } from "@mui/material";
-import React, { SyntheticEvent } from "react";
+import React, { SyntheticEvent, useEffect, useState } from "react";
 
 const modalStyle = {
   position: "absolute" as "absolute",
@@ -99,8 +101,8 @@ export default function ProjectRow(props: {
   const { row, id, expanded, handleChange } = props;
 
   //progress bar
-  const [progress, setProgress] = React.useState(10);
-  React.useEffect(() => {
+  const [progress, setProgress] = useState(10);
+  useEffect(() => {
     const timer = setInterval(() => {
       setProgress((prevProgress) =>
         prevProgress >= 100 ? 10 : prevProgress + 10
@@ -112,7 +114,7 @@ export default function ProjectRow(props: {
   }, []);
 
   //edit project menu
-  const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
+  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const editMenuOpen = Boolean(anchorEl);
   const handleEditMenuClick = (event: React.MouseEvent<HTMLButtonElement>) => {
     setAnchorEl(event.currentTarget);
@@ -122,13 +124,24 @@ export default function ProjectRow(props: {
   };
 
   //project delete modal
-  const [deleteModalOpen, setDeleteModalOpen] = React.useState(false);
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const handleDeleteModalOpen = () => setDeleteModalOpen(true);
   const handleDeleteModalClose = () => setDeleteModalOpen(false);
 
-  //project delete handling
-  const handleProjectDelete = () => handleDeleteModalClose();
+  //delete snackbars
+  const [deletedSnackbarOpen, setDeletedSnackbarOpen] = useState(false);
+  const handleDeletedSnackbarClose = () => {
+    setDeletedSnackbarOpen(false);
+  };
+  const handleDeletedSnackbarOpen = () => {
+    setDeletedSnackbarOpen(true);
+  };
 
+  //project delete handling
+  const handleProjectDelete = () => {
+    handleDeleteModalClose();
+    handleDeletedSnackbarOpen();
+  };
   return (
     <Accordion
       disableGutters
@@ -222,6 +235,7 @@ export default function ProjectRow(props: {
             </MenuItem>
           </Menu>
         </Box>
+
         <Modal
           open={deleteModalOpen}
           onClose={handleDeleteModalClose}
@@ -281,6 +295,20 @@ export default function ProjectRow(props: {
             </Box>
           </Fade>
         </Modal>
+
+        <Snackbar
+          open={deletedSnackbarOpen}
+          autoHideDuration={6000}
+          onClose={handleDeletedSnackbarClose}
+        >
+          <Alert
+            onClose={handleDeletedSnackbarClose}
+            severity='success'
+            sx={{ width: "100%" }}
+          >
+            Project deleted successfully!
+          </Alert>
+        </Snackbar>
         {/* TODO: RendersTable component */}
         <Table>
           <TableHead>

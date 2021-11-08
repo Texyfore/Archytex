@@ -1,4 +1,4 @@
-import * as React from "react";
+import React, { useState } from "react";
 import Table from "@mui/material/Table";
 import TableBody from "@mui/material/TableBody";
 import TableCell from "@mui/material/TableCell";
@@ -82,11 +82,13 @@ const ProjectTableContainer = styled(TableContainer)(({ theme }) => ({
 }));
 
 export default function CollapsibleTable() {
-  const [modalOpen, setModalOpen] = React.useState(false);
+  //new project modal
+  const [modalOpen, setModalOpen] = useState(false);
   const handleModalOpen = () => setModalOpen(true);
   const handleModalClose = () => setModalOpen(false);
-  const [expanded, setExpanded] = React.useState<number | false>(false);
 
+  //expanded project
+  const [expanded, setExpanded] = useState<number | false>(false);
   const handleChange =
     (row: number) => (event: React.SyntheticEvent, isExpanded: boolean) => {
       setExpanded(isExpanded ? row : false);
