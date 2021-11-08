@@ -1,11 +1,6 @@
 import React, { useState } from "react";
-import Table from "@mui/material/Table";
-import TableBody from "@mui/material/TableBody";
-import TableCell from "@mui/material/TableCell";
-import TableContainer from "@mui/material/TableContainer";
-import TableHead from "@mui/material/TableHead";
-import TableRow from "@mui/material/TableRow";
 import ProjectRow from "./ProjectRow";
+import SearchBar from "../SearchBar";
 import { styled } from "@mui/material/styles";
 import {
   Box,
@@ -16,9 +11,14 @@ import {
   Modal,
   Typography,
   TextField,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
 } from "@mui/material";
 import { Close, LibraryAdd } from "@mui/icons-material";
-import SearchBar from "../SearchBar";
 
 const headerHeight = 50;
 const projectMenuHeight = 50;
@@ -33,6 +33,18 @@ const modalStyle = {
   boxShadow: 24,
   p: 4,
 };
+const ProjectTableContainer = styled(TableContainer)(({ theme }) => ({
+  height: `calc(100vh - 56px - ${headerHeight + projectMenuHeight}px)`,
+  [`${theme.breakpoints.up("xs")} and (orientation: landscape)`]: {
+    height: `calc(100vh - 48px - ${headerHeight + projectMenuHeight}px)`,
+  },
+  [theme.breakpoints.up("sm")]: {
+    height: `calc(100vh - 64px - ${headerHeight + projectMenuHeight}px)`,
+  },
+  [theme.breakpoints.up("lg")]: {
+    height: `calc(100% - ${headerHeight + projectMenuHeight}px)`,
+  },
+}));
 
 function createData(name: string, created: string) {
   return {
@@ -68,20 +80,7 @@ const rows = [
   createData("Another nice house", "2021.10.26"),
 ];
 
-const ProjectTableContainer = styled(TableContainer)(({ theme }) => ({
-  height: `calc(100vh - 56px - ${headerHeight + projectMenuHeight}px)`,
-  [`${theme.breakpoints.up("xs")} and (orientation: landscape)`]: {
-    height: `calc(100vh - 48px - ${headerHeight + projectMenuHeight}px)`,
-  },
-  [theme.breakpoints.up("sm")]: {
-    height: `calc(100vh - 64px - ${headerHeight + projectMenuHeight}px)`,
-  },
-  [theme.breakpoints.up("lg")]: {
-    height: `calc(100% - ${headerHeight + projectMenuHeight}px)`,
-  },
-}));
-
-export default function CollapsibleTable() {
+export default function ProjectBrowser() {
   //new project modal
   const [modalOpen, setModalOpen] = useState(false);
   const handleModalOpen = () => setModalOpen(true);
@@ -93,6 +92,10 @@ export default function CollapsibleTable() {
     (row: number) => (event: React.SyntheticEvent, isExpanded: boolean) => {
       setExpanded(isExpanded ? row : false);
     };
+
+  //project manager context
+  //TODO
+  //const projects = useProjects();
 
   return (
     <React.Fragment>
@@ -121,6 +124,7 @@ export default function CollapsibleTable() {
           <SearchBar />
         </Box>
       </Box>
+
       <ProjectTableContainer>
         <Table stickyHeader>
           <TableHead>

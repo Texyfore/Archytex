@@ -1,11 +1,4 @@
-import {
-  Close,
-  Delete,
-  Edit,
-  KeyboardArrowDown,
-  KeyboardArrowRight,
-} from "@mui/icons-material";
-import { styled } from "@mui/material/styles";
+import React, { SyntheticEvent, useEffect, useState } from "react";
 import {
   Accordion,
   AccordionDetails,
@@ -31,7 +24,14 @@ import {
   TableRow,
   Typography,
 } from "@mui/material";
-import React, { SyntheticEvent, useEffect, useState } from "react";
+import { styled } from "@mui/material/styles";
+import {
+  Close,
+  Delete,
+  Edit,
+  KeyboardArrowDown,
+  KeyboardArrowRight,
+} from "@mui/icons-material";
 
 const modalStyle = {
   position: "absolute" as "absolute",
@@ -123,12 +123,13 @@ export default function ProjectRow(props: {
     setAnchorEl(null);
   };
 
-  //project delete modal
+  //confirm project delete modal
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const handleDeleteModalOpen = () => setDeleteModalOpen(true);
   const handleDeleteModalClose = () => setDeleteModalOpen(false);
 
   //delete snackbars
+  //successful detete snackbar
   const [deletedSnackbarOpen, setDeletedSnackbarOpen] = useState(false);
   const handleDeletedSnackbarClose = () => {
     setDeletedSnackbarOpen(false);
@@ -142,6 +143,7 @@ export default function ProjectRow(props: {
     handleDeleteModalClose();
     handleDeletedSnackbarOpen();
   };
+
   return (
     <Accordion
       disableGutters
