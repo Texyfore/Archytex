@@ -1,5 +1,7 @@
 mod log;
+mod render;
 
+use render::Renderer;
 use winit::{
     dpi::PhysicalSize,
     event::{Event, WindowEvent},
@@ -17,14 +19,25 @@ fn main() {
     #[cfg(target_arch = "wasm32")]
     insert_canvas(&window);
 
-    event_loop.run(|event, _, flow| {
+    let renderer = Renderer::new(&window);
+
+    {
+        let (width, height) = window.inner_size().into();
+        renderer.resize(width, height);
+    }
+
+    event_loop.run(move |event, _, flow| {
         *flow = ControlFlow::Poll;
         match event {
             Event::WindowEvent { event, .. } => match event {
-                WindowEvent::Resized(PhysicalSize { width, height }) => {}
+                WindowEvent::Resized(PhysicalSize { width, height }) => {
+                    renderer.resize(width, height);
+                }
                 _ => {}
             },
-            Event::MainEventsCleared => {}
+            Event::MainEventsCleared => {
+                renderer.render();
+            }
             _ => {}
         }
     });
