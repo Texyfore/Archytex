@@ -52,6 +52,7 @@ export default function Dashboard() {
 
       <MaxHeightGrid
         container
+        overflow='hidden'
         display='flex'
         direction={{ lg: "column" }}
         key='left'
@@ -67,9 +68,13 @@ export default function Dashboard() {
           item
           container={isContainer}
           component='main'
-          sx={{ flexGrow: 1 }}
           columnSpacing={{ xs: 0, lg: 10 }}
           padding={{ lg: 4 }}
+          sx={{
+            flexGrow: 1,
+            backgroundImage: "radial-gradient(#1c517a 0.75px, #0c0c0c 0.75px)",
+            backgroundSize: "15px 15px",
+          }}
         >
           <CalcHeightGridItem
             item
