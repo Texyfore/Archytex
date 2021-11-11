@@ -1,11 +1,11 @@
+mod log;
+
 use winit::{
     dpi::PhysicalSize,
     event::{Event, WindowEvent},
     event_loop::{ControlFlow, EventLoop},
     window::{Window, WindowBuilder},
 };
-
-mod log;
 
 fn main() {
     #[cfg(target_arch = "wasm32")]
