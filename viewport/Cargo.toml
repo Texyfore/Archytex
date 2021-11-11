@@ -1,7 +1,14 @@
-[workspace]
+[package]
+name = "viewport"
+version = "0.1.0"
+edition = "2021"
 resolver = "2"
-members = [
-    "entry",
-    "tools",
-    "logic",
-]
+
+[dependencies]
+wasm-bindgen = "0.2.78"
+wgpu = { version = "0.11.0", features = ["webgl"] }
+futures-lite = "1.12.0"
+console_error_panic_hook = "0.1.7"
+winit = { version = "0.25.0", features = ["web-sys"] }
+web-sys = { version = "0.3.55", features = ["Document", "Window", "Node"] }
+bytemuck = { version = "1.7.2", features = ["derive"] }

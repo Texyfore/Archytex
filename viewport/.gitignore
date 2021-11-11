@@ -1,5 +1,5 @@
 .vscode
+
 **/*.rs.bk
 target
-Cargo.lock
-out
+web/app

@@ -1,3 +1,3 @@
-wasm-pack build entry --target=web --no-typescript --release
-cp -r entry/pkg out
-cp index.html out/index.html
+cargo build --target wasm32-unknown-unknown
+mkdir -p web/app
+wasm-bindgen --target web --out-dir web/app target/wasm32-unknown-unknown/debug/viewport.wasm
