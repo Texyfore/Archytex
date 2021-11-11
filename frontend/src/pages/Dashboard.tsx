@@ -52,6 +52,7 @@ export default function Dashboard() {
 
       <MaxHeightGrid
         container
+        overflow='hidden'
         display='flex'
         direction={{ lg: "column" }}
         key='left'
