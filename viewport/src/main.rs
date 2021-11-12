@@ -91,7 +91,7 @@ fn insert_canvas(window: &Window) {
 }
 
 struct MainLoop {
-    window: Window,
+    _window: Window,
     renderer: Renderer,
     input_mapper: InputMapper,
     editor: Editor<InputMapper, Renderer>,
@@ -109,7 +109,7 @@ impl MainLoop {
         }
 
         Self {
-            window,
+            _window: window,
             renderer,
             input_mapper,
             editor,

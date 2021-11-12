@@ -20,17 +20,6 @@ pub struct InputMapper {
 }
 
 impl InputMapper {
-    pub fn register_action(&mut self, name: String, trigger: Trigger) {
-        self.actions.insert(
-            name,
-            Action {
-                trigger,
-                active: false,
-                active_once: false,
-            },
-        );
-    }
-
     pub fn set_trigger(&mut self, trigger: Trigger, state: ElementState) {
         for (_, mut action) in &mut self.actions {
             if action.trigger == trigger {
