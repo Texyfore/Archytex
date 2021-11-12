@@ -87,7 +87,7 @@ impl GraphicsWorld for Renderer {
 
     fn update_grid(&mut self, cell_count: i32, cell_size: f32) {
         let half_line_len = cell_count as f32 * cell_size;
-        let color = [0.3, 0.3, 0.3, 1.0];
+        let color = [0.1, 0.1, 0.1, 1.0];
 
         let mut vertices = Vec::with_capacity(cell_count as usize * 8 + 4);
 
