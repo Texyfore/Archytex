@@ -59,7 +59,7 @@ where
             color: [0.0, 0.0, 1.0, 1.0],
         };
 
-        gfx.update_grid(5, 1.0);
+        gfx.update_grid(10, 1.0);
         gfx.update_wireframe(&[A, B, B, C, C, A]);
 
         Self {
