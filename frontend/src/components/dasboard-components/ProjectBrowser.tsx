@@ -19,6 +19,7 @@ import {
   TableRow,
 } from "@mui/material";
 import { Close, LibraryAdd } from "@mui/icons-material";
+import { useProjects } from "../../services/projects";
 
 const headerHeight = 50;
 const projectMenuHeight = 50;
@@ -46,45 +47,13 @@ const ProjectTableContainer = styled(TableContainer)(({ theme }) => ({
   },
 }));
 
-function createData(name: string, created: string) {
-  return {
-    name,
-    created,
-    renders: [
-      {
-        renderName:
-          name +
-          "-project-render-1-and it's very long so it can be abbreviated",
-        status: 100, //percentage
-        renderTime: "1 h 40 min 23 sec",
-      },
-      {
-        renderName: name + "-project-render-2",
-        status: 45, //percentage
-        renderTime: "1000h 35 min 21 sec",
-      },
-    ],
-  };
-}
-
-const rows = [
-  createData("Nice house", "2021.10.25"),
-  createData(
-    "A house name so long, that is probably doesn't fit on the screen",
-    "2021.11.04"
-  ),
-  createData("Another nice house", "2021.10.26"),
-  createData("Another nice house", "2021.10.26"),
-  createData("Another nice house", "2021.10.26"),
-  createData("Another nice house", "2021.10.26"),
-  createData("Another nice house", "2021.10.26"),
-];
 
 export default function ProjectBrowser() {
   //new project modal
   const [modalOpen, setModalOpen] = useState(false);
   const handleModalOpen = () => setModalOpen(true);
   const handleModalClose = () => setModalOpen(false);
+  const {state: projects, dispatch: projectsDispatch} = useProjects();
 
   //expanded project
   const [expanded, setExpanded] = useState<number | false>(false);
@@ -150,11 +119,11 @@ export default function ProjectBrowser() {
                 colSpan={3}
                 sx={{ borderBottom: "2px solid #14151A" }}
               >
-                {rows.map((row, index) => (
+                {projects.projects.map((project, index) => (
                   <ProjectRow
                     key={index}
                     id={index}
-                    row={row}
+                    row={project}
                     expanded={expanded}
                     handleChange={handleChange}
                   />

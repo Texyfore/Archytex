@@ -6,6 +6,7 @@ import DashboardMiniDrawer from "../components/dasboard-components/DashboardMini
 import DashboardSwipeableDrawer from "../components/dasboard-components/DashboardSwipeableDrawer";
 import DashboardLeftContent from "../components/dasboard-components/DashboardLeftContent";
 import DashboardRightContent from "../components/dasboard-components/DashboardRightContent";
+import { ProjectsProvider } from "../services/projects";
 
 const MaxHeightGrid = styled(Grid)(({ theme }) => ({
   marginTop: 56,
@@ -85,7 +86,9 @@ export default function Dashboard() {
             <DashboardLeftContent />
           </CalcHeightGridItem>
           <CalcHeightGridItem item xs={12} lg={8}>
-            <DashboardRightContent />
+            <ProjectsProvider>
+              <DashboardRightContent />
+            </ProjectsProvider>
           </CalcHeightGridItem>
         </Grid>
       </MaxHeightGrid>
