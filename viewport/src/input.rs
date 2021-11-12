@@ -8,6 +8,7 @@ pub trait Input {
     fn is_active(&self, action: &str) -> bool;
     fn is_active_once(&self, action: &str) -> bool;
     fn mouse_delta(&self) -> Vector2<f32>;
+    fn scroll_wheel(&self) -> f32;
 }
 
 #[derive(Default)]
@@ -15,6 +16,7 @@ pub struct InputMapper {
     actions: HashMap<String, Action>,
     mouse_pos_before: [f32; 2],
     mouse_pos: [f32; 2],
+    scroll_wheel: f32,
 }
 
 impl InputMapper {
@@ -50,11 +52,16 @@ impl InputMapper {
         self.mouse_pos = pos;
     }
 
+    pub fn set_scroll_wheel(&mut self, wheel: f32) {
+        self.scroll_wheel = wheel;
+    }
+
     pub fn tick(&mut self) {
         for (_, mut action) in &mut self.actions {
             action.active_once = false;
         }
         self.mouse_pos_before = self.mouse_pos;
+        self.scroll_wheel = 0.0;
     }
 }
 
@@ -95,6 +102,10 @@ impl Input for InputMapper {
         let a: Vector2<_> = self.mouse_pos.into();
         let b: Vector2<_> = self.mouse_pos_before.into();
         b - a
+    }
+
+    fn scroll_wheel(&self) -> f32 {
+        self.scroll_wheel
     }
 }
 

@@ -55,6 +55,14 @@ impl Camera {
         self.rotation.y += delta.x;
         self.rotation.x = clamp(self.rotation.x + delta.y, -90.0, 90.0);
 
+        if input.scroll_wheel() > 0.5 {
+            self.speed *= 1.1;
+        }
+
+        if input.scroll_wheel() < -0.5 {
+            self.speed /= 1.1;
+        }
+
         gfx.update_camera_view(
             Matrix4::from_translation(self.position)
                 * Matrix4::from_angle_y(Deg(self.rotation.y))

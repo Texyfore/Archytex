@@ -6,7 +6,10 @@ mod render;
 use render::Renderer;
 use winit::{
     dpi::{PhysicalPosition, PhysicalSize},
-    event::{ElementState, Event, KeyboardInput, MouseButton, VirtualKeyCode, WindowEvent},
+    event::{
+        ElementState, Event, KeyboardInput, MouseButton, MouseScrollDelta, VirtualKeyCode,
+        WindowEvent,
+    },
     event_loop::{ControlFlow, EventLoop},
     window::{Window, WindowBuilder},
 };
@@ -58,6 +61,12 @@ fn main() {
                 } => {
                     main_loop.mouse_moved([x as f32, y as f32]);
                 }
+                WindowEvent::MouseWheel { delta, .. } => match delta {
+                    MouseScrollDelta::LineDelta(_, y) => main_loop.scroll_wheel(y),
+                    MouseScrollDelta::PixelDelta(PhysicalPosition { y, .. }) => {
+                        main_loop.scroll_wheel(y.signum() as f32)
+                    }
+                },
                 _ => {}
             },
             Event::MainEventsCleared => {
@@ -122,6 +131,10 @@ impl MainLoop {
 
     fn mouse_moved(&mut self, pos: [f32; 2]) {
         self.input_mapper.set_mouse_pos(pos);
+    }
+
+    fn scroll_wheel(&mut self, wheel: f32) {
+        self.input_mapper.set_scroll_wheel(wheel);
     }
 
     fn process(&mut self) {
