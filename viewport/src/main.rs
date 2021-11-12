@@ -1,7 +1,8 @@
 mod log;
 mod render;
 
-use render::Renderer;
+use cgmath::{vec3, Matrix4};
+use render::{data::LineVertex, Renderer};
 use winit::{
     dpi::PhysicalSize,
     event::{Event, WindowEvent},
@@ -19,12 +20,25 @@ fn main() {
     #[cfg(target_arch = "wasm32")]
     insert_canvas(&window);
 
-    let renderer = Renderer::new(&window);
+    let mut renderer = Renderer::new(&window);
 
     {
         let (width, height) = window.inner_size().into();
         renderer.resize(width, height);
     }
+
+    renderer.update_wireframe(&[
+        LineVertex {
+            position: [0.0, 0.0, 0.0],
+            color: [1.0, 0.0, 0.0, 1.0],
+        },
+        LineVertex {
+            position: [1.0, 1.0, 0.0],
+            color: [1.0, 0.0, 0.0, 1.0],
+        },
+    ]);
+
+    renderer.update_camera_view(Matrix4::from_translation(vec3(0.0, 0.0, 5.0)));
 
     event_loop.run(move |event, _, flow| {
         *flow = ControlFlow::Poll;
@@ -32,6 +46,9 @@ fn main() {
             Event::WindowEvent { event, .. } => match event {
                 WindowEvent::Resized(PhysicalSize { width, height }) => {
                     renderer.resize(width, height);
+                }
+                WindowEvent::CloseRequested => {
+                    *flow = ControlFlow::Exit;
                 }
                 _ => {}
             },
