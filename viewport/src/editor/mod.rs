@@ -1,14 +1,27 @@
-use std::marker::PhantomData;
+mod camera;
 
-use cgmath::{vec3, Matrix4, Rad};
+use std::marker::PhantomData;
+use winit::event::{MouseButton, VirtualKeyCode};
 
 use crate::{
-    input::Input,
+    input::{Input, Trigger},
     render::{data::LineVertex, GraphicsWorld},
 };
 
+use self::camera::Camera;
+
+macro_rules! action {
+    ($name:literal Key $elem:ident) => {
+        ($name, Trigger::Key(VirtualKeyCode::$elem))
+    };
+
+    ($name:literal Btn $elem:ident) => {
+        ($name, Trigger::Button(MouseButton::$elem))
+    };
+}
+
 pub struct Editor<I, G> {
-    a: f32,
+    camera: Camera,
 
     _i: PhantomData<I>,
     _g: PhantomData<G>,
@@ -20,7 +33,16 @@ where
     G: GraphicsWorld,
 {
     pub fn init(input: &mut I, gfx: &mut G) -> Self {
-        input.define_actions(&[]);
+        #[rustfmt::skip]
+        input.define_actions(&[
+            action!( "movecam"  Btn Right ),
+            action!( "forward"  Key W     ),
+            action!( "backward" Key S     ),
+            action!( "left"     Key A     ),
+            action!( "right"    Key D     ),
+            action!( "up"       Key E     ),
+            action!( "down"     Key Q     ),
+        ]);
 
         const A: LineVertex = LineVertex {
             position: [-0.5, -0.37, 0.0],
@@ -41,16 +63,13 @@ where
         gfx.update_wireframe(&[A, B, B, C, C, A]);
 
         Self {
-            a: 0.0,
+            camera: Camera::default(),
             _i: PhantomData,
             _g: PhantomData,
         }
     }
 
     pub fn process(&mut self, input: &I, gfx: &mut G) {
-        gfx.update_camera_view(
-            Matrix4::from_angle_y(Rad(self.a)) * Matrix4::from_translation(vec3(0.0, 2.0, 5.0)),
-        );
-        self.a += 0.01;
+        self.camera.process(input, gfx);
     }
 }

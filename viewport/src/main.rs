@@ -5,7 +5,7 @@ mod render;
 
 use render::Renderer;
 use winit::{
-    dpi::PhysicalSize,
+    dpi::{PhysicalPosition, PhysicalSize},
     event::{ElementState, Event, KeyboardInput, MouseButton, VirtualKeyCode, WindowEvent},
     event_loop::{ControlFlow, EventLoop},
     window::{Window, WindowBuilder},
@@ -51,6 +51,12 @@ fn main() {
                 }
                 WindowEvent::MouseInput { button, state, .. } => {
                     main_loop.mouse_input(button, state);
+                }
+                WindowEvent::CursorMoved {
+                    position: PhysicalPosition { x, y },
+                    ..
+                } => {
+                    main_loop.mouse_moved([x as f32, y as f32]);
                 }
                 _ => {}
             },
@@ -112,6 +118,10 @@ impl MainLoop {
     fn mouse_input(&mut self, button: MouseButton, state: ElementState) {
         self.input_mapper
             .set_trigger(Trigger::Button(button), state);
+    }
+
+    fn mouse_moved(&mut self, pos: [f32; 2]) {
+        self.input_mapper.set_mouse_pos(pos);
     }
 
     fn process(&mut self) {
