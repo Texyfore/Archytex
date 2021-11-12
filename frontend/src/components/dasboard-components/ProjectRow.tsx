@@ -1,4 +1,4 @@
-import React, { SyntheticEvent, useEffect, useState } from "react";
+import React, { SyntheticEvent, useState } from "react";
 import {
   Accordion,
   AccordionDetails,
@@ -101,18 +101,6 @@ export default function ProjectRow(props: {
   //props
   const { row, id, expanded, handleChange } = props;
 
-  //progress bar
-  const [progress, setProgress] = useState(10);
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setProgress((prevProgress) =>
-        prevProgress >= 100 ? 10 : prevProgress + 10
-      );
-    }, 800);
-    return () => {
-      clearInterval(timer);
-    };
-  }, []);
 
   //edit project menu
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
@@ -371,10 +359,10 @@ export default function ProjectRow(props: {
                 </ProjectTableCell>
                 <ProjectTableCell align='left' width='100%'>
                   <Box display={{ xs: "none", md: "block" }}>
-                    <LinearProgressWithLabel value={progress} />
+                    <LinearProgressWithLabel value={render.status} />
                   </Box>
                   <Box display={{ xs: "block", md: "none" }}>
-                    <Typography noWrap>{progress}%</Typography>
+                    <Typography noWrap>{render.status}%</Typography>
                   </Box>
                 </ProjectTableCell>
                 <ProjectTableCell align='right'>
