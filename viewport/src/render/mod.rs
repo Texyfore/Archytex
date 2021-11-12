@@ -11,6 +11,12 @@ use self::{
     gpu::{Context, LinePipeline, TypedBuffer, UniformBufferGroup},
 };
 
+pub trait GraphicsWorld {
+    fn update_camera_view(&mut self, view: Matrix4<f32>);
+    fn update_grid(&mut self, cell_count: i32, cell_size: f32);
+    fn update_wireframe(&mut self, vertices: &[LineVertex]);
+}
+
 pub struct Renderer {
     ctx: Context,
 
@@ -19,18 +25,22 @@ pub struct Renderer {
     camera_group: UniformBufferGroup<CameraBlock>,
     camera_block: CameraBlock,
 
+    grid: TypedBuffer<LineVertex>,
     wireframe: TypedBuffer<LineVertex>,
 }
 
 impl Renderer {
     pub fn new(window: &Window) -> Self {
         let ctx = Context::new(window);
+
         let uniform_buffer_layout = ctx.create_uniform_buffer_layout();
         let line_pipeline = ctx.create_line_pipeline(&uniform_buffer_layout);
+
         let camera_group = ctx
             .create_uniform_buffer_group::<CameraBlock>(&uniform_buffer_layout, Default::default());
         let camera_block = Default::default();
 
+        let grid = ctx.create_buffer(&[], wgpu::BufferUsages::VERTEX);
         let wireframe = ctx.create_buffer(&[], wgpu::BufferUsages::VERTEX);
 
         Self {
@@ -38,6 +48,7 @@ impl Renderer {
             line_pipeline,
             camera_group,
             camera_block,
+            grid,
             wireframe,
         }
     }
@@ -58,19 +69,80 @@ impl Renderer {
         {
             let mut pass = frame.begin_pass();
             pass.set_camera_group(&self.camera_group);
-            pass.draw_wireframe(&self.line_pipeline, &self.wireframe);
+            pass.begin_lines(&self.line_pipeline);
+            pass.draw_lines(&self.grid);
+            pass.draw_lines(&self.wireframe);
         }
 
         self.ctx.end_frame(frame);
     }
+}
 
-    pub fn update_camera_view(&mut self, view: Matrix4<f32>) {
+impl GraphicsWorld for Renderer {
+    fn update_camera_view(&mut self, view: Matrix4<f32>) {
         if let Some(view) = view.invert() {
             self.camera_block.view = view.into();
         }
     }
 
-    pub fn update_wireframe(&mut self, vertices: &[LineVertex]) {
+    fn update_grid(&mut self, cell_count: i32, cell_size: f32) {
+        let half_line_len = cell_count as f32 * cell_size;
+        let color = [0.3, 0.3, 0.3, 1.0];
+
+        let mut vertices = Vec::with_capacity(cell_count as usize * 8 + 4);
+
+        vertices.push(LineVertex {
+            position: [-half_line_len, 0.0, 0.0],
+            color,
+        });
+
+        vertices.push(LineVertex {
+            position: [half_line_len, 0.0, 0.0],
+            color,
+        });
+
+        vertices.push(LineVertex {
+            position: [0.0, 0.0, -half_line_len],
+            color,
+        });
+
+        vertices.push(LineVertex {
+            position: [0.0, 0.0, half_line_len],
+            color,
+        });
+
+        for sign in [-1.0, 1.0] {
+            for i in 1..=cell_count {
+                let pos = i as f32 * cell_size * sign;
+
+                vertices.push(LineVertex {
+                    position: [-half_line_len, 0.0, pos],
+                    color,
+                });
+
+                vertices.push(LineVertex {
+                    position: [half_line_len, 0.0, pos],
+                    color,
+                });
+
+                vertices.push(LineVertex {
+                    position: [pos, 0.0, -half_line_len],
+                    color,
+                });
+
+                vertices.push(LineVertex {
+                    position: [pos, 0.0, half_line_len],
+                    color,
+                });
+            }
+        }
+
+        self.grid = self
+            .ctx
+            .create_buffer(&vertices, wgpu::BufferUsages::VERTEX);
+    }
+
+    fn update_wireframe(&mut self, vertices: &[LineVertex]) {
         self.wireframe = self.ctx.create_buffer(vertices, wgpu::BufferUsages::VERTEX);
     }
 }

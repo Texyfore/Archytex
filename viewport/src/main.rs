@@ -1,3 +1,4 @@
+mod editor;
 mod input;
 mod log;
 mod render;
@@ -10,7 +11,10 @@ use winit::{
     window::{Window, WindowBuilder},
 };
 
-use self::input::{InputMapper, Trigger};
+use self::{
+    editor::Editor,
+    input::{InputMapper, Trigger},
+};
 
 fn main() {
     #[cfg(target_arch = "wasm32")]
@@ -75,12 +79,14 @@ struct MainLoop {
     window: Window,
     renderer: Renderer,
     input_mapper: InputMapper,
+    editor: Editor<InputMapper, Renderer>,
 }
 
 impl MainLoop {
     fn init(window: Window) -> Self {
         let mut renderer = Renderer::new(&window);
-        let input_mapper = InputMapper::new(&[]);
+        let mut input_mapper = InputMapper::default();
+        let editor = Editor::init(&mut input_mapper, &mut renderer);
 
         {
             let (width, height) = window.inner_size().into();
@@ -91,6 +97,7 @@ impl MainLoop {
             window,
             renderer,
             input_mapper,
+            editor,
         }
     }
 
@@ -108,6 +115,7 @@ impl MainLoop {
     }
 
     fn process(&mut self) {
+        self.editor.process(&self.input_mapper, &mut self.renderer);
         self.input_mapper.tick();
         self.renderer.render();
     }

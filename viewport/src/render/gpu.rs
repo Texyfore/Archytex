@@ -264,12 +264,11 @@ impl<'a> Pass<'a> {
         self.inner.set_bind_group(0, &camera_group.inner, &[]);
     }
 
-    pub fn draw_wireframe(
-        &mut self,
-        pipeline: &'a LinePipeline,
-        buffer: &'a TypedBuffer<LineVertex>,
-    ) {
+    pub fn begin_lines(&mut self, pipeline: &'a LinePipeline) {
         self.inner.set_pipeline(&pipeline.inner);
+    }
+
+    pub fn draw_lines(&mut self, buffer: &'a TypedBuffer<LineVertex>) {
         self.inner.set_vertex_buffer(0, buffer.inner.slice(..));
         self.inner.draw(0..buffer.len as u32, 0..1);
     }
