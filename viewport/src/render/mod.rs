@@ -8,8 +8,10 @@ use winit::window::Window;
 
 use self::{
     data::LineVertex,
-    gpu::{Context, LinePipeline, TypedBuffer, UniformBufferGroup},
+    gpu::{Context, LinePipeline, MsaaFramebuffer, TypedBuffer, UniformBufferGroup},
 };
+
+pub const MSAA_SAMPLE_COUNT: u32 = 4;
 
 pub trait GraphicsWorld {
     fn update_camera_view(&mut self, view: Matrix4<f32>);
@@ -19,6 +21,7 @@ pub trait GraphicsWorld {
 
 pub struct Renderer {
     ctx: Context,
+    msaa: MsaaFramebuffer,
 
     line_pipeline: LinePipeline,
 
@@ -33,6 +36,11 @@ impl Renderer {
     pub fn new(window: &Window) -> Self {
         let ctx = Context::new(window);
 
+        let msaa = {
+            let (width, height) = window.inner_size().into();
+            ctx.create_msaa_framebuffer(width, height)
+        };
+
         let uniform_buffer_layout = ctx.create_uniform_buffer_layout();
         let line_pipeline = ctx.create_line_pipeline(&uniform_buffer_layout);
 
@@ -45,6 +53,7 @@ impl Renderer {
 
         Self {
             ctx,
+            msaa,
             line_pipeline,
             camera_group,
             camera_block,
@@ -55,6 +64,7 @@ impl Renderer {
 
     pub fn resize(&mut self, width: u32, height: u32) {
         self.ctx.configure(width, height);
+        self.msaa = self.ctx.create_msaa_framebuffer(width, height);
 
         let aspect = width as f32 / height as f32;
         self.camera_block.projection = perspective(Deg(80.0), aspect, 0.1, 100.0).into();
@@ -67,7 +77,7 @@ impl Renderer {
         let mut frame = self.ctx.begin_frame();
 
         {
-            let mut pass = frame.begin_pass();
+            let mut pass = frame.begin_pass([0.05, 0.05, 0.05, 1.0], &self.msaa);
             pass.set_camera_group(&self.camera_group);
             pass.begin_lines(&self.line_pipeline);
             pass.draw_lines(&self.grid);
