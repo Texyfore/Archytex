@@ -8,7 +8,7 @@ use wgpu::{
 };
 use winit::window::Window;
 
-use super::{data::LineVertex, CameraBlock};
+use super::{data::LineVertex, CameraBlock, MSAA_SAMPLE_COUNT};
 
 pub(super) struct Context {
     surface: Surface,
@@ -44,6 +44,10 @@ pub(super) struct UniformBufferLayout {
 pub(super) struct UniformBufferGroup<T: Pod> {
     inner: BindGroup,
     buffer: TypedBuffer<T>,
+}
+
+pub(super) struct MsaaFramebuffer {
+    view: TextureView,
 }
 
 impl Context {
@@ -155,7 +159,11 @@ impl Context {
                     ..Default::default()
                 },
                 depth_stencil: None,
-                multisample: Default::default(),
+                multisample: MultisampleState {
+                    count: MSAA_SAMPLE_COUNT,
+                    mask: !0,
+                    alpha_to_coverage_enabled: false,
+                },
                 fragment: Some(FragmentState {
                     module: &module,
                     entry_point: "main",
@@ -233,22 +241,45 @@ impl Context {
         self.queue
             .write_buffer(&group.buffer.inner, 0, cast_slice(&[content]));
     }
+
+    pub fn create_msaa_framebuffer(&self, width: u32, height: u32) -> MsaaFramebuffer {
+        let size = Extent3d {
+            width,
+            height,
+            depth_or_array_layers: 1,
+        };
+
+        let view = self
+            .device
+            .create_texture(&TextureDescriptor {
+                label: None,
+                size,
+                mip_level_count: 1,
+                sample_count: MSAA_SAMPLE_COUNT,
+                dimension: TextureDimension::D2,
+                format: self.surface_format,
+                usage: TextureUsages::RENDER_ATTACHMENT,
+            })
+            .create_view(&Default::default());
+
+        MsaaFramebuffer { view }
+    }
 }
 
 impl Frame {
-    pub fn begin_pass(&mut self) -> Pass {
+    pub fn begin_pass<'a>(&'a mut self, color: [f64; 4], msaa: &'a MsaaFramebuffer) -> Pass {
         Pass {
             inner: self.encoder.begin_render_pass(&RenderPassDescriptor {
                 label: None,
                 color_attachments: &[RenderPassColorAttachment {
-                    view: &self.view,
-                    resolve_target: None,
+                    view: &msaa.view,
+                    resolve_target: Some(&self.view),
                     ops: Operations {
                         load: LoadOp::Clear(Color {
-                            r: 0.05,
-                            g: 0.05,
-                            b: 0.05,
-                            a: 1.0,
+                            r: color[0],
+                            g: color[1],
+                            b: color[2],
+                            a: color[3],
                         }),
                         store: true,
                     },
