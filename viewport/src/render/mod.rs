@@ -6,13 +6,14 @@ use std::rc::Rc;
 
 use bytemuck::{Pod, Zeroable};
 use cgmath::{perspective, Deg, Matrix4, SquareMatrix};
+use image::DynamicImage;
 use winit::window::Window;
 
 use self::{
     data::{BrushVertex, LineVertex, Triangle},
     gpu::{
-        BrushPipeline, Context, LinePipeline, MsaaFramebuffer, TypedBuffer, UniformBufferGroup,
-        UniformBufferLayout,
+        BrushPipeline, Context, LinePipeline, MsaaFramebuffer, TextureGroup, TextureLayout,
+        TypedBuffer, UniformBufferGroup, UniformBufferLayout,
     },
 };
 
@@ -21,6 +22,7 @@ pub const MSAA_SAMPLE_COUNT: u32 = 4;
 pub trait GraphicsWorld {
     fn create_brush_mesh(&self, vertices: &[BrushVertex], triangles: &[Triangle]) -> Rc<BrushMesh>;
     fn create_transform(&self, matrix: Matrix4<f32>) -> Rc<Transform>;
+    fn create_texture(&self, image: &DynamicImage) -> Rc<Texture>;
 
     fn update_camera_view(&mut self, view: Matrix4<f32>);
     fn update_grid(&mut self, cell_count: i32, cell_size: f32);
@@ -32,7 +34,10 @@ pub trait GraphicsWorld {
 pub struct Renderer {
     ctx: Context,
     msaa: MsaaFramebuffer,
+    sampler: wgpu::Sampler,
+
     uniform_buffer_layout: UniformBufferLayout,
+    texture_layout: TextureLayout,
 
     line_pipeline: LinePipeline,
     brush_pipeline: BrushPipeline,
@@ -53,9 +58,13 @@ impl Renderer {
             ctx.create_msaa_framebuffer(width, height)
         };
 
+        let sampler = ctx.create_sampler();
+
         let uniform_buffer_layout = ctx.create_uniform_buffer_layout();
+        let texture_layout = ctx.create_texture_layout();
+
         let line_pipeline = ctx.create_line_pipeline(&uniform_buffer_layout);
-        let brush_pipeline = ctx.create_brush_pipeline(&uniform_buffer_layout);
+        let brush_pipeline = ctx.create_brush_pipeline(&uniform_buffer_layout, &texture_layout);
 
         let camera_block = CameraBlock {
             view: Matrix4::identity().into(),
@@ -71,7 +80,9 @@ impl Renderer {
         Self {
             ctx,
             msaa,
+            sampler,
             uniform_buffer_layout,
+            texture_layout,
             line_pipeline,
             brush_pipeline,
             camera_group,
@@ -105,8 +116,9 @@ impl Renderer {
             pass.begin_brushes(&self.brush_pipeline);
             for command in &self.brush_commands {
                 pass.set_transform(&command.transform.group);
-                for mesh in &command.meshes {
-                    pass.draw_mesh(&mesh.vertices, &mesh.triangles);
+                for component in &command.components {
+                    pass.set_texture(&component.texture.group);
+                    pass.draw_mesh(&component.mesh.vertices, &component.mesh.triangles);
                 }
             }
         }
@@ -132,6 +144,14 @@ impl GraphicsWorld for Renderer {
                     matrix: matrix.into(),
                 },
             ),
+        })
+    }
+
+    fn create_texture(&self, image: &DynamicImage) -> Rc<Texture> {
+        Rc::new(Texture {
+            group: self
+                .ctx
+                .create_texture_group(&self.texture_layout, image, &self.sampler),
         })
     }
 
@@ -216,7 +236,12 @@ impl GraphicsWorld for Renderer {
 
 pub struct BrushCommand {
     pub transform: Rc<Transform>,
-    pub meshes: Vec<Rc<BrushMesh>>,
+    pub components: Vec<BrushComponent>,
+}
+
+pub struct BrushComponent {
+    pub mesh: Rc<BrushMesh>,
+    pub texture: Rc<Texture>,
 }
 
 pub struct BrushMesh {
@@ -226,6 +251,10 @@ pub struct BrushMesh {
 
 pub struct Transform {
     group: UniformBufferGroup<TransformBlock>,
+}
+
+pub struct Texture {
+    group: TextureGroup,
 }
 
 #[repr(C)]

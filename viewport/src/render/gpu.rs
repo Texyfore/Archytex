@@ -1,7 +1,8 @@
-use std::{iter::once, marker::PhantomData, mem::size_of};
+use std::{iter::once, marker::PhantomData, mem::size_of, num::NonZeroU32};
 
 use bytemuck::{cast_slice, Pod};
 use futures_lite::future;
+use image::{DynamicImage, EncodableLayout, GenericImageView};
 use wgpu::{
     util::{BufferInitDescriptor, DeviceExt},
     *,
@@ -53,6 +54,14 @@ pub(super) struct UniformBufferLayout {
 pub(super) struct UniformBufferGroup<T: Pod> {
     inner: BindGroup,
     buffer: TypedBuffer<T>,
+}
+
+pub(super) struct TextureLayout {
+    inner: BindGroupLayout,
+}
+
+pub(super) struct TextureGroup {
+    inner: BindGroup,
 }
 
 pub(super) struct MsaaFramebuffer {
@@ -186,6 +195,7 @@ impl Context {
     pub fn create_brush_pipeline(
         &self,
         uniform_buffer_layout: &UniformBufferLayout,
+        texture_layout: &TextureLayout,
     ) -> BrushPipeline {
         let module = self.device.create_shader_module(&ShaderModuleDescriptor {
             label: None,
@@ -204,6 +214,7 @@ impl Context {
                             bind_group_layouts: &[
                                 &uniform_buffer_layout.inner,
                                 &uniform_buffer_layout.inner,
+                                &texture_layout.inner,
                             ],
                             push_constant_ranges: &[],
                         }),
@@ -309,6 +320,98 @@ impl Context {
             .write_buffer(&group.buffer.inner, 0, cast_slice(&[content]));
     }
 
+    pub fn create_texture_layout(&self) -> TextureLayout {
+        TextureLayout {
+            inner: self
+                .device
+                .create_bind_group_layout(&BindGroupLayoutDescriptor {
+                    label: None,
+                    entries: &[
+                        BindGroupLayoutEntry {
+                            binding: 0,
+                            visibility: ShaderStages::FRAGMENT,
+                            ty: BindingType::Texture {
+                                sample_type: TextureSampleType::Float { filterable: false },
+                                view_dimension: TextureViewDimension::D2,
+                                multisampled: false,
+                            },
+                            count: None,
+                        },
+                        BindGroupLayoutEntry {
+                            binding: 1,
+                            visibility: ShaderStages::FRAGMENT,
+                            ty: BindingType::Sampler {
+                                filtering: true,
+                                comparison: false,
+                            },
+                            count: None,
+                        },
+                    ],
+                }),
+        }
+    }
+
+    pub fn create_texture_group(
+        &self,
+        layout: &TextureLayout,
+        image: &DynamicImage,
+        sampler: &Sampler,
+    ) -> TextureGroup {
+        let size = {
+            let (width, height) = image.dimensions();
+            Extent3d {
+                width,
+                height,
+                depth_or_array_layers: 1,
+            }
+        };
+
+        let texture = self.device.create_texture(&TextureDescriptor {
+            label: None,
+            size,
+            mip_level_count: 1,
+            sample_count: 1,
+            dimension: TextureDimension::D2,
+            format: TextureFormat::Rgba8UnormSrgb,
+            usage: TextureUsages::TEXTURE_BINDING | TextureUsages::COPY_DST,
+        });
+
+        let view = texture.create_view(&Default::default());
+
+        let inner = self.device.create_bind_group(&BindGroupDescriptor {
+            label: None,
+            layout: &layout.inner,
+            entries: &[
+                BindGroupEntry {
+                    binding: 0,
+                    resource: BindingResource::TextureView(&view),
+                },
+                BindGroupEntry {
+                    binding: 1,
+                    resource: BindingResource::Sampler(sampler),
+                },
+            ],
+        });
+
+        self.queue.write_texture(
+            ImageCopyTexture {
+                texture: &texture,
+                mip_level: 0,
+                origin: Origin3d::ZERO,
+                aspect: TextureAspect::All,
+            },
+            image.as_rgba8().unwrap().as_bytes(),
+            ImageDataLayout {
+                offset: 0,
+                bytes_per_row: NonZeroU32::new(size.width * 4),
+                rows_per_image: NonZeroU32::new(size.height),
+            },
+            size,
+        );
+
+        TextureGroup { inner }
+    }
+
     pub fn create_msaa_framebuffer(&self, width: u32, height: u32) -> MsaaFramebuffer {
         let size = Extent3d {
             width,
@@ -330,6 +433,19 @@ impl Context {
             .create_view(&Default::default());
 
         MsaaFramebuffer { view }
+    }
+
+    pub fn create_sampler(&self) -> Sampler {
+        self.device.create_sampler(&SamplerDescriptor {
+            label: None,
+            address_mode_u: AddressMode::ClampToEdge,
+            address_mode_v: AddressMode::ClampToEdge,
+            address_mode_w: AddressMode::ClampToEdge,
+            mag_filter: FilterMode::Linear,
+            min_filter: FilterMode::Linear,
+            mipmap_filter: FilterMode::Linear,
+            ..Default::default()
+        })
     }
 }
 
@@ -364,6 +480,10 @@ impl<'a> Pass<'a> {
 
     pub fn set_transform(&mut self, transform_group: &'a UniformBufferGroup<TransformBlock>) {
         self.inner.set_bind_group(1, &transform_group.inner, &[]);
+    }
+
+    pub fn set_texture(&mut self, texture_group: &'a TextureGroup) {
+        self.inner.set_bind_group(2, &texture_group.inner, &[]);
     }
 
     pub fn begin_lines(&mut self, pipeline: &'a LinePipeline) {

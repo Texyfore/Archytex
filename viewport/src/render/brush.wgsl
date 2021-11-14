@@ -45,6 +45,11 @@ fn main(in: VertexIn) -> VertexOut {
     out.clip_position = mvp * vec4<f32>(in.position, 1.0);
     out.normal = (mvp * vec4<f32>(in.normal, 1.0)).xyz;
     out.texcoord = in.texcoord;
+
+    // WGPU works with a different texture coordinate system, so we need to flip
+    // the coordinates vertically.
+    out.texcoord.y = 1.0 - out.texcoord.y;
+
     return out;
 }
 
@@ -53,9 +58,15 @@ struct FragmentOut {
     color: vec4<f32>;
 };
 
+[[group(2), binding(0)]]
+var t_diffuse: texture_2d<f32>;
+
+[[group(2), binding(1)]]
+var s_diffuse: sampler;
+
 [[stage(fragment)]]
 fn main(in: VertexOut) -> FragmentOut {
     var out: FragmentOut;
-    out.color = vec4<f32>(1.0);
+    out.color = textureSample(t_diffuse, s_diffuse, in.texcoord);
     return out;
 }
