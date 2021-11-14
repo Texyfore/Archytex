@@ -1,11 +1,14 @@
 mod camera;
 
-use std::marker::PhantomData;
+use std::{marker::PhantomData, rc::Rc};
 use winit::event::{MouseButton, VirtualKeyCode};
 
 use crate::{
     input::{Input, Trigger},
-    render::GraphicsWorld,
+    render::{
+        data::{BrushVertex, Triangle},
+        BrushMesh, GraphicsWorld,
+    },
 };
 
 use self::camera::Camera;
@@ -30,6 +33,7 @@ macro_rules! actions {
 
 pub struct Editor<I, G> {
     camera: Camera,
+    brush: Rc<BrushMesh>,
 
     _i: PhantomData<I>,
     _g: PhantomData<G>,
@@ -56,8 +60,30 @@ where
 
         gfx.update_grid(10, 1.0);
 
+        let brush = gfx.create_brush_mesh(
+            &[
+                BrushVertex {
+                    position: [0.0, 0.0, 0.0],
+                    normal: [0.0, 0.0, 0.0],
+                    texcoord: [0.0, 0.0],
+                },
+                BrushVertex {
+                    position: [1.0, 0.0, 0.0],
+                    normal: [0.0, 0.0, 0.0],
+                    texcoord: [0.0, 0.0],
+                },
+                BrushVertex {
+                    position: [0.0, 1.0, 0.0],
+                    normal: [0.0, 0.0, 0.0],
+                    texcoord: [0.0, 0.0],
+                },
+            ],
+            &[[0, 1, 2]],
+        );
+
         Self {
             camera: Camera::default(),
+            brush,
             _i: PhantomData,
             _g: PhantomData,
         }
@@ -65,5 +91,6 @@ where
 
     pub fn process(&mut self, input: &I, gfx: &mut G) {
         self.camera.process(input, gfx);
+        gfx.draw_brush_mesh(self.brush.clone());
     }
 }
