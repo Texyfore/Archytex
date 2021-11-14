@@ -73,17 +73,22 @@ where
                     texcoord: [1.0, 0.0],
                 },
                 BrushVertex {
+                    position: [1.0, 1.0, 0.0],
+                    normal: [0.0, 0.0, 0.0],
+                    texcoord: [1.0, 1.0],
+                },
+                BrushVertex {
                     position: [0.0, 1.0, 0.0],
                     normal: [0.0, 0.0, 0.0],
                     texcoord: [0.0, 1.0],
                 },
             ],
-            &[[0, 1, 2]],
+            &[[0, 1, 2], [0, 2, 3]],
         );
 
         let transform = gfx.create_transform(Matrix4::identity());
         let texture =
-            gfx.create_texture(&image::load_from_memory(include_bytes!("test.png")).unwrap());
+            gfx.create_texture(&image::load_from_memory(include_bytes!("res/nodraw.png")).unwrap());
 
         Self {
             camera: Camera::default(),
