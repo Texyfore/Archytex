@@ -1,18 +1,16 @@
+mod brush;
 mod camera;
 
-use cgmath::{Matrix4, SquareMatrix};
+use cgmath::vec3;
 use std::{marker::PhantomData, rc::Rc};
 use winit::event::{MouseButton, VirtualKeyCode};
 
 use crate::{
     input::{Input, Trigger},
-    render::{
-        data::BrushVertex, BrushCommand, BrushComponent, BrushMesh, GraphicsWorld, Texture,
-        Transform,
-    },
+    render::{GraphicsWorld, Texture},
 };
 
-use self::camera::Camera;
+use self::{brush::Brush, camera::Camera};
 
 macro_rules! action {
     ($name:literal Key $elem:ident) => {
@@ -34,9 +32,8 @@ macro_rules! actions {
 
 pub struct Editor<I, G> {
     camera: Camera,
-    brush: Rc<BrushMesh>,
-    transform: Rc<Transform>,
     texture: Rc<Texture>,
+    brush: Brush,
 
     _i: PhantomData<I>,
     _g: PhantomData<G>,
@@ -60,40 +57,35 @@ where
 
         gfx.update_grid(10, 1.0);
 
-        let brush = gfx.create_brush_mesh(
-            &[
-                BrushVertex {
-                    position: [0.0, 0.0, 0.0],
-                    normal: [0.0, 0.0, 0.0],
-                    texcoord: [0.0, 0.0],
-                },
-                BrushVertex {
-                    position: [1.0, 0.0, 0.0],
-                    normal: [0.0, 0.0, 0.0],
-                    texcoord: [1.0, 0.0],
-                },
-                BrushVertex {
-                    position: [1.0, 1.0, 0.0],
-                    normal: [0.0, 0.0, 0.0],
-                    texcoord: [1.0, 1.0],
-                },
-                BrushVertex {
-                    position: [0.0, 1.0, 0.0],
-                    normal: [0.0, 0.0, 0.0],
-                    texcoord: [0.0, 1.0],
-                },
+        let mut brush = Brush::new(
+            gfx,
+            vec![
+                vec3(0.0, 0.0, 0.0),
+                vec3(1.0, 0.0, 0.0),
+                vec3(1.0, 0.0, 1.0),
+                vec3(0.0, 0.0, 1.0),
+                vec3(0.0, 1.0, 0.0),
+                vec3(1.0, 1.0, 0.0),
+                vec3(1.0, 1.0, 1.0),
+                vec3(0.0, 1.0, 1.0),
             ],
-            &[[0, 1, 2], [0, 2, 3]],
+            vec![
+                [0, 1, 2, 3],
+                [7, 6, 5, 4],
+                [4, 5, 1, 0],
+                [6, 7, 3, 2],
+                [0, 3, 7, 4],
+                [5, 6, 2, 1],
+            ],
         );
+        brush.regenerate(gfx);
 
-        let transform = gfx.create_transform(Matrix4::identity());
         let texture =
             gfx.create_texture(&image::load_from_memory(include_bytes!("res/nodraw.png")).unwrap());
 
         Self {
             camera: Camera::default(),
             brush,
-            transform,
             texture,
             _i: PhantomData,
             _g: PhantomData,
@@ -102,12 +94,6 @@ where
 
     pub fn process(&mut self, input: &I, gfx: &mut G) {
         self.camera.process(input, gfx);
-        gfx.draw_brush(BrushCommand {
-            transform: self.transform.clone(),
-            components: vec![BrushComponent {
-                mesh: self.brush.clone(),
-                texture: self.texture.clone(),
-            }],
-        });
+        self.brush.draw(gfx, self.texture.clone());
     }
 }

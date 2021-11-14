@@ -39,11 +39,15 @@ var<uniform> transform: TransformBlock;
 
 [[stage(vertex)]]
 fn main(in: VertexIn) -> VertexOut {
-    var mvp = camera.projection * camera.view * transform.matrix;
+    var nmat = transform.matrix;
+    nmat[3] = vec4<f32>(0.0, 0.0, 0.0, 1.0);
+
+    var world_position = camera.view * transform.matrix * vec4<f32>(in.position, 1.0);
+    var world_normal = normalize((nmat * vec4<f32>(in.normal, 1.0)).xyz);
 
     var out: VertexOut;
-    out.clip_position = mvp * vec4<f32>(in.position, 1.0);
-    out.normal = (mvp * vec4<f32>(in.normal, 1.0)).xyz;
+    out.clip_position = camera.projection * world_position;
+    out.normal = world_normal;
     out.texcoord = in.texcoord;
 
     // WGPU works with a different texture coordinate system, so we need to flip
@@ -66,7 +70,14 @@ var s_diffuse: sampler;
 
 [[stage(fragment)]]
 fn main(in: VertexOut) -> FragmentOut {
+    var light_dir = normalize(vec3<f32>(0.1, 0.2, 0.3));
+    var diffuse = clamp(dot(light_dir, in.normal), 0.0, 0.7) + 0.3;
+
+    var color = textureSample(t_diffuse, s_diffuse, in.texcoord);
+    var color_rgb = color.rgb;
+    var color_a = color.a;
+
     var out: FragmentOut;
-    out.color = textureSample(t_diffuse, s_diffuse, in.texcoord);
+    out.color = vec4<f32>(color.rgb * diffuse, color.a);
     return out;
 }
