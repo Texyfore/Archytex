@@ -12,7 +12,7 @@ use crate::render::data::BrushVertex;
 
 use super::{
     data::{LineVertex, Triangle},
-    CameraBlock, MSAA_SAMPLE_COUNT,
+    CameraBlock, TransformBlock, MSAA_SAMPLE_COUNT,
 };
 
 pub(super) struct Context {
@@ -201,7 +201,10 @@ impl Context {
                         .device
                         .create_pipeline_layout(&PipelineLayoutDescriptor {
                             label: None,
-                            bind_group_layouts: &[&uniform_buffer_layout.inner],
+                            bind_group_layouts: &[
+                                &uniform_buffer_layout.inner,
+                                &uniform_buffer_layout.inner,
+                            ],
                             push_constant_ranges: &[],
                         }),
                 ),
@@ -211,7 +214,11 @@ impl Context {
                     buffers: &[VertexBufferLayout {
                         array_stride: size_of::<BrushVertex>() as u64,
                         step_mode: VertexStepMode::Vertex,
-                        attributes: &vertex_attr_array![0 => Float32x3, 1=>Float32x3, 2 => Float32x2],
+                        attributes: &vertex_attr_array![
+                            0 => Float32x3,
+                            1 => Float32x3,
+                            2 => Float32x2,
+                        ],
                     }],
                 },
                 primitive: PrimitiveState {
@@ -372,7 +379,9 @@ impl<'a> Pass<'a> {
         &mut self,
         vertices: &'a TypedBuffer<BrushVertex>,
         triangles: &'a TypedBuffer<Triangle>,
+        transform: &'a UniformBufferGroup<TransformBlock>,
     ) {
+        self.inner.set_bind_group(1, &transform.inner, &[]);
         self.inner.set_vertex_buffer(0, vertices.inner.slice(..));
         self.inner
             .set_index_buffer(triangles.inner.slice(..), IndexFormat::Uint16);

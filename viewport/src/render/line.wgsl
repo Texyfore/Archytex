@@ -15,13 +15,13 @@ struct VertexOut {
 };
 
 [[block]]
-struct CameraGroup {
+struct CameraBlock {
     view: mat4x4<f32>;
     projection: mat4x4<f32>;
 };
 
 [[group(0), binding(0)]]
-var<uniform> camera: CameraGroup;
+var<uniform> camera: CameraBlock;
 
 [[stage(vertex)]]
 fn main(in: VertexIn) -> VertexOut {
