@@ -6,7 +6,7 @@ use winit::event::{MouseButton, VirtualKeyCode};
 
 use crate::{
     input::{Input, Trigger},
-    render::{data::BrushVertex, BrushMesh, GraphicsWorld, Transform},
+    render::{data::BrushVertex, BrushCommand, BrushMesh, GraphicsWorld, Transform},
 };
 
 use self::camera::Camera;
@@ -90,6 +90,9 @@ where
 
     pub fn process(&mut self, input: &I, gfx: &mut G) {
         self.camera.process(input, gfx);
-        gfx.draw_brush_mesh(self.brush.clone(), self.transform.clone());
+        gfx.draw_brush(BrushCommand {
+            transform: self.transform.clone(),
+            meshes: vec![self.brush.clone()],
+        });
     }
 }

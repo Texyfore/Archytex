@@ -362,6 +362,10 @@ impl<'a> Pass<'a> {
         self.inner.set_bind_group(0, &camera_group.inner, &[]);
     }
 
+    pub fn set_transform(&mut self, transform_group: &'a UniformBufferGroup<TransformBlock>) {
+        self.inner.set_bind_group(1, &transform_group.inner, &[]);
+    }
+
     pub fn begin_lines(&mut self, pipeline: &'a LinePipeline) {
         self.inner.set_pipeline(&pipeline.inner);
     }
@@ -371,17 +375,15 @@ impl<'a> Pass<'a> {
         self.inner.draw(0..buffer.len as u32, 0..1);
     }
 
-    pub fn begin_brush_meshes(&mut self, pipeline: &'a BrushPipeline) {
+    pub fn begin_brushes(&mut self, pipeline: &'a BrushPipeline) {
         self.inner.set_pipeline(&pipeline.inner);
     }
 
-    pub fn draw_brush_mesh(
+    pub fn draw_mesh<V: Pod>(
         &mut self,
-        vertices: &'a TypedBuffer<BrushVertex>,
+        vertices: &'a TypedBuffer<V>,
         triangles: &'a TypedBuffer<Triangle>,
-        transform: &'a UniformBufferGroup<TransformBlock>,
     ) {
-        self.inner.set_bind_group(1, &transform.inner, &[]);
         self.inner.set_vertex_buffer(0, vertices.inner.slice(..));
         self.inner
             .set_index_buffer(triangles.inner.slice(..), IndexFormat::Uint16);

@@ -19,12 +19,14 @@ use self::{
 pub const MSAA_SAMPLE_COUNT: u32 = 4;
 
 pub trait GraphicsWorld {
+    fn create_brush_mesh(&self, vertices: &[BrushVertex], triangles: &[Triangle]) -> Rc<BrushMesh>;
+    fn create_transform(&self, matrix: Matrix4<f32>) -> Rc<Transform>;
+
     fn update_camera_view(&mut self, view: Matrix4<f32>);
     fn update_grid(&mut self, cell_count: i32, cell_size: f32);
-    fn create_brush_mesh(&self, vertices: &[BrushVertex], triangles: &[Triangle]) -> Rc<BrushMesh>;
-    fn draw_brush_mesh(&mut self, brush_mesh: Rc<BrushMesh>, transform: Rc<Transform>);
-    fn create_transform(&self, matrix: Matrix4<f32>) -> Rc<Transform>;
     fn update_transform(&self, transform: &Transform, matrix: Matrix4<f32>);
+
+    fn draw_brush(&mut self, command: BrushCommand);
 }
 
 pub struct Renderer {
@@ -39,7 +41,7 @@ pub struct Renderer {
     camera_block: CameraBlock,
 
     grid: TypedBuffer<LineVertex>,
-    brush_meshes: Vec<(Rc<BrushMesh>, Rc<Transform>)>,
+    brush_commands: Vec<BrushCommand>,
 }
 
 impl Renderer {
@@ -75,7 +77,7 @@ impl Renderer {
             camera_group,
             camera_block,
             grid,
-            brush_meshes,
+            brush_commands: brush_meshes,
         }
     }
 
@@ -100,22 +102,39 @@ impl Renderer {
             pass.begin_lines(&self.line_pipeline);
             pass.draw_lines(&self.grid);
 
-            pass.begin_brush_meshes(&self.brush_pipeline);
-            for (brush_mesh, transform) in &self.brush_meshes {
-                pass.draw_brush_mesh(
-                    &brush_mesh.vertices,
-                    &brush_mesh.triangles,
-                    &transform.group,
-                );
+            pass.begin_brushes(&self.brush_pipeline);
+            for command in &self.brush_commands {
+                pass.set_transform(&command.transform.group);
+                for mesh in &command.meshes {
+                    pass.draw_mesh(&mesh.vertices, &mesh.triangles);
+                }
             }
         }
 
         self.ctx.end_frame(frame);
-        self.brush_meshes.clear();
+        self.brush_commands.clear();
     }
 }
 
 impl GraphicsWorld for Renderer {
+    fn create_brush_mesh(&self, vertices: &[BrushVertex], triangles: &[Triangle]) -> Rc<BrushMesh> {
+        Rc::new(BrushMesh {
+            vertices: self.ctx.create_buffer(vertices, wgpu::BufferUsages::VERTEX),
+            triangles: self.ctx.create_buffer(triangles, wgpu::BufferUsages::INDEX),
+        })
+    }
+
+    fn create_transform(&self, matrix: Matrix4<f32>) -> Rc<Transform> {
+        Rc::new(Transform {
+            group: self.ctx.create_uniform_buffer_group(
+                &self.uniform_buffer_layout,
+                TransformBlock {
+                    matrix: matrix.into(),
+                },
+            ),
+        })
+    }
+
     fn update_camera_view(&mut self, view: Matrix4<f32>) {
         if let Some(view) = view.invert() {
             self.camera_block.view = view.into();
@@ -181,28 +200,6 @@ impl GraphicsWorld for Renderer {
             .create_buffer(&vertices, wgpu::BufferUsages::VERTEX);
     }
 
-    fn create_brush_mesh(&self, vertices: &[BrushVertex], triangles: &[Triangle]) -> Rc<BrushMesh> {
-        Rc::new(BrushMesh {
-            vertices: self.ctx.create_buffer(vertices, wgpu::BufferUsages::VERTEX),
-            triangles: self.ctx.create_buffer(triangles, wgpu::BufferUsages::INDEX),
-        })
-    }
-
-    fn draw_brush_mesh(&mut self, brush_mesh: Rc<BrushMesh>, transform: Rc<Transform>) {
-        self.brush_meshes.push((brush_mesh, transform));
-    }
-
-    fn create_transform(&self, matrix: Matrix4<f32>) -> Rc<Transform> {
-        Rc::new(Transform {
-            group: self.ctx.create_uniform_buffer_group(
-                &self.uniform_buffer_layout,
-                TransformBlock {
-                    matrix: matrix.into(),
-                },
-            ),
-        })
-    }
-
     fn update_transform(&self, transform: &Transform, matrix: Matrix4<f32>) {
         self.ctx.upload_uniform(
             &transform.group,
@@ -211,6 +208,15 @@ impl GraphicsWorld for Renderer {
             },
         );
     }
+
+    fn draw_brush(&mut self, command: BrushCommand) {
+        self.brush_commands.push(command);
+    }
+}
+
+pub struct BrushCommand {
+    pub transform: Rc<Transform>,
+    pub meshes: Vec<Rc<BrushMesh>>,
 }
 
 pub struct BrushMesh {
