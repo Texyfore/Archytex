@@ -5,7 +5,7 @@ use winit::event::{MouseButton, VirtualKeyCode};
 
 use crate::{
     input::{Input, Trigger},
-    render::{data::LineVertex, GraphicsWorld},
+    render::GraphicsWorld,
 };
 
 use self::camera::Camera;
@@ -44,23 +44,7 @@ where
             action!( "down"     Key Q     ),
         ]);
 
-        const A: LineVertex = LineVertex {
-            position: [-0.5, -0.37, 0.0],
-            color: [1.0, 0.0, 0.0, 1.0],
-        };
-
-        const B: LineVertex = LineVertex {
-            position: [0.5, -0.37, 0.0],
-            color: [0.0, 1.0, 0.0, 1.0],
-        };
-
-        const C: LineVertex = LineVertex {
-            position: [0.0, 0.5, 0.0],
-            color: [0.0, 0.0, 1.0, 1.0],
-        };
-
         gfx.update_grid(10, 1.0);
-        gfx.update_wireframe(&[A, B, B, C, C, A]);
 
         Self {
             camera: Camera::default(),
