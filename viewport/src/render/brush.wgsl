@@ -39,6 +39,8 @@ var<uniform> transform: TransformBlock;
 
 [[stage(vertex)]]
 fn main(in: VertexIn) -> VertexOut {
+    // The vertex normal needs to be rotated, but not moved. This is achieved by
+    // creating a special matrix that has its last row set to identity.
     var nmat = transform.matrix;
     nmat[3] = vec4<f32>(0.0, 0.0, 0.0, 1.0);
 
