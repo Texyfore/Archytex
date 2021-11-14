@@ -20,6 +20,14 @@ macro_rules! action {
     };
 }
 
+macro_rules! actions {
+    ($($name:literal $ty:ident $elem:ident,)*) => {
+        &[
+            $(action!($name $ty $elem),)*
+        ]
+    };
+}
+
 pub struct Editor<I, G> {
     camera: Camera,
 
@@ -34,15 +42,17 @@ where
 {
     pub fn init(input: &mut I, gfx: &mut G) -> Self {
         #[rustfmt::skip]
-        input.define_actions(&[
-            action!( "movecam"  Btn Right ),
-            action!( "forward"  Key W     ),
-            action!( "backward" Key S     ),
-            action!( "left"     Key A     ),
-            action!( "right"    Key D     ),
-            action!( "up"       Key E     ),
-            action!( "down"     Key Q     ),
-        ]);
+        input.define_actions(
+            actions!(
+                "movecam"  Btn Right,
+                "forward"  Key W    ,
+                "backward" Key S    ,
+                "left"     Key A    ,
+                "right"    Key D    ,
+                "up"       Key E    ,
+                "down"     Key Q    ,
+            )
+        );
 
         gfx.update_grid(10, 1.0);
 
