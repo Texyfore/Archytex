@@ -1,14 +1,16 @@
+mod brush;
 mod camera;
 
-use std::marker::PhantomData;
+use cgmath::{vec3, Matrix4, SquareMatrix};
+use std::{marker::PhantomData, rc::Rc};
 use winit::event::{MouseButton, VirtualKeyCode};
 
 use crate::{
     input::{Input, Trigger},
-    render::{data::LineVertex, GraphicsWorld},
+    render::{GraphicsWorld, Texture},
 };
 
-use self::camera::Camera;
+use self::{brush::Brush, camera::Camera};
 
 macro_rules! action {
     ($name:literal Key $elem:ident) => {
@@ -20,8 +22,19 @@ macro_rules! action {
     };
 }
 
+macro_rules! actions {
+    ($($name:literal $ty:ident $elem:ident,)*) => {
+        &[
+            $(action!($name $ty $elem),)*
+        ]
+    };
+}
+
 pub struct Editor<I, G> {
     camera: Camera,
+    texture: Rc<Texture>,
+    brush: Brush,
+    a: f32,
 
     _i: PhantomData<I>,
     _g: PhantomData<G>,
@@ -33,43 +46,41 @@ where
     G: GraphicsWorld,
 {
     pub fn init(input: &mut I, gfx: &mut G) -> Self {
-        #[rustfmt::skip]
-        input.define_actions(&[
-            action!( "movecam"  Btn Right ),
-            action!( "forward"  Key W     ),
-            action!( "backward" Key S     ),
-            action!( "left"     Key A     ),
-            action!( "right"    Key D     ),
-            action!( "up"       Key E     ),
-            action!( "down"     Key Q     ),
-        ]);
-
-        const A: LineVertex = LineVertex {
-            position: [-0.5, -0.37, 0.0],
-            color: [1.0, 0.0, 0.0, 1.0],
-        };
-
-        const B: LineVertex = LineVertex {
-            position: [0.5, -0.37, 0.0],
-            color: [0.0, 1.0, 0.0, 1.0],
-        };
-
-        const C: LineVertex = LineVertex {
-            position: [0.0, 0.5, 0.0],
-            color: [0.0, 0.0, 1.0, 1.0],
-        };
+        input.define_actions(actions!(
+            "movecam"  Btn Right,
+            "forward"  Key W    ,
+            "backward" Key S    ,
+            "left"     Key A    ,
+            "right"    Key D    ,
+            "up"       Key E    ,
+            "down"     Key Q    ,
+        ));
 
         gfx.update_grid(10, 1.0);
-        gfx.update_wireframe(&[A, B, B, C, C, A]);
+
+        let mut brush = Brush::new(gfx, vec3(1.0, 1.0, 1.0), Matrix4::identity());
+        brush.regenerate(gfx);
+
+        let texture =
+            gfx.create_texture(&image::load_from_memory(include_bytes!("res/nodraw.png")).unwrap());
 
         Self {
             camera: Camera::default(),
+            brush,
+            texture,
+            a: 1.0,
             _i: PhantomData,
             _g: PhantomData,
         }
     }
 
     pub fn process(&mut self, input: &I, gfx: &mut G) {
+        self.brush.set_point(2, vec3(1.0, 0.0, self.a));
+        self.brush.set_point(3, vec3(0.0, 0.0, self.a));
+        self.brush.regenerate(gfx);
+        self.a += 0.001;
+
         self.camera.process(input, gfx);
+        self.brush.draw(gfx, self.texture.clone());
     }
 }
