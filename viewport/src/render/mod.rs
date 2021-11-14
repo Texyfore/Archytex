@@ -97,28 +97,30 @@ impl GraphicsWorld for Renderer {
 
     fn update_grid(&mut self, cell_count: i32, cell_size: f32) {
         let half_line_len = cell_count as f32 * cell_size;
-        let color = [0.1, 0.1, 0.1, 1.0];
+        let gray = [0.1, 0.1, 0.1, 1.0];
+        let red = [0.4, 0.1, 0.1, 1.0];
+        let blue = [0.1, 0.1, 0.4, 1.0];
 
         let mut vertices = Vec::with_capacity(cell_count as usize * 8 + 4);
 
         vertices.push(LineVertex {
             position: [-half_line_len, 0.0, 0.0],
-            color,
+            color: red,
         });
 
         vertices.push(LineVertex {
             position: [half_line_len, 0.0, 0.0],
-            color,
+            color: red,
         });
 
         vertices.push(LineVertex {
             position: [0.0, 0.0, -half_line_len],
-            color,
+            color: blue,
         });
 
         vertices.push(LineVertex {
             position: [0.0, 0.0, half_line_len],
-            color,
+            color: blue,
         });
 
         for sign in [-1.0, 1.0] {
@@ -127,22 +129,22 @@ impl GraphicsWorld for Renderer {
 
                 vertices.push(LineVertex {
                     position: [-half_line_len, 0.0, pos],
-                    color,
+                    color: gray,
                 });
 
                 vertices.push(LineVertex {
                     position: [half_line_len, 0.0, pos],
-                    color,
+                    color: gray,
                 });
 
                 vertices.push(LineVertex {
                     position: [pos, 0.0, -half_line_len],
-                    color,
+                    color: gray,
                 });
 
                 vertices.push(LineVertex {
                     position: [pos, 0.0, half_line_len],
-                    color,
+                    color: gray,
                 });
             }
         }
