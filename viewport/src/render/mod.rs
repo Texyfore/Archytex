@@ -16,7 +16,6 @@ pub const MSAA_SAMPLE_COUNT: u32 = 4;
 pub trait GraphicsWorld {
     fn update_camera_view(&mut self, view: Matrix4<f32>);
     fn update_grid(&mut self, cell_count: i32, cell_size: f32);
-    fn update_wireframe(&mut self, vertices: &[LineVertex]);
 }
 
 pub struct Renderer {
@@ -29,7 +28,6 @@ pub struct Renderer {
     camera_block: CameraBlock,
 
     grid: TypedBuffer<LineVertex>,
-    wireframe: TypedBuffer<LineVertex>,
 }
 
 impl Renderer {
@@ -49,7 +47,6 @@ impl Renderer {
         let camera_block = Default::default();
 
         let grid = ctx.create_buffer(&[], wgpu::BufferUsages::VERTEX);
-        let wireframe = ctx.create_buffer(&[], wgpu::BufferUsages::VERTEX);
 
         Self {
             ctx,
@@ -58,7 +55,6 @@ impl Renderer {
             camera_group,
             camera_block,
             grid,
-            wireframe,
         }
     }
 
@@ -81,7 +77,6 @@ impl Renderer {
             pass.set_camera_group(&self.camera_group);
             pass.begin_lines(&self.line_pipeline);
             pass.draw_lines(&self.grid);
-            pass.draw_lines(&self.wireframe);
         }
 
         self.ctx.end_frame(frame);
@@ -152,10 +147,6 @@ impl GraphicsWorld for Renderer {
         self.grid = self
             .ctx
             .create_buffer(&vertices, wgpu::BufferUsages::VERTEX);
-    }
-
-    fn update_wireframe(&mut self, vertices: &[LineVertex]) {
-        self.wireframe = self.ctx.create_buffer(vertices, wgpu::BufferUsages::VERTEX);
     }
 }
 
