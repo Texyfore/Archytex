@@ -68,6 +68,10 @@ pub(super) struct MsaaFramebuffer {
     view: TextureView,
 }
 
+pub(super) struct DepthBuffer {
+    view: TextureView,
+}
+
 impl Context {
     pub fn new(window: &Window) -> Self {
         let instance = Instance::new(Backends::all());
@@ -176,7 +180,13 @@ impl Context {
                     topology: PrimitiveTopology::LineList,
                     ..Default::default()
                 },
-                depth_stencil: None,
+                depth_stencil: Some(DepthStencilState {
+                    format: TextureFormat::Depth32Float,
+                    depth_write_enabled: true,
+                    depth_compare: CompareFunction::Less,
+                    stencil: Default::default(),
+                    bias: Default::default(),
+                }),
                 multisample: MultisampleState {
                     count: MSAA_SAMPLE_COUNT,
                     mask: !0,
@@ -236,7 +246,13 @@ impl Context {
                     cull_mode: Some(Face::Back),
                     ..Default::default()
                 },
-                depth_stencil: None,
+                depth_stencil: Some(DepthStencilState {
+                    format: TextureFormat::Depth32Float,
+                    depth_write_enabled: true,
+                    depth_compare: CompareFunction::Less,
+                    stencil: Default::default(),
+                    bias: Default::default(),
+                }),
                 multisample: MultisampleState {
                     count: MSAA_SAMPLE_COUNT,
                     mask: !0,
@@ -435,6 +451,28 @@ impl Context {
         MsaaFramebuffer { view }
     }
 
+    pub fn create_depth_buffer(&self, width: u32, height: u32) -> DepthBuffer {
+        let size = Extent3d {
+            width,
+            height,
+            depth_or_array_layers: 1,
+        };
+
+        let texture = self.device.create_texture(&TextureDescriptor {
+            label: None,
+            size,
+            mip_level_count: 1,
+            sample_count: MSAA_SAMPLE_COUNT,
+            dimension: TextureDimension::D2,
+            format: TextureFormat::Depth32Float,
+            usage: TextureUsages::RENDER_ATTACHMENT,
+        });
+
+        let view = texture.create_view(&Default::default());
+
+        DepthBuffer { view }
+    }
+
     pub fn create_sampler(&self) -> Sampler {
         self.device.create_sampler(&SamplerDescriptor {
             label: None,
@@ -450,7 +488,12 @@ impl Context {
 }
 
 impl Frame {
-    pub fn begin_pass<'a>(&'a mut self, color: [f64; 4], msaa: &'a MsaaFramebuffer) -> Pass {
+    pub fn begin_pass<'a>(
+        &'a mut self,
+        color: [f64; 4],
+        msaa: &'a MsaaFramebuffer,
+        depth: &'a DepthBuffer,
+    ) -> Pass {
         Pass {
             inner: self.encoder.begin_render_pass(&RenderPassDescriptor {
                 label: None,
@@ -467,7 +510,14 @@ impl Frame {
                         store: true,
                     },
                 }],
-                depth_stencil_attachment: None,
+                depth_stencil_attachment: Some(RenderPassDepthStencilAttachment {
+                    view: &depth.view,
+                    depth_ops: Some(Operations {
+                        load: LoadOp::Clear(1.0),
+                        store: true,
+                    }),
+                    stencil_ops: None,
+                }),
             }),
         }
     }

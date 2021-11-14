@@ -12,8 +12,8 @@ use winit::window::Window;
 use self::{
     data::{BrushVertex, LineVertex, Triangle},
     gpu::{
-        BrushPipeline, Context, LinePipeline, MsaaFramebuffer, TextureGroup, TextureLayout,
-        TypedBuffer, UniformBufferGroup, UniformBufferLayout,
+        BrushPipeline, Context, DepthBuffer, LinePipeline, MsaaFramebuffer, TextureGroup,
+        TextureLayout, TypedBuffer, UniformBufferGroup, UniformBufferLayout,
     },
 };
 
@@ -34,6 +34,7 @@ pub trait GraphicsWorld {
 pub struct Renderer {
     ctx: Context,
     msaa: MsaaFramebuffer,
+    depth: DepthBuffer,
     sampler: wgpu::Sampler,
 
     uniform_buffer_layout: UniformBufferLayout,
@@ -53,9 +54,12 @@ impl Renderer {
     pub fn new(window: &Window) -> Self {
         let ctx = Context::new(window);
 
-        let msaa = {
+        let (msaa, depth) = {
             let (width, height) = window.inner_size().into();
-            ctx.create_msaa_framebuffer(width, height)
+            (
+                ctx.create_msaa_framebuffer(width, height),
+                ctx.create_depth_buffer(width, height),
+            )
         };
 
         let sampler = ctx.create_sampler();
@@ -80,6 +84,7 @@ impl Renderer {
         Self {
             ctx,
             msaa,
+            depth,
             sampler,
             uniform_buffer_layout,
             texture_layout,
@@ -95,6 +100,7 @@ impl Renderer {
     pub fn resize(&mut self, width: u32, height: u32) {
         self.ctx.configure(width, height);
         self.msaa = self.ctx.create_msaa_framebuffer(width, height);
+        self.depth = self.ctx.create_depth_buffer(width, height);
 
         let aspect = width as f32 / height as f32;
         self.camera_block.projection = perspective(Deg(80.0), aspect, 0.1, 100.0).into();
@@ -107,7 +113,7 @@ impl Renderer {
         let mut frame = self.ctx.begin_frame();
 
         {
-            let mut pass = frame.begin_pass([0.05, 0.05, 0.05, 1.0], &self.msaa);
+            let mut pass = frame.begin_pass([0.05, 0.05, 0.05, 1.0], &self.msaa, &self.depth);
             pass.set_camera_group(&self.camera_group);
 
             pass.begin_lines(&self.line_pipeline);
