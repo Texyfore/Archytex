@@ -1,6 +1,6 @@
 use std::rc::Rc;
 
-use cgmath::{vec2, InnerSpace, Matrix3, Matrix4, Quaternion, SquareMatrix, Vector3};
+use cgmath::{vec3, InnerSpace, Matrix4, Quaternion, Vector3};
 
 use crate::render::{
     data::BrushVertex, BrushCommand, BrushComponent, BrushMesh, GraphicsWorld, Texture, Transform,
@@ -14,13 +14,37 @@ pub struct Brush {
 }
 
 impl Brush {
-    pub fn new<G: GraphicsWorld>(gfx: &G, points: Vec<Vector3<f32>>, faces: Vec<[u16; 4]>) -> Self {
+    pub fn new<G: GraphicsWorld>(gfx: &G, extent: Vector3<f32>, transform: Matrix4<f32>) -> Self {
+        let points = vec![
+            vec3(0.0, 0.0, 0.0),
+            vec3(extent.x, 0.0, 0.0),
+            vec3(extent.x, 0.0, extent.z),
+            vec3(0.0, 0.0, extent.z),
+            vec3(0.0, extent.y, 0.0),
+            vec3(extent.x, extent.y, 0.0),
+            vec3(extent.x, extent.y, extent.z),
+            vec3(0.0, extent.y, extent.z),
+        ];
+
+        let faces = vec![
+            [0, 1, 2, 3],
+            [7, 6, 5, 4],
+            [4, 5, 1, 0],
+            [6, 7, 3, 2],
+            [0, 3, 7, 4],
+            [5, 6, 2, 1],
+        ];
+
         Self {
             points,
             faces,
-            transform: gfx.create_transform(Matrix4::identity()),
+            transform: gfx.create_transform(transform),
             mesh_cache: Default::default(),
         }
+    }
+
+    pub fn set_point(&mut self, idx: u16, point: Vector3<f32>) {
+        self.points[idx as usize] = point;
     }
 
     pub fn regenerate<G: GraphicsWorld>(&mut self, gfx: &G) {
@@ -43,7 +67,7 @@ impl Brush {
             let edge1 = p[2] - p[0];
             let normal = edge0.cross(edge1).normalize();
 
-            let flatten = Quaternion::from_arc(normal, Vector3::unit_y(), None);
+            let flatten = Quaternion::from_arc(-normal, Vector3::unit_y(), None);
 
             for i in 0..4 {
                 let texcoord: [f32; 3] = (flatten * p[i]).into();
