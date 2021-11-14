@@ -1,6 +1,6 @@
 use std::rc::Rc;
 
-use cgmath::{InnerSpace, Matrix4, SquareMatrix, Vector3};
+use cgmath::{vec2, InnerSpace, Matrix3, Matrix4, Quaternion, SquareMatrix, Vector3};
 
 use crate::render::{
     data::BrushVertex, BrushCommand, BrushComponent, BrushMesh, GraphicsWorld, Texture, Transform,
@@ -41,13 +41,16 @@ impl Brush {
 
             let edge0 = p[1] - p[0];
             let edge1 = p[2] - p[0];
-            let normal = edge0.cross(edge1).normalize().into();
+            let normal = edge0.cross(edge1).normalize();
+
+            let flatten = Quaternion::from_arc(normal, Vector3::unit_y(), None);
 
             for i in 0..4 {
+                let texcoord: [f32; 3] = (flatten * p[i]).into();
                 vertices.push(BrushVertex {
                     position: p[i].into(),
-                    normal,
-                    texcoord: [0.0, 0.0],
+                    normal: normal.into(),
+                    texcoord: [texcoord[0], texcoord[2]],
                 });
             }
         }
