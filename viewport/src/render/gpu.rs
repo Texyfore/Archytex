@@ -8,7 +8,12 @@ use wgpu::{
 };
 use winit::window::Window;
 
-use super::{data::LineVertex, CameraBlock, MSAA_SAMPLE_COUNT};
+use crate::render::data::BrushVertex;
+
+use super::{
+    data::{LineVertex, Triangle},
+    CameraBlock, MSAA_SAMPLE_COUNT,
+};
 
 pub(super) struct Context {
     surface: Surface,
@@ -24,6 +29,10 @@ pub(super) struct TypedBuffer<T: Pod> {
 }
 
 pub(super) struct LinePipeline {
+    inner: RenderPipeline,
+}
+
+pub(super) struct BrushPipeline {
     inner: RenderPipeline,
 }
 
@@ -174,6 +183,57 @@ impl Context {
         LinePipeline { inner }
     }
 
+    pub fn create_brush_pipeline(
+        &self,
+        uniform_buffer_layout: &UniformBufferLayout,
+    ) -> BrushPipeline {
+        let module = self.device.create_shader_module(&ShaderModuleDescriptor {
+            label: None,
+            source: ShaderSource::Wgsl(include_str!("brush.wgsl").into()),
+        });
+
+        let inner = self
+            .device
+            .create_render_pipeline(&RenderPipelineDescriptor {
+                label: None,
+                layout: Some(
+                    &self
+                        .device
+                        .create_pipeline_layout(&PipelineLayoutDescriptor {
+                            label: None,
+                            bind_group_layouts: &[&uniform_buffer_layout.inner],
+                            push_constant_ranges: &[],
+                        }),
+                ),
+                vertex: VertexState {
+                    module: &module,
+                    entry_point: "main",
+                    buffers: &[VertexBufferLayout {
+                        array_stride: size_of::<BrushVertex>() as u64,
+                        step_mode: VertexStepMode::Vertex,
+                        attributes: &vertex_attr_array![0 => Float32x3, 1=>Float32x3, 2 => Float32x2],
+                    }],
+                },
+                primitive: PrimitiveState {
+                    cull_mode: Some(Face::Back),
+                    ..Default::default()
+                },
+                depth_stencil: None,
+                multisample: MultisampleState {
+                    count: MSAA_SAMPLE_COUNT,
+                    mask: !0,
+                    alpha_to_coverage_enabled: false,
+                },
+                fragment: Some(FragmentState {
+                    module: &module,
+                    entry_point: "main",
+                    targets: &[self.surface_format.into()],
+                }),
+            });
+
+        BrushPipeline { inner }
+    }
+
     pub fn begin_frame(&self) -> Frame {
         let texture = self.surface.get_current_texture().unwrap();
         let view = texture.texture.create_view(&Default::default());
@@ -302,5 +362,21 @@ impl<'a> Pass<'a> {
     pub fn draw_lines(&mut self, buffer: &'a TypedBuffer<LineVertex>) {
         self.inner.set_vertex_buffer(0, buffer.inner.slice(..));
         self.inner.draw(0..buffer.len as u32, 0..1);
+    }
+
+    pub fn begin_brush_meshes(&mut self, pipeline: &'a BrushPipeline) {
+        self.inner.set_pipeline(&pipeline.inner);
+    }
+
+    pub fn draw_brush_mesh(
+        &mut self,
+        vertices: &'a TypedBuffer<BrushVertex>,
+        triangles: &'a TypedBuffer<Triangle>,
+    ) {
+        self.inner.set_vertex_buffer(0, vertices.inner.slice(..));
+        self.inner
+            .set_index_buffer(triangles.inner.slice(..), IndexFormat::Uint16);
+        self.inner
+            .draw_indexed(0..triangles.len as u32 * 3, 0, 0..1);
     }
 }
