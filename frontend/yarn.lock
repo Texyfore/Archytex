@@ -9946,6 +9946,13 @@ react-scripts@4.0.3:
   optionalDependencies:
     fsevents "^2.1.3"
 
+react-social-icons@^5.6.1:
+  version "5.6.1"
+  resolved "https://registry.yarnpkg.com/react-social-icons/-/react-social-icons-5.6.1.tgz#e185311536370b5afb152664692f1e41b7079251"
+  integrity sha512-gQJgBBn0GnV+e+IiZecTfuH2OPGV22G1yWD/ieCUhkHxJWZF2DhRtkTpOpe5+Ao+uWkOf3/jO2u2MjYdTEWFdA==
+  dependencies:
+    prop-types "^15.7.2"
+
 react-transition-group@^4.4.2:
   version "4.4.2"
   resolved "https://registry.yarnpkg.com/react-transition-group/-/react-transition-group-4.4.2.tgz#8b59a56f09ced7b55cbd53c36768b922890d5470"
