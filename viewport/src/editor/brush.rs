@@ -34,6 +34,7 @@ macro_rules! face {
 
 pub struct Brush {
     transform: Rc<Transform>,
+    position: Vector3<f32>,
     points: Vec<Point>,
     faces: Vec<Face>,
 }
@@ -82,12 +83,14 @@ impl Brush {
 
         Self {
             transform,
+            position,
             points,
             faces,
         }
     }
 
-    pub fn set_position<G: GraphicsWorld>(&self, gfx: &G, position: Vector3<f32>) {
+    pub fn set_position<G: GraphicsWorld>(&mut self, gfx: &G, position: Vector3<f32>) {
+        self.position = position;
         gfx.update_transform(&self.transform, Matrix4::from_translation(position));
     }
 
@@ -102,7 +105,7 @@ impl Brush {
                 .points
                 .iter()
                 .enumerate()
-                .map(|(i, p)| (i, p.position))
+                .map(|(i, p)| (i, p.position + self.position))
                 .collect::<Vec<_>>();
 
             points.sort_by(|a, b| {
@@ -143,13 +146,13 @@ impl Brush {
                 .collect::<Vec<_>>();
 
             faces.sort_by(|(_, f1), (_, f2)| {
-                let center1 = (self.points[f1[0]].position
-                    + self.points[f1[1]].position
-                    + self.points[f1[2]].position
-                    + self.points[f1[3]].position)
+                let center1 = (self.points[f1[0]].position + self.position
+                    + self.points[f1[1]].position + self.position
+                    + self.points[f1[2]].position + self.position
+                    + self.points[f1[3]].position + self.position)
                     * 0.25;
 
-                let center2 = (self.points[f1[0]].position
+                let center2 = (self.points[f1[0]].position + self.position
                     + self.points[f2[1]].position
                     + self.points[f2[2]].position
                     + self.points[f2[3]].position)
@@ -164,15 +167,15 @@ impl Brush {
 
         for (i, face) in sorted_faces {
             let a = math::Triangle {
-                a: self.points[face[0]].position,
-                b: self.points[face[1]].position,
-                c: self.points[face[2]].position,
+                a: self.points[face[0]].position + self.position,
+                b: self.points[face[1]].position + self.position,
+                c: self.points[face[2]].position + self.position,
             };
 
             let b = math::Triangle {
-                a: self.points[face[0]].position,
-                b: self.points[face[2]].position,
-                c: self.points[face[3]].position,
+                a: self.points[face[0]].position + self.position,
+                b: self.points[face[2]].position + self.position,
+                c: self.points[face[3]].position + self.position,
             };
 
             if ray.intersects_triangle(&a) || ray.intersects_triangle(&b) {
