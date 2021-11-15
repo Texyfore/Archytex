@@ -1,5 +1,6 @@
 import { Box, Divider, Link, Typography } from "@mui/material";
 import React from "react";
+import { SocialIcon } from "react-social-icons";
 import ArchytexIcon from "./ArchytexIcon";
 
 export default function ArchytexFooter() {
@@ -15,12 +16,45 @@ export default function ArchytexFooter() {
         gap={{ xs: 1, md: 5 }}
       >
         {/* Socials */}
-        <Box display='flex' alignItems='center'>
-          <ArchytexIcon size={40} />
-          <Typography gutterBottom variant='body1' color='GrayText'>
-            ARCHYTEX
-          </Typography>
+        <Box>
+          <Box display='flex' alignItems='center'>
+            <ArchytexIcon />
+            <Typography variant='h6' color='GrayText'>
+              ARCHYTEX
+            </Typography>
+          </Box>
           {/* Socials */}
+          <Box display='flex' flexWrap='nowrap' gap={1} marginTop={4}>
+            <SocialIcon
+              style={{ height: 40, width: 40 }}
+              bgColor='#0c0c0c'
+              fgColor='GrayText'
+              // fgColor='#f5f0f6'
+              network='facebook'
+              url='https://facebook.com'
+            ></SocialIcon>
+            <SocialIcon
+              style={{ height: 40, width: 40 }}
+              bgColor='#0c0c0c'
+              fgColor='GrayText'
+              network='instagram'
+              url='https://instagram.com'
+            ></SocialIcon>
+            <SocialIcon
+              style={{ height: 40, width: 40 }}
+              bgColor='#0c0c0c'
+              fgColor='GrayText'
+              network='twitter'
+              url='https://twitter.com'
+            ></SocialIcon>
+            <SocialIcon
+              style={{ height: 40, width: 40 }}
+              bgColor='#0c0c0c'
+              fgColor='GrayText'
+              network='github'
+              url='https://github.com'
+            ></SocialIcon>
+          </Box>
         </Box>
 
         {/* Product */}
@@ -62,6 +96,8 @@ export default function ArchytexFooter() {
           </Link>
         </Box>
       </Box>
+
+      {/* Copyright */}
       <Box>
         <Typography textAlign='center' color='GrayText' paddingBottom={5}>
           <small>Copyright &copy; {new Date().getFullYear()}, Archytex</small>
