@@ -2,12 +2,12 @@ mod brush;
 mod camera;
 
 use cgmath::{vec3, Matrix4, SquareMatrix};
-use std::{marker::PhantomData, rc::Rc};
+use std::marker::PhantomData;
 use winit::event::{MouseButton, VirtualKeyCode};
 
 use crate::{
     input::{Input, Trigger},
-    render::{GraphicsWorld, Texture},
+    render::GraphicsWorld,
 };
 
 use self::{brush::Brush, camera::Camera};
@@ -32,9 +32,7 @@ macro_rules! actions {
 
 pub struct Editor<I, G> {
     camera: Camera,
-    texture: Rc<Texture>,
     brush: Brush,
-    a: f32,
 
     _i: PhantomData<I>,
     _g: PhantomData<G>,
@@ -58,29 +56,32 @@ where
 
         gfx.update_grid(10, 1.0);
 
-        let mut brush = Brush::new(gfx, vec3(1.0, 1.0, 1.0), Matrix4::identity());
-        brush.regenerate(gfx);
-
-        let texture =
+        let nodraw =
             gfx.create_texture(&image::load_from_memory(include_bytes!("res/nodraw.png")).unwrap());
+
+        let test =
+            gfx.create_texture(&image::load_from_memory(include_bytes!("res/test.png")).unwrap());
+
+        let mut brush = Brush::new(
+            gfx,
+            vec3(1.0, 1.0, 1.0),
+            Matrix4::identity(),
+            nodraw.clone(),
+        );
+        brush.set_texture(1, test.clone());
+        brush.set_texture(2, test.clone());
+        brush.regenerate(gfx);
 
         Self {
             camera: Camera::default(),
             brush,
-            texture,
-            a: 1.0,
             _i: PhantomData,
             _g: PhantomData,
         }
     }
 
     pub fn process(&mut self, input: &I, gfx: &mut G) {
-        self.brush.set_point(2, vec3(1.0, 0.0, self.a));
-        self.brush.set_point(3, vec3(0.0, 0.0, self.a));
-        self.brush.regenerate(gfx);
-        self.a += 0.001;
-
         self.camera.process(input, gfx);
-        self.brush.draw(gfx, self.texture.clone());
+        self.brush.draw(gfx);
     }
 }
