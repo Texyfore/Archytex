@@ -2,14 +2,13 @@ mod brush;
 mod camera;
 mod config;
 
-use cgmath::{vec3, Matrix4, SquareMatrix};
-use std::{marker::PhantomData, rc::Rc};
+use cgmath::vec3;
+use std::marker::PhantomData;
 use winit::event::{MouseButton, VirtualKeyCode};
 
 use crate::{
-    info,
     input::{Input, Trigger},
-    render::{GraphicsWorld, Texture},
+    render::GraphicsWorld,
 };
 
 use self::{brush::Brush, camera::Camera};
@@ -35,7 +34,6 @@ macro_rules! actions {
 pub struct Editor<I, G> {
     camera: Camera,
     brush: Brush,
-    test: Rc<Texture>,
 
     _i: PhantomData<I>,
     _g: PhantomData<G>,
@@ -69,16 +67,12 @@ where
         let nodraw =
             gfx.create_texture(&image::load_from_memory(include_bytes!("res/nodraw.png")).unwrap());
 
-        let test =
-            gfx.create_texture(&image::load_from_memory(include_bytes!("res/test.png")).unwrap());
-
-        let mut brush = Brush::new(gfx, vec3(1.0, 1.0, 1.0), Matrix4::identity(), nodraw);
-        brush.regenerate(gfx);
+        let mut brush = Brush::new(gfx, vec3(0.0, 0.0, 0.0), vec3(1.0, 1.0, 1.0), nodraw);
+        brush.rebuild(gfx);
 
         Self {
             camera: Camera::default(),
             brush,
-            test,
             _i: PhantomData,
             _g: PhantomData,
         }
@@ -89,13 +83,19 @@ where
         self.brush.draw(gfx);
 
         if input.is_active_once("select") {
-            self.brush.select_face(gfx.screen_ray(input.mouse_pos()));
+            self.brush
+                .select_point(gfx, self.camera.position(), input.mouse_pos());
         }
 
         if input.is_active_once("confirm") {
-            self.brush.set_texture(self.test.clone());
-            self.brush.regenerate(gfx);
-            self.brush.clear_face_selection();
+            let vector = {
+                let forward = self.camera.forward();
+                vec3(forward.x.round(), forward.y.round(), forward.z.round())
+            };
+
+            self.brush.move_selected_points(vector);
+            self.brush.clear_selected_points();
+            self.brush.rebuild(gfx);
         }
     }
 }
