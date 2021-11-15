@@ -26,8 +26,10 @@ impl InputMapper {
             if action.trigger == trigger {
                 match state {
                     ElementState::Pressed => {
+                        if !action.active {
+                            action.active_once = true;
+                        }
                         action.active = true;
-                        action.active_once = true;
                     }
                     ElementState::Released => {
                         action.active = false;
