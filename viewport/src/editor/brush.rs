@@ -6,10 +6,14 @@ use std::{
 
 use cgmath::{vec3, InnerSpace, Matrix4, Quaternion, Vector2, Vector3};
 
-use crate::{info, math::{self, IntersectsTriangle, Ray}, render::{
+use crate::{
+    info,
+    math::{self, IntersectsTriangle, Ray},
+    render::{
         data::{BrushVertex, Triangle},
         BrushCommand, BrushComponent, BrushMesh, GraphicsWorld, Texture, Transform,
-    }};
+    },
+};
 
 use super::config::POINT_SELECT_RADIUS;
 
@@ -151,16 +155,20 @@ impl Brush {
                 b: self.points[face[2] as usize],
                 c: self.points[face[3] as usize],
             };
-            
+
             if ray.intersects_triangle(&a) || ray.intersects_triangle(&b) {
                 self.selected_faces.insert(i as u16);
+                info!("Selected face {}", i);
+                return;
             }
         }
     }
 
-    pub fn clear_face_selection(&mut self) {}
+    pub fn clear_face_selection(&mut self) {
+        self.selected_faces.clear();
+    }
 
-    pub fn set_texture(&mut self, face: u16, texture: Rc<Texture>) {
+    pub fn set_texture(&mut self, texture: Rc<Texture>) {
         // TODO: This is really, really bad. But at the moment, the compiler bug
         // forces me to do it this way.
 
@@ -168,12 +176,16 @@ impl Brush {
             let ptr_a = self.textures[i].as_ref() as *const Texture;
             let ptr_b = texture.as_ref() as *const Texture;
             if ptr_a == ptr_b {
-                self.faces[face as usize].texture = i;
+                for face in &self.selected_faces {
+                    self.faces[*face as usize].texture = i;
+                }
                 return;
             }
         }
 
-        self.faces[face as usize].texture = self.textures.len();
+        for face in &self.selected_faces {
+            self.faces[*face as usize].texture = self.textures.len();
+        }
         self.textures.push(texture);
     }
 
