@@ -83,8 +83,7 @@ where
         self.brush.draw(gfx);
 
         if input.is_active_once("select") {
-            self.brush
-                .select_point(gfx, self.camera.position(), input.mouse_pos());
+            self.brush.select_face(gfx.screen_ray(input.mouse_pos()));
         }
 
         if input.is_active_once("confirm") {
@@ -93,8 +92,8 @@ where
                 vec3(forward.x.round(), forward.y.round(), forward.z.round())
             };
 
-            self.brush.move_selected_points(vector);
-            self.brush.clear_selected_points();
+            self.brush.move_selected_faces(vector);
+            self.brush.clear_selected_faces();
             self.brush.rebuild(gfx);
         }
     }

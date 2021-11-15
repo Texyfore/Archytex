@@ -146,13 +146,18 @@ impl Brush {
                 .collect::<Vec<_>>();
 
             faces.sort_by(|(_, f1), (_, f2)| {
-                let center1 = (self.points[f1[0]].position + self.position
-                    + self.points[f1[1]].position + self.position
-                    + self.points[f1[2]].position + self.position
-                    + self.points[f1[3]].position + self.position)
+                let center1 = (self.points[f1[0]].position
+                    + self.position
+                    + self.points[f1[1]].position
+                    + self.position
+                    + self.points[f1[2]].position
+                    + self.position
+                    + self.points[f1[3]].position
+                    + self.position)
                     * 0.25;
 
-                let center2 = (self.points[f1[0]].position + self.position
+                let center2 = (self.points[f1[0]].position
+                    + self.position
                     + self.points[f2[1]].position
                     + self.points[f2[2]].position
                     + self.points[f2[3]].position)
@@ -200,6 +205,14 @@ impl Brush {
     pub fn move_selected_points(&mut self, vector: Vector3<f32>) {
         for point in self.points.iter_mut().filter(|p| p.selected) {
             point.position += vector;
+        }
+    }
+
+    pub fn move_selected_faces(&mut self, vector: Vector3<f32>) {
+        for face in self.faces.iter_mut().filter(|p| p.selected) {
+            for i in face.idx {
+                self.points[i].position += vector;
+            }
         }
     }
 
