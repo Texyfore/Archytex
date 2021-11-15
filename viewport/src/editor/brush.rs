@@ -6,14 +6,10 @@ use std::{
 
 use cgmath::{vec3, InnerSpace, Matrix4, Quaternion, Vector2, Vector3};
 
-use crate::{
-    info,
-    math::Ray,
-    render::{
+use crate::{info, math::{self, IntersectsTriangle, Ray}, render::{
         data::{BrushVertex, Triangle},
         BrushCommand, BrushComponent, BrushMesh, GraphicsWorld, Texture, Transform,
-    },
-};
+    }};
 
 use super::config::POINT_SELECT_RADIUS;
 
@@ -117,7 +113,50 @@ impl Brush {
         self.selected_points.clear();
     }
 
-    pub fn select_face(&mut self, ray: Ray) {}
+    pub fn select_face(&mut self, ray: Ray) {
+        let mut sorted_faces = self
+            .faces
+            .iter()
+            .enumerate()
+            .map(|(i, f)| (i, f.idx))
+            .collect::<Vec<_>>();
+
+        sorted_faces.sort_by(|(_, f1), (_, f2)| {
+            let center1 = (self.points[f1[0] as usize]
+                + self.points[f1[1] as usize]
+                + self.points[f1[2] as usize]
+                + self.points[f1[3] as usize])
+                * 0.25;
+
+            let center2 = (self.points[f1[0] as usize]
+                + self.points[f2[1] as usize]
+                + self.points[f2[2] as usize]
+                + self.points[f2[3] as usize])
+                * 0.25;
+
+            let mag1 = (center1 - ray.origin).magnitude2();
+            let mag2 = (center2 - ray.origin).magnitude2();
+            mag1.partial_cmp(&mag2).unwrap_or(Ordering::Equal)
+        });
+
+        for (i, face) in sorted_faces {
+            let a = math::Triangle {
+                a: self.points[face[0] as usize],
+                b: self.points[face[1] as usize],
+                c: self.points[face[2] as usize],
+            };
+
+            let b = math::Triangle {
+                a: self.points[face[0] as usize],
+                b: self.points[face[2] as usize],
+                c: self.points[face[3] as usize],
+            };
+            
+            if ray.intersects_triangle(&a) || ray.intersects_triangle(&b) {
+                self.selected_faces.insert(i as u16);
+            }
+        }
+    }
 
     pub fn clear_face_selection(&mut self) {}
 
