@@ -9,6 +9,7 @@ pub trait Input {
     fn is_active_once(&self, action: &str) -> bool;
     fn mouse_delta(&self) -> Vector2<f32>;
     fn scroll_wheel(&self) -> f32;
+    fn mouse_pos(&self) -> Vector2<f32>;
 }
 
 #[derive(Default)]
@@ -25,8 +26,10 @@ impl InputMapper {
             if action.trigger == trigger {
                 match state {
                     ElementState::Pressed => {
+                        if !action.active {
+                            action.active_once = true;
+                        }
                         action.active = true;
-                        action.active_once = true;
                     }
                     ElementState::Released => {
                         action.active = false;
@@ -95,6 +98,10 @@ impl Input for InputMapper {
 
     fn scroll_wheel(&self) -> f32 {
         self.scroll_wheel
+    }
+
+    fn mouse_pos(&self) -> Vector2<f32> {
+        self.mouse_pos.into()
     }
 }
 

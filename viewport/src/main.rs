@@ -1,9 +1,9 @@
 mod editor;
 mod input;
 mod log;
+mod math;
 mod render;
 
-use render::Renderer;
 use winit::{
     dpi::{PhysicalPosition, PhysicalSize},
     event::{
@@ -17,6 +17,7 @@ use winit::{
 use self::{
     editor::Editor,
     input::{InputMapper, Trigger},
+    render::Renderer,
 };
 
 fn main() {

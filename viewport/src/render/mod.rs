@@ -5,9 +5,11 @@ pub mod data;
 use std::rc::Rc;
 
 use bytemuck::{Pod, Zeroable};
-use cgmath::{perspective, Deg, Matrix4, SquareMatrix};
+use cgmath::{perspective, vec2, vec3, Deg, Matrix4, SquareMatrix, Vector2, Vector3, Vector4};
 use image::DynamicImage;
 use winit::window::Window;
+
+use crate::math::Ray;
 
 use self::{
     data::{BrushVertex, LineVertex, Triangle},
@@ -17,7 +19,7 @@ use self::{
     },
 };
 
-pub const MSAA_SAMPLE_COUNT: u32 = 4;
+const MSAA_SAMPLE_COUNT: u32 = 4;
 
 pub trait GraphicsWorld {
     fn create_brush_mesh(&self, vertices: &[BrushVertex], triangles: &[Triangle]) -> Rc<BrushMesh>;
@@ -29,6 +31,9 @@ pub trait GraphicsWorld {
     fn update_transform(&self, transform: &Transform, matrix: Matrix4<f32>);
 
     fn draw_brush(&mut self, command: BrushCommand);
+
+    fn screen_ray(&self, coords: Vector2<f32>) -> Ray;
+    fn world_to_screen(&self, point: Vector3<f32>) -> Option<Vector2<f32>>;
 }
 
 pub struct Renderer {
@@ -36,6 +41,7 @@ pub struct Renderer {
     msaa: MsaaFramebuffer,
     depth: DepthBuffer,
     sampler: wgpu::Sampler,
+    viewport_size: Vector2<f32>,
 
     uniform_buffer_layout: UniformBufferLayout,
     texture_layout: TextureLayout,
@@ -54,11 +60,12 @@ impl Renderer {
     pub fn new(window: &Window) -> Self {
         let ctx = Context::new(window);
 
-        let (msaa, depth) = {
+        let (msaa, depth, viewport_size) = {
             let (width, height) = window.inner_size().into();
             (
                 ctx.create_msaa_framebuffer(width, height),
                 ctx.create_depth_buffer(width, height),
+                vec2(width as f32, height as f32),
             )
         };
 
@@ -86,6 +93,7 @@ impl Renderer {
             msaa,
             depth,
             sampler,
+            viewport_size,
             uniform_buffer_layout,
             texture_layout,
             line_pipeline,
@@ -101,6 +109,7 @@ impl Renderer {
         self.ctx.configure(width, height);
         self.msaa = self.ctx.create_msaa_framebuffer(width, height);
         self.depth = self.ctx.create_depth_buffer(width, height);
+        self.viewport_size = vec2(width as f32, height as f32);
 
         let aspect = width as f32 / height as f32;
         self.camera_block.projection = perspective(Deg(80.0), aspect, 0.1, 100.0).into();
@@ -237,6 +246,46 @@ impl GraphicsWorld for Renderer {
 
     fn draw_brush(&mut self, command: BrushCommand) {
         self.brush_commands.push(command);
+    }
+
+    fn screen_ray(&self, coords: Vector2<f32>) -> Ray {
+        let coords = (vec2(
+            coords.x / self.viewport_size.x,
+            1.0 - coords.y / self.viewport_size.y,
+        ) - vec2(0.5, 0.5))
+            * 2.0;
+
+        let unproject = {
+            let view: Matrix4<f32> = self.camera_block.view.into();
+            let projection: Matrix4<f32> = self.camera_block.projection.into();
+            view.invert().unwrap() * projection.invert().unwrap()
+        };
+
+        let a = unproject * Vector4::new(coords.x, coords.y, 0.0, 1.0);
+        let b = unproject * Vector4::new(coords.x, coords.y, 1.0, 1.0);
+
+        let a = vec3(a.x / a.w, a.y / a.w, a.z / a.w);
+        let b = vec3(b.x / b.w, b.y / b.w, b.z / b.w);
+
+        Ray { origin: a, end: b }
+    }
+
+    fn world_to_screen(&self, point: Vector3<f32>) -> Option<Vector2<f32>> {
+        let view: Matrix4<f32> = self.camera_block.view.into();
+        let projection: Matrix4<f32> = self.camera_block.projection.into();
+
+        let clip = projection * view * Vector4::new(point.x, point.y, point.z, 1.0);
+        let clip = vec2(clip.x / clip.w, clip.y / clip.w);
+
+        if (-1.0..=1.0).contains(&clip.x) && (-1.0..=1.0).contains(&clip.y) {
+            let moved = vec2(clip.x + 1.0, 2.0 - (clip.y + 1.0)) * 0.5;
+            Some(vec2(
+                moved.x * self.viewport_size.x,
+                moved.y * self.viewport_size.y,
+            ))
+        } else {
+            None
+        }
     }
 }
 

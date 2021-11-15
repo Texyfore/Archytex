@@ -18,7 +18,7 @@ macro_rules! info {
         #[cfg(target_arch="wasm32")]
         $crate::log::log(&format!($fmt $(,$arg)*));
         #[cfg(not(target_arch="wasm32"))]
-        println!($fmt, $(,$arg)*);
+        println!($fmt $(,$arg)*);
     };
 }
 
@@ -28,7 +28,7 @@ macro_rules! warn {
         #[cfg(target_arch="wasm32")]
         $crate::log::warn(&format!($fmt $(,$arg)*));
         #[cfg(not(target_arch="wasm32"))]
-        println!($fmt, $(,$arg)*);
+        println!($fmt $(,$arg)*);
     };
 }
 
@@ -38,6 +38,6 @@ macro_rules! error {
         #[cfg(target_arch="wasm32")]
         $crate::log::error(&format!($fmt $(,$arg)*));
         #[cfg(not(target_arch="wasm32"))]
-        println!($fmt, $(,$arg)*);
+        println!($fmt $(,$arg)*);
     };
 }
