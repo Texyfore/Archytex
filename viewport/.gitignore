@@ -3,3 +3,4 @@
 **/*.rs.bk
 target
 web/app
+web/.netlify
