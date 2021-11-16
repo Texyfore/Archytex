@@ -4,13 +4,8 @@ import SearchBar from "../SearchBar";
 import { styled } from "@mui/material/styles";
 import {
   Box,
-  Backdrop,
   Button,
-  Fade,
   IconButton,
-  Modal,
-  Typography,
-  TextField,
   Table,
   TableBody,
   TableCell,
@@ -18,22 +13,12 @@ import {
   TableHead,
   TableRow,
 } from "@mui/material";
-import { Close, LibraryAdd } from "@mui/icons-material";
+import { LibraryAdd } from "@mui/icons-material";
 import { useProjects } from "../../services/projects";
+import ProjectNewModal from "./ProjectNewModal";
 
 const headerHeight = 50;
 const projectMenuHeight = 50;
-const modalStyle = {
-  position: "absolute" as "absolute",
-  top: "50%",
-  left: "50%",
-  transform: "translate(-50%, -50%)",
-  width: { xs: 400, sm: 500, md: 600, lg: 600 },
-  bgcolor: "background.paper",
-  border: "1px solid #14151A",
-  boxShadow: 24,
-  p: 4,
-};
 const ProjectTableContainer = styled(TableContainer)(({ theme }) => ({
   height: `calc(100vh - 56px - ${headerHeight + projectMenuHeight}px)`,
   [`${theme.breakpoints.up("xs")} and (orientation: landscape)`]: {
@@ -53,7 +38,7 @@ export default function ProjectBrowser() {
   const [modalOpen, setModalOpen] = useState(false);
   const handleModalOpen = () => setModalOpen(true);
   const handleModalClose = () => setModalOpen(false);
-  const {state: projects, dispatch: projectsDispatch} = useProjects();
+  const { state: projects, dispatch: projectsDispatch } = useProjects();
 
   //expanded project
   const [expanded, setExpanded] = useState<number | false>(false);
@@ -134,52 +119,11 @@ export default function ProjectBrowser() {
         </Table>
       </ProjectTableContainer>
 
-      <Modal
-        open={modalOpen}
-        onClose={handleModalClose}
-        closeAfterTransition
-        BackdropComponent={Backdrop}
-        BackdropProps={{
-          timeout: 500,
-        }}
-      >
-        <Fade in={modalOpen}>
-          <Box
-            sx={modalStyle}
-            borderRadius={4}
-            display='flex'
-            flexDirection='column'
-            justifyContent='space-between'
-          >
-            <Box display='flex' justifyContent='space-between'>
-              <Typography
-                id='transition-modal-title'
-                variant='h6'
-                component='h2'
-              >
-                Create new project
-              </Typography>
-              <IconButton onClick={handleModalClose}>
-                <Close />
-              </IconButton>
-            </Box>
-            <Box display='flex' flexDirection='column' marginBottom={3}>
-              <TextField
-                required
-                id='standard-required'
-                label='Project name'
-                variant='standard'
-                margin='normal'
-              />
-            </Box>
-            <Box>
-              <Button size='large' variant='contained'>
-                Create
-              </Button>
-            </Box>
-          </Box>
-        </Fade>
-      </Modal>
+      <ProjectNewModal
+        handleModalClose={handleModalClose}
+        handleModalOpen={handleModalOpen}
+        modalOpen={modalOpen}
+      ></ProjectNewModal>
     </React.Fragment>
   );
 }
