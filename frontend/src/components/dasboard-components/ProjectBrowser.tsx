@@ -38,7 +38,7 @@ export default function ProjectBrowser() {
   const [modalOpen, setModalOpen] = useState(false);
   const handleModalOpen = () => setModalOpen(true);
   const handleModalClose = () => setModalOpen(false);
-  const { state: projects, dispatch: projectsDispatch } = useProjects();
+  const { state: projects } = useProjects();
 
   //expanded project
   const [expanded, setExpanded] = useState<string | false>(false);
