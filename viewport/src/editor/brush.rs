@@ -138,7 +138,7 @@ impl Brush {
         }
     }
 
-    pub fn select_face(&mut self, ray: Ray) {
+    pub fn select_face<G: GraphicsWorld>(&mut self, gfx: &G, ray: Ray) {
         let sorted_faces = {
             let mut faces = self
                 .faces
@@ -187,13 +187,15 @@ impl Brush {
 
             if ray.intersects_triangle(&a) || ray.intersects_triangle(&b) {
                 self.faces[i].selected = true;
+                gfx.update_brush_detail(&self.faces[i].detail, HIGHLIGHT_COLOR);
                 return;
             }
         }
     }
 
-    pub fn clear_selected_faces(&mut self) {
-        for face in &mut self.faces {
+    pub fn clear_selected_faces<G: GraphicsWorld>(&mut self, gfx: &G) {
+        for face in self.faces.iter_mut().filter(|f| f.selected) {
+            gfx.update_brush_detail(&face.detail, [1.0; 4]);
             face.selected = false;
         }
     }
@@ -270,20 +272,10 @@ impl Brush {
             components: self
                 .faces
                 .iter()
-                .map(|f| {
-                    gfx.update_brush_detail(
-                        &f.detail,
-                        if f.selected {
-                            HIGHLIGHT_COLOR
-                        } else {
-                            [1.0; 4]
-                        },
-                    );
-                    BrushComponent {
-                        mesh: f.mesh.clone(),
-                        texture: f.texture.clone(),
-                        detail: f.detail.clone(),
-                    }
+                .map(|f| BrushComponent {
+                    mesh: f.mesh.clone(),
+                    texture: f.texture.clone(),
+                    detail: f.detail.clone(),
                 })
                 .collect(),
         });

@@ -48,20 +48,21 @@ where
         input.define_actions(actions!(
             // Camera controls
 
-            "movecam"  Btn Right ,
-            "forward"  Key W     ,
-            "backward" Key S     ,
-            "left"     Key A     ,
-            "right"    Key D     ,
-            "up"       Key E     ,
-            "down"     Key Q     ,
+            "movecam"  Btn Right    ,
+            "forward"  Key W        ,
+            "backward" Key S        ,
+            "left"     Key A        ,
+            "right"    Key D        ,
+            "up"       Key E        ,
+            "down"     Key Q        ,
 
             // Editor
 
-            "select"   Btn Left  ,
-            "deselect" Key X     ,
-            "inc"      Key Up    ,
-            "dec"      Key Down  ,
+            "shift"    Key LShift   ,
+            "select"   Btn Left     ,
+            "deselect" Key X        ,
+            "inc"      Key Up       ,
+            "dec"      Key Down     ,
         ));
 
         gfx.update_grid(10, 1.0);
@@ -85,11 +86,10 @@ where
         self.brush.draw(gfx);
 
         if input.is_active_once("select") {
-            self.brush.select_face(gfx.screen_ray(input.mouse_pos()));
-        }
-
-        if input.is_active_once("deselect") {
-            self.brush.clear_selected_faces();
+            if !input.is_active("shift") {
+                self.brush.clear_selected_faces(gfx);
+            }
+            self.brush.select_face(gfx, gfx.screen_ray(input.mouse_pos()));
         }
 
         if input.is_active_once("inc") {

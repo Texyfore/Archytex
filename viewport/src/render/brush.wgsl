@@ -89,14 +89,14 @@ var s_diffuse: sampler;
 
 [[stage(fragment)]]
 fn main(in: VertexOut) -> FragmentOut {
-    // var light_dir = normalize(vec3<f32>(0.1, 0.2, 0.3));
-    // var diffuse = clamp(dot(light_dir, in.normal), 0.0, 0.7) + 0.3;
+    var light_dir = normalize(vec3<f32>(0.1, 0.2, 0.3));
+    var diffuse = clamp(dot(light_dir, in.normal), 0.0, 0.7) + 0.3;
     
     var color = textureSample(t_diffuse, s_diffuse, in.texcoord) * in.color;
     var color_rgb = color.rgb;
     var color_a = color.a;
 
     var out: FragmentOut;
-    out.color = vec4<f32>(color.rgb, color.a);
+    out.color = vec4<f32>(color.rgb * diffuse, color.a);
     return out;
 }
