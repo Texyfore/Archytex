@@ -59,7 +59,9 @@ where
             // Editor
 
             "select"   Btn Left  ,
-            "confirm"  Key C     ,
+            "deselect" Key X     ,
+            "inc"      Key A     ,
+            "dec"      Key S     ,
         ));
 
         gfx.update_grid(10, 1.0);
@@ -86,14 +88,19 @@ where
             self.brush.select_face(gfx.screen_ray(input.mouse_pos()));
         }
 
-        if input.is_active_once("confirm") {
-            let vector = {
-                let forward = self.camera.forward();
-                vec3(forward.x.round(), forward.y.round(), forward.z.round())
-            };
-
-            self.brush.move_selected_faces(vector);
+        if input.is_active_once("deselect") {
             self.brush.clear_selected_faces();
+        }
+
+        if input.is_active_once("inc") {
+            self.brush
+                .extrude_selected_faces(1.0);
+            self.brush.rebuild(gfx);
+        }
+
+        if input.is_active_once("dec") {
+            self.brush
+                .extrude_selected_faces(-1.0);
             self.brush.rebuild(gfx);
         }
     }

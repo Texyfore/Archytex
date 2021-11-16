@@ -209,9 +209,24 @@ impl Brush {
     }
 
     pub fn move_selected_faces(&mut self, vector: Vector3<f32>) {
-        for face in self.faces.iter_mut().filter(|p| p.selected) {
+        for face in self.faces.iter_mut().filter(|f| f.selected) {
             for i in face.idx {
                 self.points[i].position += vector;
+            }
+        }
+    }
+
+    pub fn extrude_selected_faces(&mut self, height: f32) {
+        for face in self.faces.iter_mut().filter(|f| f.selected) {
+            let normal = {
+                let points = face.idx.map(|i| self.points[i].position);
+                let edge0 = points[1] - points[0];
+                let edge1 = points[2] - points[0];
+                edge0.cross(edge1).normalize()
+            };
+
+            for i in face.idx {
+                self.points[i].position += normal * height;
             }
         }
     }
