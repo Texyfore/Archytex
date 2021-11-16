@@ -4,13 +4,8 @@ import SearchBar from "../SearchBar";
 import { styled } from "@mui/material/styles";
 import {
   Box,
-  Backdrop,
   Button,
-  Fade,
   IconButton,
-  Modal,
-  Typography,
-  TextField,
   Table,
   TableBody,
   TableCell,
@@ -18,21 +13,12 @@ import {
   TableHead,
   TableRow,
 } from "@mui/material";
-import { Close, LibraryAdd } from "@mui/icons-material";
+import { LibraryAdd } from "@mui/icons-material";
+import { useProjects } from "../../services/projects";
+import ProjectNewModal from "./ProjectNewModal";
 
 const headerHeight = 50;
 const projectMenuHeight = 50;
-const modalStyle = {
-  position: "absolute" as "absolute",
-  top: "50%",
-  left: "50%",
-  transform: "translate(-50%, -50%)",
-  width: { xs: 400, sm: 500, md: 600, lg: 600 },
-  bgcolor: "background.paper",
-  border: "1px solid #14151A",
-  boxShadow: 24,
-  p: 4,
-};
 const ProjectTableContainer = styled(TableContainer)(({ theme }) => ({
   height: `calc(100vh - 56px - ${headerHeight + projectMenuHeight}px)`,
   [`${theme.breakpoints.up("xs")} and (orientation: landscape)`]: {
@@ -46,50 +32,18 @@ const ProjectTableContainer = styled(TableContainer)(({ theme }) => ({
   },
 }));
 
-function createData(name: string, created: string) {
-  return {
-    name,
-    created,
-    renders: [
-      {
-        renderName:
-          name +
-          "-project-render-1-and it's very long so it can be abbreviated",
-        status: 100, //percentage
-        renderTime: "1 h 40 min 23 sec",
-      },
-      {
-        renderName: name + "-project-render-2",
-        status: 45, //percentage
-        renderTime: "1000h 35 min 21 sec",
-      },
-    ],
-  };
-}
-
-const rows = [
-  createData("Nice house", "2021.10.25"),
-  createData(
-    "A house name so long, that is probably doesn't fit on the screen",
-    "2021.11.04"
-  ),
-  createData("Another nice house", "2021.10.26"),
-  createData("Another nice house", "2021.10.26"),
-  createData("Another nice house", "2021.10.26"),
-  createData("Another nice house", "2021.10.26"),
-  createData("Another nice house", "2021.10.26"),
-];
 
 export default function ProjectBrowser() {
   //new project modal
   const [modalOpen, setModalOpen] = useState(false);
   const handleModalOpen = () => setModalOpen(true);
   const handleModalClose = () => setModalOpen(false);
+  const { state: projects } = useProjects();
 
   //expanded project
-  const [expanded, setExpanded] = useState<number | false>(false);
+  const [expanded, setExpanded] = useState<string | false>(false);
   const handleChange =
-    (row: number) => (event: React.SyntheticEvent, isExpanded: boolean) => {
+    (row: string) => (event: React.SyntheticEvent, isExpanded: boolean) => {
       setExpanded(isExpanded ? row : false);
     };
 
@@ -150,11 +104,10 @@ export default function ProjectBrowser() {
                 colSpan={3}
                 sx={{ borderBottom: "2px solid #14151A" }}
               >
-                {rows.map((row, index) => (
+                {projects.projects.map((project, index) => (
                   <ProjectRow
-                    key={index}
-                    id={index}
-                    row={row}
+                    key={project.id}
+                    row={project}
                     expanded={expanded}
                     handleChange={handleChange}
                   />
@@ -165,52 +118,11 @@ export default function ProjectBrowser() {
         </Table>
       </ProjectTableContainer>
 
-      <Modal
-        open={modalOpen}
-        onClose={handleModalClose}
-        closeAfterTransition
-        BackdropComponent={Backdrop}
-        BackdropProps={{
-          timeout: 500,
-        }}
-      >
-        <Fade in={modalOpen}>
-          <Box
-            sx={modalStyle}
-            borderRadius={4}
-            display='flex'
-            flexDirection='column'
-            justifyContent='space-between'
-          >
-            <Box display='flex' justifyContent='space-between'>
-              <Typography
-                id='transition-modal-title'
-                variant='h6'
-                component='h2'
-              >
-                Create new project
-              </Typography>
-              <IconButton onClick={handleModalClose}>
-                <Close />
-              </IconButton>
-            </Box>
-            <Box display='flex' flexDirection='column' marginBottom={3}>
-              <TextField
-                required
-                id='standard-required'
-                label='Project name'
-                variant='standard'
-                margin='normal'
-              />
-            </Box>
-            <Box>
-              <Button size='large' variant='contained'>
-                Create
-              </Button>
-            </Box>
-          </Box>
-        </Fade>
-      </Modal>
+      <ProjectNewModal
+        handleModalClose={handleModalClose}
+        handleModalOpen={handleModalOpen}
+        modalOpen={modalOpen}
+      ></ProjectNewModal>
     </React.Fragment>
   );
 }

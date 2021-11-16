@@ -1,4 +1,4 @@
-import React, { SyntheticEvent, useEffect, useState } from "react";
+import React, { SyntheticEvent, useState } from "react";
 import {
   Accordion,
   AccordionDetails,
@@ -33,6 +33,7 @@ import {
   KeyboardArrowDown,
   KeyboardArrowRight,
 } from "@mui/icons-material";
+import { Project, useProjects } from "../../services/projects";
 
 const modalStyle = {
   position: "absolute" as "absolute",
@@ -69,50 +70,21 @@ function LinearProgressWithLabel(
   );
 }
 
-function createData(name: string, created: string) {
-  return {
-    name,
-    created,
-    renders: [
-      {
-        renderName: name + "- it's very long so it can be abbreviated",
-        status: 100, //percentage
-        renderTime: "1000 h 40 min 23 sec",
-      },
-      {
-        renderName: name + "-project-render-2",
-        status: 45, //percentage
-        renderTime: "35 min 21 sec",
-      },
-    ],
-  };
-}
 
 export default function ProjectRow(props: {
-  id: number;
-  row: ReturnType<typeof createData>;
-  expanded: number | boolean;
+  row: Project;
+  expanded: string | boolean;
   handleChange: (
-    row: number
+    row: string
   ) =>
     | ((event: SyntheticEvent<Element, Event>, expanded: boolean) => void)
     | undefined;
 }) {
   //props
-  const { row, id, expanded, handleChange } = props;
+  const { row, expanded, handleChange } = props;
 
-  //progress bar
-  const [progress, setProgress] = useState(10);
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setProgress((prevProgress) =>
-        prevProgress >= 100 ? 10 : prevProgress + 10
-      );
-    }, 800);
-    return () => {
-      clearInterval(timer);
-    };
-  }, []);
+  const { dispatch: dispatchProjects } = useProjects();
+
 
   //edit project menu
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
@@ -141,16 +113,26 @@ export default function ProjectRow(props: {
 
   //project delete handling
   const handleProjectDelete = () => {
+    dispatchProjects({
+      type: "delete-project",
+      id: row.id
+    })
     handleDeleteModalClose();
     handleDeletedSnackbarOpen();
   };
 
   //title edit handling
   const [underEdit, setUnderEdit] = useState(false);
-  const handleUnderEditStart = () => setUnderEdit(true);
+  const [underEditText, setUnderEditText] = useState("");
+  const handleUnderEditStart = () => { setUnderEditText(row.name); setUnderEdit(true); };
   const handleUnderEditEnd = () => setUnderEdit(false);
 
   const handleSaveEdit = () => {
+    dispatchProjects({
+      type: "rename-project",
+      id: row.id,
+      name: underEditText
+    });
     handleUnderEditEnd();
   };
 
@@ -158,21 +140,21 @@ export default function ProjectRow(props: {
     <Accordion
       disableGutters
       elevation={0}
-      expanded={expanded === id}
-      onChange={handleChange(id)}
+      expanded={expanded === row.id}
+      onChange={handleChange(row.id)}
       sx={
-        expanded === id
+        expanded === row.id
           ? {
-              backgroundColor: "#1F1F1F",
-              borderRadius: 4,
-            }
+            backgroundColor: "#1F1F1F",
+            borderRadius: 4,
+          }
           : {
-              position: "static",
-              borderRadius: 4,
-              ".MuiAccordionSummary-root:hover": {
-                backgroundColor: "#1F1F1F",
-              },
-            }
+            position: "static",
+            borderRadius: 4,
+            ".MuiAccordionSummary-root:hover": {
+              backgroundColor: "#1F1F1F",
+            },
+          }
       }
     >
       <AccordionSummary sx={{ paddingX: 0 }}>
@@ -184,10 +166,10 @@ export default function ProjectRow(props: {
                   aria-label='expand row'
                   size='small'
                   onClick={() => {
-                    handleChange(id);
+                    handleChange(row.id);
                   }}
                 >
-                  {expanded === id ? (
+                  {expanded === row.id ? (
                     <KeyboardArrowDown />
                   ) : (
                     <KeyboardArrowRight />
@@ -204,7 +186,8 @@ export default function ProjectRow(props: {
                   <Box display={underEdit ? "flex" : "none"} gap={1}>
                     <TextField
                       autoFocus
-                      defaultValue={row.name}
+                      value={underEditText}
+                      onChange={(ev) => setUnderEditText(ev.target.value)}
                       id='standard-required'
                       label='Project name'
                       variant='standard'
@@ -351,7 +334,7 @@ export default function ProjectRow(props: {
           </TableHead>
           <TableBody>
             {row.renders.map((render) => (
-              <TableRow>
+              <TableRow key={render.id}>
                 <ProjectTableCell align='left'>
                   <Box display={{ xs: "none", sm: "block" }}>
                     <Typography
@@ -371,10 +354,10 @@ export default function ProjectRow(props: {
                 </ProjectTableCell>
                 <ProjectTableCell align='left' width='100%'>
                   <Box display={{ xs: "none", md: "block" }}>
-                    <LinearProgressWithLabel value={progress} />
+                    <LinearProgressWithLabel value={render.status} />
                   </Box>
                   <Box display={{ xs: "block", md: "none" }}>
-                    <Typography noWrap>{progress}%</Typography>
+                    <Typography noWrap>{render.status}%</Typography>
                   </Box>
                 </ProjectTableCell>
                 <ProjectTableCell align='right'>
