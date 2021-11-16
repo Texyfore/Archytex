@@ -60,8 +60,8 @@ where
 
             "select"   Btn Left  ,
             "deselect" Key X     ,
-            "inc"      Key A     ,
-            "dec"      Key S     ,
+            "inc"      Key Up    ,
+            "dec"      Key Down  ,
         ));
 
         gfx.update_grid(10, 1.0);
@@ -93,14 +93,12 @@ where
         }
 
         if input.is_active_once("inc") {
-            self.brush
-                .extrude_selected_faces(1.0);
+            self.brush.extrude_selected_faces(1.0);
             self.brush.rebuild(gfx);
         }
 
         if input.is_active_once("dec") {
-            self.brush
-                .extrude_selected_faces(-1.0);
+            self.brush.extrude_selected_faces(-1.0);
             self.brush.rebuild(gfx);
         }
     }
