@@ -5,12 +5,12 @@ use cgmath::{vec3, InnerSpace, Matrix4, Quaternion, Vector2, Vector3};
 use crate::{
     math::{self, IntersectsTriangle, Ray},
     render::{
-        data::BrushVertex, BrushCommand, BrushComponent, BrushMesh, GraphicsWorld, Texture,
-        Transform,
+        data::BrushVertex, BrushCommand, BrushComponent, BrushDetail, BrushMesh, GraphicsWorld,
+        Texture, Transform,
     },
 };
 
-use super::config::POINT_SELECT_RADIUS;
+use super::config::{HIGHLIGHT_COLOR, POINT_SELECT_RADIUS};
 
 macro_rules! point {
     ($x:expr, $y:expr, $z:expr) => {
@@ -25,8 +25,9 @@ macro_rules! face {
     ($g:ident, $t:ident, $a:literal, $b:literal, $c:literal, $d:literal) => {
         Face {
             idx: [$a, $b, $c, $d],
-            texture: $t.clone(),
             selected: false,
+            texture: $t.clone(),
+            detail: $g.create_brush_detail(),
             mesh: $g.create_brush_mesh(&[], &[]),
         }
     };
@@ -46,8 +47,9 @@ struct Point {
 
 struct Face {
     idx: [usize; 4],
-    texture: Rc<Texture>,
     selected: bool,
+    texture: Rc<Texture>,
+    detail: Rc<BrushDetail>,
     mesh: Rc<BrushMesh>,
 }
 
@@ -263,14 +265,27 @@ impl Brush {
     }
 
     pub fn draw<G: GraphicsWorld>(&self, gfx: &mut G) {
-        for face in &self.faces {
-            gfx.draw_brush(BrushCommand {
-                transform: self.transform.clone(),
-                components: vec![BrushComponent {
-                    mesh: face.mesh.clone(),
-                    texture: face.texture.clone(),
-                }],
-            });
-        }
+        gfx.draw_brush(BrushCommand {
+            transform: self.transform.clone(),
+            components: self
+                .faces
+                .iter()
+                .map(|f| {
+                    gfx.update_brush_detail(
+                        &f.detail,
+                        if f.selected {
+                            HIGHLIGHT_COLOR
+                        } else {
+                            [1.0; 4]
+                        },
+                    );
+                    BrushComponent {
+                        mesh: f.mesh.clone(),
+                        texture: f.texture.clone(),
+                        detail: f.detail.clone(),
+                    }
+                })
+                .collect(),
+        });
     }
 }
