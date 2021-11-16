@@ -33,6 +33,7 @@ import {
   KeyboardArrowDown,
   KeyboardArrowRight,
 } from "@mui/icons-material";
+import { Project, useProjects } from "../../services/projects";
 
 const modalStyle = {
   position: "absolute" as "absolute",
@@ -89,17 +90,18 @@ function createData(name: string, created: string) {
 }
 
 export default function ProjectRow(props: {
-  id: number;
-  row: ReturnType<typeof createData>;
-  expanded: number | boolean;
+  row: Project;
+  expanded: string | boolean;
   handleChange: (
-    row: number
+    row: string
   ) =>
     | ((event: SyntheticEvent<Element, Event>, expanded: boolean) => void)
     | undefined;
 }) {
   //props
-  const { row, id, expanded, handleChange } = props;
+  const { row, expanded, handleChange } = props;
+
+  const {dispatch: dispatchProjects, state: projects} = useProjects();
 
 
   //edit project menu
@@ -129,6 +131,10 @@ export default function ProjectRow(props: {
 
   //project delete handling
   const handleProjectDelete = () => {
+    dispatchProjects({
+      type: "delete-project",
+      id: row.id
+    })
     handleDeleteModalClose();
     handleDeletedSnackbarOpen();
   };
@@ -146,10 +152,10 @@ export default function ProjectRow(props: {
     <Accordion
       disableGutters
       elevation={0}
-      expanded={expanded === id}
-      onChange={handleChange(id)}
+      expanded={expanded === row.id}
+      onChange={handleChange(row.id)}
       sx={
-        expanded === id
+        expanded === row.id
           ? {
               backgroundColor: "#1F1F1F",
               borderRadius: 4,
@@ -172,10 +178,10 @@ export default function ProjectRow(props: {
                   aria-label='expand row'
                   size='small'
                   onClick={() => {
-                    handleChange(id);
+                    handleChange(row.id);
                   }}
                 >
-                  {expanded === id ? (
+                  {expanded === row.id ? (
                     <KeyboardArrowDown />
                   ) : (
                     <KeyboardArrowRight />
@@ -339,7 +345,7 @@ export default function ProjectRow(props: {
           </TableHead>
           <TableBody>
             {row.renders.map((render) => (
-              <TableRow>
+              <TableRow key={render.id}>
                 <ProjectTableCell align='left'>
                   <Box display={{ xs: "none", sm: "block" }}>
                     <Typography

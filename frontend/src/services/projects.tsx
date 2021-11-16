@@ -24,6 +24,7 @@ interface Project {
 }
 
 interface Render {
+    id: string;
     renderName: string;
     status: number;
     renderTime: string;
@@ -43,7 +44,9 @@ function projectsReducer(state: ProjectsState, action: ProjectAction): ProjectsS
     //TODO: Send requests to server
     switch (action.type) {
         case "delete-project":
-            return { ...state };
+            return { 
+                projects: state.projects.filter(p=>p.id != action.id)
+             };
         case "rename-project":
             return { ...state };
         case "create-project":
@@ -56,6 +59,7 @@ function projectsReducer(state: ProjectsState, action: ProjectAction): ProjectsS
                         name: action.name,
                         renders: [
                             {
+                                id: Date.now().toString(),
                                 renderName:
                                     "Project1" +
                                     "-project-render-1-and it's very long so it can be abbreviated",
@@ -63,6 +67,7 @@ function projectsReducer(state: ProjectsState, action: ProjectAction): ProjectsS
                                 renderTime: "1 h 40 min 23 sec",
                             },
                             {
+                                id: (Date.now()+1).toString(),
                                 renderName: "Project1" + "-project-render-2",
                                 status: Math.random()*100, //percentage
                                 renderTime: "1000h 35 min 21 sec",
@@ -79,22 +84,25 @@ function ProjectsProvider({ children }: { children: JSX.Element }): JSX.Element 
     const initialstate: ProjectsState = {
         projects: [
             {
+                id: Date.now().toString(),
                 name: "Project1",
                 created: "Now",
                 renders: [
                     {
+                        id: Date.now().toString(),
                         renderName:
                             "Project1" +
                             "-project-render-1-and it's very long so it can be abbreviated",
-                        status: 74, //percentage
+                        status: Math.random()*100, //percentage
                         renderTime: "1 h 40 min 23 sec",
                     },
                     {
+                        id: (Date.now()+1).toString(),
                         renderName: "Project1" + "-project-render-2",
-                        status: 14, //percentage
+                        status: Math.random()*100, //percentage
                         renderTime: "1000h 35 min 21 sec",
                     },
-                ],
+                ]
             }
         ]
     } as ProjectsState;
@@ -103,4 +111,5 @@ function ProjectsProvider({ children }: { children: JSX.Element }): JSX.Element 
     return <ProjectsContext.Provider value={value}>{children}</ProjectsContext.Provider>
 }
 
-export { ProjectsProvider, ProjectsContext, useProjects }
+export { ProjectsProvider, ProjectsContext, useProjects}
+export type {Project}

@@ -41,9 +41,9 @@ export default function ProjectBrowser() {
   const { state: projects, dispatch: projectsDispatch } = useProjects();
 
   //expanded project
-  const [expanded, setExpanded] = useState<number | false>(false);
+  const [expanded, setExpanded] = useState<string | false>(false);
   const handleChange =
-    (row: number) => (event: React.SyntheticEvent, isExpanded: boolean) => {
+    (row: string) => (event: React.SyntheticEvent, isExpanded: boolean) => {
       setExpanded(isExpanded ? row : false);
     };
 
@@ -106,8 +106,7 @@ export default function ProjectBrowser() {
               >
                 {projects.projects.map((project, index) => (
                   <ProjectRow
-                    key={index}
-                    id={index}
+                    key={project.id}
                     row={project}
                     expanded={expanded}
                     handleChange={handleChange}
