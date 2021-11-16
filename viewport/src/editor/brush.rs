@@ -1,8 +1,9 @@
-use std::{cmp::Ordering, rc::Rc};
+use std::{cmp::Ordering, marker::PhantomData, rc::Rc};
 
 use cgmath::{vec3, InnerSpace, Matrix4, Quaternion, Vector2, Vector3};
 
 use crate::{
+    input::Input,
     math::{self, IntersectsTriangle, Ray},
     render::{
         data::BrushVertex, BrushCommand, BrushComponent, BrushDetail, BrushMesh, GraphicsWorld,
@@ -279,5 +280,75 @@ impl Brush {
                 })
                 .collect(),
         });
+    }
+}
+
+pub struct BrushBank<I, G> {
+    brushes: Vec<Brush>,
+    _i: PhantomData<I>,
+    _g: PhantomData<G>,
+}
+
+impl<I, G> BrushBank<I, G>
+where
+    I: Input,
+    G: GraphicsWorld,
+{
+    pub fn new(gfx: &G) -> Self {
+        let nodraw =
+            gfx.create_texture(&image::load_from_memory(include_bytes!("res/nodraw.png")).unwrap());
+
+        let mut brushes = vec![
+            Brush::new(
+                gfx,
+                vec3(0.0, 0.0, 0.0),
+                vec3(1.0, 1.0, 1.0),
+                nodraw.clone(),
+            ),
+            Brush::new(
+                gfx,
+                vec3(5.0, 0.0, 0.0),
+                vec3(1.0, 1.0, 2.0),
+                nodraw.clone(),
+            ),
+        ];
+
+        for brush in &mut brushes {
+            brush.rebuild(gfx);
+        }
+
+        Self {
+            brushes,
+            _i: PhantomData,
+            _g: PhantomData,
+        }
+    }
+
+    pub fn process(&mut self, input: &I, gfx: &mut G) {
+        for brush in &mut self.brushes {
+            if input.is_active_once("select") {
+                let ray = gfx.screen_ray(input.mouse_pos());
+
+                if !input.is_active("shift") {
+                    brush.clear_selected_faces(gfx);
+                }
+
+                brush.select_face(gfx, ray);
+            }
+
+            if input.is_active_once("inc") {
+                brush.extrude_selected_faces(1.0);
+                brush.rebuild(gfx);
+            }
+
+            if input.is_active_once("dec") {
+                brush.extrude_selected_faces(-1.0);
+                brush.rebuild(gfx);
+            }
+        }
+
+        for brush in &self.brushes {
+            brush.draw(gfx);
+        }
     }
 }

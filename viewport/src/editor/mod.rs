@@ -11,7 +11,10 @@ use crate::{
     render::GraphicsWorld,
 };
 
-use self::{brush::Brush, camera::Camera};
+use self::{
+    brush::{Brush, BrushBank},
+    camera::Camera,
+};
 
 macro_rules! action {
     ($name:literal Key $elem:ident) => {
@@ -33,7 +36,7 @@ macro_rules! actions {
 
 pub struct Editor<I, G> {
     camera: Camera,
-    brush: Brush,
+    brush_bank: BrushBank<I, G>,
 
     _i: PhantomData<I>,
     _g: PhantomData<G>,
@@ -67,15 +70,9 @@ where
 
         gfx.update_grid(10, 1.0);
 
-        let nodraw =
-            gfx.create_texture(&image::load_from_memory(include_bytes!("res/nodraw.png")).unwrap());
-
-        let mut brush = Brush::new(gfx, vec3(0.0, 0.0, 0.0), vec3(1.0, 1.0, 1.0), nodraw);
-        brush.rebuild(gfx);
-
         Self {
             camera: Camera::default(),
-            brush,
+            brush_bank: BrushBank::new(gfx),
             _i: PhantomData,
             _g: PhantomData,
         }
@@ -83,23 +80,6 @@ where
 
     pub fn process(&mut self, input: &I, gfx: &mut G) {
         self.camera.process(input, gfx);
-        self.brush.draw(gfx);
-
-        if input.is_active_once("select") {
-            if !input.is_active("shift") {
-                self.brush.clear_selected_faces(gfx);
-            }
-            self.brush.select_face(gfx, gfx.screen_ray(input.mouse_pos()));
-        }
-
-        if input.is_active_once("inc") {
-            self.brush.extrude_selected_faces(1.0);
-            self.brush.rebuild(gfx);
-        }
-
-        if input.is_active_once("dec") {
-            self.brush.extrude_selected_faces(-1.0);
-            self.brush.rebuild(gfx);
-        }
+        self.brush_bank.process(input, gfx);
     }
 }
