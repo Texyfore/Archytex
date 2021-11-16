@@ -1,5 +1,7 @@
 import { Close } from "@mui/icons-material";
 import { Backdrop, Box, Button, Fade, IconButton, Modal, TextField, Typography } from "@mui/material";
+import { useState } from "react";
+import { useProjects } from "../../services/projects";
 
 const modalStyle = {
     position: "absolute" as "absolute",
@@ -20,6 +22,19 @@ interface Parameters {
 }
 
 export default function ProjectNewModal({ handleModalClose, handleModalOpen, modalOpen, ...params }: Parameters) {
+    const [ name, setName ] = useState("");
+    const { dispatch: projectsDispatch } = useProjects();
+    const onCreate = ()=>{
+        if (name.trim() !== "") {
+            //TODO: Handle errors
+            projectsDispatch({
+                type: "create-project",
+                name: name
+            });
+            handleModalClose();
+            setName("");
+        }
+    }
     return <Modal
         open={modalOpen}
         onClose={handleModalClose}
@@ -56,10 +71,12 @@ export default function ProjectNewModal({ handleModalClose, handleModalOpen, mod
                         label='Project name'
                         variant='standard'
                         margin='normal'
+                        value={name}
+                        onChange={(ev)=>setName(ev.target.value)}
                     />
                 </Box>
                 <Box>
-                    <Button size='large' variant='contained'>
+                    <Button size='large' variant='contained' onClick={onCreate}>
                         Create
                     </Button>
                 </Box>

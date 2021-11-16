@@ -9,10 +9,15 @@ interface RenameProject {
     id: string;
     name: string;
 }
+interface CreateProject {
+    type: "create-project",
+    name: string
+}
 
-type ProjectAction = DeleteProject | RenameProject;
+type ProjectAction = DeleteProject | RenameProject | CreateProject;
 
 interface Project {
+    id: string;
     name: string;
     created: string;
     renders: Render[];
@@ -34,13 +39,38 @@ function useProjects() {
     return useContext(ProjectsContext);
 }
 
-function projectsReducer(state: ProjectsState, action: ProjectAction) {
+function projectsReducer(state: ProjectsState, action: ProjectAction): ProjectsState {
     //TODO: Send requests to server
     switch (action.type) {
         case "delete-project":
             return { ...state };
         case "rename-project":
             return { ...state };
+        case "create-project":
+            return {
+                projects: [
+                    ...state.projects,
+                    {
+                        id: Date.now().toString(),
+                        created: new Date().toLocaleDateString("en-US"),
+                        name: action.name,
+                        renders: [
+                            {
+                                renderName:
+                                    "Project1" +
+                                    "-project-render-1-and it's very long so it can be abbreviated",
+                                status: Math.random()*100, //percentage
+                                renderTime: "1 h 40 min 23 sec",
+                            },
+                            {
+                                renderName: "Project1" + "-project-render-2",
+                                status: Math.random()*100, //percentage
+                                renderTime: "1000h 35 min 21 sec",
+                            },
+                        ]
+                    }
+                ]
+            };
     }
 }
 
