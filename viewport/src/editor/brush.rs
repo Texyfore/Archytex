@@ -1,90 +1,99 @@
-use std::{
-    cmp::Ordering,
-    collections::{HashMap, HashSet},
-    rc::Rc,
-};
+use std::{cmp::Ordering, rc::Rc};
 
 use cgmath::{vec3, InnerSpace, Matrix4, Quaternion, Vector2, Vector3};
 
 use crate::{
-    info,
     math::{self, IntersectsTriangle, Ray},
     render::{
-        data::{BrushVertex, Triangle},
-        BrushCommand, BrushComponent, BrushMesh, GraphicsWorld, Texture, Transform,
+        data::BrushVertex, BrushCommand, BrushComponent, BrushDetail, BrushMesh, GraphicsWorld,
+        Texture, Transform,
     },
 };
 
-use super::config::POINT_SELECT_RADIUS;
+use super::config::{HIGHLIGHT_COLOR, POINT_SELECT_RADIUS};
 
-pub type Point = Vector3<f32>;
+macro_rules! point {
+    ($x:expr, $y:expr, $z:expr) => {
+        Point {
+            position: vec3($x, $y, $z),
+            selected: false,
+        }
+    };
+}
+
+macro_rules! face {
+    ($g:ident, $t:ident, $a:literal, $b:literal, $c:literal, $d:literal) => {
+        Face {
+            idx: [$a, $b, $c, $d],
+            selected: false,
+            texture: $t.clone(),
+            detail: $g.create_brush_detail(),
+            mesh: $g.create_brush_mesh(&[], &[]),
+        }
+    };
+}
 
 pub struct Brush {
-    points: Vec<Point>,
-    textures: Vec<Rc<Texture>>,
-    faces: Vec<Face>,
     transform: Rc<Transform>,
-    mesh_cache: HashMap<usize, Rc<BrushMesh>>,
-    selected_points: HashSet<u16>,
-    selected_faces: HashSet<u16>,
+    position: Vector3<f32>,
+    points: Vec<Point>,
+    faces: Vec<Face>,
+}
+
+struct Point {
+    position: Vector3<f32>,
+    selected: bool,
 }
 
 struct Face {
-    idx: [u16; 4],
-    texture: usize,
+    idx: [usize; 4],
+    selected: bool,
+    texture: Rc<Texture>,
+    detail: Rc<BrushDetail>,
+    mesh: Rc<BrushMesh>,
 }
 
 impl Brush {
     pub fn new<G: GraphicsWorld>(
         gfx: &G,
+        position: Vector3<f32>,
         extent: Vector3<f32>,
-        transform: Matrix4<f32>,
         texture: Rc<Texture>,
     ) -> Self {
+        #[rustfmt::skip]
         let points = vec![
-            vec3(0.0, 0.0, 0.0),
-            vec3(extent.x, 0.0, 0.0),
-            vec3(extent.x, 0.0, extent.z),
-            vec3(0.0, 0.0, extent.z),
-            vec3(0.0, extent.y, 0.0),
-            vec3(extent.x, extent.y, 0.0),
-            vec3(extent.x, extent.y, extent.z),
-            vec3(0.0, extent.y, extent.z),
+            point!( 0.0      , 0.0      , 0.0      ),
+            point!( extent.x , 0.0      , 0.0      ),
+            point!( extent.x , 0.0      , extent.z ),
+            point!( 0.0      , 0.0      , extent.z ),
+            point!( 0.0      , extent.y , 0.0      ),
+            point!( extent.x , extent.y , 0.0      ),
+            point!( extent.x , extent.y , extent.z ),
+            point!( 0.0      , extent.y , extent.z ),
         ];
 
         let faces = vec![
-            [0, 1, 2, 3],
-            [7, 6, 5, 4],
-            [4, 5, 1, 0],
-            [6, 7, 3, 2],
-            [0, 3, 7, 4],
-            [5, 6, 2, 1],
-        ]
-        .iter()
-        .map(|idx| Face {
-            idx: *idx,
-            texture: 0,
-        })
-        .collect();
+            face!(gfx, texture, 0, 1, 2, 3),
+            face!(gfx, texture, 7, 6, 5, 4),
+            face!(gfx, texture, 4, 5, 1, 0),
+            face!(gfx, texture, 6, 7, 3, 2),
+            face!(gfx, texture, 0, 3, 7, 4),
+            face!(gfx, texture, 5, 6, 2, 1),
+        ];
 
-        let textures = vec![texture];
-
-        let selected_points = HashSet::new();
-        let selected_faces = HashSet::new();
+        let transform = gfx.create_transform(Matrix4::from_translation(position));
 
         Self {
+            transform,
+            position,
             points,
-            textures,
             faces,
-            transform: gfx.create_transform(transform),
-            mesh_cache: Default::default(),
-            selected_points,
-            selected_faces,
         }
     }
 
-    pub fn set_transform<G: GraphicsWorld>(&self, gfx: &G, transform: Matrix4<f32>) {
-        gfx.update_transform(&self.transform, transform);
+    pub fn set_position<G: GraphicsWorld>(&mut self, gfx: &G, position: Vector3<f32>) {
+        self.position = position;
+        gfx.update_transform(&self.transform, Matrix4::from_translation(position));
     }
 
     pub fn select_point<G: GraphicsWorld>(
@@ -93,12 +102,22 @@ impl Brush {
         camera_pos: Vector3<f32>,
         pointer_pos: Vector2<f32>,
     ) {
-        let mut sorted_points = self.points.iter().copied().enumerate().collect::<Vec<_>>();
-        sorted_points.sort_by(|a, b| {
-            let a_mag2 = (a.1 - camera_pos).magnitude2();
-            let b_mag2 = (b.1 - camera_pos).magnitude2();
-            a_mag2.partial_cmp(&b_mag2).unwrap_or(Ordering::Equal)
-        });
+        let sorted_points = {
+            let mut points = self
+                .points
+                .iter()
+                .enumerate()
+                .map(|(i, p)| (i, p.position + self.position))
+                .collect::<Vec<_>>();
+
+            points.sort_by(|a, b| {
+                let a_mag2 = (a.1 - camera_pos).magnitude2();
+                let b_mag2 = (b.1 - camera_pos).magnitude2();
+                a_mag2.partial_cmp(&b_mag2).unwrap_or(Ordering::Equal)
+            });
+
+            points
+        };
 
         for (i, point) in sorted_points {
             if let Some(screen) = gfx.world_to_screen(point) {
@@ -106,145 +125,157 @@ impl Brush {
                 let rad2 = POINT_SELECT_RADIUS * POINT_SELECT_RADIUS;
 
                 if mag2 <= rad2 {
-                    self.selected_points.insert(i as u16);
-                    info!("Selected point {}", i);
+                    self.points[i].selected = true;
+                    return;
                 }
             }
         }
     }
 
-    pub fn clear_point_selection(&mut self) {
-        self.selected_points.clear();
+    pub fn clear_selected_points(&mut self) {
+        for point in &mut self.points {
+            point.selected = false;
+        }
     }
 
-    pub fn select_face(&mut self, ray: Ray) {
-        let mut sorted_faces = self
-            .faces
-            .iter()
-            .enumerate()
-            .map(|(i, f)| (i, f.idx))
-            .collect::<Vec<_>>();
+    pub fn select_face<G: GraphicsWorld>(&mut self, gfx: &G, ray: Ray) {
+        let sorted_faces = {
+            let mut faces = self
+                .faces
+                .iter()
+                .enumerate()
+                .map(|(i, f)| (i, f.idx))
+                .collect::<Vec<_>>();
 
-        sorted_faces.sort_by(|(_, f1), (_, f2)| {
-            let center1 = (self.points[f1[0] as usize]
-                + self.points[f1[1] as usize]
-                + self.points[f1[2] as usize]
-                + self.points[f1[3] as usize])
-                * 0.25;
+            faces.sort_by(|(_, f1), (_, f2)| {
+                let center1 = (self.points[f1[0]].position
+                    + self.position
+                    + self.points[f1[1]].position
+                    + self.position
+                    + self.points[f1[2]].position
+                    + self.position
+                    + self.points[f1[3]].position
+                    + self.position)
+                    * 0.25;
 
-            let center2 = (self.points[f1[0] as usize]
-                + self.points[f2[1] as usize]
-                + self.points[f2[2] as usize]
-                + self.points[f2[3] as usize])
-                * 0.25;
+                let center2 = (self.points[f1[0]].position
+                    + self.position
+                    + self.points[f2[1]].position
+                    + self.points[f2[2]].position
+                    + self.points[f2[3]].position)
+                    * 0.25;
 
-            let mag1 = (center1 - ray.origin).magnitude2();
-            let mag2 = (center2 - ray.origin).magnitude2();
-            mag1.partial_cmp(&mag2).unwrap_or(Ordering::Equal)
-        });
+                let mag1 = (center1 - ray.origin).magnitude2();
+                let mag2 = (center2 - ray.origin).magnitude2();
+                mag1.partial_cmp(&mag2).unwrap_or(Ordering::Equal)
+            });
+            faces
+        };
 
         for (i, face) in sorted_faces {
             let a = math::Triangle {
-                a: self.points[face[0] as usize],
-                b: self.points[face[1] as usize],
-                c: self.points[face[2] as usize],
+                a: self.points[face[0]].position + self.position,
+                b: self.points[face[1]].position + self.position,
+                c: self.points[face[2]].position + self.position,
             };
 
             let b = math::Triangle {
-                a: self.points[face[0] as usize],
-                b: self.points[face[2] as usize],
-                c: self.points[face[3] as usize],
+                a: self.points[face[0]].position + self.position,
+                b: self.points[face[2]].position + self.position,
+                c: self.points[face[3]].position + self.position,
             };
 
             if ray.intersects_triangle(&a) || ray.intersects_triangle(&b) {
-                self.selected_faces.insert(i as u16);
-                info!("Selected face {}", i);
+                self.faces[i].selected = true;
+                gfx.update_brush_detail(&self.faces[i].detail, HIGHLIGHT_COLOR);
                 return;
             }
         }
     }
 
-    pub fn clear_face_selection(&mut self) {
-        self.selected_faces.clear();
+    pub fn clear_selected_faces<G: GraphicsWorld>(&mut self, gfx: &G) {
+        for face in self.faces.iter_mut().filter(|f| f.selected) {
+            gfx.update_brush_detail(&face.detail, [1.0; 4]);
+            face.selected = false;
+        }
     }
 
-    pub fn set_texture(&mut self, texture: Rc<Texture>) {
-        // TODO: This is really, really bad. But at the moment, the compiler bug
-        // forces me to do it this way.
+    pub fn apply_texture(&mut self, texture: Rc<Texture>) {
+        for face in &mut self.faces.iter_mut().filter(|f| f.selected) {
+            face.texture = texture.clone();
+        }
+    }
 
-        for i in 0..self.textures.len() {
-            let ptr_a = self.textures[i].as_ref() as *const Texture;
-            let ptr_b = texture.as_ref() as *const Texture;
-            if ptr_a == ptr_b {
-                for face in &self.selected_faces {
-                    self.faces[*face as usize].texture = i;
-                }
-                return;
+    pub fn move_selected_points(&mut self, vector: Vector3<f32>) {
+        for point in self.points.iter_mut().filter(|p| p.selected) {
+            point.position += vector;
+        }
+    }
+
+    pub fn move_selected_faces(&mut self, vector: Vector3<f32>) {
+        for face in self.faces.iter_mut().filter(|f| f.selected) {
+            for i in face.idx {
+                self.points[i].position += vector;
             }
         }
-
-        for face in &self.selected_faces {
-            self.faces[*face as usize].texture = self.textures.len();
-        }
-        self.textures.push(texture);
     }
 
-    pub fn regenerate<G: GraphicsWorld>(&mut self, gfx: &G) {
-        let mut geometry: HashMap<usize, (Vec<BrushVertex>, Vec<Triangle>)> = HashMap::new();
-
-        for face in &self.faces {
-            let (vertices, triangles) = {
-                if !geometry.contains_key(&face.texture) {
-                    geometry.insert(face.texture, (Vec::new(), Vec::new()));
-                }
-
-                geometry.get_mut(&face.texture).unwrap()
+    pub fn extrude_selected_faces(&mut self, height: f32) {
+        for face in self.faces.iter_mut().filter(|f| f.selected) {
+            let normal = {
+                let points = face.idx.map(|i| self.points[i].position);
+                let edge0 = points[1] - points[0];
+                let edge1 = points[2] - points[0];
+                edge0.cross(edge1).normalize()
             };
 
-            let t0 = vertices.len() as u16;
-            triangles.push([t0, t0 + 1, t0 + 2]);
-            triangles.push([t0, t0 + 2, t0 + 3]);
-
-            let idx = &face.idx;
-
-            let p = [
-                self.points[idx[0] as usize],
-                self.points[idx[1] as usize],
-                self.points[idx[2] as usize],
-                self.points[idx[3] as usize],
-            ];
-
-            let edge0 = p[1] - p[0];
-            let edge1 = p[2] - p[0];
-            let normal = edge0.cross(edge1).normalize();
-
-            let flatten = Quaternion::from_arc(-normal, Vector3::unit_y(), None);
-
-            for i in 0..4 {
-                let texcoord: [f32; 3] = (flatten * p[i]).into();
-                vertices.push(BrushVertex {
-                    position: p[i].into(),
-                    normal: normal.into(),
-                    texcoord: [texcoord[0], texcoord[2]],
-                });
+            for i in face.idx {
+                self.points[i].position += normal * height;
             }
         }
+    }
 
-        self.mesh_cache = geometry
-            .iter()
-            .map(|(k, (v, t))| (*k, gfx.create_brush_mesh(&v, &t)))
-            .collect();
+    pub fn rebuild<G: GraphicsWorld>(&mut self, gfx: &G) {
+        for face in &mut self.faces {
+            face.mesh = {
+                let points = face.idx.map(|i| self.points[i].position);
+
+                let edge0 = points[1] - points[0];
+                let edge1 = points[2] - points[0];
+                let normal = edge0.cross(edge1).normalize();
+                let flatten = Quaternion::from_arc(-normal, Vector3::unit_y(), None);
+
+                let normal = normal.into();
+                let vertices = points
+                    .iter()
+                    .copied()
+                    .map(|p| {
+                        let texcoord = flatten * p;
+                        let texcoord = [texcoord.x, texcoord.z];
+
+                        BrushVertex {
+                            position: p.into(),
+                            normal,
+                            texcoord,
+                        }
+                    })
+                    .collect::<Vec<_>>();
+
+                gfx.create_brush_mesh(&vertices, &[[0, 1, 2], [0, 2, 3]])
+            }
+        }
     }
 
     pub fn draw<G: GraphicsWorld>(&self, gfx: &mut G) {
         gfx.draw_brush(BrushCommand {
             transform: self.transform.clone(),
             components: self
-                .mesh_cache
+                .faces
                 .iter()
-                .map(|(texture, mesh)| BrushComponent {
-                    mesh: mesh.clone(),
-                    texture: self.textures[*texture].clone(),
+                .map(|f| BrushComponent {
+                    mesh: f.mesh.clone(),
+                    texture: f.texture.clone(),
+                    detail: f.detail.clone(),
                 })
                 .collect(),
         });

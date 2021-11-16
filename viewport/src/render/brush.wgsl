@@ -18,6 +18,9 @@ struct VertexOut {
 
     [[location(1)]]
     texcoord: vec2<f32>;
+
+    [[location(2)]]
+    color: vec4<f32>;
 };
 
 [[block]]
@@ -31,11 +34,20 @@ struct TransformBlock {
     matrix: mat4x4<f32>;
 };
 
+[[block]]
+struct BrushDetailBlock {
+    [[location(0)]]
+    highlight: vec4<f32>;
+};
+
 [[group(0), binding(0)]]
 var<uniform> camera: CameraBlock;
 
 [[group(1), binding(0)]]
 var<uniform> transform: TransformBlock;
+
+[[group(2), binding(0)]]
+var<uniform> detail: BrushDetailBlock;
 
 [[stage(vertex)]]
 fn main(in: VertexIn) -> VertexOut {
@@ -51,6 +63,7 @@ fn main(in: VertexIn) -> VertexOut {
     out.clip_position = camera.projection * world_position;
     out.normal = world_normal;
     out.texcoord = in.texcoord;
+    out.color = detail.highlight;
 
     // WGPU works with a different texture coordinate system, so we need to flip
     // the coordinates vertically.
@@ -59,23 +72,27 @@ fn main(in: VertexIn) -> VertexOut {
     return out;
 }
 
+
+
+
+
 struct FragmentOut {
     [[location(0)]]
     color: vec4<f32>;
 };
 
-[[group(2), binding(0)]]
+[[group(3), binding(0)]]
 var t_diffuse: texture_2d<f32>;
 
-[[group(2), binding(1)]]
+[[group(3), binding(1)]]
 var s_diffuse: sampler;
 
 [[stage(fragment)]]
 fn main(in: VertexOut) -> FragmentOut {
     var light_dir = normalize(vec3<f32>(0.1, 0.2, 0.3));
     var diffuse = clamp(dot(light_dir, in.normal), 0.0, 0.7) + 0.3;
-
-    var color = textureSample(t_diffuse, s_diffuse, in.texcoord);
+    
+    var color = textureSample(t_diffuse, s_diffuse, in.texcoord) * in.color;
     var color_rgb = color.rgb;
     var color_a = color.a;
 

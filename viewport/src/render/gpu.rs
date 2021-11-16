@@ -13,7 +13,7 @@ use crate::render::data::BrushVertex;
 
 use super::{
     data::{LineVertex, Triangle},
-    CameraBlock, TransformBlock, MSAA_SAMPLE_COUNT,
+    MSAA_SAMPLE_COUNT,
 };
 
 pub(super) struct Context {
@@ -222,9 +222,10 @@ impl Context {
                         .create_pipeline_layout(&PipelineLayoutDescriptor {
                             label: None,
                             bind_group_layouts: &[
-                                &uniform_buffer_layout.inner,
-                                &uniform_buffer_layout.inner,
-                                &texture_layout.inner,
+                                &uniform_buffer_layout.inner, // Camera
+                                &uniform_buffer_layout.inner, // Transform
+                                &uniform_buffer_layout.inner, // BrushDetail
+                                &texture_layout.inner,        // Texture
                             ],
                             push_constant_ranges: &[],
                         }),
@@ -524,16 +525,12 @@ impl Frame {
 }
 
 impl<'a> Pass<'a> {
-    pub fn set_camera_group(&mut self, camera_group: &'a UniformBufferGroup<CameraBlock>) {
-        self.inner.set_bind_group(0, &camera_group.inner, &[]);
-    }
-
-    pub fn set_transform(&mut self, transform_group: &'a UniformBufferGroup<TransformBlock>) {
-        self.inner.set_bind_group(1, &transform_group.inner, &[]);
+    pub fn set_ubg<T: Pod>(&mut self, index: u32, ubg: &'a UniformBufferGroup<T>) {
+        self.inner.set_bind_group(index, &ubg.inner, &[]);
     }
 
     pub fn set_texture(&mut self, texture_group: &'a TextureGroup) {
-        self.inner.set_bind_group(2, &texture_group.inner, &[]);
+        self.inner.set_bind_group(3, &texture_group.inner, &[]);
     }
 
     pub fn begin_lines(&mut self, pipeline: &'a LinePipeline) {

@@ -25,10 +25,12 @@ pub trait GraphicsWorld {
     fn create_brush_mesh(&self, vertices: &[BrushVertex], triangles: &[Triangle]) -> Rc<BrushMesh>;
     fn create_transform(&self, matrix: Matrix4<f32>) -> Rc<Transform>;
     fn create_texture(&self, image: &DynamicImage) -> Rc<Texture>;
+    fn create_brush_detail(&self) -> Rc<BrushDetail>;
 
     fn update_camera_view(&mut self, view: Matrix4<f32>);
     fn update_grid(&mut self, cell_count: i32, cell_size: f32);
     fn update_transform(&self, transform: &Transform, matrix: Matrix4<f32>);
+    fn update_brush_detail(&self, brush_detail: &BrushDetail, highlight: [f32; 4]);
 
     fn draw_brush(&mut self, command: BrushCommand);
 
@@ -123,15 +125,16 @@ impl Renderer {
 
         {
             let mut pass = frame.begin_pass([0.05, 0.05, 0.05, 1.0], &self.msaa, &self.depth);
-            pass.set_camera_group(&self.camera_group);
+            pass.set_ubg(0, &self.camera_group);
 
             pass.begin_lines(&self.line_pipeline);
             pass.draw_lines(&self.grid);
 
             pass.begin_brushes(&self.brush_pipeline);
             for command in &self.brush_commands {
-                pass.set_transform(&command.transform.group);
+                pass.set_ubg(1, &command.transform.group);
                 for component in &command.components {
+                    pass.set_ubg(2, &component.detail.group);
                     pass.set_texture(&component.texture.group);
                     pass.draw_mesh(&component.mesh.vertices, &component.mesh.triangles);
                 }
@@ -167,6 +170,17 @@ impl GraphicsWorld for Renderer {
             group: self
                 .ctx
                 .create_texture_group(&self.texture_layout, image, &self.sampler),
+        })
+    }
+
+    fn create_brush_detail(&self) -> Rc<BrushDetail> {
+        Rc::new(BrushDetail {
+            group: self.ctx.create_uniform_buffer_group(
+                &self.uniform_buffer_layout,
+                BrushDetailBlock {
+                    highlight: [1.0; 4],
+                },
+            ),
         })
     }
 
@@ -244,6 +258,11 @@ impl GraphicsWorld for Renderer {
         );
     }
 
+    fn update_brush_detail(&self, brush_detail: &BrushDetail, highlight: [f32; 4]) {
+        self.ctx
+            .upload_uniform(&brush_detail.group, BrushDetailBlock { highlight })
+    }
+
     fn draw_brush(&mut self, command: BrushCommand) {
         self.brush_commands.push(command);
     }
@@ -297,6 +316,7 @@ pub struct BrushCommand {
 pub struct BrushComponent {
     pub mesh: Rc<BrushMesh>,
     pub texture: Rc<Texture>,
+    pub detail: Rc<BrushDetail>,
 }
 
 pub struct BrushMesh {
@@ -312,6 +332,10 @@ pub struct Texture {
     group: TextureGroup,
 }
 
+pub struct BrushDetail {
+    group: UniformBufferGroup<BrushDetailBlock>,
+}
+
 #[repr(C)]
 #[derive(Clone, Copy, Pod, Zeroable)]
 struct TransformBlock {
@@ -323,4 +347,10 @@ struct TransformBlock {
 struct CameraBlock {
     view: [[f32; 4]; 4],
     projection: [[f32; 4]; 4],
+}
+
+#[repr(C)]
+#[derive(Clone, Copy, Pod, Zeroable)]
+struct BrushDetailBlock {
+    highlight: [f32; 4],
 }
