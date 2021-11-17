@@ -2,7 +2,6 @@ mod brush;
 mod camera;
 mod config;
 
-use cgmath::vec3;
 use std::marker::PhantomData;
 use winit::event::{MouseButton, VirtualKeyCode};
 
@@ -11,10 +10,7 @@ use crate::{
     render::GraphicsWorld,
 };
 
-use self::{
-    brush::{Brush, BrushBank},
-    camera::Camera,
-};
+use self::{brush::BrushBank, camera::Camera};
 
 macro_rules! action {
     ($name:literal Key $elem:ident) => {
@@ -35,6 +31,7 @@ macro_rules! actions {
 }
 
 pub struct Editor<I, G> {
+    mode: EditMode,
     camera: Camera,
     brush_bank: BrushBank<I, G>,
 
@@ -51,26 +48,38 @@ where
         input.define_actions(actions!(
             // Camera controls
 
-            "movecam"  Btn Right    ,
-            "forward"  Key W        ,
-            "backward" Key S        ,
-            "left"     Key A        ,
-            "right"    Key D        ,
-            "up"       Key E        ,
-            "down"     Key Q        ,
+            "movecam"   Btn Right    ,
+            "forward"   Key W        ,
+            "backward"  Key S        ,
+            "left"      Key A        ,
+            "right"     Key D        ,
+            "up"        Key E        ,
+            "down"      Key Q        ,
 
-            // Editor
+            // Selection
 
-            "shift"    Key LShift   ,
-            "select"   Btn Left     ,
-            "deselect" Key X        ,
-            "inc"      Key Up       ,
-            "dec"      Key Down     ,
+            "select"    Btn Left     ,
+            "deselect"  Key X        ,
+
+            // Brush manipulation
+
+            "add_brush" Btn Left     ,
+
+            // Modifiers
+
+            "shift"     Key LShift   ,
+            "control"   Key LControl ,
+
+            // Debug
+
+            "inc"       Key Up       ,
+            "dec"       Key Down     ,
         ));
 
         gfx.update_grid(10, 1.0);
 
         Self {
+            mode: EditMode::Brush,
             camera: Camera::default(),
             brush_bank: BrushBank::new(gfx),
             _i: PhantomData,
@@ -80,6 +89,12 @@ where
 
     pub fn process(&mut self, input: &I, gfx: &mut G) {
         self.camera.process(input, gfx);
-        self.brush_bank.process(input, gfx);
+        self.brush_bank.process(input, gfx, &self.mode);
     }
+}
+
+pub enum EditMode {
+    Brush,
+    Face,
+    Vertex,
 }
