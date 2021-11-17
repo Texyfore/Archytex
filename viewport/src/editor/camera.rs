@@ -2,6 +2,8 @@ use cgmath::{num_traits::clamp, Deg, Matrix3, Matrix4, Vector2, Vector3, Zero};
 
 use crate::{input::Input, render::GraphicsWorld};
 
+use super::ActionBinding::*;
+
 pub struct Camera {
     position: Vector3<f32>,
     rotation: Vector2<f32>,
@@ -22,31 +24,31 @@ impl Default for Camera {
 
 impl Camera {
     pub fn process<I: Input, G: GraphicsWorld>(&mut self, input: &I, gfx: &mut G) {
-        if !input.is_active("movecam") {
+        if !input.is_active(EnableCameraMovement) {
             return;
         }
 
-        if input.is_active("forward") {
+        if input.is_active(Forward) {
             self.position += self.forward() * self.speed;
         }
 
-        if input.is_active("backward") {
+        if input.is_active(Backward) {
             self.position -= self.forward() * self.speed;
         }
 
-        if input.is_active("left") {
+        if input.is_active(Left) {
             self.position -= self.right() * self.speed;
         }
 
-        if input.is_active("right") {
+        if input.is_active(Right) {
             self.position += self.right() * self.speed;
         }
 
-        if input.is_active("up") {
+        if input.is_active(Up) {
             self.position += Vector3::unit_y() * self.speed;
         }
 
-        if input.is_active("down") {
+        if input.is_active(Down) {
             self.position -= Vector3::unit_y() * self.speed;
         }
 

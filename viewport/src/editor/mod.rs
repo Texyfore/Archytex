@@ -13,21 +13,55 @@ use crate::{
 use self::{brush::BrushBank, camera::Camera};
 
 macro_rules! action {
-    ($name:literal Key $elem:ident) => {
-        ($name, Trigger::Key(VirtualKeyCode::$elem))
+    ($name:ident Key $elem:ident) => {
+        (ActionBinding::$name, Trigger::Key(VirtualKeyCode::$elem))
     };
 
-    ($name:literal Btn $elem:ident) => {
-        ($name, Trigger::Button(MouseButton::$elem))
+    ($name:ident Btn $elem:ident) => {
+        (ActionBinding::$name, Trigger::Button(MouseButton::$elem))
     };
 }
 
 macro_rules! actions {
-    ($($name:literal $ty:ident $elem:ident,)*) => {
-        &[
+    ($($name:ident $ty:ident $elem:ident,)*) => {
+        #[derive(Clone, Eq, PartialEq, Hash)]
+        pub enum ActionBinding {
+            $($name,)*
+        }
+
+        const ACTION_DEFINITIONS: &[(ActionBinding, Trigger)] = &[
             $(action!($name $ty $elem),)*
-        ]
+        ];
     };
+}
+
+actions! {
+    EnableCameraMovement Btn Right    ,
+    Forward              Key W        ,
+    Backward             Key S        ,
+    Left                 Key A        ,
+    Right                Key D        ,
+    Up                   Key E        ,
+    Down                 Key Q        ,
+
+    // Selection //////////////////////
+
+    EnableMultiSelect    Key LShift   ,
+    Select               Btn Left     ,
+    Deselect             Key X        ,
+
+    // Brush manipulation /////////////
+
+    EnableAddBrush       Key LControl ,
+    AddBrush             Btn Left     ,
+    DeleteBrush          Key Delete   ,
+
+    // Debug //////////////////////////
+
+    Shift                Key LShift   ,
+    Control              Key LControl ,
+    Inc                  Key Up       ,
+    Dec                  Key Down     ,
 }
 
 pub struct Editor<I, G> {
@@ -45,36 +79,7 @@ where
     G: GraphicsWorld,
 {
     pub fn init(input: &mut I, gfx: &mut G) -> Self {
-        input.define_actions(actions!(
-            // Camera controls
-
-            "movecam"   Btn Right    ,
-            "forward"   Key W        ,
-            "backward"  Key S        ,
-            "left"      Key A        ,
-            "right"     Key D        ,
-            "up"        Key E        ,
-            "down"      Key Q        ,
-
-            // Selection
-
-            "select"    Btn Left     ,
-            "deselect"  Key X        ,
-
-            // Brush manipulation
-
-            "add_brush" Btn Left     ,
-
-            // Modifiers
-
-            "shift"     Key LShift   ,
-            "control"   Key LControl ,
-
-            // Debug
-
-            "inc"       Key Up       ,
-            "dec"       Key Down     ,
-        ));
+        input.define_actions(ACTION_DEFINITIONS);
 
         gfx.update_grid(10, 1.0);
 
