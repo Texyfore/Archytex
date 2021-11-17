@@ -2,7 +2,6 @@ mod brush;
 mod camera;
 mod config;
 
-use cgmath::vec3;
 use std::marker::PhantomData;
 use winit::event::{MouseButton, VirtualKeyCode};
 
@@ -11,29 +10,71 @@ use crate::{
     render::GraphicsWorld,
 };
 
-use self::{brush::Brush, camera::Camera};
+use self::{brush::BrushBank, camera::Camera, ActionBinding::*};
 
 macro_rules! action {
-    ($name:literal Key $elem:ident) => {
-        ($name, Trigger::Key(VirtualKeyCode::$elem))
+    ($name:ident Key $elem:ident) => {
+        (ActionBinding::$name, Trigger::Key(VirtualKeyCode::$elem))
     };
 
-    ($name:literal Btn $elem:ident) => {
-        ($name, Trigger::Button(MouseButton::$elem))
+    ($name:ident Btn $elem:ident) => {
+        (ActionBinding::$name, Trigger::Button(MouseButton::$elem))
     };
 }
 
 macro_rules! actions {
-    ($($name:literal $ty:ident $elem:ident,)*) => {
-        &[
+    ($($name:ident $ty:ident $elem:ident,)*) => {
+        #[derive(Clone, Eq, PartialEq, Hash)]
+        pub enum ActionBinding {
+            $($name,)*
+        }
+
+        const ACTION_DEFINITIONS: &[(ActionBinding, Trigger)] = &[
             $(action!($name $ty $elem),)*
-        ]
+        ];
     };
 }
 
+actions! {
+    // Camera movement ////////////////
+
+    EnableCameraMovement Btn Right    ,
+    Forward              Key W        ,
+    Backward             Key S        ,
+    Left                 Key A        ,
+    Right                Key D        ,
+    Up                   Key E        ,
+    Down                 Key Q        ,
+
+    // Selection //////////////////////
+
+    EnableMultiSelect    Key LShift   ,
+    Select               Btn Left     ,
+    Deselect             Key X        ,
+
+    // Brush manipulation /////////////
+
+    EnableAddBrush       Key LControl ,
+    AddBrush             Btn Left     ,
+    DeleteBrush          Key Delete   ,
+
+    // Debug //////////////////////////
+
+    Shift                Key LShift   ,
+    Control              Key LControl ,
+    Inc                  Key Up       ,
+    Dec                  Key Down     ,
+    BrushMode            Key B        ,
+    FaceMode             Key F        ,
+    VertexMode           Key V        ,
+
+    ///////////////////////////////////
+}
+
 pub struct Editor<I, G> {
+    mode: EditMode,
     camera: Camera,
-    brush: Brush,
+    brush_bank: BrushBank<I, G>,
 
     _i: PhantomData<I>,
     _g: PhantomData<G>,
@@ -45,61 +86,37 @@ where
     G: GraphicsWorld,
 {
     pub fn init(input: &mut I, gfx: &mut G) -> Self {
-        input.define_actions(actions!(
-            // Camera controls
-
-            "movecam"  Btn Right    ,
-            "forward"  Key W        ,
-            "backward" Key S        ,
-            "left"     Key A        ,
-            "right"    Key D        ,
-            "up"       Key E        ,
-            "down"     Key Q        ,
-
-            // Editor
-
-            "shift"    Key LShift   ,
-            "select"   Btn Left     ,
-            "deselect" Key X        ,
-            "inc"      Key Up       ,
-            "dec"      Key Down     ,
-        ));
+        input.define_actions(ACTION_DEFINITIONS);
 
         gfx.update_grid(10, 1.0);
 
-        let nodraw =
-            gfx.create_texture(&image::load_from_memory(include_bytes!("res/nodraw.png")).unwrap());
-
-        let mut brush = Brush::new(gfx, vec3(0.0, 0.0, 0.0), vec3(1.0, 1.0, 1.0), nodraw);
-        brush.rebuild(gfx);
-
         Self {
+            mode: EditMode::Brush,
             camera: Camera::default(),
-            brush,
+            brush_bank: BrushBank::new(gfx),
             _i: PhantomData,
             _g: PhantomData,
         }
     }
 
     pub fn process(&mut self, input: &I, gfx: &mut G) {
-        self.camera.process(input, gfx);
-        self.brush.draw(gfx);
-
-        if input.is_active_once("select") {
-            if !input.is_active("shift") {
-                self.brush.clear_selected_faces(gfx);
+        if input.is_active(Control) {
+            if input.is_active_once(BrushMode) {
+                self.mode = EditMode::Brush;
+            } else if input.is_active_once(FaceMode) {
+                self.mode = EditMode::Face;
+            } else if input.is_active_once(VertexMode) {
+                self.mode = EditMode::Vertex;
             }
-            self.brush.select_face(gfx, gfx.screen_ray(input.mouse_pos()));
         }
 
-        if input.is_active_once("inc") {
-            self.brush.extrude_selected_faces(1.0);
-            self.brush.rebuild(gfx);
-        }
-
-        if input.is_active_once("dec") {
-            self.brush.extrude_selected_faces(-1.0);
-            self.brush.rebuild(gfx);
-        }
+        self.camera.process(input, gfx);
+        self.brush_bank.process(input, gfx, &self.mode);
     }
+}
+
+pub enum EditMode {
+    Brush,
+    Face,
+    Vertex,
 }

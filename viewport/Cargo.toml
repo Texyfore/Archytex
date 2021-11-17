@@ -14,3 +14,6 @@ wgpu = { version = "0.11.0", features = ["webgl"] }
 winit = { version = "0.25.0", features = ["web-sys"] }
 web-sys = { version = "0.3.55", features = ["Document", "Window", "Node"] }
 bytemuck = { version = "1.7.2", features = ["derive"] }
+
+[profile.dev]
+opt-level = "z"

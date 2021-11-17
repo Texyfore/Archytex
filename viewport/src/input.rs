@@ -2,11 +2,12 @@ use std::collections::HashMap;
 
 use cgmath::Vector2;
 use winit::event::{ElementState, MouseButton, VirtualKeyCode};
+use super::editor::ActionBinding;
 
 pub trait Input {
-    fn define_actions(&mut self, actions: &[(&str, Trigger)]);
-    fn is_active(&self, action: &str) -> bool;
-    fn is_active_once(&self, action: &str) -> bool;
+    fn define_actions(&mut self, actions: &[(ActionBinding, Trigger)]);
+    fn is_active(&self, action: ActionBinding) -> bool;
+    fn is_active_once(&self, action: ActionBinding) -> bool;
     fn mouse_delta(&self) -> Vector2<f32>;
     fn scroll_wheel(&self) -> f32;
     fn mouse_pos(&self) -> Vector2<f32>;
@@ -14,7 +15,7 @@ pub trait Input {
 
 #[derive(Default)]
 pub struct InputMapper {
-    actions: HashMap<String, Action>,
+    actions: HashMap<ActionBinding, Action>,
     mouse_pos_before: [f32; 2],
     mouse_pos: [f32; 2],
     scroll_wheel: f32,
@@ -58,14 +59,15 @@ impl InputMapper {
 }
 
 impl Input for InputMapper {
-    fn define_actions(&mut self, actions: &[(&str, Trigger)]) {
+    fn define_actions(&mut self, actions: &[(ActionBinding, Trigger)]) {
         self.actions = actions
             .iter()
+            .cloned()
             .map(|(name, trigger)| {
                 (
-                    name.to_string(),
+                    name,
                     Action {
-                        trigger: trigger.clone(),
+                        trigger,
                         active: false,
                         active_once: false,
                     },
@@ -74,16 +76,16 @@ impl Input for InputMapper {
             .collect();
     }
 
-    fn is_active(&self, action: &str) -> bool {
-        if let Some(action) = self.actions.get(action) {
+    fn is_active(&self, action: ActionBinding) -> bool {
+        if let Some(action) = self.actions.get(&action) {
             action.active
         } else {
             false
         }
     }
 
-    fn is_active_once(&self, action: &str) -> bool {
-        if let Some(action) = self.actions.get(action) {
+    fn is_active_once(&self, action: ActionBinding) -> bool {
+        if let Some(action) = self.actions.get(&action) {
             action.active_once
         } else {
             false

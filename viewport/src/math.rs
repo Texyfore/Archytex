@@ -1,11 +1,11 @@
 use cgmath::{InnerSpace, Vector3};
 
-pub trait IntersectsSphere {
-    fn intersects_sphere(&self, sphere: &Sphere) -> bool;
+pub trait Intersects<O> {
+    fn intersects(&self, other: &O) -> bool;
 }
 
-pub trait IntersectsTriangle {
-    fn intersects_triangle(&self, triangle: &Triangle) -> bool;
+pub trait IntersectionPoint<O> {
+    fn intersection_point(&self, other: &O) -> Vector3<f32>;
 }
 
 #[derive(Clone, Copy)]
@@ -14,17 +14,15 @@ pub struct Ray {
     pub end: Vector3<f32>,
 }
 
-#[derive(Clone, Copy)]
-pub struct Sphere {
-    pub origin: Vector3<f32>,
-    pub radius: f32,
-}
-
-#[derive(Clone, Copy)]
 pub struct Triangle {
     pub a: Vector3<f32>,
     pub b: Vector3<f32>,
     pub c: Vector3<f32>,
+}
+
+pub struct Plane {
+    pub origin: Vector3<f32>,
+    pub normal: Vector3<f32>,
 }
 
 impl Ray {
@@ -33,17 +31,8 @@ impl Ray {
     }
 }
 
-impl IntersectsSphere for Ray {
-    fn intersects_sphere(&self, sphere: &Sphere) -> bool {
-        let ap = sphere.origin - self.origin;
-        let ab = self.vec();
-        let proj = self.origin + ab * (ap.dot(ab) / ab.magnitude2());
-        (proj - sphere.origin).magnitude2() <= sphere.radius * sphere.radius
-    }
-}
-
-impl IntersectsTriangle for Ray {
-    fn intersects_triangle(&self, triangle: &Triangle) -> bool {
+impl Intersects<Triangle> for Ray {
+    fn intersects(&self, triangle: &Triangle) -> bool {
         let a_to_b = triangle.b - triangle.a;
         let a_to_c = triangle.c - triangle.a;
         let dir = self.vec().normalize();
@@ -75,5 +64,12 @@ impl IntersectsTriangle for Ray {
 
         let dist = a_to_c.dot(v_vec) * inv_det;
         dist > 0.0001
+    }
+}
+
+impl IntersectionPoint<Plane> for Ray {
+    fn intersection_point(&self, other: &Plane) -> Vector3<f32> {
+        let t = (other.origin - self.origin).dot(other.normal) / self.vec().dot(other.normal);
+        self.origin + self.vec() * t
     }
 }

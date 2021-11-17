@@ -1,16 +1,21 @@
-use std::{cmp::Ordering, rc::Rc};
+use std::{cmp::Ordering, marker::PhantomData, rc::Rc};
 
-use cgmath::{vec3, InnerSpace, Matrix4, Quaternion, Vector2, Vector3};
+use cgmath::{vec3, InnerSpace, Matrix4, Quaternion, Vector2, Vector3, Zero};
 
 use crate::{
-    math::{self, IntersectsTriangle, Ray},
+    input::Input,
+    math::{self, IntersectionPoint, Intersects, Plane, Ray},
     render::{
         data::BrushVertex, BrushCommand, BrushComponent, BrushDetail, BrushMesh, GraphicsWorld,
         Texture, Transform,
     },
 };
 
-use super::config::{HIGHLIGHT_COLOR, POINT_SELECT_RADIUS};
+use super::{
+    config::{HIGHLIGHT_COLOR, POINT_SELECT_RADIUS},
+    ActionBinding::*,
+    EditMode,
+};
 
 macro_rules! point {
     ($x:expr, $y:expr, $z:expr) => {
@@ -38,6 +43,7 @@ pub struct Brush {
     position: Vector3<f32>,
     points: Vec<Point>,
     faces: Vec<Face>,
+    selected: bool,
 }
 
 struct Point {
@@ -88,7 +94,12 @@ impl Brush {
             position,
             points,
             faces,
+            selected: false,
         }
+    }
+
+    pub fn selected(&self) -> bool {
+        self.selected
     }
 
     pub fn set_position<G: GraphicsWorld>(&mut self, gfx: &G, position: Vector3<f32>) {
@@ -110,7 +121,7 @@ impl Brush {
                 .map(|(i, p)| (i, p.position + self.position))
                 .collect::<Vec<_>>();
 
-            points.sort_by(|a, b| {
+            points.sort_unstable_by(|a, b| {
                 let a_mag2 = (a.1 - camera_pos).magnitude2();
                 let b_mag2 = (b.1 - camera_pos).magnitude2();
                 a_mag2.partial_cmp(&b_mag2).unwrap_or(Ordering::Equal)
@@ -138,7 +149,7 @@ impl Brush {
         }
     }
 
-    pub fn select_face<G: GraphicsWorld>(&mut self, gfx: &G, ray: Ray) {
+    pub fn select_face<G: GraphicsWorld>(&mut self, gfx: &G, ray: Ray) -> bool {
         let sorted_faces = {
             let mut faces = self
                 .faces
@@ -147,7 +158,7 @@ impl Brush {
                 .map(|(i, f)| (i, f.idx))
                 .collect::<Vec<_>>();
 
-            faces.sort_by(|(_, f1), (_, f2)| {
+            faces.sort_unstable_by(|(_, f1), (_, f2)| {
                 let center1 = (self.points[f1[0]].position
                     + self.position
                     + self.points[f1[1]].position
@@ -169,6 +180,7 @@ impl Brush {
                 let mag2 = (center2 - ray.origin).magnitude2();
                 mag1.partial_cmp(&mag2).unwrap_or(Ordering::Equal)
             });
+
             faces
         };
 
@@ -185,18 +197,61 @@ impl Brush {
                 c: self.points[face[3]].position + self.position,
             };
 
-            if ray.intersects_triangle(&a) || ray.intersects_triangle(&b) {
+            if ray.intersects(&a) || ray.intersects(&b) {
                 self.faces[i].selected = true;
                 gfx.update_brush_detail(&self.faces[i].detail, HIGHLIGHT_COLOR);
-                return;
+                return true;
             }
         }
+
+        false
     }
 
     pub fn clear_selected_faces<G: GraphicsWorld>(&mut self, gfx: &G) {
         for face in self.faces.iter_mut().filter(|f| f.selected) {
             gfx.update_brush_detail(&face.detail, [1.0; 4]);
             face.selected = false;
+        }
+    }
+
+    pub fn select<G: GraphicsWorld>(&mut self, gfx: &G, ray: Ray) -> bool {
+        let mut intersects_face = false;
+        for face in &self.faces {
+            let a = math::Triangle {
+                a: self.points[face.idx[0]].position + self.position,
+                b: self.points[face.idx[1]].position + self.position,
+                c: self.points[face.idx[2]].position + self.position,
+            };
+
+            let b = math::Triangle {
+                a: self.points[face.idx[0]].position + self.position,
+                b: self.points[face.idx[2]].position + self.position,
+                c: self.points[face.idx[3]].position + self.position,
+            };
+
+            if ray.intersects(&a) || ray.intersects(&b) {
+                intersects_face = true;
+                break;
+            }
+        }
+
+        if intersects_face {
+            for face in &mut self.faces {
+                face.selected = true;
+                gfx.update_brush_detail(&face.detail, HIGHLIGHT_COLOR);
+            }
+            self.selected = true;
+        }
+
+        intersects_face
+    }
+
+    pub fn clear_selection<G: GraphicsWorld>(&mut self, gfx: &G) {
+        if self.selected {
+            for face in &mut self.faces {
+                gfx.update_brush_detail(&face.detail, [1.0; 4]);
+            }
+            self.selected = false;
         }
     }
 
@@ -280,4 +335,122 @@ impl Brush {
                 .collect(),
         });
     }
+}
+
+pub struct BrushBank<I, G> {
+    brushes: Vec<Brush>,
+    nodraw: Rc<Texture>,
+    _i: PhantomData<I>,
+    _g: PhantomData<G>,
+}
+
+impl<I, G> BrushBank<I, G>
+where
+    I: Input,
+    G: GraphicsWorld,
+{
+    pub fn new(gfx: &G) -> Self {
+        let nodraw =
+            gfx.create_texture(&image::load_from_memory(include_bytes!("res/nodraw.png")).unwrap());
+
+        Self {
+            brushes: Default::default(),
+            nodraw,
+            _i: PhantomData,
+            _g: PhantomData,
+        }
+    }
+
+    pub fn process(&mut self, input: &I, gfx: &mut G, mode: &EditMode) {
+        match mode {
+            EditMode::Brush => self.process_brush(input, gfx),
+            EditMode::Face => self.process_face(input, gfx),
+            EditMode::Vertex => self.process_vertex(input, gfx),
+        }
+
+        for brush in &self.brushes {
+            brush.draw(gfx);
+        }
+    }
+
+    fn process_brush(&mut self, input: &I, gfx: &mut G) {
+        if input.is_active_once(AddBrush) && input.is_active(EnableAddBrush) {
+            let ray = gfx.screen_ray(input.mouse_pos());
+            let plane = Plane {
+                origin: Vector3::zero(),
+                normal: Vector3::unit_y(),
+            };
+
+            let position = ray.intersection_point(&plane);
+            let position = vec3(position.x.floor(), position.y.floor(), position.z.floor());
+
+            let mut brush = Brush::new(gfx, position, vec3(1.0, 1.0, 1.0), self.nodraw.clone());
+            brush.rebuild(gfx);
+            self.brushes.push(brush);
+
+            return;
+        }
+
+        if input.is_active_once(Select) {
+            let ray = gfx.screen_ray(input.mouse_pos());
+            self.brushes.sort_unstable_by(|a, b| {
+                let mag2_a = (a.position - ray.origin).magnitude2();
+                let mag2_b = (b.position - ray.origin).magnitude2();
+                mag2_a.partial_cmp(&mag2_b).unwrap_or(Ordering::Equal)
+            });
+
+            let mut selection_made = false;
+            for brush in &mut self.brushes {
+                if !input.is_active(EnableMultiSelect) {
+                    brush.clear_selection(gfx);
+                }
+
+                if !selection_made && brush.select(gfx, ray) {
+                    selection_made = true;
+                }
+            }
+
+            return;
+        }
+
+        if input.is_active_once(DeleteBrush) {
+            self.brushes.retain(|b| !b.selected);
+        }
+    }
+
+    fn process_face(&mut self, input: &I, gfx: &mut G) {
+        if input.is_active_once(Select) {
+            let ray = gfx.screen_ray(input.mouse_pos());
+            self.brushes.sort_unstable_by(|a, b| {
+                let mag2_a = (a.position - ray.origin).magnitude2();
+                let mag2_b = (b.position - ray.origin).magnitude2();
+                mag2_a.partial_cmp(&mag2_b).unwrap_or(Ordering::Equal)
+            });
+
+            let mut selection_made = false;
+            for brush in &mut self.brushes {
+                if !input.is_active(EnableMultiSelect) {
+                    brush.clear_selected_faces(gfx);
+                }
+
+                if !selection_made && brush.select_face(gfx, ray) {
+                    selection_made = true;
+                }
+            }
+        }
+
+        if input.is_active_once(Inc) {
+            for brush in &mut self.brushes {
+                brush.extrude_selected_faces(1.0);
+                brush.rebuild(gfx);
+            }
+        } else if input.is_active_once(Dec) {
+            for brush in &mut self.brushes {
+                brush.extrude_selected_faces(-1.0);
+                brush.rebuild(gfx);
+            }
+        }
+    }
+
+    fn process_vertex(&mut self, input: &I, gfx: &mut G) {}
 }
