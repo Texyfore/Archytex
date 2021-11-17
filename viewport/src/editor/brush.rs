@@ -11,7 +11,10 @@ use crate::{
     },
 };
 
-use super::config::{HIGHLIGHT_COLOR, POINT_SELECT_RADIUS};
+use super::{
+    camera::Camera,
+    config::{HIGHLIGHT_COLOR, POINT_SELECT_RADIUS},
+};
 
 macro_rules! point {
     ($x:expr, $y:expr, $z:expr) => {
@@ -139,7 +142,7 @@ impl Brush {
         }
     }
 
-    pub fn select_face<G: GraphicsWorld>(&mut self, gfx: &G, ray: Ray) {
+    pub fn select_face<G: GraphicsWorld>(&mut self, gfx: &G, ray: Ray) -> bool {
         let sorted_faces = {
             let mut faces = self
                 .faces
@@ -170,6 +173,7 @@ impl Brush {
                 let mag2 = (center2 - ray.origin).magnitude2();
                 mag1.partial_cmp(&mag2).unwrap_or(Ordering::Equal)
             });
+
             faces
         };
 
@@ -189,9 +193,11 @@ impl Brush {
             if ray.intersects_triangle(&a) || ray.intersects_triangle(&b) {
                 self.faces[i].selected = true;
                 gfx.update_brush_detail(&self.faces[i].detail, HIGHLIGHT_COLOR);
-                return;
+                return true;
             }
         }
+
+        false
     }
 
     pub fn clear_selected_faces<G: GraphicsWorld>(&mut self, gfx: &G) {
@@ -325,23 +331,34 @@ where
     }
 
     pub fn process(&mut self, input: &I, gfx: &mut G) {
-        for brush in &mut self.brushes {
-            if input.is_active_once("select") {
-                let ray = gfx.screen_ray(input.mouse_pos());
+        if input.is_active_once("select") {
+            let ray = gfx.screen_ray(input.mouse_pos());
 
+            self.brushes.sort_by(|a, b| {
+                let mag2_a = (a.position - ray.origin).magnitude2();
+                let mag2_b = (b.position - ray.origin).magnitude2();
+                mag2_a.partial_cmp(&mag2_b).unwrap_or(Ordering::Equal)
+            });
+
+            let mut selection_made = false;
+            for brush in &mut self.brushes {
                 if !input.is_active("shift") {
                     brush.clear_selected_faces(gfx);
                 }
 
-                brush.select_face(gfx, ray);
+                if !selection_made && brush.select_face(gfx, ray) {
+                    selection_made = true;
+                }
             }
+        }
 
-            if input.is_active_once("inc") {
+        if input.is_active_once("inc") {
+            for brush in &mut self.brushes {
                 brush.extrude_selected_faces(1.0);
                 brush.rebuild(gfx);
             }
-
-            if input.is_active_once("dec") {
+        } else if input.is_active_once("dec") {
+            for brush in &mut self.brushes {
                 brush.extrude_selected_faces(-1.0);
                 brush.rebuild(gfx);
             }
