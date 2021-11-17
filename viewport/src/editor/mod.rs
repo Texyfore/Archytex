@@ -36,6 +36,8 @@ macro_rules! actions {
 }
 
 actions! {
+    // Camera movement ////////////////
+
     EnableCameraMovement Btn Right    ,
     Forward              Key W        ,
     Backward             Key S        ,
@@ -62,6 +64,8 @@ actions! {
     Control              Key LControl ,
     Inc                  Key Up       ,
     Dec                  Key Down     ,
+
+    ///////////////////////////////////
 }
 
 pub struct Editor<I, G> {
