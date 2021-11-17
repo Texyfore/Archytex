@@ -10,7 +10,7 @@ use crate::{
     render::GraphicsWorld,
 };
 
-use self::{brush::BrushBank, camera::Camera};
+use self::{brush::BrushBank, camera::Camera, ActionBinding::*};
 
 macro_rules! action {
     ($name:ident Key $elem:ident) => {
@@ -64,6 +64,9 @@ actions! {
     Control              Key LControl ,
     Inc                  Key Up       ,
     Dec                  Key Down     ,
+    BrushMode            Key B        ,
+    FaceMode             Key F        ,
+    VertexMode           Key V        ,
 
     ///////////////////////////////////
 }
@@ -97,6 +100,16 @@ where
     }
 
     pub fn process(&mut self, input: &I, gfx: &mut G) {
+        if input.is_active(Control) {
+            if input.is_active_once(BrushMode) {
+                self.mode = EditMode::Brush;
+            } else if input.is_active_once(FaceMode) {
+                self.mode = EditMode::Face;
+            } else if input.is_active_once(VertexMode) {
+                self.mode = EditMode::Vertex;
+            }
+        }
+
         self.camera.process(input, gfx);
         self.brush_bank.process(input, gfx, &self.mode);
     }
