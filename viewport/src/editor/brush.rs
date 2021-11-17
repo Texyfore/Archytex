@@ -13,8 +13,8 @@ use crate::{
 
 use super::{
     config::{HIGHLIGHT_COLOR, POINT_SELECT_RADIUS},
-    EditMode,
     ActionBinding::*,
+    EditMode,
 };
 
 macro_rules! point {
@@ -196,10 +196,6 @@ impl Brush {
                 b: self.points[face[2]].position + self.position,
                 c: self.points[face[3]].position + self.position,
             };
-
-            if self.faces[i].selected {
-                return true;
-            }
 
             if ray.intersects(&a) || ray.intersects(&b) {
                 self.faces[i].selected = true;
@@ -418,11 +414,7 @@ where
         }
 
         if input.is_active_once(DeleteBrush) {
-            for i in 0..self.brushes.len() {
-                if self.brushes[i].selected {
-                    self.brushes.remove(i);
-                }
-            }
+            self.brushes.retain(|b| !b.selected);
         }
     }
 
