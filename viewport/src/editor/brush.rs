@@ -13,6 +13,7 @@ use crate::{
 
 use super::{
     config::{HIGHLIGHT_COLOR, POINT_SELECT_RADIUS},
+    texture::TextureBank,
     ActionBinding::*,
     EditMode,
 };
@@ -349,13 +350,10 @@ where
     I: Input,
     G: GraphicsWorld,
 {
-    pub fn new(gfx: &G) -> Self {
-        let nodraw =
-            gfx.create_texture(&image::load_from_memory(include_bytes!("res/nodraw.png")).unwrap());
-
+    pub fn new(textures: &TextureBank) -> Self {
         Self {
             brushes: Default::default(),
-            nodraw,
+            nodraw: textures.get(0),
             _i: PhantomData,
             _g: PhantomData,
         }
