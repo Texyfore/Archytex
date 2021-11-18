@@ -340,7 +340,6 @@ impl Brush {
 
 pub struct BrushBank<I, G> {
     brushes: Vec<Brush>,
-    nodraw: Rc<Texture>,
     _i: PhantomData<I>,
     _g: PhantomData<G>,
 }
@@ -353,7 +352,6 @@ where
     pub fn new(textures: &TextureBank) -> Self {
         Self {
             brushes: Default::default(),
-            nodraw: textures.get(0),
             _i: PhantomData,
             _g: PhantomData,
         }
@@ -382,9 +380,9 @@ where
             let position = ray.intersection_point(&plane);
             let position = vec3(position.x.floor(), position.y.floor(), position.z.floor());
 
-            let mut brush = Brush::new(gfx, position, vec3(1.0, 1.0, 1.0), self.nodraw.clone());
-            brush.rebuild(gfx);
-            self.brushes.push(brush);
+            // let mut brush = Brush::new(gfx, position, vec3(1.0, 1.0, 1.0), self.nodraw.clone());
+            // brush.rebuild(gfx);
+            // self.brushes.push(brush);
 
             return;
         }

@@ -91,7 +91,7 @@ where
         input.define_actions(ACTION_DEFINITIONS);
         gfx.update_grid(10, 1.0);
 
-        let texture_bank = TextureBank::new(gfx);
+        let texture_bank = TextureBank::default();
         let brush_bank = BrushBank::new(&texture_bank);
 
         Self {
@@ -104,8 +104,8 @@ where
         }
     }
 
-    pub fn add_texture(&mut self, uuid: u64, bytes: &[u8]) {
-        
+    pub fn add_texture(&mut self, gfx: &G, uuid: u64, bytes: &[u8]) {
+        self.texture_bank.add(gfx, uuid, bytes);
     }
 
     pub fn process(&mut self, input: &I, gfx: &mut G) {

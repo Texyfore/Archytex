@@ -181,7 +181,7 @@ impl MainLoop {
         match msg {
             Message::AddTexture { uuid, data } => {
                 if let Ok(data) = base64::decode(&data) {
-                    self.editor.add_texture(uuid, &data);
+                    self.editor.add_texture(&self.renderer, uuid, &data);
                 }
             }
         }
