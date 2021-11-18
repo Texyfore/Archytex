@@ -28,7 +28,10 @@ use self::{
 
 macro_rules! message {
     ($msg:expr) => {
-        unsafe { $crate::handleMessage($msg) };
+        #[cfg(target_arch = "wasm32")]
+        unsafe {
+            $crate::handleMessage($msg)
+        };
     };
 }
 
@@ -54,6 +57,7 @@ fn main() {
 
     let mut main_loop = MainLoop::init(window);
 
+    #[cfg(target_arch = "wasm32")]
     let msg_rx = {
         let (tx, rx) = channel();
         unsafe { MSG_IN = Some(tx) };
@@ -99,6 +103,7 @@ fn main() {
                 _ => {}
             },
             Event::MainEventsCleared => {
+                #[cfg(target_arch = "wasm32")]
                 if let Ok(msg) = msg_rx.try_recv() {
                     main_loop.message_received(msg);
                 }
@@ -170,6 +175,7 @@ impl MainLoop {
         self.input_mapper.set_scroll_wheel(wheel);
     }
 
+    #[cfg(target_arch = "wasm32")]
     fn message_received(&mut self, msg: Message) {}
 
     fn process(&mut self) {
