@@ -7,12 +7,21 @@
 </head>
 
 <body>
+    <button onclick="asd();">Send</button>
     <script type="module">
-        import init from "./app/viewport.js";
+        import init, {sendMessage} from "./app/viewport.js";
         addEventListener("load", () => {
             init();
         });
         addEventListener("contextmenu", e => e.preventDefault());
+        
+        window.asd = () => {
+            sendMessage('{"Dummy": "Hello, World!"}');
+        }
+
+        export function handleMessage(msg) {
+            alert(msg);
+        }
     </script>
 </body>
 
