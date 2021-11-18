@@ -13,6 +13,7 @@ use crate::{
 
 use super::{
     config::{HIGHLIGHT_COLOR, POINT_SELECT_RADIUS},
+    texture::TextureBank,
     ActionBinding::*,
     EditMode,
 };
@@ -339,7 +340,6 @@ impl Brush {
 
 pub struct BrushBank<I, G> {
     brushes: Vec<Brush>,
-    nodraw: Rc<Texture>,
     _i: PhantomData<I>,
     _g: PhantomData<G>,
 }
@@ -349,13 +349,9 @@ where
     I: Input,
     G: GraphicsWorld,
 {
-    pub fn new(gfx: &G) -> Self {
-        let nodraw =
-            gfx.create_texture(&image::load_from_memory(include_bytes!("res/nodraw.png")).unwrap());
-
+    pub fn new(textures: &TextureBank) -> Self {
         Self {
             brushes: Default::default(),
-            nodraw,
             _i: PhantomData,
             _g: PhantomData,
         }
@@ -384,9 +380,9 @@ where
             let position = ray.intersection_point(&plane);
             let position = vec3(position.x.floor(), position.y.floor(), position.z.floor());
 
-            let mut brush = Brush::new(gfx, position, vec3(1.0, 1.0, 1.0), self.nodraw.clone());
-            brush.rebuild(gfx);
-            self.brushes.push(brush);
+            // let mut brush = Brush::new(gfx, position, vec3(1.0, 1.0, 1.0), self.nodraw.clone());
+            // brush.rebuild(gfx);
+            // self.brushes.push(brush);
 
             return;
         }

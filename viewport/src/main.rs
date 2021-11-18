@@ -5,8 +5,6 @@ mod math;
 mod msg;
 mod render;
 
-use std::sync::mpsc::{channel, Sender};
-
 use winit::{
     dpi::{PhysicalPosition, PhysicalSize},
     event::{
@@ -17,18 +15,24 @@ use winit::{
     window::{Window, WindowBuilder},
 };
 
+#[cfg(target_arch = "wasm32")]
 use wasm_bindgen::prelude::*;
 
 use self::{
     editor::Editor,
     input::{InputMapper, Trigger},
-    msg::Message,
     render::Renderer,
 };
 
+#[cfg(target_arch = "wasm32")]
+use self::msg::Message;
+
 macro_rules! message {
     ($msg:expr) => {
-        unsafe { $crate::handleMessage($msg) };
+        #[cfg(target_arch = "wasm32")]
+        unsafe {
+            $crate::handleMessage($msg);
+        }
     };
 }
 
@@ -54,6 +58,7 @@ fn main() {
 
     let mut main_loop = MainLoop::init(window);
 
+    #[cfg(target_arch = "wasm32")]
     let msg_rx = {
         let (tx, rx) = channel();
         unsafe { MSG_IN = Some(tx) };
@@ -99,6 +104,7 @@ fn main() {
                 _ => {}
             },
             Event::MainEventsCleared => {
+                #[cfg(target_arch = "wasm32")]
                 if let Ok(msg) = msg_rx.try_recv() {
                     main_loop.message_received(msg);
                 }
@@ -170,7 +176,16 @@ impl MainLoop {
         self.input_mapper.set_scroll_wheel(wheel);
     }
 
-    fn message_received(&mut self, msg: Message) {}
+    #[cfg(target_arch = "wasm32")]
+    fn message_received(&mut self, msg: Message) {
+        match msg {
+            Message::AddTexture { uuid, data } => {
+                if let Ok(data) = base64::decode(&data) {
+                    self.editor.add_texture(&self.renderer, uuid, &data);
+                }
+            }
+        }
+    }
 
     fn process(&mut self) {
         self.editor.process(&self.input_mapper, &mut self.renderer);
