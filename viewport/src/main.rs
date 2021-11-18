@@ -2,7 +2,10 @@ mod editor;
 mod input;
 mod log;
 mod math;
+mod msg;
 mod render;
+
+use std::sync::mpsc::{channel, Sender};
 
 use winit::{
     dpi::{PhysicalPosition, PhysicalSize},
@@ -14,11 +17,30 @@ use winit::{
     window::{Window, WindowBuilder},
 };
 
+use wasm_bindgen::prelude::*;
+
 use self::{
     editor::Editor,
     input::{InputMapper, Trigger},
+    msg::Message,
     render::Renderer,
 };
+
+macro_rules! message {
+    ($msg:expr) => {
+        unsafe { $crate::handleMessage($msg) };
+    };
+}
+
+#[cfg(target_arch = "wasm32")]
+#[wasm_bindgen(raw_module = "../glue.js")]
+extern "C" {
+    #[wasm_bindgen]
+    pub fn handleMessage(msg: &str);
+}
+
+#[cfg(target_arch = "wasm32")]
+static mut MSG_IN: Option<Sender<Message>> = None;
 
 fn main() {
     #[cfg(target_arch = "wasm32")]
@@ -31,6 +53,12 @@ fn main() {
     insert_canvas(&window);
 
     let mut main_loop = MainLoop::init(window);
+
+    let msg_rx = {
+        let (tx, rx) = channel();
+        unsafe { MSG_IN = Some(tx) };
+        rx
+    };
 
     event_loop.run(move |event, _, flow| {
         *flow = ControlFlow::Poll;
@@ -71,6 +99,10 @@ fn main() {
                 _ => {}
             },
             Event::MainEventsCleared => {
+                if let Ok(msg) = msg_rx.try_recv() {
+                    main_loop.message_received(msg);
+                }
+
                 main_loop.process();
             }
             _ => {}
@@ -138,9 +170,22 @@ impl MainLoop {
         self.input_mapper.set_scroll_wheel(wheel);
     }
 
+    fn message_received(&mut self, msg: Message) {}
+
     fn process(&mut self) {
         self.editor.process(&self.input_mapper, &mut self.renderer);
         self.input_mapper.tick();
         self.renderer.render();
+    }
+}
+
+#[cfg(target_arch = "wasm32")]
+#[wasm_bindgen(js_name = "sendMessage")]
+pub fn received_message(raw: &str) {
+    if let Ok(message) = serde_json::from_str(raw) {
+        let sender = unsafe { MSG_IN.as_mut().unwrap() };
+        sender.send(message).unwrap();
+    } else {
+        error!("Received malformed message");
     }
 }
