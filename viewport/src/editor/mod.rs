@@ -1,6 +1,7 @@
 mod brush;
 mod camera;
 mod config;
+mod texture;
 
 use std::marker::PhantomData;
 use winit::event::{MouseButton, VirtualKeyCode};
@@ -10,7 +11,7 @@ use crate::{
     render::GraphicsWorld,
 };
 
-use self::{brush::BrushBank, camera::Camera, ActionBinding::*};
+use self::{brush::BrushBank, camera::Camera, texture::TextureBank, ActionBinding::*};
 
 macro_rules! action {
     ($name:ident Key $elem:ident) => {
@@ -74,6 +75,7 @@ actions! {
 pub struct Editor<I, G> {
     mode: EditMode,
     camera: Camera,
+    texture_bank: TextureBank,
     brush_bank: BrushBank<I, G>,
 
     _i: PhantomData<I>,
@@ -87,13 +89,16 @@ where
 {
     pub fn init(input: &mut I, gfx: &mut G) -> Self {
         input.define_actions(ACTION_DEFINITIONS);
-
         gfx.update_grid(10, 1.0);
+
+        let texture_bank = TextureBank::new(gfx);
+        let brush_bank = BrushBank::new(&texture_bank);
 
         Self {
             mode: EditMode::Brush,
             camera: Camera::default(),
-            brush_bank: BrushBank::new(gfx),
+            texture_bank,
+            brush_bank,
             _i: PhantomData,
             _g: PhantomData,
         }
