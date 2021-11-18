@@ -99,6 +99,10 @@ where
         }
     }
 
+    pub fn add_texture(&mut self, uuid: u64, bytes: &[u8]) {
+        
+    }
+
     pub fn process(&mut self, input: &I, gfx: &mut G) {
         if input.is_active(Control) {
             if input.is_active_once(BrushMode) {

@@ -5,8 +5,6 @@ mod math;
 mod msg;
 mod render;
 
-use std::sync::mpsc::{channel, Sender};
-
 use winit::{
     dpi::{PhysicalPosition, PhysicalSize},
     event::{
@@ -17,21 +15,24 @@ use winit::{
     window::{Window, WindowBuilder},
 };
 
+#[cfg(target_arch = "wasm32")]
 use wasm_bindgen::prelude::*;
 
 use self::{
     editor::Editor,
     input::{InputMapper, Trigger},
-    msg::Message,
     render::Renderer,
 };
+
+#[cfg(target_arch = "wasm32")]
+use self::msg::Message;
 
 macro_rules! message {
     ($msg:expr) => {
         #[cfg(target_arch = "wasm32")]
         unsafe {
-            $crate::handleMessage($msg)
-        };
+            $crate::handleMessage($msg);
+        }
     };
 }
 
@@ -176,7 +177,15 @@ impl MainLoop {
     }
 
     #[cfg(target_arch = "wasm32")]
-    fn message_received(&mut self, msg: Message) {}
+    fn message_received(&mut self, msg: Message) {
+        match msg {
+            Message::AddTexture { uuid, data } => {
+                if let Ok(data) = base64::decode(&data) {
+                    self.editor.add_texture(uuid, &data);
+                }
+            }
+        }
+    }
 
     fn process(&mut self) {
         self.editor.process(&self.input_mapper, &mut self.renderer);
