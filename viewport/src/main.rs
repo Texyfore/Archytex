@@ -33,7 +33,7 @@ macro_rules! message {
 }
 
 #[cfg(target_arch = "wasm32")]
-#[wasm_bindgen]
+#[wasm_bindgen(raw_module = "../glue.js")]
 extern "C" {
     #[wasm_bindgen]
     pub fn handleMessage(msg: &str);
