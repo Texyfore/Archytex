@@ -7,6 +7,7 @@ import CssBaseline from "@mui/material/CssBaseline";
 import MainPage from "./pages/MainPage";
 import Dashboard from "./pages/Dashboard";
 import LoginPage from "./pages/LoginPage";
+import RegisterPage from "./pages/RegisterPage";
 
 function App() {
   const archytex_theme = createTheme({
@@ -60,6 +61,9 @@ function App() {
           </Route>
           <Route path='/login'>
             <LoginPage />
+          </Route>
+          <Route path='/register'>
+            <RegisterPage />
           </Route>
         </Switch>
       </Router>
