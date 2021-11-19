@@ -5,6 +5,8 @@ mod math;
 mod msg;
 mod render;
 
+use std::sync::mpsc::{channel, Sender};
+
 use winit::{
     dpi::{PhysicalPosition, PhysicalSize},
     event::{

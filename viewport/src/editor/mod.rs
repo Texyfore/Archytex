@@ -76,7 +76,7 @@ pub struct Editor<I, G> {
     mode: EditMode,
     camera: Camera,
     texture_bank: TextureBank,
-    brush_bank: BrushBank<I, G>,
+    brush_bank: BrushBank,
 
     _i: PhantomData<I>,
     _g: PhantomData<G>,
@@ -91,14 +91,11 @@ where
         input.define_actions(ACTION_DEFINITIONS);
         gfx.update_grid(10, 1.0);
 
-        let texture_bank = TextureBank::default();
-        let brush_bank = BrushBank::new(&texture_bank);
-
         Self {
             mode: EditMode::Brush,
             camera: Camera::default(),
-            texture_bank,
-            brush_bank,
+            texture_bank: Default::default(),
+            brush_bank: Default::default(),
             _i: PhantomData,
             _g: PhantomData,
         }
@@ -120,7 +117,8 @@ where
         }
 
         self.camera.process(input, gfx);
-        self.brush_bank.process(input, gfx, &self.mode);
+        self.brush_bank
+            .process(input, gfx, &self.texture_bank, &self.mode);
     }
 }
 
