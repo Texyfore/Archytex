@@ -1,13 +1,24 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   Box,
   Button,
   Checkbox,
+  FormControl,
   FormControlLabel,
+  IconButton,
+  Input,
+  InputAdornment,
+  InputLabel,
   Link,
   TextField,
   Typography,
 } from "@mui/material";
+import {
+  AccountCircle,
+  Visibility,
+  VisibilityOff,
+  VpnKey,
+} from "@mui/icons-material";
 import { styled } from "@mui/material/styles";
 
 const MaxHeightContainer = styled(Box)(({ theme }) => ({
@@ -21,9 +32,24 @@ const MaxHeightContainer = styled(Box)(({ theme }) => ({
     marginTop: 64,
     height: `calc(100vh - 64px)`,
   },
+  // eslint-disable-next-line no-useless-computed-key
+  ["@media (max-height: 612px)"]: {
+    height: "unset",
+  },
 }));
 
 export default function LoginForm() {
+  const [showPassword, setShowPassword] = useState(false);
+
+  const handleClickShowPassword = () => {
+    setShowPassword(!showPassword);
+  };
+
+  const handleMouseDownPassword = (
+    event: React.MouseEvent<HTMLButtonElement>
+  ) => {
+    event.preventDefault();
+  };
   return (
     <MaxHeightContainer
       display='flex'
@@ -52,7 +78,7 @@ export default function LoginForm() {
           display='flex'
           alignItems='center'
           justifyContent='center'
-          marginTop={2}
+          marginTop={3}
         >
           <Box
             height={1.01}
@@ -77,20 +103,52 @@ export default function LoginForm() {
           paddingX={{ sm: 0, md: 6 }}
           marginBottom={1}
         >
-          <TextField
-            required
-            id='standard-required'
-            label='Username'
-            variant='standard'
-            margin='normal'
-          />
-          <TextField
-            required
-            id='standard-required'
-            label='Password'
-            variant='standard'
-            margin='normal'
-          />
+          <Box
+            sx={{ display: "flex", alignItems: "flex-end" }}
+            display='flex'
+            alignItems='flex-end'
+            width='304px'
+          >
+            <AccountCircle sx={{ mr: 1, my: 1 }} />
+            <TextField
+              id='standard-required'
+              label='Username'
+              variant='standard'
+              margin='normal'
+            />
+          </Box>
+          <Box
+            display='flex'
+            alignItems='flex-end'
+            width='304px'
+            marginTop={2}
+            marginBottom={1}
+          >
+            <VpnKey sx={{ mr: 1, my: 1 }} />
+
+            <FormControl sx={{ width: "304px" }} variant='standard'>
+              <InputLabel htmlFor='adornment-password'>Password</InputLabel>
+              <Input
+                required
+                id='adornment-password'
+                type={showPassword ? "text" : "password"}
+                endAdornment={
+                  <InputAdornment position='end'>
+                    <IconButton
+                      aria-label='toggle password visibility'
+                      onClick={handleClickShowPassword}
+                      onMouseDown={handleMouseDownPassword}
+                      edge='end'
+                      sx={{ marginRight: "0.1px" }}
+                    >
+                      {showPassword ? <VisibilityOff /> : <Visibility />}
+                    </IconButton>
+                  </InputAdornment>
+                }
+              />
+            </FormControl>
+          </Box>
+
           <Box
             display='flex'
             justifyContent='start'
@@ -146,7 +204,12 @@ export default function LoginForm() {
           </Button>
           <Button
             variant='contained'
-            sx={{ width: 304, marginY: 2, backgroundColor: "text.primary" }}
+            sx={{
+              width: 304,
+              marginTop: 2,
+              marginBottom: 3,
+              backgroundColor: "text.primary",
+            }}
           >
             Sign in with Apple
           </Button>
