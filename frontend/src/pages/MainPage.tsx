@@ -1,6 +1,5 @@
 import React, { useState } from "react";
 import { Button, Typography } from "@mui/material";
-import { styled } from "@mui/material/styles";
 import ArcytexAppBar from "../components/ArchytexAppBar";
 import MainPageContainer from "../components/main-page-components/MainPageContainer";
 import MainPageContentCard from "../components/main-page-components/MainPageContentCard";
@@ -12,16 +11,7 @@ import houseImage11 from "../img/11.jpg";
 import planningBoardImage from "../img/planning_board.jpg";
 import MainPageParallax from "../components/main-page-components/MainPageParallax";
 import ArchytexFooter from "../components/ArchytexFooter";
-
-const Offset = styled("div")(({ theme }) => ({
-  height: `56px`,
-  [`${theme.breakpoints.up("xs")} and (orientation: landscape)`]: {
-    height: `48px`,
-  },
-  [theme.breakpoints.up("sm")]: {
-    height: `64px`,
-  },
-}));
+import AppBarOffset from "../components/AppBarOffset";
 
 export default function MainPage() {
   const [open, setOpen] = useState(false);
@@ -34,7 +24,7 @@ export default function MainPage() {
   return (
     <React.Fragment>
       <ArcytexAppBar handleOpenChange={handleOpenChange} open={open} />
-      <Offset />
+      <AppBarOffset />
 
       {/* Header */}
       <MainPageParallax

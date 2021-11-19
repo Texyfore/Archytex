@@ -1,18 +1,17 @@
 import React, { useState } from "react";
 import ArchytexAppBar from "../components/ArchytexAppBar";
 import ArchytexFooter from "../components/ArchytexFooter";
-import LoginForm from "../components/login-page-components/LoginForm";
+import RegisterForm from "../components/register-page-components/RegisterForm";
 
-export default function LoginPage() {
+export default function RegisterPage() {
   const [open, setOpen] = useState(false);
   function handleOpenChange(value: boolean): void {
     setOpen(value);
   }
-
   return (
     <React.Fragment>
       <ArchytexAppBar open={open} handleOpenChange={handleOpenChange} />
-      <LoginForm />
+      <RegisterForm />
       <ArchytexFooter />
     </React.Fragment>
   );
