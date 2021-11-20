@@ -1,5 +1,7 @@
-import React from "react";
+import React, { Suspense } from "react";
 import { BrowserRouter as Router, Switch, Route } from "react-router-dom";
+import i18n from "i18next";
+import { initReactI18next } from "react-i18next";
 import "./App.css";
 import { ThemeProvider } from "@mui/material/styles";
 import { createTheme } from "@mui/material/styles";
@@ -8,6 +10,26 @@ import MainPage from "./pages/MainPage";
 import Dashboard from "./pages/Dashboard";
 import LoginPage from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
+
+//TODO: Get translations from api
+const translationEn = {
+  motto: "Take your architectural visualisations to the next level",
+};
+const translationHu = {
+  motto: "Emelje magasabb szitre építészeti látványterveit",
+};
+const translationJp = {};
+
+i18n.use(initReactI18next).init({
+  resources: {
+    en: { translation: translationEn },
+    hu: { translation: translationHu },
+    jp: { translation: translationJp },
+  },
+  lng: "en",
+  fallbackLng: "en",
+  interpolation: { escapeValue: false },
+});
 
 function App() {
   const archytex_theme = createTheme({
@@ -49,25 +71,27 @@ function App() {
   });
 
   return (
-    <ThemeProvider theme={archytex_theme}>
-      <CssBaseline />
-      <Router>
-        <Switch>
-          <Route exact path='/'>
-            <MainPage />
-          </Route>
-          <Route path='/dashboard'>
-            <Dashboard />
-          </Route>
-          <Route path='/login'>
-            <LoginPage />
-          </Route>
-          <Route path='/register'>
-            <RegisterPage />
-          </Route>
-        </Switch>
-      </Router>
-    </ThemeProvider>
+    <Suspense fallback='Loading...'>
+      <ThemeProvider theme={archytex_theme}>
+        <CssBaseline />
+        <Router>
+          <Switch>
+            <Route exact path='/'>
+              <MainPage />
+            </Route>
+            <Route path='/dashboard'>
+              <Dashboard />
+            </Route>
+            <Route path='/login'>
+              <LoginPage />
+            </Route>
+            <Route path='/register'>
+              <RegisterPage />
+            </Route>
+          </Switch>
+        </Router>
+      </ThemeProvider>
+    </Suspense>
   );
 }
 
