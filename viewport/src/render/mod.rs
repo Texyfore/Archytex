@@ -1,3 +1,5 @@
+mod gpu;
+
 use std::{collections::HashMap, rc::Rc};
 
 use bytemuck::{Pod, Zeroable};
@@ -10,6 +12,8 @@ pub type TexCoord = [f32; 2];
 pub type Color = [f32; 4];
 pub type Triangle = [u16; 3];
 pub type TextureID = u64;
+
+const MSAA_SAMPLE_COUNT: i32 = 4;
 
 #[repr(C)]
 #[derive(Clone, Copy, Pod, Zeroable)]

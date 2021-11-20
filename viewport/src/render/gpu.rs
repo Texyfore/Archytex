@@ -1,4 +1,4 @@
-use std::{iter::once, marker::PhantomData, mem::size_of, num::NonZeroU32};
+use std::{iter::once, marker::PhantomData, mem::size_of, num::NonZeroU32, rc::Rc};
 
 use bytemuck::{cast_slice, Pod};
 use futures_lite::future;
@@ -9,12 +9,7 @@ use wgpu::{
 };
 use winit::window::Window;
 
-use crate::render::data::BrushVertex;
-
-use super::{
-    data::{LineVertex, Triangle},
-    MSAA_SAMPLE_COUNT,
-};
+use super::{LineVertex, SolidVertex, Triangle, MSAA_SAMPLE_COUNT};
 
 pub(super) struct Context {
     surface: Surface,
@@ -33,7 +28,7 @@ pub(super) struct LinePipeline {
     inner: RenderPipeline,
 }
 
-pub(super) struct BrushPipeline {
+pub(super) struct SolidPipeline {
     inner: RenderPipeline,
 }
 
@@ -73,7 +68,7 @@ pub(super) struct DepthBuffer {
 }
 
 impl Context {
-    pub fn new(window: &Window) -> Self {
+    pub fn new(window: &Window) -> Rc<Self> {
         let instance = Instance::new(Backends::all());
         let surface = unsafe { instance.create_surface(window) };
 
@@ -108,12 +103,12 @@ impl Context {
             (surface_format, device, queue)
         });
 
-        Self {
+        Rc::new(Self {
             surface,
             surface_format,
             device,
             queue,
-        }
+        })
     }
 
     pub fn configure(&self, width: u32, height: u32) {
@@ -202,11 +197,11 @@ impl Context {
         LinePipeline { inner }
     }
 
-    pub fn create_brush_pipeline(
+    pub fn create_solid_pipeline(
         &self,
         uniform_buffer_layout: &UniformBufferLayout,
         texture_layout: &TextureLayout,
-    ) -> BrushPipeline {
+    ) -> SolidPipeline {
         let module = self.device.create_shader_module(&ShaderModuleDescriptor {
             label: None,
             source: ShaderSource::Wgsl(include_str!("brush.wgsl").into()),
@@ -223,8 +218,6 @@ impl Context {
                             label: None,
                             bind_group_layouts: &[
                                 &uniform_buffer_layout.inner, // Camera
-                                &uniform_buffer_layout.inner, // Transform
-                                &uniform_buffer_layout.inner, // BrushDetail
                                 &texture_layout.inner,        // Texture
                             ],
                             push_constant_ranges: &[],
@@ -234,12 +227,13 @@ impl Context {
                     module: &module,
                     entry_point: "main",
                     buffers: &[VertexBufferLayout {
-                        array_stride: size_of::<BrushVertex>() as u64,
+                        array_stride: size_of::<SolidVertex>() as u64,
                         step_mode: VertexStepMode::Vertex,
                         attributes: &vertex_attr_array![
                             0 => Float32x3,
                             1 => Float32x3,
                             2 => Float32x2,
+                            3 => Float32x4,
                         ],
                     }],
                 },
@@ -266,7 +260,7 @@ impl Context {
                 }),
             });
 
-        BrushPipeline { inner }
+        SolidPipeline { inner }
     }
 
     pub fn begin_frame(&self) -> Frame {
@@ -542,7 +536,7 @@ impl<'a> Pass<'a> {
         self.inner.draw(0..buffer.len as u32, 0..1);
     }
 
-    pub fn begin_brushes(&mut self, pipeline: &'a BrushPipeline) {
+    pub fn begin_solids(&mut self, pipeline: &'a SolidPipeline) {
         self.inner.set_pipeline(&pipeline.inner);
     }
 
