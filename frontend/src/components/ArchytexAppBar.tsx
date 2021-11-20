@@ -12,12 +12,12 @@ import {
 import ArchytexIcon from "./ArchytexIcon";
 import { styled } from "@mui/material/styles";
 import MainPageSwipeableDrawer from "./main-page-components/MainPageSwipeableDrawer";
+import LanguageSelectDropdown from "./LanguageSelectDropdown";
 
 const CustomAppBar = styled(AppBar)(({ theme }) => ({
   zIndex: theme.zIndex.drawer + 1,
   filter: "drop-shadow(0px 2px 4px rgba(0,0,0,0.5))",
 }));
-
 interface AppBarProps {
   open: boolean;
   handleOpenChange: (value: boolean) => void;
@@ -27,7 +27,14 @@ function DashboardAppBar({ open, handleOpenChange }: AppBarProps) {
   const handleDrawerToggle = () => {
     handleOpenChange(!open);
   };
-
+  const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
+  const languageMenuOpen = Boolean(anchorEl);
+  const handleLanguageMenuClick = (event: React.MouseEvent<HTMLElement>) => {
+    setAnchorEl(event.currentTarget);
+  };
+  const handleLanguageMenuClose = () => {
+    setAnchorEl(null);
+  };
   return (
     <React.Fragment>
       <CustomAppBar position='fixed' elevation={0}>
@@ -72,6 +79,12 @@ function DashboardAppBar({ open, handleOpenChange }: AppBarProps) {
             display={{ xs: "none", md: "flex" }}
             justifyContent='end'
           >
+            <LanguageSelectDropdown
+              open={languageMenuOpen}
+              handleClick={handleLanguageMenuClick}
+              handleClose={handleLanguageMenuClose}
+              anchorEl={anchorEl}
+            />
             <Button variant='outlined'>Login / register</Button>
           </Box>
         </Toolbar>
