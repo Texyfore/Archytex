@@ -16,8 +16,7 @@ struct VertexOut {
 
 [[block]]
 struct CameraBlock {
-    view: mat4x4<f32>;
-    projection: mat4x4<f32>;
+    matrix: mat4x4<f32>;
 };
 
 [[group(0), binding(0)]]
@@ -26,7 +25,7 @@ var<uniform> camera: CameraBlock;
 [[stage(vertex)]]
 fn main(in: VertexIn) -> VertexOut {
     var out: VertexOut;
-    out.clip_position = camera.projection * camera.view * vec4<f32>(in.position, 1.0);
+    out.clip_position = camera.matrix * vec4<f32>(in.position, 1.0);
     out.vertex_color = in.color;
     return out;
 }

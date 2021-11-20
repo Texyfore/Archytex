@@ -65,13 +65,13 @@ pub struct Init {
 }
 
 impl Init {
-    pub fn create_texture_bank(&self) -> Rc<TextureBank> {
-        Rc::new(TextureBank {
+    pub fn create_texture_bank(&self) -> TextureBank {
+        TextureBank {
             ctx: self.ctx.clone(),
             layout: self.texture_layout.clone(),
             sampler: self.sampler.clone(),
             textures: Default::default(),
-        })
+        }
     }
 
     pub fn create_line_factory(&self) -> LineFactory {
@@ -153,8 +153,8 @@ pub struct SolidBatch {
     triangles: TypedBuffer<Triangle>,
 }
 
-pub struct Scene {
-    pub texture_bank: Rc<TextureBank>,
+pub struct Scene<'a> {
+    pub texture_bank: &'a TextureBank,
     pub world_pass: WorldPass,
     pub sprite_pass: SpritePass,
 }

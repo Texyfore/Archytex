@@ -5,7 +5,6 @@ mod math;
 mod msg;
 mod render;
 
-use std::rc::Rc;
 #[cfg(target_arch = "wasm32")]
 use std::sync::mpsc::{channel, Sender};
 
@@ -139,7 +138,7 @@ fn insert_canvas(window: &Window) {
 struct MainLoop {
     _window: Window,
     renderer: SceneRenderer,
-    texture_bank: Rc<TextureBank>,
+    texture_bank: TextureBank,
     input_mapper: InputMapper,
     editor: Editor,
 }
@@ -147,11 +146,18 @@ struct MainLoop {
 impl MainLoop {
     fn init(window: Window) -> Self {
         let gfx_init = render::init(&window);
-
         let mut renderer = gfx_init.create_scene_renderer();
-        let texture_bank = gfx_init.create_texture_bank();
+        let mut texture_bank = gfx_init.create_texture_bank();
+        let solid_factory = gfx_init.create_solid_factory();
+        let line_factory = gfx_init.create_line_factory();
+
+        texture_bank.insert(
+            0,
+            &image::load_from_memory(include_bytes!("editor/nodraw.png")).unwrap(),
+        );
+
         let mut input_mapper = InputMapper::default();
-        let editor = Editor::init(&mut input_mapper);
+        let editor = Editor::init(solid_factory, line_factory, &mut input_mapper);
 
         {
             let (width, height) = window.inner_size().into();
@@ -202,7 +208,7 @@ impl MainLoop {
 
     fn process(&mut self) {
         let mut scene = Scene {
-            texture_bank: self.texture_bank.clone(),
+            texture_bank: &self.texture_bank,
             world_pass: WorldPass {
                 camera_matrix: Matrix4::identity(),
                 solid_batches: Default::default(),

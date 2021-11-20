@@ -34,55 +34,51 @@ impl Default for Camera {
 
 impl Camera {
     pub fn process(&mut self, input: &InputMapper, matrix: &mut Matrix4<f32>) {
-        if !input.is_active(EnableCameraMovement) {
-            return;
-        }
+        if input.is_active(EnableCameraMovement) {
+            if input.is_active(Forward) {
+                self.position += self.forward() * self.speed;
+            }
 
-        if input.is_active(Forward) {
-            self.position += self.forward() * self.speed;
-        }
+            if input.is_active(Backward) {
+                self.position -= self.forward() * self.speed;
+            }
 
-        if input.is_active(Backward) {
-            self.position -= self.forward() * self.speed;
-        }
+            if input.is_active(Left) {
+                self.position -= self.right() * self.speed;
+            }
 
-        if input.is_active(Left) {
-            self.position -= self.right() * self.speed;
-        }
+            if input.is_active(Right) {
+                self.position += self.right() * self.speed;
+            }
 
-        if input.is_active(Right) {
-            self.position += self.right() * self.speed;
-        }
+            if input.is_active(Up) {
+                self.position += Vector3::unit_y() * self.speed;
+            }
 
-        if input.is_active(Up) {
-            self.position += Vector3::unit_y() * self.speed;
-        }
+            if input.is_active(Down) {
+                self.position -= Vector3::unit_y() * self.speed;
+            }
 
-        if input.is_active(Down) {
-            self.position -= Vector3::unit_y() * self.speed;
-        }
+            let delta = input.mouse_delta() * self.sensitivity;
 
-        let delta = input.mouse_delta() * self.sensitivity;
+            self.rotation.y += delta.x;
+            self.rotation.x = clamp(self.rotation.x + delta.y, -90.0, 90.0);
 
-        self.rotation.y += delta.x;
-        self.rotation.x = clamp(self.rotation.x + delta.y, -90.0, 90.0);
+            if input.scroll_wheel() > 0.5 {
+                self.speed *= 1.1;
+            }
 
-        if input.scroll_wheel() > 0.5 {
-            self.speed *= 1.1;
-        }
-
-        if input.scroll_wheel() < -0.5 {
-            self.speed /= 1.1;
+            if input.scroll_wheel() < -0.5 {
+                self.speed /= 1.1;
+            }
         }
 
         {
             let view = Matrix4::from_translation(self.position)
                 * Matrix4::from_angle_y(Deg(self.rotation.y))
-                * Matrix4::from_angle_x(Deg(self.rotation.x))
-                    .invert()
-                    .unwrap();
+                * Matrix4::from_angle_x(Deg(self.rotation.x));
 
-            *matrix = self.projection * view;
+            *matrix = self.projection * view.invert().unwrap();
         }
     }
 

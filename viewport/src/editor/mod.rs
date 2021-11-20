@@ -1,11 +1,13 @@
 mod camera;
 mod config;
 
+use std::rc::Rc;
+
 use winit::event::{MouseButton, VirtualKeyCode};
 
 use crate::{
     input::{InputMapper, Trigger},
-    render::Scene,
+    render::{LineBatch, LineFactory, LineVertex, Scene, SolidFactory},
 };
 
 use self::{camera::Camera, ActionBinding::*};
@@ -70,15 +72,27 @@ actions! {
 }
 
 pub struct Editor {
+    solid_factory: SolidFactory,
+    line_factory: LineFactory,
     mode: EditMode,
     camera: Camera,
+    grid: Rc<LineBatch>,
 }
 
 impl Editor {
-    pub fn init(input: &mut InputMapper) -> Self {
+    pub fn init(
+        solid_factory: SolidFactory,
+        line_factory: LineFactory,
+        input: &mut InputMapper,
+    ) -> Self {
         input.define_actions(ACTION_DEFINITIONS);
 
+        let grid = line_factory.create(&generate_grid(10, 1.0));
+
         Self {
+            solid_factory,
+            line_factory,
+            grid,
             mode: EditMode::Brush,
             camera: Camera::default(),
         }
@@ -97,6 +111,8 @@ impl Editor {
 
         self.camera
             .process(input, &mut scene.world_pass.camera_matrix);
+
+        scene.world_pass.line_batches.push(self.grid.clone());
     }
 
     pub fn window_resized(&mut self, width: u32, height: u32) {
@@ -108,4 +124,61 @@ pub enum EditMode {
     Brush,
     Face,
     Vertex,
+}
+
+fn generate_grid(cell_count: i32, cell_size: f32) -> Vec<LineVertex> {
+    let half_line_len = cell_count as f32 * cell_size;
+    let gray = [0.1, 0.1, 0.1, 1.0];
+    let red = [0.4, 0.1, 0.1, 1.0];
+    let blue = [0.1, 0.1, 0.4, 1.0];
+
+    let mut vertices = Vec::with_capacity(cell_count as usize * 8 + 4);
+
+    vertices.push(LineVertex {
+        position: [-half_line_len, 0.0, 0.0],
+        color: red,
+    });
+
+    vertices.push(LineVertex {
+        position: [half_line_len, 0.0, 0.0],
+        color: red,
+    });
+
+    vertices.push(LineVertex {
+        position: [0.0, 0.0, -half_line_len],
+        color: blue,
+    });
+
+    vertices.push(LineVertex {
+        position: [0.0, 0.0, half_line_len],
+        color: blue,
+    });
+
+    for sign in [-1.0, 1.0] {
+        for i in 1..=cell_count {
+            let pos = i as f32 * cell_size * sign;
+
+            vertices.push(LineVertex {
+                position: [-half_line_len, 0.0, pos],
+                color: gray,
+            });
+
+            vertices.push(LineVertex {
+                position: [half_line_len, 0.0, pos],
+                color: gray,
+            });
+
+            vertices.push(LineVertex {
+                position: [pos, 0.0, -half_line_len],
+                color: gray,
+            });
+
+            vertices.push(LineVertex {
+                position: [pos, 0.0, half_line_len],
+                color: gray,
+            });
+        }
+    }
+
+    vertices
 }
