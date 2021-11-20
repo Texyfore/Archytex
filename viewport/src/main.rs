@@ -5,8 +5,12 @@ mod math;
 mod msg;
 mod render;
 
+use std::rc::Rc;
+#[cfg(target_arch = "wasm32")]
 use std::sync::mpsc::{channel, Sender};
 
+use cgmath::{Matrix4, SquareMatrix};
+use render::{Scene, SceneRenderer, SpritePass, TextureBank};
 use winit::{
     dpi::{PhysicalPosition, PhysicalSize},
     event::{
@@ -20,10 +24,11 @@ use winit::{
 #[cfg(target_arch = "wasm32")]
 use wasm_bindgen::prelude::*;
 
+use crate::render::WorldPass;
+
 use self::{
     editor::Editor,
     input::{InputMapper, Trigger},
-    render::Renderer,
 };
 
 #[cfg(target_arch = "wasm32")]
@@ -133,32 +138,38 @@ fn insert_canvas(window: &Window) {
 
 struct MainLoop {
     _window: Window,
-    renderer: Renderer,
+    renderer: SceneRenderer,
+    texture_bank: Rc<TextureBank>,
     input_mapper: InputMapper,
-    editor: Editor<InputMapper, Renderer>,
+    editor: Editor,
 }
 
 impl MainLoop {
     fn init(window: Window) -> Self {
-        let mut renderer = Renderer::new(&window);
+        let gfx_init = render::init(&window);
+
+        let mut renderer = gfx_init.create_scene_renderer();
+        let texture_bank = gfx_init.create_texture_bank();
         let mut input_mapper = InputMapper::default();
-        let editor = Editor::init(&mut input_mapper, &mut renderer);
+        let editor = Editor::init(&mut input_mapper);
 
         {
             let (width, height) = window.inner_size().into();
-            renderer.resize(width, height);
+            renderer.resize_viewport(width, height);
         }
 
         Self {
             _window: window,
             renderer,
+            texture_bank,
             input_mapper,
             editor,
         }
     }
 
     fn window_resized(&mut self, width: u32, height: u32) {
-        self.renderer.resize(width, height);
+        self.renderer.resize_viewport(width, height);
+        self.editor.window_resized(width, height);
     }
 
     fn keyboard_input(&mut self, code: VirtualKeyCode, state: ElementState) {
@@ -190,9 +201,22 @@ impl MainLoop {
     }
 
     fn process(&mut self) {
-        self.editor.process(&self.input_mapper, &mut self.renderer);
+        let mut scene = Scene {
+            texture_bank: self.texture_bank.clone(),
+            world_pass: WorldPass {
+                camera_matrix: Matrix4::identity(),
+                solid_batches: Default::default(),
+                line_batches: Default::default(),
+            },
+            sprite_pass: SpritePass {
+                camera_matrix: Matrix4::identity(),
+                sprites: Default::default(),
+            },
+        };
+
+        self.editor.process(&self.input_mapper, &mut scene);
         self.input_mapper.tick();
-        self.renderer.render();
+        self.renderer.render(scene);
     }
 }
 

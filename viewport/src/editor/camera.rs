@@ -1,6 +1,8 @@
-use cgmath::{num_traits::clamp, Deg, Matrix3, Matrix4, Vector2, Vector3, Zero};
+use cgmath::{
+    num_traits::clamp, perspective, Deg, Matrix3, Matrix4, SquareMatrix, Vector2, Vector3, Zero,
+};
 
-use crate::{input::Input, render::GraphicsWorld};
+use crate::input::InputMapper;
 
 use super::ActionBinding::*;
 
@@ -9,6 +11,10 @@ pub struct Camera {
     rotation: Vector2<f32>,
     speed: f32,
     sensitivity: f32,
+    fov: f32,
+    near: f32,
+    far: f32,
+    projection: Matrix4<f32>,
 }
 
 impl Default for Camera {
@@ -18,12 +24,16 @@ impl Default for Camera {
             rotation: Vector2::zero(),
             speed: 0.1,
             sensitivity: 0.1,
+            fov: 80.0,
+            near: 0.1,
+            far: 100.0,
+            projection: Matrix4::identity(),
         }
     }
 }
 
 impl Camera {
-    pub fn process<I: Input, G: GraphicsWorld>(&mut self, input: &I, gfx: &mut G) {
+    pub fn process(&mut self, input: &InputMapper, matrix: &mut Matrix4<f32>) {
         if !input.is_active(EnableCameraMovement) {
             return;
         }
@@ -65,10 +75,23 @@ impl Camera {
             self.speed /= 1.1;
         }
 
-        gfx.update_camera_view(
-            Matrix4::from_translation(self.position)
+        {
+            let view = Matrix4::from_translation(self.position)
                 * Matrix4::from_angle_y(Deg(self.rotation.y))
-                * Matrix4::from_angle_x(Deg(self.rotation.x)),
+                * Matrix4::from_angle_x(Deg(self.rotation.x))
+                    .invert()
+                    .unwrap();
+
+            *matrix = self.projection * view;
+        }
+    }
+
+    pub fn resize_viewport(&mut self, width: u32, height: u32) {
+        self.projection = perspective(
+            Deg(self.fov),
+            width as f32 / height as f32,
+            self.near,
+            self.far,
         );
     }
 

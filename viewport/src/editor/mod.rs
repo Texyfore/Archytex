@@ -1,17 +1,14 @@
-mod brush;
 mod camera;
 mod config;
-mod texture;
 
-use std::marker::PhantomData;
 use winit::event::{MouseButton, VirtualKeyCode};
 
 use crate::{
-    input::{Input, Trigger},
-    render::GraphicsWorld,
+    input::{InputMapper, Trigger},
+    render::Scene,
 };
 
-use self::{brush::BrushBank, camera::Camera, texture::TextureBank, ActionBinding::*};
+use self::{camera::Camera, ActionBinding::*};
 
 macro_rules! action {
     ($name:ident Key $elem:ident) => {
@@ -72,40 +69,22 @@ actions! {
     ///////////////////////////////////
 }
 
-pub struct Editor<I, G> {
+pub struct Editor {
     mode: EditMode,
     camera: Camera,
-    texture_bank: TextureBank,
-    brush_bank: BrushBank,
-
-    _i: PhantomData<I>,
-    _g: PhantomData<G>,
 }
 
-impl<I, G> Editor<I, G>
-where
-    I: Input,
-    G: GraphicsWorld,
-{
-    pub fn init(input: &mut I, gfx: &mut G) -> Self {
+impl Editor {
+    pub fn init(input: &mut InputMapper) -> Self {
         input.define_actions(ACTION_DEFINITIONS);
-        gfx.update_grid(10, 1.0);
 
         Self {
             mode: EditMode::Brush,
             camera: Camera::default(),
-            texture_bank: Default::default(),
-            brush_bank: Default::default(),
-            _i: PhantomData,
-            _g: PhantomData,
         }
     }
 
-    pub fn add_texture(&mut self, gfx: &G, uuid: u64, bytes: &[u8]) {
-        self.texture_bank.add(gfx, uuid, bytes);
-    }
-
-    pub fn process(&mut self, input: &I, gfx: &mut G) {
+    pub fn process(&mut self, input: &InputMapper, scene: &mut Scene) {
         if input.is_active(Control) {
             if input.is_active_once(BrushMode) {
                 self.mode = EditMode::Brush;
@@ -116,9 +95,12 @@ where
             }
         }
 
-        self.camera.process(input, gfx);
-        self.brush_bank
-            .process(input, gfx, &self.texture_bank, &self.mode);
+        self.camera
+            .process(input, &mut scene.world_pass.camera_matrix);
+    }
+
+    pub fn window_resized(&mut self, width: u32, height: u32) {
+        self.camera.resize_viewport(width, height);
     }
 }
 

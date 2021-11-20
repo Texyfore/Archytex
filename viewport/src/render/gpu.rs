@@ -204,7 +204,7 @@ impl Context {
     ) -> SolidPipeline {
         let module = self.device.create_shader_module(&ShaderModuleDescriptor {
             label: None,
-            source: ShaderSource::Wgsl(include_str!("brush.wgsl").into()),
+            source: ShaderSource::Wgsl(include_str!("solid.wgsl").into()),
         });
 
         let inner = self
@@ -468,8 +468,8 @@ impl Context {
         DepthBuffer { view }
     }
 
-    pub fn create_sampler(&self) -> Sampler {
-        self.device.create_sampler(&SamplerDescriptor {
+    pub fn create_sampler(&self) -> Rc<Sampler> {
+        Rc::new(self.device.create_sampler(&SamplerDescriptor {
             label: None,
             address_mode_u: AddressMode::Repeat,
             address_mode_v: AddressMode::Repeat,
@@ -478,7 +478,7 @@ impl Context {
             min_filter: FilterMode::Linear,
             mipmap_filter: FilterMode::Linear,
             ..Default::default()
-        })
+        }))
     }
 }
 
@@ -524,7 +524,7 @@ impl<'a> Pass<'a> {
     }
 
     pub fn set_texture(&mut self, texture_group: &'a TextureGroup) {
-        self.inner.set_bind_group(3, &texture_group.inner, &[]);
+        self.inner.set_bind_group(1, &texture_group.inner, &[]);
     }
 
     pub fn begin_lines(&mut self, pipeline: &'a LinePipeline) {

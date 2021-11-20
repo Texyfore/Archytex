@@ -10,7 +10,7 @@ use winit::window::Window;
 
 use self::gpu::{
     Context, DepthBuffer, LinePipeline, MsaaFramebuffer, SolidPipeline, TextureGroup,
-    TextureLayout, TypedBuffer, UniformBufferLayout,
+    TextureLayout, TypedBuffer, UniformBufferGroup, UniformBufferLayout,
 };
 
 pub type Position = [f32; 3];
@@ -20,7 +20,7 @@ pub type Color = [f32; 4];
 pub type Triangle = [u16; 3];
 pub type TextureID = u64;
 
-const MSAA_SAMPLE_COUNT: i32 = 4;
+const MSAA_SAMPLE_COUNT: u32 = 4;
 
 #[repr(C)]
 #[derive(Clone, Copy, Pod, Zeroable)]
@@ -89,13 +89,15 @@ impl Init {
     pub fn create_scene_renderer(&self) -> SceneRenderer {
         SceneRenderer {
             ctx: self.ctx.clone(),
-            sampler: self.sampler.clone(),
             depth_buffer: self.ctx.create_depth_buffer(self.width, self.height),
             msaa_buffer: self.ctx.create_msaa_framebuffer(self.width, self.height),
             solid_pipeline: self
                 .ctx
                 .create_solid_pipeline(&self.uniform_buffer_layout, &self.texture_layout),
             line_pipeline: self.ctx.create_line_pipeline(&self.uniform_buffer_layout),
+            world_camera_group: self
+                .ctx
+                .create_uniform_buffer_group(&self.uniform_buffer_layout, [[0.0; 4]; 4]),
         }
     }
 }
@@ -170,15 +172,54 @@ pub struct SpritePass {
 
 pub struct SceneRenderer {
     ctx: Rc<Context>,
-    sampler: Rc<Sampler>,
     depth_buffer: DepthBuffer,
     msaa_buffer: MsaaFramebuffer,
     solid_pipeline: SolidPipeline,
     line_pipeline: LinePipeline,
+    world_camera_group: UniformBufferGroup<[[f32; 4]; 4]>,
 }
 
 impl SceneRenderer {
+    pub fn resize_viewport(&mut self, width: u32, height: u32) {
+        self.ctx.configure(width, height);
+        self.depth_buffer = self.ctx.create_depth_buffer(width, height);
+        self.msaa_buffer = self.ctx.create_msaa_framebuffer(width, height);
+    }
+
     pub fn render(&self, scene: Scene) {
-        todo!()
+        let world = scene.world_pass;
+
+        let mut frame = self.ctx.begin_frame();
+
+        {
+            let mut pass = frame.begin_pass(
+                [0.05, 0.05, 0.05, 1.0],
+                &self.msaa_buffer,
+                &self.depth_buffer,
+            );
+
+            {
+                self.ctx
+                    .upload_uniform(&self.world_camera_group, world.camera_matrix.into());
+                pass.set_ubg(0, &self.world_camera_group);
+
+                pass.begin_solids(&self.solid_pipeline);
+                for (texture, batches) in &world.solid_batches {
+                    if let Some(texture) = scene.texture_bank.textures.get(&texture) {
+                        pass.set_texture(texture);
+                        for batch in batches {
+                            pass.draw_mesh(&batch.vertices, &batch.triangles);
+                        }
+                    }
+                }
+
+                pass.begin_lines(&self.line_pipeline);
+                for batch in &world.line_batches {
+                    pass.draw_lines(&batch.vertices);
+                }
+            }
+        }
+
+        self.ctx.end_frame(frame);
     }
 }
