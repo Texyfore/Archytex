@@ -280,7 +280,7 @@ impl Context {
         frame.texture.present();
     }
 
-    pub fn create_uniform_buffer_layout(&self) -> UniformBufferLayout {
+    pub fn create_uniform_buffer_layout(&self) -> Rc<UniformBufferLayout> {
         let inner = self
             .device
             .create_bind_group_layout(&BindGroupLayoutDescriptor {
@@ -297,7 +297,7 @@ impl Context {
                 }],
             });
 
-        UniformBufferLayout { inner }
+        Rc::new(UniformBufferLayout { inner })
     }
 
     pub fn create_uniform_buffer_group<T: Pod>(
@@ -331,8 +331,8 @@ impl Context {
             .write_buffer(&group.buffer.inner, 0, cast_slice(&[content]));
     }
 
-    pub fn create_texture_layout(&self) -> TextureLayout {
-        TextureLayout {
+    pub fn create_texture_layout(&self) -> Rc<TextureLayout> {
+        Rc::new(TextureLayout {
             inner: self
                 .device
                 .create_bind_group_layout(&BindGroupLayoutDescriptor {
@@ -359,7 +359,7 @@ impl Context {
                         },
                     ],
                 }),
-        }
+        })
     }
 
     pub fn create_texture_group(
