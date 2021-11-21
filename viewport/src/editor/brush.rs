@@ -4,7 +4,7 @@ use cgmath::{vec2, vec3, ElementWise, InnerSpace, Vector3};
 
 use crate::{
     input::InputMapper,
-    math::{Intersects, Ray, Triangle},
+    math::{IntersectionPoint, Ray, Triangle},
     render::{SolidBatch, SolidFactory, SolidVertex, Sprite, TextureID},
 };
 
@@ -41,6 +41,7 @@ struct Face {
 struct RaycastResult {
     brush_id: usize,
     face_id: usize,
+    point: Vector3<f32>,
 }
 
 impl BrushBank {
@@ -160,8 +161,32 @@ impl BrushBank {
             });
 
             if let Some((i, j, _)) = selection_candidates.get(0).copied() {
-                let selected = &mut self.brushes[i].points[j].selected;
-                *selected = !*selected;
+                let point = &self.brushes[i].points[j];
+
+                let ray = Ray {
+                    origin: camera.position(),
+                    end: point.position,
+                };
+
+                let can_select = if let Some(RaycastResult {
+                    point: hit_point, ..
+                }) = self.raycast(ray)
+                {
+                    let a = (point.position - ray.origin).magnitude2();
+                    let b = (hit_point - ray.origin).magnitude2();
+                    if (a - b).abs() > 0.1 {
+                        a < b
+                    } else {
+                        true
+                    }
+                } else {
+                    true
+                };
+
+                if can_select {
+                    let point = &mut self.brushes[i].points[j];
+                    point.selected = !point.selected;
+                }
             }
         }
 
@@ -244,10 +269,10 @@ impl BrushBank {
                     c: brush.points[face.quad[3] as usize].position,
                 };
 
-                let center = tri0.a * 0.25 + tri0.b * 0.25 + tri0.c * 0.25 + tri1.c * 0.25;
-
-                if ray.intersects(&tri0) || ray.intersects(&tri1) {
-                    hits.push((i, j, center));
+                if let Some(point) = ray.intersection_point(&tri0) {
+                    hits.push((i, j, point));
+                } else if let Some(point) = ray.intersection_point(&tri1) {
+                    hits.push((i, j, point));
                 }
             }
         }
@@ -258,8 +283,12 @@ impl BrushBank {
             a.partial_cmp(&b).unwrap_or(Ordering::Equal)
         });
 
-        if let Some((brush_id, face_id, _)) = hits.get(0).copied() {
-            Some(RaycastResult { brush_id, face_id })
+        if let Some((brush_id, face_id, point)) = hits.get(0).copied() {
+            Some(RaycastResult {
+                brush_id,
+                face_id,
+                point,
+            })
         } else {
             None
         }

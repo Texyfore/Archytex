@@ -1,5 +1,5 @@
 use cgmath::{
-    num_traits::clamp, perspective, vec2, vec3, vec4, Deg, Matrix3, Matrix4, SquareMatrix, Vector2,
+    num_traits::clamp, perspective, vec2, vec3, Deg, Matrix3, Matrix4, SquareMatrix, Vector2,
     Vector3, Vector4, Zero,
 };
 
@@ -97,6 +97,10 @@ impl WorldCamera {
             self.near,
             self.far,
         );
+    }
+
+    pub fn position(&self) -> Vector3<f32> {
+        self.position
     }
 
     pub fn right(&self) -> Vector3<f32> {
