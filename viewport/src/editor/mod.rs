@@ -124,8 +124,13 @@ impl Editor {
         self.sprite_camera
             .process(&mut scene.sprite_pass.camera_matrix);
 
-        self.brush_bank
-            .process(&input, &mut scene.world_pass, &self.solid_factory);
+        self.brush_bank.process(
+            &self.mode,
+            &input,
+            &mut scene.world_pass,
+            &self.solid_factory,
+            &self.world_camera,
+        );
 
         scene.world_pass.line_batches.push(self.grid.clone());
     }

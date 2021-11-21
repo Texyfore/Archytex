@@ -1,9 +1,9 @@
 use cgmath::{
-    num_traits::clamp, perspective, vec3, Deg, Matrix3, Matrix4, SquareMatrix, Vector2, Vector3,
-    Zero,
+    num_traits::clamp, perspective, vec2, vec3, Deg, Matrix3, Matrix4, SquareMatrix, Vector2,
+    Vector3, Vector4, Zero,
 };
 
-use crate::input::InputMapper;
+use crate::{input::InputMapper, math::Ray};
 
 use super::ActionBinding::*;
 
@@ -12,10 +12,14 @@ pub struct WorldCamera {
     rotation: Vector2<f32>,
     speed: f32,
     sensitivity: f32,
+
     fov: f32,
     near: f32,
     far: f32,
+
+    view: Matrix4<f32>,
     projection: Matrix4<f32>,
+    viewport_size: Vector2<f32>,
 }
 
 impl Default for WorldCamera {
@@ -25,10 +29,14 @@ impl Default for WorldCamera {
             rotation: Vector2::zero(),
             speed: 0.1,
             sensitivity: 0.1,
+
             fov: 80.0,
             near: 0.1,
             far: 100.0,
+
+            view: Matrix4::identity(),
             projection: Matrix4::identity(),
+            viewport_size: Vector2::zero(),
         }
     }
 }
@@ -74,16 +82,15 @@ impl WorldCamera {
             }
         }
 
-        {
-            let view = Matrix4::from_translation(self.position)
-                * Matrix4::from_angle_y(Deg(self.rotation.y))
-                * Matrix4::from_angle_x(Deg(self.rotation.x));
+        self.view = Matrix4::from_translation(self.position)
+            * Matrix4::from_angle_y(Deg(self.rotation.y))
+            * Matrix4::from_angle_x(Deg(self.rotation.x));
 
-            *matrix = self.projection * view.invert().unwrap();
-        }
+        *matrix = self.projection * self.view.invert().unwrap();
     }
 
     pub fn resize_viewport(&mut self, width: u32, height: u32) {
+        self.viewport_size = vec2(width as f32, height as f32);
         self.projection = perspective(
             Deg(self.fov),
             width as f32 / height as f32,
@@ -102,6 +109,24 @@ impl WorldCamera {
         Matrix3::from_angle_y(Deg(self.rotation.y))
             * Matrix3::from_angle_x(Deg(self.rotation.x))
             * -Vector3::unit_z()
+    }
+
+    pub fn screen_ray(&self, coords: Vector2<f32>) -> Ray {
+        let coords = (vec2(
+            coords.x / self.viewport_size.x,
+            1.0 - coords.y / self.viewport_size.y,
+        ) - vec2(0.5, 0.5))
+            * 2.0;
+
+        let unproject = self.view * self.projection.invert().unwrap();
+
+        let a = unproject * Vector4::new(coords.x, coords.y, 0.0, 1.0);
+        let b = unproject * Vector4::new(coords.x, coords.y, 1.0, 1.0);
+
+        let a = vec3(a.x / a.w, a.y / a.w, a.z / a.w);
+        let b = vec3(b.x / b.w, b.y / b.w, b.z / b.w);
+
+        Ray { origin: a, end: b }
     }
 }
 

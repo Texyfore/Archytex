@@ -8,7 +8,7 @@ use crate::{
     render::{SolidBatch, SolidFactory, SolidVertex, TextureID, WorldPass},
 };
 
-use super::ActionBinding::*;
+use super::{camera::WorldCamera, config::HIGHLIGHT_COLOR, ActionBinding::*, EditMode};
 
 #[derive(Default)]
 pub struct BrushBank {
@@ -41,14 +41,66 @@ struct RaycastResult {
 impl BrushBank {
     pub fn process(
         &mut self,
+        mode: &EditMode,
         input: &InputMapper,
         world_pass: &mut WorldPass,
         solid_factory: &SolidFactory,
+        camera: &WorldCamera,
     ) {
-        if input.is_active_once(AddBrush) {
-            self.brushes
-                .push(Brush::cuboid(vec3(0.0, 0.0, 0.0), vec3(1.0, 1.0, 1.0)));
-            self.rebuild(&solid_factory);
+        match mode {
+            EditMode::Brush => {
+                if input.is_active_once(Select) {
+                    let mut needs_rebuild = false;
+
+                    if !input.is_active(EnableMultiSelect) {
+                        for brush in &mut self.brushes {
+                            brush.selected = false;
+                        }
+                        needs_rebuild = true;
+                    }
+
+                    if let Some(hit) = self.raycast(camera.screen_ray(input.mouse_pos())) {
+                        let selected = &mut self.brushes[hit.brush_id].selected;
+                        *selected = !*selected;
+                        needs_rebuild = true;
+                    }
+
+                    if needs_rebuild {
+                        self.rebuild(&solid_factory);
+                    }
+                }
+
+                if input.is_active_once(AddBrush) && input.is_active(EnableAddBrush) {
+                    self.brushes
+                        .push(Brush::cuboid(vec3(0.0, 0.0, 0.0), vec3(1.0, 1.0, 1.0)));
+                    self.rebuild(&solid_factory);
+                }
+            }
+            EditMode::Face => {
+                if input.is_active_once(Select) {
+                    let mut needs_rebuild = false;
+
+                    if !input.is_active(EnableMultiSelect) {
+                        for brush in &mut self.brushes {
+                            for face in &mut brush.faces {
+                                face.selected = false;
+                            }
+                        }
+                        needs_rebuild = true;
+                    }
+
+                    if let Some(hit) = self.raycast(camera.screen_ray(input.mouse_pos())) {
+                        let selected = &mut self.brushes[hit.brush_id].faces[hit.face_id].selected;
+                        *selected = !*selected;
+                        needs_rebuild = true;
+                    }
+
+                    if needs_rebuild {
+                        self.rebuild(&solid_factory);
+                    }
+                }
+            }
+            EditMode::Vertex => {}
         }
 
         world_pass.solid_batches = self.batches.clone();
@@ -73,12 +125,18 @@ impl BrushBank {
                 let edge1 = points[3] - points[0];
                 let normal = (edge0.cross(edge1)).normalize();
 
+                let color = if face.selected || brush.selected {
+                    HIGHLIGHT_COLOR
+                } else {
+                    [1.0; 4]
+                };
+
                 for point in points {
                     vertices.push(SolidVertex {
                         position: point.into(),
                         normal: normal.into(),
                         texcoord: [0.0, 0.0],
-                        color: [1.0; 4],
+                        color,
                     });
                 }
             }
