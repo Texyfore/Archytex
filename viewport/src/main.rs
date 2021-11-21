@@ -73,7 +73,12 @@ fn main() {
     #[cfg(target_arch = "wasm32")]
     insert_canvas(&window);
 
-    let mut main_loop = MainLoop::init(window);
+    let mut main_loop = {
+        let (width, height) = window.inner_size().into();
+        let mut main_loop = MainLoop::init(window);
+        main_loop.window_resized(width, height);
+        main_loop
+    };
 
     #[cfg(target_arch = "wasm32")]
     let msg_rx = {
@@ -171,11 +176,6 @@ impl MainLoop {
         let mut input_mapper = InputMapper::default();
         let editor = Editor::init(solid_factory, line_factory, &mut input_mapper);
 
-        {
-            let (width, height) = window.inner_size().into();
-            renderer.resize_viewport(width, height);
-        }
-
         Self {
             _window: window,
             renderer,
@@ -208,15 +208,7 @@ impl MainLoop {
     }
 
     #[cfg(target_arch = "wasm32")]
-    fn message_received(&mut self, msg: Message) {
-        match msg {
-            Message::AddTexture { uuid, data } => {
-                if let Ok(data) = base64::decode(&data) {
-                    self.editor.add_texture(&self.renderer, uuid, &data);
-                }
-            }
-        }
-    }
+    fn message_received(&mut self, msg: Message) {}
 
     fn process(&mut self) {
         let mut scene = Scene {
