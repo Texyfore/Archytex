@@ -127,7 +127,8 @@ impl Editor {
         self.brush_bank.process(
             &self.mode,
             &input,
-            &mut scene.world_pass,
+            &mut scene.world_pass.solid_batches,
+            &mut scene.sprite_pass.sprites,
             &self.solid_factory,
             &self.world_camera,
         );

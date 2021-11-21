@@ -302,7 +302,7 @@ impl Context {
                         array_stride: size_of::<SpriteVertex>() as u64,
                         step_mode: VertexStepMode::Vertex,
                         attributes: &vertex_attr_array![
-                            0 => Float32x2,
+                            0 => Float32x3,
                             1 => Float32x2,
                             2 => Float32x4,
                         ],
@@ -327,7 +327,11 @@ impl Context {
                 fragment: Some(FragmentState {
                     module: &module,
                     entry_point: "main",
-                    targets: &[self.surface_format.into()],
+                    targets: &[ColorTargetState {
+                        format: self.surface_format,
+                        blend: Some(BlendState::ALPHA_BLENDING),
+                        write_mask: ColorWrites::all(),
+                    }],
                 }),
             });
 

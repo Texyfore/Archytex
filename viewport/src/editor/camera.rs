@@ -1,5 +1,5 @@
 use cgmath::{
-    num_traits::clamp, perspective, vec2, vec3, Deg, Matrix3, Matrix4, SquareMatrix, Vector2,
+    num_traits::clamp, perspective, vec2, vec3, vec4, Deg, Matrix3, Matrix4, SquareMatrix, Vector2,
     Vector3, Vector4, Zero,
 };
 
@@ -127,6 +127,27 @@ impl WorldCamera {
         let b = vec3(b.x / b.w, b.y / b.w, b.z / b.w);
 
         Ray { origin: a, end: b }
+    }
+
+    pub fn project(&self, point: Vector3<f32>, clip_displace: f32) -> Option<Vector3<f32>> {
+        let view = self.view.invert().unwrap() * Vector4::new(point.x, point.y, point.z, 1.0);
+        let clip = self.projection * view;
+        let clip = vec3(clip.x, clip.y, clip.z + clip_displace) / clip.w;
+
+        if (0.0..1.0).contains(&clip.z) {
+            if (-1.0..=1.0).contains(&clip.x) && (-1.0..=1.0).contains(&clip.y) {
+                let moved = vec2(clip.x + 1.0, 2.0 - (clip.y + 1.0)) * 0.5;
+                Some(vec3(
+                    moved.x * self.viewport_size.x,
+                    moved.y * self.viewport_size.y,
+                    clip.z,
+                ))
+            } else {
+                None
+            }
+        } else {
+            None
+        }
     }
 }
 

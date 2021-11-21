@@ -1,14 +1,19 @@
 use std::{cmp::Ordering, collections::HashMap, rc::Rc};
 
-use cgmath::{vec3, ElementWise, InnerSpace, Vector3};
+use cgmath::{vec2, vec3, ElementWise, InnerSpace, Vector3};
 
 use crate::{
     input::InputMapper,
     math::{Intersects, Ray, Triangle},
-    render::{SolidBatch, SolidFactory, SolidVertex, TextureID, WorldPass},
+    render::{SolidBatch, SolidFactory, SolidVertex, Sprite, TextureID},
 };
 
-use super::{camera::WorldCamera, config::HIGHLIGHT_COLOR, ActionBinding::*, EditMode};
+use super::{
+    camera::WorldCamera,
+    config::{FACE_HIGHLIGHT_COLOR, POINT_SELECT_RADIUS, VERTEX_HIGHLIGHT_COLOR},
+    ActionBinding::*,
+    EditMode,
+};
 
 #[derive(Default)]
 pub struct BrushBank {
@@ -43,7 +48,8 @@ impl BrushBank {
         &mut self,
         mode: &EditMode,
         input: &InputMapper,
-        world_pass: &mut WorldPass,
+        solid_batches: &mut Vec<(TextureID, Rc<SolidBatch>)>,
+        sprites: &mut HashMap<TextureID, Vec<Sprite>>,
         solid_factory: &SolidFactory,
         camera: &WorldCamera,
     ) {
@@ -100,10 +106,63 @@ impl BrushBank {
                     }
                 }
             }
-            EditMode::Vertex => {}
+            EditMode::Vertex => {
+                if input.is_active_once(Select) {
+                    if !input.is_active(EnableMultiSelect) {
+                        for brush in &mut self.brushes {
+                            for point in &mut brush.points {
+                                point.selected = false;
+                            }
+                        }
+                    }
+
+                    let mut selection_candidates = Vec::new();
+
+                    for (i, brush) in self.brushes.iter_mut().enumerate() {
+                        for (j, point) in brush.points.iter_mut().enumerate() {
+                            if let Some(screen_pos) = camera.project(point.position, 0.0) {
+                                let screen_pos = vec2(screen_pos.x, screen_pos.y);
+                                let dist = (screen_pos - input.mouse_pos()).magnitude2();
+                                if dist < POINT_SELECT_RADIUS * POINT_SELECT_RADIUS {
+                                    selection_candidates.push((i, j, dist));
+                                }
+                            }
+                        }
+                    }
+
+                    selection_candidates.sort_unstable_by(|(_, _, a), (_, _, b)| {
+                        a.partial_cmp(&b).unwrap_or(Ordering::Equal)
+                    });
+
+                    if let Some((i, j, _)) = selection_candidates.get(0).copied() {
+                        let selected = &mut self.brushes[i].points[j].selected;
+                        *selected = !*selected;
+                    }
+                }
+
+                let mut vertex_sprites = Vec::new();
+                for brush in &self.brushes {
+                    for point in &brush.points {
+                        let color = if point.selected {
+                            VERTEX_HIGHLIGHT_COLOR
+                        } else {
+                            [0.0, 0.0, 0.0, 1.0]
+                        };
+
+                        if let Some(origin) = camera.project(point.position, -0.001) {
+                            vertex_sprites.push(Sprite {
+                                origin: origin - vec3(5.0, 5.0, 0.0),
+                                extent: vec2(10.0, 10.0),
+                                color,
+                            });
+                        }
+                    }
+                }
+                sprites.insert(1, vertex_sprites);
+            }
         }
 
-        world_pass.solid_batches = self.batches.clone();
+        *solid_batches = self.batches.clone();
     }
 
     fn rebuild(&mut self, factory: &SolidFactory) {
@@ -126,7 +185,7 @@ impl BrushBank {
                 let normal = (edge0.cross(edge1)).normalize();
 
                 let color = if face.selected || brush.selected {
-                    HIGHLIGHT_COLOR
+                    FACE_HIGHLIGHT_COLOR
                 } else {
                     [1.0; 4]
                 };

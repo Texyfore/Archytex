@@ -42,6 +42,17 @@ macro_rules! message {
     };
 }
 
+macro_rules! textures {
+    ($bank:ident $(,$id:literal => $path:literal)*) => {
+        $(
+            $bank.insert(
+                $id,
+                &image::load_from_memory(include_bytes!($path)).unwrap(),
+            );
+        )*
+    };
+}
+
 #[cfg(target_arch = "wasm32")]
 #[wasm_bindgen(raw_module = "../glue.js")]
 extern "C" {
@@ -151,9 +162,10 @@ impl MainLoop {
         let solid_factory = gfx_init.create_solid_factory();
         let line_factory = gfx_init.create_line_factory();
 
-        texture_bank.insert(
-            0,
-            &image::load_from_memory(include_bytes!("editor/nodraw.png")).unwrap(),
+        textures!(
+            texture_bank,
+            0 => "editor/nodraw.png",
+            1 => "editor/vertex.png"
         );
 
         let mut input_mapper = InputMapper::default();

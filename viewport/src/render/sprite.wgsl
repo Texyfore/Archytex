@@ -1,6 +1,6 @@
 struct VertexIn {
     [[location(0)]]
-    position: vec2<f32>;
+    position: vec3<f32>;
 
     [[location(1)]]
     texcoord: vec2<f32>;
@@ -31,7 +31,7 @@ var<uniform> camera: CameraBlock;
 [[stage(vertex)]]
 fn main(in: VertexIn) -> VertexOut {
     var out: VertexOut;
-    out.clip_position = camera.matrix * vec4<f32>(in.position, 0.5, 1.0);
+    out.clip_position = camera.matrix * vec4<f32>(in.position, 1.0);
     out.texcoord = in.texcoord;
     out.color = in.color;
     return out;
@@ -56,10 +56,5 @@ var s_diffuse: sampler;
 fn main(in: VertexOut) -> FragmentOut {
     var out: FragmentOut;
     out.color = textureSample(t_diffuse, s_diffuse, in.texcoord) * in.color;
-
-    if(out.color.a < 0.5) {
-        discard;
-    }
-
     return out;
 }
