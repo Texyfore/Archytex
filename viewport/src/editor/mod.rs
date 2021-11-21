@@ -3,14 +3,18 @@ mod config;
 
 use std::rc::Rc;
 
+use cgmath::{ortho, vec2, Matrix4, SquareMatrix};
 use winit::event::{MouseButton, VirtualKeyCode};
 
 use crate::{
     input::{InputMapper, Trigger},
-    render::{LineBatch, LineFactory, LineVertex, Scene, SolidFactory},
+    render::{LineBatch, LineFactory, LineVertex, Scene, SolidFactory, Sprite},
 };
 
-use self::{camera::Camera, ActionBinding::*};
+use self::{
+    camera::{SpriteCamera, WorldCamera},
+    ActionBinding::*,
+};
 
 macro_rules! action {
     ($name:ident Key $elem:ident) => {
@@ -75,7 +79,8 @@ pub struct Editor {
     solid_factory: SolidFactory,
     line_factory: LineFactory,
     mode: EditMode,
-    camera: Camera,
+    world_camera: WorldCamera,
+    sprite_camera: SpriteCamera,
     grid: Rc<LineBatch>,
 }
 
@@ -94,7 +99,8 @@ impl Editor {
             line_factory,
             grid,
             mode: EditMode::Brush,
-            camera: Camera::default(),
+            world_camera: WorldCamera::default(),
+            sprite_camera: SpriteCamera::default(),
         }
     }
 
@@ -109,14 +115,18 @@ impl Editor {
             }
         }
 
-        self.camera
+        self.world_camera
             .process(input, &mut scene.world_pass.camera_matrix);
+
+        self.sprite_camera
+            .process(&mut scene.sprite_pass.camera_matrix);
 
         scene.world_pass.line_batches.push(self.grid.clone());
     }
 
     pub fn window_resized(&mut self, width: u32, height: u32) {
-        self.camera.resize_viewport(width, height);
+        self.world_camera.resize_viewport(width, height);
+        self.sprite_camera.resize_viewport(width, height);
     }
 }
 

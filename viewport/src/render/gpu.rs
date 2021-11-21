@@ -9,6 +9,8 @@ use wgpu::{
 };
 use winit::window::Window;
 
+use crate::render::SpriteVertex;
+
 use super::{LineVertex, SolidVertex, Triangle, MSAA_SAMPLE_COUNT};
 
 pub(super) struct Context {
@@ -29,6 +31,10 @@ pub(super) struct LinePipeline {
 }
 
 pub(super) struct SolidPipeline {
+    inner: RenderPipeline,
+}
+
+pub(super) struct SpritePipeline {
     inner: RenderPipeline,
 }
 
@@ -261,6 +267,71 @@ impl Context {
             });
 
         SolidPipeline { inner }
+    }
+
+    pub fn create_sprite_pipeline(
+        &self,
+        uniform_buffer_layout: &UniformBufferLayout,
+        texture_layout: &TextureLayout,
+    ) -> SpritePipeline {
+        let module = self.device.create_shader_module(&ShaderModuleDescriptor {
+            label: None,
+            source: ShaderSource::Wgsl(include_str!("sprite.wgsl").into()),
+        });
+
+        let inner = self
+            .device
+            .create_render_pipeline(&RenderPipelineDescriptor {
+                label: None,
+                layout: Some(
+                    &self
+                        .device
+                        .create_pipeline_layout(&PipelineLayoutDescriptor {
+                            label: None,
+                            bind_group_layouts: &[
+                                &uniform_buffer_layout.inner, // Camera
+                                &texture_layout.inner,        // Texture
+                            ],
+                            push_constant_ranges: &[],
+                        }),
+                ),
+                vertex: VertexState {
+                    module: &module,
+                    entry_point: "main",
+                    buffers: &[VertexBufferLayout {
+                        array_stride: size_of::<SpriteVertex>() as u64,
+                        step_mode: VertexStepMode::Vertex,
+                        attributes: &vertex_attr_array![
+                            0 => Float32x2,
+                            1 => Float32x2,
+                            2 => Float32x4,
+                        ],
+                    }],
+                },
+                primitive: PrimitiveState {
+                    cull_mode: Some(Face::Back),
+                    ..Default::default()
+                },
+                depth_stencil: Some(DepthStencilState {
+                    format: TextureFormat::Depth32Float,
+                    depth_write_enabled: true,
+                    depth_compare: CompareFunction::Less,
+                    stencil: Default::default(),
+                    bias: Default::default(),
+                }),
+                multisample: MultisampleState {
+                    count: MSAA_SAMPLE_COUNT,
+                    mask: !0,
+                    alpha_to_coverage_enabled: false,
+                },
+                fragment: Some(FragmentState {
+                    module: &module,
+                    entry_point: "main",
+                    targets: &[self.surface_format.into()],
+                }),
+            });
+
+        SpritePipeline { inner }
     }
 
     pub fn begin_frame(&self) -> Frame {
@@ -531,13 +602,17 @@ impl<'a> Pass<'a> {
         self.inner.set_pipeline(&pipeline.inner);
     }
 
+    pub fn begin_solids(&mut self, pipeline: &'a SolidPipeline) {
+        self.inner.set_pipeline(&pipeline.inner);
+    }
+
+    pub fn begin_sprites(&mut self, pipeline: &'a SpritePipeline) {
+        self.inner.set_pipeline(&pipeline.inner);
+    }
+
     pub fn draw_lines(&mut self, buffer: &'a TypedBuffer<LineVertex>) {
         self.inner.set_vertex_buffer(0, buffer.inner.slice(..));
         self.inner.draw(0..buffer.len as u32, 0..1);
-    }
-
-    pub fn begin_solids(&mut self, pipeline: &'a SolidPipeline) {
-        self.inner.set_pipeline(&pipeline.inner);
     }
 
     pub fn draw_mesh<V: Pod>(

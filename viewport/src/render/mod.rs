@@ -9,11 +9,12 @@ use wgpu::{BufferUsages, Sampler};
 use winit::window::Window;
 
 use self::gpu::{
-    Context, DepthBuffer, LinePipeline, MsaaFramebuffer, SolidPipeline, TextureGroup,
-    TextureLayout, TypedBuffer, UniformBufferGroup, UniformBufferLayout,
+    Context, DepthBuffer, LinePipeline, MsaaFramebuffer, SolidPipeline, SpritePipeline,
+    TextureGroup, TextureLayout, TypedBuffer, UniformBufferGroup, UniformBufferLayout,
 };
 
 pub type Position = [f32; 3];
+pub type Position2D = [f32; 2];
 pub type Normal = [f32; 3];
 pub type TexCoord = [f32; 2];
 pub type Color = [f32; 4];
@@ -34,6 +35,14 @@ pub struct LineVertex {
 pub struct SolidVertex {
     pub position: Position,
     pub normal: Normal,
+    pub texcoord: TexCoord,
+    pub color: Color,
+}
+
+#[repr(C)]
+#[derive(Clone, Copy, Pod, Zeroable)]
+pub struct SpriteVertex {
+    pub position: Position2D,
     pub texcoord: TexCoord,
     pub color: Color,
 }
@@ -95,7 +104,13 @@ impl Init {
                 .ctx
                 .create_solid_pipeline(&self.uniform_buffer_layout, &self.texture_layout),
             line_pipeline: self.ctx.create_line_pipeline(&self.uniform_buffer_layout),
+            sprite_pipeline: self
+                .ctx
+                .create_sprite_pipeline(&self.uniform_buffer_layout, &self.texture_layout),
             world_camera_group: self
+                .ctx
+                .create_uniform_buffer_group(&self.uniform_buffer_layout, [[0.0; 4]; 4]),
+            sprite_camera_group: self
                 .ctx
                 .create_uniform_buffer_group(&self.uniform_buffer_layout, [[0.0; 4]; 4]),
         }
@@ -167,7 +182,12 @@ pub struct WorldPass {
 
 pub struct SpritePass {
     pub camera_matrix: Matrix4<f32>,
-    pub sprites: HashMap<TextureID, Vec<Vector2<f32>>>,
+    pub sprites: HashMap<TextureID, Vec<Sprite>>,
+}
+
+pub struct Sprite {
+    pub origin: Vector2<f32>,
+    pub extent: Vector2<f32>,
 }
 
 pub struct SceneRenderer {
@@ -176,7 +196,9 @@ pub struct SceneRenderer {
     msaa_buffer: MsaaFramebuffer,
     solid_pipeline: SolidPipeline,
     line_pipeline: LinePipeline,
+    sprite_pipeline: SpritePipeline,
     world_camera_group: UniformBufferGroup<[[f32; 4]; 4]>,
+    sprite_camera_group: UniformBufferGroup<[[f32; 4]; 4]>,
 }
 
 impl SceneRenderer {
@@ -187,7 +209,17 @@ impl SceneRenderer {
     }
 
     pub fn render(&self, scene: Scene) {
-        let world = scene.world_pass;
+        let world_pass = scene.world_pass;
+        let sprite_pass = scene.sprite_pass;
+        let baked_sprites = {
+            let mut map = HashMap::new();
+            for (texture, sprites) in &sprite_pass.sprites {
+                if scene.texture_bank.textures.contains_key(&texture) {
+                    map.insert(*texture, build_sprite_batch(&self.ctx, sprites));
+                }
+            }
+            map
+        };
 
         let mut frame = self.ctx.begin_frame();
 
@@ -200,11 +232,11 @@ impl SceneRenderer {
 
             {
                 self.ctx
-                    .upload_uniform(&self.world_camera_group, world.camera_matrix.into());
+                    .upload_uniform(&self.world_camera_group, world_pass.camera_matrix.into());
                 pass.set_ubg(0, &self.world_camera_group);
 
                 pass.begin_solids(&self.solid_pipeline);
-                for (texture, batches) in &world.solid_batches {
+                for (texture, batches) in &world_pass.solid_batches {
                     if let Some(texture) = scene.texture_bank.textures.get(&texture) {
                         pass.set_texture(texture);
                         for batch in batches {
@@ -214,12 +246,69 @@ impl SceneRenderer {
                 }
 
                 pass.begin_lines(&self.line_pipeline);
-                for batch in &world.line_batches {
+                for batch in &world_pass.line_batches {
                     pass.draw_lines(&batch.vertices);
+                }
+            }
+
+            {
+                self.ctx
+                    .upload_uniform(&self.sprite_camera_group, sprite_pass.camera_matrix.into());
+                pass.set_ubg(0, &self.sprite_camera_group);
+
+                pass.begin_sprites(&self.sprite_pipeline);
+                for (texture, (vertices, triangles)) in &baked_sprites {
+                    if let Some(texture) = scene.texture_bank.textures.get(&texture) {
+                        pass.set_texture(texture);
+                        pass.draw_mesh(vertices, triangles);
+                    }
                 }
             }
         }
 
         self.ctx.end_frame(frame);
     }
+}
+
+fn build_sprite_batch(
+    ctx: &Context,
+    sprites: &[Sprite],
+) -> (TypedBuffer<SpriteVertex>, TypedBuffer<Triangle>) {
+    let mut vertices = Vec::with_capacity(sprites.len() * 4);
+    let mut triangles = Vec::with_capacity(sprites.len() * 2);
+
+    for p in sprites {
+        let t0 = vertices.len() as u16;
+        triangles.push([t0 + 0, t0 + 1, t0 + 2]);
+        triangles.push([t0 + 0, t0 + 2, t0 + 3]);
+
+        vertices.push(SpriteVertex {
+            position: [p.origin.x + 0.0, p.origin.y + p.extent.y],
+            texcoord: [0.0, 1.0],
+            color: [1.0; 4],
+        });
+
+        vertices.push(SpriteVertex {
+            position: [p.origin.x + p.extent.x, p.origin.y + p.extent.y],
+            texcoord: [1.0, 1.0],
+            color: [1.0; 4],
+        });
+
+        vertices.push(SpriteVertex {
+            position: [p.origin.x + p.extent.x, p.origin.y + 0.0],
+            texcoord: [1.0, 0.0],
+            color: [1.0; 4],
+        });
+
+        vertices.push(SpriteVertex {
+            position: [p.origin.x + 0.0, p.origin.y + 0.0],
+            texcoord: [0.0, 0.0],
+            color: [1.0; 4],
+        });
+    }
+
+    (
+        ctx.create_buffer(&vertices, BufferUsages::VERTEX),
+        ctx.create_buffer(&triangles, BufferUsages::INDEX),
+    )
 }
