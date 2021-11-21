@@ -3,12 +3,11 @@ mod config;
 
 use std::rc::Rc;
 
-use cgmath::{ortho, vec2, Matrix4, SquareMatrix};
 use winit::event::{MouseButton, VirtualKeyCode};
 
 use crate::{
     input::{InputMapper, Trigger},
-    render::{LineBatch, LineFactory, LineVertex, Scene, SolidFactory, Sprite},
+    render::{LineBatch, LineFactory, LineVertex, Scene, SolidFactory},
 };
 
 use self::{
