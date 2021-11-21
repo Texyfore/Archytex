@@ -1,17 +1,19 @@
-mod brush;
 mod camera;
 mod config;
-mod texture;
 
-use std::marker::PhantomData;
+use std::rc::Rc;
+
 use winit::event::{MouseButton, VirtualKeyCode};
 
 use crate::{
-    input::{Input, Trigger},
-    render::GraphicsWorld,
+    input::{InputMapper, Trigger},
+    render::{LineBatch, LineFactory, LineVertex, Scene, SolidFactory},
 };
 
-use self::{brush::BrushBank, camera::Camera, texture::TextureBank, ActionBinding::*};
+use self::{
+    camera::{SpriteCamera, WorldCamera},
+    ActionBinding::*,
+};
 
 macro_rules! action {
     ($name:ident Key $elem:ident) => {
@@ -72,40 +74,36 @@ actions! {
     ///////////////////////////////////
 }
 
-pub struct Editor<I, G> {
+pub struct Editor {
+    solid_factory: SolidFactory,
+    line_factory: LineFactory,
     mode: EditMode,
-    camera: Camera,
-    texture_bank: TextureBank,
-    brush_bank: BrushBank,
-
-    _i: PhantomData<I>,
-    _g: PhantomData<G>,
+    world_camera: WorldCamera,
+    sprite_camera: SpriteCamera,
+    grid: Rc<LineBatch>,
 }
 
-impl<I, G> Editor<I, G>
-where
-    I: Input,
-    G: GraphicsWorld,
-{
-    pub fn init(input: &mut I, gfx: &mut G) -> Self {
+impl Editor {
+    pub fn init(
+        solid_factory: SolidFactory,
+        line_factory: LineFactory,
+        input: &mut InputMapper,
+    ) -> Self {
         input.define_actions(ACTION_DEFINITIONS);
-        gfx.update_grid(10, 1.0);
+
+        let grid = line_factory.create(&generate_grid(10, 1.0));
 
         Self {
+            solid_factory,
+            line_factory,
+            grid,
             mode: EditMode::Brush,
-            camera: Camera::default(),
-            texture_bank: Default::default(),
-            brush_bank: Default::default(),
-            _i: PhantomData,
-            _g: PhantomData,
+            world_camera: WorldCamera::default(),
+            sprite_camera: SpriteCamera::default(),
         }
     }
 
-    pub fn add_texture(&mut self, gfx: &G, uuid: u64, bytes: &[u8]) {
-        self.texture_bank.add(gfx, uuid, bytes);
-    }
-
-    pub fn process(&mut self, input: &I, gfx: &mut G) {
+    pub fn process(&mut self, input: &InputMapper, scene: &mut Scene) {
         if input.is_active(Control) {
             if input.is_active_once(BrushMode) {
                 self.mode = EditMode::Brush;
@@ -116,9 +114,18 @@ where
             }
         }
 
-        self.camera.process(input, gfx);
-        self.brush_bank
-            .process(input, gfx, &self.texture_bank, &self.mode);
+        self.world_camera
+            .process(input, &mut scene.world_pass.camera_matrix);
+
+        self.sprite_camera
+            .process(&mut scene.sprite_pass.camera_matrix);
+
+        scene.world_pass.line_batches.push(self.grid.clone());
+    }
+
+    pub fn window_resized(&mut self, width: u32, height: u32) {
+        self.world_camera.resize_viewport(width, height);
+        self.sprite_camera.resize_viewport(width, height);
     }
 }
 
@@ -126,4 +133,61 @@ pub enum EditMode {
     Brush,
     Face,
     Vertex,
+}
+
+fn generate_grid(cell_count: i32, cell_size: f32) -> Vec<LineVertex> {
+    let half_line_len = cell_count as f32 * cell_size;
+    let gray = [0.1, 0.1, 0.1, 1.0];
+    let red = [0.4, 0.1, 0.1, 1.0];
+    let blue = [0.1, 0.1, 0.4, 1.0];
+
+    let mut vertices = Vec::with_capacity(cell_count as usize * 8 + 4);
+
+    vertices.push(LineVertex {
+        position: [-half_line_len, 0.0, 0.0],
+        color: red,
+    });
+
+    vertices.push(LineVertex {
+        position: [half_line_len, 0.0, 0.0],
+        color: red,
+    });
+
+    vertices.push(LineVertex {
+        position: [0.0, 0.0, -half_line_len],
+        color: blue,
+    });
+
+    vertices.push(LineVertex {
+        position: [0.0, 0.0, half_line_len],
+        color: blue,
+    });
+
+    for sign in [-1.0, 1.0] {
+        for i in 1..=cell_count {
+            let pos = i as f32 * cell_size * sign;
+
+            vertices.push(LineVertex {
+                position: [-half_line_len, 0.0, pos],
+                color: gray,
+            });
+
+            vertices.push(LineVertex {
+                position: [half_line_len, 0.0, pos],
+                color: gray,
+            });
+
+            vertices.push(LineVertex {
+                position: [pos, 0.0, -half_line_len],
+                color: gray,
+            });
+
+            vertices.push(LineVertex {
+                position: [pos, 0.0, half_line_len],
+                color: gray,
+            });
+        }
+    }
+
+    vertices
 }

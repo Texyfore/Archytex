@@ -1,17 +1,8 @@
 use std::collections::HashMap;
 
+use super::editor::ActionBinding;
 use cgmath::Vector2;
 use winit::event::{ElementState, MouseButton, VirtualKeyCode};
-use super::editor::ActionBinding;
-
-pub trait Input {
-    fn define_actions(&mut self, actions: &[(ActionBinding, Trigger)]);
-    fn is_active(&self, action: ActionBinding) -> bool;
-    fn is_active_once(&self, action: ActionBinding) -> bool;
-    fn mouse_delta(&self) -> Vector2<f32>;
-    fn scroll_wheel(&self) -> f32;
-    fn mouse_pos(&self) -> Vector2<f32>;
-}
 
 #[derive(Default)]
 pub struct InputMapper {
@@ -56,10 +47,8 @@ impl InputMapper {
         self.mouse_pos_before = self.mouse_pos;
         self.scroll_wheel = 0.0;
     }
-}
 
-impl Input for InputMapper {
-    fn define_actions(&mut self, actions: &[(ActionBinding, Trigger)]) {
+    pub fn define_actions(&mut self, actions: &[(ActionBinding, Trigger)]) {
         self.actions = actions
             .iter()
             .cloned()
@@ -76,7 +65,7 @@ impl Input for InputMapper {
             .collect();
     }
 
-    fn is_active(&self, action: ActionBinding) -> bool {
+    pub fn is_active(&self, action: ActionBinding) -> bool {
         if let Some(action) = self.actions.get(&action) {
             action.active
         } else {
@@ -84,7 +73,7 @@ impl Input for InputMapper {
         }
     }
 
-    fn is_active_once(&self, action: ActionBinding) -> bool {
+    pub fn is_active_once(&self, action: ActionBinding) -> bool {
         if let Some(action) = self.actions.get(&action) {
             action.active_once
         } else {
@@ -92,17 +81,17 @@ impl Input for InputMapper {
         }
     }
 
-    fn mouse_delta(&self) -> Vector2<f32> {
+    pub fn mouse_delta(&self) -> Vector2<f32> {
         let a: Vector2<_> = self.mouse_pos.into();
         let b: Vector2<_> = self.mouse_pos_before.into();
         b - a
     }
 
-    fn scroll_wheel(&self) -> f32 {
+    pub fn scroll_wheel(&self) -> f32 {
         self.scroll_wheel
     }
 
-    fn mouse_pos(&self) -> Vector2<f32> {
+    pub fn mouse_pos(&self) -> Vector2<f32> {
         self.mouse_pos.into()
     }
 }

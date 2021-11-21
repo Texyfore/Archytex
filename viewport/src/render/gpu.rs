@@ -1,4 +1,4 @@
-use std::{iter::once, marker::PhantomData, mem::size_of, num::NonZeroU32};
+use std::{iter::once, marker::PhantomData, mem::size_of, num::NonZeroU32, rc::Rc};
 
 use bytemuck::{cast_slice, Pod};
 use futures_lite::future;
@@ -9,12 +9,9 @@ use wgpu::{
 };
 use winit::window::Window;
 
-use crate::render::data::BrushVertex;
+use crate::render::SpriteVertex;
 
-use super::{
-    data::{LineVertex, Triangle},
-    MSAA_SAMPLE_COUNT,
-};
+use super::{LineVertex, SolidVertex, Triangle, MSAA_SAMPLE_COUNT};
 
 pub(super) struct Context {
     surface: Surface,
@@ -33,7 +30,11 @@ pub(super) struct LinePipeline {
     inner: RenderPipeline,
 }
 
-pub(super) struct BrushPipeline {
+pub(super) struct SolidPipeline {
+    inner: RenderPipeline,
+}
+
+pub(super) struct SpritePipeline {
     inner: RenderPipeline,
 }
 
@@ -73,7 +74,7 @@ pub(super) struct DepthBuffer {
 }
 
 impl Context {
-    pub fn new(window: &Window) -> Self {
+    pub fn new(window: &Window) -> Rc<Self> {
         let instance = Instance::new(Backends::all());
         let surface = unsafe { instance.create_surface(window) };
 
@@ -108,12 +109,12 @@ impl Context {
             (surface_format, device, queue)
         });
 
-        Self {
+        Rc::new(Self {
             surface,
             surface_format,
             device,
             queue,
-        }
+        })
     }
 
     pub fn configure(&self, width: u32, height: u32) {
@@ -202,14 +203,14 @@ impl Context {
         LinePipeline { inner }
     }
 
-    pub fn create_brush_pipeline(
+    pub fn create_solid_pipeline(
         &self,
         uniform_buffer_layout: &UniformBufferLayout,
         texture_layout: &TextureLayout,
-    ) -> BrushPipeline {
+    ) -> SolidPipeline {
         let module = self.device.create_shader_module(&ShaderModuleDescriptor {
             label: None,
-            source: ShaderSource::Wgsl(include_str!("brush.wgsl").into()),
+            source: ShaderSource::Wgsl(include_str!("solid.wgsl").into()),
         });
 
         let inner = self
@@ -223,8 +224,6 @@ impl Context {
                             label: None,
                             bind_group_layouts: &[
                                 &uniform_buffer_layout.inner, // Camera
-                                &uniform_buffer_layout.inner, // Transform
-                                &uniform_buffer_layout.inner, // BrushDetail
                                 &texture_layout.inner,        // Texture
                             ],
                             push_constant_ranges: &[],
@@ -234,12 +233,13 @@ impl Context {
                     module: &module,
                     entry_point: "main",
                     buffers: &[VertexBufferLayout {
-                        array_stride: size_of::<BrushVertex>() as u64,
+                        array_stride: size_of::<SolidVertex>() as u64,
                         step_mode: VertexStepMode::Vertex,
                         attributes: &vertex_attr_array![
                             0 => Float32x3,
                             1 => Float32x3,
                             2 => Float32x2,
+                            3 => Float32x4,
                         ],
                     }],
                 },
@@ -266,7 +266,72 @@ impl Context {
                 }),
             });
 
-        BrushPipeline { inner }
+        SolidPipeline { inner }
+    }
+
+    pub fn create_sprite_pipeline(
+        &self,
+        uniform_buffer_layout: &UniformBufferLayout,
+        texture_layout: &TextureLayout,
+    ) -> SpritePipeline {
+        let module = self.device.create_shader_module(&ShaderModuleDescriptor {
+            label: None,
+            source: ShaderSource::Wgsl(include_str!("sprite.wgsl").into()),
+        });
+
+        let inner = self
+            .device
+            .create_render_pipeline(&RenderPipelineDescriptor {
+                label: None,
+                layout: Some(
+                    &self
+                        .device
+                        .create_pipeline_layout(&PipelineLayoutDescriptor {
+                            label: None,
+                            bind_group_layouts: &[
+                                &uniform_buffer_layout.inner, // Camera
+                                &texture_layout.inner,        // Texture
+                            ],
+                            push_constant_ranges: &[],
+                        }),
+                ),
+                vertex: VertexState {
+                    module: &module,
+                    entry_point: "main",
+                    buffers: &[VertexBufferLayout {
+                        array_stride: size_of::<SpriteVertex>() as u64,
+                        step_mode: VertexStepMode::Vertex,
+                        attributes: &vertex_attr_array![
+                            0 => Float32x2,
+                            1 => Float32x2,
+                            2 => Float32x4,
+                        ],
+                    }],
+                },
+                primitive: PrimitiveState {
+                    cull_mode: Some(Face::Back),
+                    ..Default::default()
+                },
+                depth_stencil: Some(DepthStencilState {
+                    format: TextureFormat::Depth32Float,
+                    depth_write_enabled: true,
+                    depth_compare: CompareFunction::Less,
+                    stencil: Default::default(),
+                    bias: Default::default(),
+                }),
+                multisample: MultisampleState {
+                    count: MSAA_SAMPLE_COUNT,
+                    mask: !0,
+                    alpha_to_coverage_enabled: false,
+                },
+                fragment: Some(FragmentState {
+                    module: &module,
+                    entry_point: "main",
+                    targets: &[self.surface_format.into()],
+                }),
+            });
+
+        SpritePipeline { inner }
     }
 
     pub fn begin_frame(&self) -> Frame {
@@ -286,7 +351,7 @@ impl Context {
         frame.texture.present();
     }
 
-    pub fn create_uniform_buffer_layout(&self) -> UniformBufferLayout {
+    pub fn create_uniform_buffer_layout(&self) -> Rc<UniformBufferLayout> {
         let inner = self
             .device
             .create_bind_group_layout(&BindGroupLayoutDescriptor {
@@ -303,7 +368,7 @@ impl Context {
                 }],
             });
 
-        UniformBufferLayout { inner }
+        Rc::new(UniformBufferLayout { inner })
     }
 
     pub fn create_uniform_buffer_group<T: Pod>(
@@ -337,8 +402,8 @@ impl Context {
             .write_buffer(&group.buffer.inner, 0, cast_slice(&[content]));
     }
 
-    pub fn create_texture_layout(&self) -> TextureLayout {
-        TextureLayout {
+    pub fn create_texture_layout(&self) -> Rc<TextureLayout> {
+        Rc::new(TextureLayout {
             inner: self
                 .device
                 .create_bind_group_layout(&BindGroupLayoutDescriptor {
@@ -365,7 +430,7 @@ impl Context {
                         },
                     ],
                 }),
-        }
+        })
     }
 
     pub fn create_texture_group(
@@ -474,8 +539,8 @@ impl Context {
         DepthBuffer { view }
     }
 
-    pub fn create_sampler(&self) -> Sampler {
-        self.device.create_sampler(&SamplerDescriptor {
+    pub fn create_sampler(&self) -> Rc<Sampler> {
+        Rc::new(self.device.create_sampler(&SamplerDescriptor {
             label: None,
             address_mode_u: AddressMode::Repeat,
             address_mode_v: AddressMode::Repeat,
@@ -484,7 +549,7 @@ impl Context {
             min_filter: FilterMode::Linear,
             mipmap_filter: FilterMode::Linear,
             ..Default::default()
-        })
+        }))
     }
 }
 
@@ -530,20 +595,24 @@ impl<'a> Pass<'a> {
     }
 
     pub fn set_texture(&mut self, texture_group: &'a TextureGroup) {
-        self.inner.set_bind_group(3, &texture_group.inner, &[]);
+        self.inner.set_bind_group(1, &texture_group.inner, &[]);
     }
 
     pub fn begin_lines(&mut self, pipeline: &'a LinePipeline) {
         self.inner.set_pipeline(&pipeline.inner);
     }
 
+    pub fn begin_solids(&mut self, pipeline: &'a SolidPipeline) {
+        self.inner.set_pipeline(&pipeline.inner);
+    }
+
+    pub fn begin_sprites(&mut self, pipeline: &'a SpritePipeline) {
+        self.inner.set_pipeline(&pipeline.inner);
+    }
+
     pub fn draw_lines(&mut self, buffer: &'a TypedBuffer<LineVertex>) {
         self.inner.set_vertex_buffer(0, buffer.inner.slice(..));
         self.inner.draw(0..buffer.len as u32, 0..1);
-    }
-
-    pub fn begin_brushes(&mut self, pipeline: &'a BrushPipeline) {
-        self.inner.set_pipeline(&pipeline.inner);
     }
 
     pub fn draw_mesh<V: Pod>(
