@@ -1,3 +1,4 @@
+mod brush;
 mod camera;
 mod config;
 
@@ -11,6 +12,7 @@ use crate::{
 };
 
 use self::{
+    brush::BrushBank,
     camera::{SpriteCamera, WorldCamera},
     ActionBinding::*,
 };
@@ -77,9 +79,10 @@ actions! {
 pub struct Editor {
     solid_factory: SolidFactory,
     line_factory: LineFactory,
-    mode: EditMode,
     world_camera: WorldCamera,
     sprite_camera: SpriteCamera,
+    brush_bank: BrushBank,
+    mode: EditMode,
     grid: Rc<LineBatch>,
 }
 
@@ -96,10 +99,11 @@ impl Editor {
         Self {
             solid_factory,
             line_factory,
-            grid,
+            world_camera: Default::default(),
+            sprite_camera: Default::default(),
+            brush_bank: Default::default(),
             mode: EditMode::Brush,
-            world_camera: WorldCamera::default(),
-            sprite_camera: SpriteCamera::default(),
+            grid,
         }
     }
 
@@ -119,6 +123,15 @@ impl Editor {
 
         self.sprite_camera
             .process(&mut scene.sprite_pass.camera_matrix);
+
+        self.brush_bank.process(
+            &self.mode,
+            &input,
+            &mut scene.world_pass.solid_batches,
+            &mut scene.sprite_pass.sprites,
+            &self.solid_factory,
+            &self.world_camera,
+        );
 
         scene.world_pass.line_batches.push(self.grid.clone());
     }

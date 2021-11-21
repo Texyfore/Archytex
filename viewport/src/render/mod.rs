@@ -3,7 +3,7 @@ mod gpu;
 use std::{collections::HashMap, rc::Rc};
 
 use bytemuck::{Pod, Zeroable};
-use cgmath::{Matrix4, Vector2};
+use cgmath::{Matrix4, Vector2, Vector3};
 use image::DynamicImage;
 use wgpu::{BufferUsages, Sampler};
 use winit::window::Window;
@@ -14,7 +14,6 @@ use self::gpu::{
 };
 
 pub type Position = [f32; 3];
-pub type Position2D = [f32; 2];
 pub type Normal = [f32; 3];
 pub type TexCoord = [f32; 2];
 pub type Color = [f32; 4];
@@ -42,7 +41,7 @@ pub struct SolidVertex {
 #[repr(C)]
 #[derive(Clone, Copy, Pod, Zeroable)]
 pub struct SpriteVertex {
-    pub position: Position2D,
+    pub position: Position,
     pub texcoord: TexCoord,
     pub color: Color,
 }
@@ -176,7 +175,7 @@ pub struct Scene<'a> {
 
 pub struct WorldPass {
     pub camera_matrix: Matrix4<f32>,
-    pub solid_batches: HashMap<TextureID, Vec<Rc<SolidBatch>>>,
+    pub solid_batches: Vec<(TextureID, Rc<SolidBatch>)>,
     pub line_batches: Vec<Rc<LineBatch>>,
 }
 
@@ -186,8 +185,9 @@ pub struct SpritePass {
 }
 
 pub struct Sprite {
-    pub origin: Vector2<f32>,
+    pub origin: Vector3<f32>,
     pub extent: Vector2<f32>,
+    pub color: Color,
 }
 
 pub struct SceneRenderer {
@@ -236,12 +236,10 @@ impl SceneRenderer {
                 pass.set_ubg(0, &self.world_camera_group);
 
                 pass.begin_solids(&self.solid_pipeline);
-                for (texture, batches) in &world_pass.solid_batches {
+                for (texture, batch) in &world_pass.solid_batches {
                     if let Some(texture) = scene.texture_bank.textures.get(&texture) {
                         pass.set_texture(texture);
-                        for batch in batches {
-                            pass.draw_mesh(&batch.vertices, &batch.triangles);
-                        }
+                        pass.draw_mesh(&batch.vertices, &batch.triangles);
                     }
                 }
 
@@ -277,33 +275,45 @@ fn build_sprite_batch(
     let mut vertices = Vec::with_capacity(sprites.len() * 4);
     let mut triangles = Vec::with_capacity(sprites.len() * 2);
 
-    for p in sprites {
+    for sprite in sprites {
         let t0 = vertices.len() as u16;
         triangles.push([t0 + 0, t0 + 1, t0 + 2]);
         triangles.push([t0 + 0, t0 + 2, t0 + 3]);
 
         vertices.push(SpriteVertex {
-            position: [p.origin.x + 0.0, p.origin.y + p.extent.y],
+            position: [
+                sprite.origin.x,
+                sprite.origin.y + sprite.extent.y,
+                sprite.origin.z,
+            ],
             texcoord: [0.0, 1.0],
-            color: [1.0; 4],
+            color: sprite.color,
         });
 
         vertices.push(SpriteVertex {
-            position: [p.origin.x + p.extent.x, p.origin.y + p.extent.y],
+            position: [
+                sprite.origin.x + sprite.extent.x,
+                sprite.origin.y + sprite.extent.y,
+                sprite.origin.z,
+            ],
             texcoord: [1.0, 1.0],
-            color: [1.0; 4],
+            color: sprite.color,
         });
 
         vertices.push(SpriteVertex {
-            position: [p.origin.x + p.extent.x, p.origin.y + 0.0],
+            position: [
+                sprite.origin.x + sprite.extent.x,
+                sprite.origin.y,
+                sprite.origin.z,
+            ],
             texcoord: [1.0, 0.0],
-            color: [1.0; 4],
+            color: sprite.color,
         });
 
         vertices.push(SpriteVertex {
-            position: [p.origin.x + 0.0, p.origin.y + 0.0],
+            position: sprite.origin.into(),
             texcoord: [0.0, 0.0],
-            color: [1.0; 4],
+            color: sprite.color,
         });
     }
 
