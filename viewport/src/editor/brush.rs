@@ -1,9 +1,10 @@
-use std::{collections::HashMap, rc::Rc};
+use std::{cmp::Ordering, collections::HashMap, rc::Rc};
 
 use cgmath::{vec3, ElementWise, InnerSpace, Vector3};
 
 use crate::{
     input::InputMapper,
+    math::{Intersects, Ray, Triangle},
     render::{SolidBatch, SolidFactory, SolidVertex, TextureID, WorldPass},
 };
 
@@ -30,6 +31,11 @@ struct Face {
     quad: [u16; 4],
     texture: TextureID,
     selected: bool,
+}
+
+struct RaycastResult {
+    brush_id: usize,
+    face_id: usize,
 }
 
 impl BrushBank {
@@ -82,6 +88,43 @@ impl BrushBank {
             .iter()
             .map(|(t, (v, i))| (*t, factory.create(&v, &i)))
             .collect();
+    }
+
+    fn raycast(&self, ray: Ray) -> Option<RaycastResult> {
+        let mut hits = Vec::new();
+        for (i, brush) in self.brushes.iter().enumerate() {
+            for (j, face) in brush.faces.iter().enumerate() {
+                let tri0 = Triangle {
+                    a: brush.points[face.quad[0] as usize].position,
+                    b: brush.points[face.quad[1] as usize].position,
+                    c: brush.points[face.quad[2] as usize].position,
+                };
+
+                let tri1 = Triangle {
+                    a: brush.points[face.quad[0] as usize].position,
+                    b: brush.points[face.quad[2] as usize].position,
+                    c: brush.points[face.quad[3] as usize].position,
+                };
+
+                let center = tri0.a * 0.25 + tri0.b * 0.25 + tri0.c * 0.25 + tri1.c * 0.25;
+
+                if ray.intersects(&tri0) || ray.intersects(&tri1) {
+                    hits.push((i, j, center));
+                }
+            }
+        }
+
+        hits.sort_unstable_by(|(_, _, c1), (_, _, c2)| {
+            let a = (c1 - ray.origin).magnitude2();
+            let b = (c2 - ray.origin).magnitude2();
+            a.partial_cmp(&b).unwrap_or(Ordering::Equal)
+        });
+
+        if let Some((brush_id, face_id, _)) = hits.get(0).copied() {
+            Some(RaycastResult { brush_id, face_id })
+        } else {
+            None
+        }
     }
 }
 
