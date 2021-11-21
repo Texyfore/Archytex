@@ -54,115 +54,136 @@ impl BrushBank {
         camera: &WorldCamera,
     ) {
         match mode {
-            EditMode::Brush => {
-                if input.is_active_once(Select) {
-                    let mut needs_rebuild = false;
-
-                    if !input.is_active(EnableMultiSelect) {
-                        for brush in &mut self.brushes {
-                            brush.selected = false;
-                        }
-                        needs_rebuild = true;
-                    }
-
-                    if let Some(hit) = self.raycast(camera.screen_ray(input.mouse_pos())) {
-                        let selected = &mut self.brushes[hit.brush_id].selected;
-                        *selected = !*selected;
-                        needs_rebuild = true;
-                    }
-
-                    if needs_rebuild {
-                        self.rebuild(&solid_factory);
-                    }
-                }
-
-                if input.is_active_once(AddBrush) && input.is_active(EnableAddBrush) {
-                    self.brushes
-                        .push(Brush::cuboid(vec3(0.0, 0.0, 0.0), vec3(1.0, 1.0, 1.0)));
-                    self.rebuild(&solid_factory);
-                }
-            }
-            EditMode::Face => {
-                if input.is_active_once(Select) {
-                    let mut needs_rebuild = false;
-
-                    if !input.is_active(EnableMultiSelect) {
-                        for brush in &mut self.brushes {
-                            for face in &mut brush.faces {
-                                face.selected = false;
-                            }
-                        }
-                        needs_rebuild = true;
-                    }
-
-                    if let Some(hit) = self.raycast(camera.screen_ray(input.mouse_pos())) {
-                        let selected = &mut self.brushes[hit.brush_id].faces[hit.face_id].selected;
-                        *selected = !*selected;
-                        needs_rebuild = true;
-                    }
-
-                    if needs_rebuild {
-                        self.rebuild(&solid_factory);
-                    }
-                }
-            }
-            EditMode::Vertex => {
-                if input.is_active_once(Select) {
-                    if !input.is_active(EnableMultiSelect) {
-                        for brush in &mut self.brushes {
-                            for point in &mut brush.points {
-                                point.selected = false;
-                            }
-                        }
-                    }
-
-                    let mut selection_candidates = Vec::new();
-
-                    for (i, brush) in self.brushes.iter_mut().enumerate() {
-                        for (j, point) in brush.points.iter_mut().enumerate() {
-                            if let Some(screen_pos) = camera.project(point.position, 0.0) {
-                                let screen_pos = vec2(screen_pos.x, screen_pos.y);
-                                let dist = (screen_pos - input.mouse_pos()).magnitude2();
-                                if dist < POINT_SELECT_RADIUS * POINT_SELECT_RADIUS {
-                                    selection_candidates.push((i, j, dist));
-                                }
-                            }
-                        }
-                    }
-
-                    selection_candidates.sort_unstable_by(|(_, _, a), (_, _, b)| {
-                        a.partial_cmp(&b).unwrap_or(Ordering::Equal)
-                    });
-
-                    if let Some((i, j, _)) = selection_candidates.get(0).copied() {
-                        let selected = &mut self.brushes[i].points[j].selected;
-                        *selected = !*selected;
-                    }
-                }
-
-                let mut vertex_sprites = Vec::new();
-                for brush in &self.brushes {
-                    for point in &brush.points {
-                        let color = if point.selected {
-                            VERTEX_HIGHLIGHT_COLOR
-                        } else {
-                            [0.0, 0.0, 0.0, 1.0]
-                        };
-
-                        if let Some(origin) = camera.project(point.position, -0.001) {
-                            vertex_sprites.push(Sprite {
-                                origin: origin - vec3(5.0, 5.0, 0.0),
-                                extent: vec2(10.0, 10.0),
-                                color,
-                            });
-                        }
-                    }
-                }
-                sprites.insert(1, vertex_sprites);
-            }
+            EditMode::Brush => self.brush_mode(input, camera, solid_factory),
+            EditMode::Face => self.face_mode(input, camera, solid_factory),
+            EditMode::Vertex => self.vertex_mode(input, camera, sprites),
         }
 
         *solid_batches = self.batches.clone();
+    }
+
+    fn brush_mode(
+        &mut self,
+        input: &InputMapper,
+        camera: &WorldCamera,
+        solid_factory: &SolidFactory,
+    ) {
+        if input.is_active_once(Select) {
+            let mut needs_rebuild = false;
+
+            if !input.is_active(EnableMultiSelect) {
+                for brush in &mut self.brushes {
+                    brush.selected = false;
+                }
+                needs_rebuild = true;
+            }
+
+            if let Some(hit) = self.raycast(camera.screen_ray(input.mouse_pos())) {
+                let selected = &mut self.brushes[hit.brush_id].selected;
+                *selected = !*selected;
+                needs_rebuild = true;
+            }
+
+            if needs_rebuild {
+                self.rebuild(&solid_factory);
+            }
+        }
+
+        if input.is_active_once(AddBrush) && input.is_active(EnableAddBrush) {
+            self.brushes
+                .push(Brush::cuboid(vec3(0.0, 0.0, 0.0), vec3(1.0, 1.0, 1.0)));
+            self.rebuild(&solid_factory);
+        }
+    }
+
+    fn face_mode(
+        &mut self,
+        input: &InputMapper,
+        camera: &WorldCamera,
+        solid_factory: &SolidFactory,
+    ) {
+        if input.is_active_once(Select) {
+            let mut needs_rebuild = false;
+
+            if !input.is_active(EnableMultiSelect) {
+                for brush in &mut self.brushes {
+                    for face in &mut brush.faces {
+                        face.selected = false;
+                    }
+                }
+                needs_rebuild = true;
+            }
+
+            if let Some(hit) = self.raycast(camera.screen_ray(input.mouse_pos())) {
+                let selected = &mut self.brushes[hit.brush_id].faces[hit.face_id].selected;
+                *selected = !*selected;
+                needs_rebuild = true;
+            }
+
+            if needs_rebuild {
+                self.rebuild(&solid_factory);
+            }
+        }
+    }
+
+    fn vertex_mode(
+        &mut self,
+        input: &InputMapper,
+        camera: &WorldCamera,
+        sprites: &mut HashMap<TextureID, Vec<Sprite>>,
+    ) {
+        if input.is_active_once(Select) {
+            if !input.is_active(EnableMultiSelect) {
+                for brush in &mut self.brushes {
+                    for point in &mut brush.points {
+                        point.selected = false;
+                    }
+                }
+            }
+
+            let mut selection_candidates = Vec::new();
+
+            for (i, brush) in self.brushes.iter_mut().enumerate() {
+                for (j, point) in brush.points.iter_mut().enumerate() {
+                    if let Some(screen_pos) = camera.project(point.position, 0.0) {
+                        let screen_pos = vec2(screen_pos.x, screen_pos.y);
+                        let dist = (screen_pos - input.mouse_pos()).magnitude2();
+                        if dist < POINT_SELECT_RADIUS * POINT_SELECT_RADIUS {
+                            selection_candidates.push((i, j, dist));
+                        }
+                    }
+                }
+            }
+
+            selection_candidates.sort_unstable_by(|(_, _, a), (_, _, b)| {
+                a.partial_cmp(&b).unwrap_or(Ordering::Equal)
+            });
+
+            if let Some((i, j, _)) = selection_candidates.get(0).copied() {
+                let selected = &mut self.brushes[i].points[j].selected;
+                *selected = !*selected;
+            }
+        }
+
+        let mut vertex_sprites = Vec::new();
+        for brush in &self.brushes {
+            for point in &brush.points {
+                let color = if point.selected {
+                    VERTEX_HIGHLIGHT_COLOR
+                } else {
+                    [0.0, 0.0, 0.0, 1.0]
+                };
+
+                if let Some(origin) = camera.project(point.position, -0.001) {
+                    vertex_sprites.push(Sprite {
+                        origin: origin - vec3(5.0, 5.0, 0.0),
+                        extent: vec2(10.0, 10.0),
+                        color,
+                    });
+                }
+            }
+        }
+        sprites.insert(1, vertex_sprites);
     }
 
     fn rebuild(&mut self, factory: &SolidFactory) {
