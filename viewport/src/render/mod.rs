@@ -176,7 +176,7 @@ pub struct Scene<'a> {
 
 pub struct WorldPass {
     pub camera_matrix: Matrix4<f32>,
-    pub solid_batches: HashMap<TextureID, Vec<Rc<SolidBatch>>>,
+    pub solid_batches: Vec<(TextureID, Rc<SolidBatch>)>,
     pub line_batches: Vec<Rc<LineBatch>>,
 }
 
@@ -236,12 +236,10 @@ impl SceneRenderer {
                 pass.set_ubg(0, &self.world_camera_group);
 
                 pass.begin_solids(&self.solid_pipeline);
-                for (texture, batches) in &world_pass.solid_batches {
+                for (texture, batch) in &world_pass.solid_batches {
                     if let Some(texture) = scene.texture_bank.textures.get(&texture) {
                         pass.set_texture(texture);
-                        for batch in batches {
-                            pass.draw_mesh(&batch.vertices, &batch.triangles);
-                        }
+                        pass.draw_mesh(&batch.vertices, &batch.triangles);
                     }
                 }
 
