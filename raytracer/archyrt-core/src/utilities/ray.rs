@@ -1,5 +1,7 @@
 use std::convert::identity;
 
+use crate::intersectables;
+
 use super::math::Vec3;
 
 #[derive(Clone, Copy, Default)]
@@ -92,5 +94,14 @@ where
             .filter(|(distance, _)| distance.is_normal())
             .min_by(|a, b| a.0.partial_cmp(&b.0).unwrap())
             .and_then(|(_, a)| Some(a))
+    }
+}
+
+impl<T> Intersectable for &T
+where
+    T: Intersectable,
+{
+    fn intersect(&self, ray: Ray) -> Option<Intersection> {
+        (*self).intersect(ray)
     }
 }

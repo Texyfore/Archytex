@@ -1,8 +1,8 @@
-use std::path::Path;
 use anyhow::anyhow;
 use anyhow::bail;
 use anyhow::Result;
 use cgmath::Angle;
+use std::path::Path;
 
 use crate::cameras::perspective::PerspectiveCamera;
 use crate::intersectables::triangle::Triangle;
@@ -42,7 +42,8 @@ impl GltfLoader {
                 ),
             };
             Some(camera)
-        }.ok_or(anyhow!("No camera found"))?;
+        }
+        .ok_or(anyhow!("No camera found"))?;
         let triangles = if scene.models.len() <= 0 {
             None
         } else {
@@ -65,7 +66,8 @@ impl GltfLoader {
                     })
                     .collect(),
             )
-        }.ok_or(anyhow!("Could not get model"))?;
+        }
+        .ok_or(anyhow!("Could not get model"))?;
         Ok(GltfLoader { camera, triangles })
     }
 }

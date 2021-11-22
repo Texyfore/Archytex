@@ -8,6 +8,7 @@ use crate::{
     vector,
 };
 
+#[derive(Debug)]
 pub struct PerspectiveCamera {
     pub matrix: Matrix<3, 3>,
     pub position: Vec3,
