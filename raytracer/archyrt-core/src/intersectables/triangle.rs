@@ -8,6 +8,7 @@ use crate::{
 
 use super::aabb::AABB;
 
+#[derive(Debug)]
 pub struct Triangle {
     pub a: Vec3,
     pub b: Vec3,

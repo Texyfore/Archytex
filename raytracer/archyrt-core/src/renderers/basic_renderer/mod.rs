@@ -45,7 +45,7 @@ impl<T: Camera, K: Intersectable> FragmentRender for BasicRenderer<T, K> {
 
                 base * shadow
             }
-            None => Vec3::from_single(0.0),
+            None => Vec3::new(1.0, 0.0, 220.0 / 255.0),
         }
     }
 }
