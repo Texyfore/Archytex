@@ -5,11 +5,12 @@ pub trait IntersectionPoint<O> {
 }
 
 pub trait BoxUtil {
-    fn min(&self, rhs: &Self) -> Self;
-    fn max(&self, rhs: &Self) -> Self;
-    fn boxify(&self, length: f32) -> Self;
-    fn snap(&self, length: f32) -> Self;
-    fn coplanar(&self, rhs: &Self, length: f32) -> bool;
+    fn grid(self, length: f32) -> Vector3<i32>;
+}
+
+pub trait MinMax {
+    fn min(self, rhs: Self) -> Self;
+    fn max(self, rhs: Self) -> Self;
 }
 
 #[derive(Clone, Copy)]
@@ -90,32 +91,25 @@ impl IntersectionPoint<Plane> for Ray {
 }
 
 impl BoxUtil for Vector3<f32> {
-    fn min(&self, rhs: &Self) -> Self {
-        vec3(self.x.min(rhs.x), self.y.min(rhs.y), self.z.min(rhs.z))
-    }
-
-    fn max(&self, rhs: &Self) -> Self {
-        vec3(self.x.max(rhs.x), self.y.max(rhs.y), self.z.max(rhs.z))
-    }
-
-    fn boxify(&self, length: f32) -> Self {
-        vec3(self.x.max(length), self.y.max(length), self.z.max(length))
-    }
-
-    fn snap(&self, length: f32) -> Self {
+    fn grid(self, length: f32) -> Vector3<i32> {
         vec3(
-            snap(self.x, length),
-            snap(self.y, length),
-            snap(self.z, length),
+            grid(self.x, length),
+            grid(self.y, length),
+            grid(self.z, length),
         )
-    }
-
-    fn coplanar(&self, rhs: &Self, length: f32) -> bool {
-        let diff = rhs - self;
-        diff.x < length || diff.y < length || diff.z < length
     }
 }
 
-fn snap(x: f32, y: f32) -> f32 {
-    (x / y).round() * y
+impl MinMax for Vector3<i32> {
+    fn min(self, rhs: Self) -> Self {
+        vec3(self.x.min(rhs.x), self.y.min(rhs.y), self.z.min(rhs.z))
+    }
+
+    fn max(self, rhs: Self) -> Self {
+        vec3(self.x.max(rhs.x), self.y.max(rhs.y), self.z.max(rhs.z))
+    }
+}
+
+fn grid(x: f32, y: f32) -> i32 {
+    (x / y).floor() as i32
 }
