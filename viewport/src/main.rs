@@ -162,7 +162,7 @@ struct MainLoop {
 impl MainLoop {
     fn init(window: Window) -> Self {
         let gfx_init = render::init(&window);
-        let mut renderer = gfx_init.create_scene_renderer();
+        let renderer = gfx_init.create_scene_renderer();
         let mut texture_bank = gfx_init.create_texture_bank();
         let solid_factory = gfx_init.create_solid_factory();
         let line_factory = gfx_init.create_line_factory();
@@ -208,7 +208,7 @@ impl MainLoop {
     }
 
     #[cfg(target_arch = "wasm32")]
-    fn message_received(&mut self, msg: Message) {}
+    fn message_received(&mut self, _msg: Message) {}
 
     fn process(&mut self) {
         let mut scene = Scene {

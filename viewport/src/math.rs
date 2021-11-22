@@ -1,7 +1,15 @@
-use cgmath::{InnerSpace, Vector3};
+use cgmath::{vec3, InnerSpace, Vector3};
 
 pub trait IntersectionPoint<O> {
     fn intersection_point(&self, other: &O) -> Option<Vector3<f32>>;
+}
+
+pub trait BoxUtil {
+    fn min(&self, rhs: &Self) -> Self;
+    fn max(&self, rhs: &Self) -> Self;
+    fn boxify(&self, length: f32) -> Self;
+    fn snap(&self, length: f32) -> Self;
+    fn coplanar(&self, rhs: &Self, length: f32) -> bool;
 }
 
 #[derive(Clone, Copy)]
@@ -19,6 +27,14 @@ pub struct Triangle {
 pub struct Plane {
     pub origin: Vector3<f32>,
     pub normal: Vector3<f32>,
+}
+
+impl Triangle {
+    pub fn normal(&self) -> Vector3<f32> {
+        let edge0 = self.b - self.a;
+        let edge1 = self.c - self.a;
+        edge0.cross(edge1).normalize()
+    }
 }
 
 impl Ray {
@@ -71,4 +87,35 @@ impl IntersectionPoint<Plane> for Ray {
         let t = (other.origin - self.origin).dot(other.normal) / self.vec().dot(other.normal);
         Some(self.origin + self.vec() * t)
     }
+}
+
+impl BoxUtil for Vector3<f32> {
+    fn min(&self, rhs: &Self) -> Self {
+        vec3(self.x.min(rhs.x), self.y.min(rhs.y), self.z.min(rhs.z))
+    }
+
+    fn max(&self, rhs: &Self) -> Self {
+        vec3(self.x.max(rhs.x), self.y.max(rhs.y), self.z.max(rhs.z))
+    }
+
+    fn boxify(&self, length: f32) -> Self {
+        vec3(self.x.max(length), self.y.max(length), self.z.max(length))
+    }
+
+    fn snap(&self, length: f32) -> Self {
+        vec3(
+            snap(self.x, length),
+            snap(self.y, length),
+            snap(self.z, length),
+        )
+    }
+
+    fn coplanar(&self, rhs: &Self, length: f32) -> bool {
+        let diff = rhs - self;
+        diff.x < length || diff.y < length || diff.z < length
+    }
+}
+
+fn snap(x: f32, y: f32) -> f32 {
+    (x / y).round() * y
 }

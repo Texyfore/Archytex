@@ -1,24 +1,31 @@
 use std::{cmp::Ordering, collections::HashMap, rc::Rc};
 
-use cgmath::{vec2, vec3, ElementWise, InnerSpace, Vector3};
+use cgmath::{vec2, vec3, ElementWise, InnerSpace, Vector2, Vector3, Zero};
 
 use crate::{
     input::InputMapper,
-    math::{IntersectionPoint, Ray, Triangle},
-    render::{SolidBatch, SolidFactory, SolidVertex, Sprite, TextureID},
+    math::{BoxUtil, IntersectionPoint, Plane, Ray, Triangle},
+    render::{
+        LineBatch, LineFactory, LineVertex, SolidBatch, SolidFactory, SolidVertex, Sprite,
+        TextureID,
+    },
 };
 
 use super::{
     camera::WorldCamera,
-    config::{FACE_HIGHLIGHT_COLOR, POINT_SELECT_RADIUS, VERTEX_HIGHLIGHT_COLOR},
+    config::{
+        FACE_HIGHLIGHT_COLOR, NEW_BRUSH_MIN_SCREEN_DISTANCE, POINT_SELECT_RADIUS,
+        VERTEX_HIGHLIGHT_COLOR,
+    },
     ActionBinding::*,
     EditMode,
 };
 
-#[derive(Default)]
 pub struct BrushBank {
     brushes: Vec<Brush>,
     batches: Vec<(TextureID, Rc<SolidBatch>)>,
+    new_brush: NewBrush,
+    needs_rebuild: bool,
 }
 
 struct Brush {
@@ -38,10 +45,45 @@ struct Face {
     selected: bool,
 }
 
+#[derive(Default)]
+struct NewBrush {
+    start: Option<NewBrushPoint>,
+    end: Option<NewBrushPoint>,
+    bocks: Option<NewBrushBox>,
+}
+
+struct NewBrushPoint {
+    world: Vector3<f32>,
+    normal: Vector3<f32>,
+    screen: Vector2<f32>,
+}
+
+struct NewBrushBox {
+    origin: Vector3<f32>,
+    extent: Vector3<f32>,
+    batch: Rc<LineBatch>,
+}
+
 struct RaycastResult {
+    brush: Option<RaycastBrush>,
+    point: Vector3<f32>,
+    normal: Vector3<f32>,
+}
+
+struct RaycastBrush {
     brush_id: usize,
     face_id: usize,
-    point: Vector3<f32>,
+}
+
+impl Default for BrushBank {
+    fn default() -> Self {
+        Self {
+            brushes: Default::default(),
+            batches: Default::default(),
+            new_brush: Default::default(),
+            needs_rebuild: false,
+        }
+    }
 }
 
 impl BrushBank {
@@ -49,15 +91,61 @@ impl BrushBank {
         &mut self,
         mode: &EditMode,
         input: &InputMapper,
-        solid_batches: &mut Vec<(TextureID, Rc<SolidBatch>)>,
-        sprites: &mut HashMap<TextureID, Vec<Sprite>>,
-        solid_factory: &SolidFactory,
         camera: &WorldCamera,
+        solid_factory: &SolidFactory,
+        line_factory: &LineFactory,
+        solid_batches: &mut Vec<(TextureID, Rc<SolidBatch>)>,
+        line_batches: &mut Vec<Rc<LineBatch>>,
+        sprites: &mut HashMap<TextureID, Vec<Sprite>>,
     ) {
         match mode {
-            EditMode::Brush => self.brush_mode(input, camera, solid_factory),
-            EditMode::Face => self.face_mode(input, camera, solid_factory),
+            EditMode::Brush => self.brush_mode(input, camera, line_factory, line_batches),
+            EditMode::Face => self.face_mode(input, camera),
             EditMode::Vertex => self.vertex_mode(input, camera, sprites),
+        }
+
+        if self.needs_rebuild {
+            let mut batches = HashMap::new();
+            for brush in &self.brushes {
+                for face in &brush.faces {
+                    if !batches.contains_key(&face.texture) {
+                        batches.insert(face.texture, (Vec::new(), Vec::new()));
+                    }
+
+                    let (vertices, triangles) = batches.get_mut(&face.texture).unwrap();
+
+                    let t0 = vertices.len() as u16;
+                    triangles.push([t0 + 0, t0 + 1, t0 + 2]);
+                    triangles.push([t0 + 0, t0 + 2, t0 + 3]);
+
+                    let points = face.quad.map(|i| brush.points[i as usize].position);
+                    let edge0 = points[1] - points[0];
+                    let edge1 = points[3] - points[0];
+                    let normal = (edge0.cross(edge1)).normalize();
+
+                    let color = if face.selected || brush.selected {
+                        FACE_HIGHLIGHT_COLOR
+                    } else {
+                        [1.0; 4]
+                    };
+
+                    for point in points {
+                        vertices.push(SolidVertex {
+                            position: point.into(),
+                            normal: normal.into(),
+                            texcoord: [0.0, 0.0],
+                            color,
+                        });
+                    }
+                }
+            }
+
+            self.batches = batches
+                .iter()
+                .map(|(t, (v, i))| (*t, solid_factory.create(&v, &i)))
+                .collect();
+
+            self.needs_rebuild = false;
         }
 
         *solid_batches = self.batches.clone();
@@ -67,62 +155,112 @@ impl BrushBank {
         &mut self,
         input: &InputMapper,
         camera: &WorldCamera,
-        solid_factory: &SolidFactory,
+        line_factory: &LineFactory,
+        line_batches: &mut Vec<Rc<LineBatch>>,
     ) {
-        if input.is_active_once(Select) {
-            let mut needs_rebuild = false;
+        if input.is_active_once(AddBrush) {
+            self.new_brush.start = self
+                .raycast_or_xz(camera.screen_ray(input.mouse_pos()))
+                .map(|r| NewBrushPoint {
+                    world: r.point,
+                    normal: r.normal,
+                    screen: input.mouse_pos(),
+                });
+        }
 
+        if input.is_active(AddBrush) {
+            self.new_brush.end = self
+                .raycast_or_xz(camera.screen_ray(input.mouse_pos()))
+                .map(|r| NewBrushPoint {
+                    world: r.point,
+                    normal: r.normal,
+                    screen: input.mouse_pos(),
+                });
+
+            if let (Some(start), Some(end)) =
+                (self.new_brush.start.as_ref(), self.new_brush.end.as_ref())
+            {
+                const MIN_SQR: f32 = NEW_BRUSH_MIN_SCREEN_DISTANCE * NEW_BRUSH_MIN_SCREEN_DISTANCE;
+                let dist_sqr = (end.screen - start.screen).magnitude2();
+
+                if dist_sqr > MIN_SQR {
+                    let min = start.world.min(&end.world).snap(1.0);
+                    let mut max = start.world.max(&end.world).snap(1.0);
+
+                    if min.coplanar(&max, 1.0) {
+                        max += end.normal.normalize() * 1.0;
+                    }
+
+                    let origin = min.min(&max);
+                    let max = min.max(&max);
+                    let extent = (max - min).boxify(1.0);
+                    self.new_brush.bocks = Some(NewBrushBox {
+                        origin,
+                        extent,
+                        batch: line_factory.create(&build_grid_box(origin, extent)),
+                    });
+                }
+            }
+        }
+
+        let mut can_select = true;
+        if input.was_active_once(AddBrush) {
+            if let Some(bocks) = self.new_brush.bocks.as_ref() {
+                self.brushes.push(Brush::cuboid(bocks.origin, bocks.extent));
+
+                for brush in &mut self.brushes {
+                    brush.selected = false;
+                }
+
+                self.new_brush.start = None;
+                self.new_brush.end = None;
+                self.new_brush.bocks = None;
+                self.needs_rebuild = true;
+                can_select = false;
+            }
+        }
+
+        if input.was_active_once(Select) && can_select {
             if !input.is_active(EnableMultiSelect) {
                 for brush in &mut self.brushes {
                     brush.selected = false;
                 }
-                needs_rebuild = true;
+                self.needs_rebuild = true;
             }
 
-            if let Some(hit) = self.raycast(camera.screen_ray(input.mouse_pos())) {
-                let selected = &mut self.brushes[hit.brush_id].selected;
+            if let Some(RaycastResult {
+                brush: Some(brush), ..
+            }) = self.raycast(camera.screen_ray(input.mouse_pos()))
+            {
+                let selected = &mut self.brushes[brush.brush_id].selected;
                 *selected = !*selected;
-                needs_rebuild = true;
-            }
-
-            if needs_rebuild {
-                self.rebuild(&solid_factory);
+                self.needs_rebuild = true;
             }
         }
 
-        if input.is_active_once(AddBrush) && input.is_active(EnableAddBrush) {
-            self.brushes
-                .push(Brush::cuboid(vec3(0.0, 0.0, 0.0), vec3(1.0, 1.0, 1.0)));
-            self.rebuild(&solid_factory);
+        if let Some(bocks) = self.new_brush.bocks.as_ref() {
+            line_batches.push(bocks.batch.clone());
         }
     }
 
-    fn face_mode(
-        &mut self,
-        input: &InputMapper,
-        camera: &WorldCamera,
-        solid_factory: &SolidFactory,
-    ) {
-        if input.is_active_once(Select) {
-            let mut needs_rebuild = false;
-
+    fn face_mode(&mut self, input: &InputMapper, camera: &WorldCamera) {
+        if input.was_active_once(Select) {
             if !input.is_active(EnableMultiSelect) {
                 for brush in &mut self.brushes {
                     for face in &mut brush.faces {
                         face.selected = false;
                     }
                 }
-                needs_rebuild = true;
+                self.needs_rebuild = true;
             }
 
-            if let Some(hit) = self.raycast(camera.screen_ray(input.mouse_pos())) {
-                let selected = &mut self.brushes[hit.brush_id].faces[hit.face_id].selected;
+            if let Some(RaycastResult {
+                brush: Some(brush), ..
+            }) = self.raycast(camera.screen_ray(input.mouse_pos()))
+            {
+                let selected = &mut self.brushes[brush.brush_id].faces[brush.face_id].selected;
                 *selected = !*selected;
-                needs_rebuild = true;
-            }
-
-            if needs_rebuild {
-                self.rebuild(&solid_factory);
+                self.needs_rebuild = true;
             }
         }
     }
@@ -133,7 +271,7 @@ impl BrushBank {
         camera: &WorldCamera,
         sprites: &mut HashMap<TextureID, Vec<Sprite>>,
     ) {
-        if input.is_active_once(Select) {
+        if input.was_active_once(Select) {
             if !input.is_active(EnableMultiSelect) {
                 for brush in &mut self.brushes {
                     for point in &mut brush.points {
@@ -211,48 +349,6 @@ impl BrushBank {
         sprites.insert(1, vertex_sprites);
     }
 
-    fn rebuild(&mut self, factory: &SolidFactory) {
-        let mut batches = HashMap::new();
-        for brush in &self.brushes {
-            for face in &brush.faces {
-                if !batches.contains_key(&face.texture) {
-                    batches.insert(face.texture, (Vec::new(), Vec::new()));
-                }
-
-                let (vertices, triangles) = batches.get_mut(&face.texture).unwrap();
-
-                let t0 = vertices.len() as u16;
-                triangles.push([t0 + 0, t0 + 1, t0 + 2]);
-                triangles.push([t0 + 0, t0 + 2, t0 + 3]);
-
-                let points = face.quad.map(|i| brush.points[i as usize].position);
-                let edge0 = points[1] - points[0];
-                let edge1 = points[3] - points[0];
-                let normal = (edge0.cross(edge1)).normalize();
-
-                let color = if face.selected || brush.selected {
-                    FACE_HIGHLIGHT_COLOR
-                } else {
-                    [1.0; 4]
-                };
-
-                for point in points {
-                    vertices.push(SolidVertex {
-                        position: point.into(),
-                        normal: normal.into(),
-                        texcoord: [0.0, 0.0],
-                        color,
-                    });
-                }
-            }
-        }
-
-        self.batches = batches
-            .iter()
-            .map(|(t, (v, i))| (*t, factory.create(&v, &i)))
-            .collect();
-    }
-
     fn raycast(&self, ray: Ray) -> Option<RaycastResult> {
         let mut hits = Vec::new();
         for (i, brush) in self.brushes.iter().enumerate() {
@@ -270,28 +366,43 @@ impl BrushBank {
                 };
 
                 if let Some(point) = ray.intersection_point(&tri0) {
-                    hits.push((i, j, point));
+                    hits.push((i, j, point, tri0.normal()));
                 } else if let Some(point) = ray.intersection_point(&tri1) {
-                    hits.push((i, j, point));
+                    hits.push((i, j, point, tri1.normal()));
                 }
             }
         }
 
-        hits.sort_unstable_by(|(_, _, c1), (_, _, c2)| {
+        hits.sort_unstable_by(|(_, _, c1, _), (_, _, c2, _)| {
             let a = (c1 - ray.origin).magnitude2();
             let b = (c2 - ray.origin).magnitude2();
             a.partial_cmp(&b).unwrap_or(Ordering::Equal)
         });
 
-        if let Some((brush_id, face_id, point)) = hits.get(0).copied() {
+        if let Some((brush_id, face_id, point, normal)) = hits.get(0).copied() {
             Some(RaycastResult {
-                brush_id,
-                face_id,
+                brush: Some(RaycastBrush { brush_id, face_id }),
                 point,
+                normal,
             })
         } else {
             None
         }
+    }
+
+    fn raycast_or_xz(&self, ray: Ray) -> Option<RaycastResult> {
+        self.raycast(ray).or_else(|| {
+            let plane = Plane {
+                origin: Vector3::zero(),
+                normal: Vector3::unit_y(),
+            };
+
+            ray.intersection_point(&plane).map(|p| RaycastResult {
+                brush: None,
+                point: p,
+                normal: plane.normal,
+            })
+        })
     }
 }
 
@@ -332,4 +443,62 @@ impl Brush {
             selected: false,
         }
     }
+}
+
+fn build_grid_box(origin: Vector3<f32>, extent: Vector3<f32>) -> Vec<LineVertex> {
+    const LIM: f32 = 0.01;
+
+    let corrections = [
+        vec3(LIM, LIM, LIM),
+        vec3(-LIM, LIM, LIM),
+        vec3(-LIM, LIM, -LIM),
+        vec3(LIM, LIM, -LIM),
+        vec3(LIM, -LIM, LIM),
+        vec3(-LIM, -LIM, LIM),
+        vec3(-LIM, -LIM, -LIM),
+        vec3(LIM, -LIM, -LIM),
+    ];
+
+    let mut points = [
+        vec3(0.0, 0.0, 0.0),
+        vec3(1.0, 0.0, 0.0),
+        vec3(1.0, 0.0, 1.0),
+        vec3(0.0, 0.0, 1.0),
+        vec3(0.0, 1.0, 0.0),
+        vec3(1.0, 1.0, 0.0),
+        vec3(1.0, 1.0, 1.0),
+        vec3(0.0, 1.0, 1.0),
+    ];
+
+    for (i, p) in points.iter_mut().enumerate() {
+        *p = origin + p.mul_element_wise(extent) + corrections[i];
+    }
+
+    let lines = [
+        [0, 1],
+        [1, 2],
+        [2, 3],
+        [3, 0],
+        [4, 5],
+        [5, 6],
+        [6, 7],
+        [7, 4],
+        [0, 4],
+        [1, 5],
+        [2, 6],
+        [3, 7],
+    ];
+
+    let mut vertices = Vec::new();
+
+    for line in lines {
+        for point in line {
+            vertices.push(LineVertex {
+                position: points[point].into(),
+                color: [0.0, 0.0, 0.0, 1.0],
+            });
+        }
+    }
+
+    vertices
 }

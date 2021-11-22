@@ -18,14 +18,10 @@ impl InputMapper {
             if action.trigger == trigger {
                 match state {
                     ElementState::Pressed => {
-                        if !action.active {
-                            action.active_once = true;
-                        }
                         action.active = true;
                     }
                     ElementState::Released => {
                         action.active = false;
-                        action.active_once = false;
                     }
                 }
             }
@@ -42,7 +38,7 @@ impl InputMapper {
 
     pub fn tick(&mut self) {
         for (_, mut action) in &mut self.actions {
-            action.active_once = false;
+            action.active_before = action.active;
         }
         self.mouse_pos_before = self.mouse_pos;
         self.scroll_wheel = 0.0;
@@ -58,7 +54,7 @@ impl InputMapper {
                     Action {
                         trigger,
                         active: false,
-                        active_once: false,
+                        active_before: false,
                     },
                 )
             })
@@ -75,7 +71,15 @@ impl InputMapper {
 
     pub fn is_active_once(&self, action: ActionBinding) -> bool {
         if let Some(action) = self.actions.get(&action) {
-            action.active_once
+            action.active && !action.active_before
+        } else {
+            false
+        }
+    }
+
+    pub fn was_active_once(&self, action: ActionBinding) -> bool {
+        if let Some(action) = self.actions.get(&action) {
+            !action.active && action.active_before
         } else {
             false
         }
@@ -105,5 +109,5 @@ pub enum Trigger {
 struct Action {
     trigger: Trigger,
     active: bool,
-    active_once: bool,
+    active_before: bool,
 }
