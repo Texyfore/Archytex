@@ -8,6 +8,7 @@ use crate::{
 
 use super::aabb::AABB;
 
+#[derive(Debug)]
 pub struct Triangle {
     pub a: Vec3,
     pub b: Vec3,
@@ -28,13 +29,10 @@ impl Triangle {
             normal,
         }
     }
-    pub fn bounds(&self) -> AABB{
+    pub fn bounds(&self) -> AABB {
         let min = self.a.min(self.b).min(self.c);
         let max = self.a.max(self.b).max(self.c);
-        AABB{
-            min,
-            max,
-        }
+        AABB { min, max }
     }
 }
 
