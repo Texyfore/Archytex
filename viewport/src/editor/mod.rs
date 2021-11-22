@@ -59,7 +59,6 @@ actions! {
 
     // Brush manipulation /////////////
 
-    EnableAddBrush       Key LControl ,
     AddBrush             Btn Left     ,
     DeleteBrush          Key Delete   ,
 
@@ -127,10 +126,12 @@ impl Editor {
         self.brush_bank.process(
             &self.mode,
             &input,
-            &mut scene.world_pass.solid_batches,
-            &mut scene.sprite_pass.sprites,
-            &self.solid_factory,
             &self.world_camera,
+            &self.solid_factory,
+            &self.line_factory,
+            &mut scene.world_pass.solid_batches,
+            &mut scene.world_pass.line_batches,
+            &mut scene.sprite_pass.sprites,
         );
 
         scene.world_pass.line_batches.push(self.grid.clone());
