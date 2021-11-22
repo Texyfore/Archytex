@@ -16,8 +16,8 @@ impl AABB {
 
         Self { min, max }
     }
-    pub fn union(self, rhs: Self) -> AABB{
-        AABB{
+    pub fn union(self, rhs: Self) -> AABB {
+        AABB {
             min: self.min.min(rhs.min),
             max: self.max.max(rhs.max),
         }

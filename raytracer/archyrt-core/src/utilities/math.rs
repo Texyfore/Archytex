@@ -3,6 +3,8 @@ use std::{
     ops::{Add, AddAssign, Div, DivAssign, Index, IndexMut, Mul, MulAssign, Neg, Sub, SubAssign},
 };
 
+use cgmath::Vector3;
+
 #[derive(Clone, Copy, PartialEq)]
 pub struct Vector<const N: usize> {
     pub inner: [f64; N],
@@ -47,16 +49,16 @@ impl<const N: usize> Vector<N> {
         }
         o
     }
-    pub fn min(self, rhs: Self) -> Self{
+    pub fn min(self, rhs: Self) -> Self {
         let mut o = self;
-        for (a, b) in o.inner.iter_mut().zip(rhs.inner){
+        for (a, b) in o.inner.iter_mut().zip(rhs.inner) {
             *a = a.min(b);
         }
         o
     }
-    pub fn max(self, rhs: Self) -> Self{
+    pub fn max(self, rhs: Self) -> Self {
         let mut o = self;
-        for (a, b) in o.inner.iter_mut().zip(rhs.inner){
+        for (a, b) in o.inner.iter_mut().zip(rhs.inner) {
             *a = a.max(b);
         }
         o
@@ -307,6 +309,13 @@ impl Vec3 {
         )
     }
 }
+
+impl From<Vector3<f32>> for Vec3 {
+    fn from(a: Vector3<f32>) -> Self {
+        Self::new(a.x as f64, a.y as f64, a.z as f64)
+    }
+}
+
 pub type Vec2 = Vector<2>;
 
 impl Vec2 {
