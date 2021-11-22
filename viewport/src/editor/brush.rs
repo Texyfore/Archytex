@@ -4,7 +4,7 @@ use cgmath::{vec2, vec3, ElementWise, InnerSpace, Vector2, Vector3, Zero};
 
 use crate::{
     input::InputMapper,
-    math::{BoxUtil, IntersectionPoint, Plane, Ray, Triangle},
+    math::{BoxUtil, IntersectionPoint, MinMax, Plane, Ray, Triangle},
     render::{
         LineBatch, LineFactory, LineVertex, SolidBatch, SolidFactory, SolidVertex, Sprite,
         TextureID,
@@ -53,8 +53,7 @@ struct NewBrush {
 }
 
 struct NewBrushPoint {
-    world: Vector3<f32>,
-    normal: Vector3<f32>,
+    world: Vector3<i32>,
     screen: Vector2<f32>,
 }
 
@@ -159,23 +158,23 @@ impl BrushBank {
         line_batches: &mut Vec<Rc<LineBatch>>,
     ) {
         if input.is_active_once(AddBrush) {
-            self.new_brush.start = self
-                .raycast_or_xz(camera.screen_ray(input.mouse_pos()))
-                .map(|r| NewBrushPoint {
-                    world: r.point,
-                    normal: r.normal,
+            self.new_brush.start = {
+                let hit = self.raycast_or_xz(camera.screen_ray(input.mouse_pos()));
+                Some(NewBrushPoint {
+                    world: hit.point.grid(1.0),
                     screen: input.mouse_pos(),
-                });
+                })
+            };
         }
 
         if input.is_active(AddBrush) {
-            self.new_brush.end = self
-                .raycast_or_xz(camera.screen_ray(input.mouse_pos()))
-                .map(|r| NewBrushPoint {
-                    world: r.point,
-                    normal: r.normal,
+            self.new_brush.end = {
+                let hit = self.raycast_or_xz(camera.screen_ray(input.mouse_pos()));
+                Some(NewBrushPoint {
+                    world: hit.point.grid(1.0),
                     screen: input.mouse_pos(),
-                });
+                })
+            };
 
             if let (Some(start), Some(end)) =
                 (self.new_brush.start.as_ref(), self.new_brush.end.as_ref())
@@ -184,16 +183,12 @@ impl BrushBank {
                 let dist_sqr = (end.screen - start.screen).magnitude2();
 
                 if dist_sqr > MIN_SQR {
-                    let min = start.world.min(&end.world).snap(1.0);
-                    let mut max = start.world.max(&end.world).snap(1.0);
+                    let min = start.world.min(end.world).cast::<f32>().unwrap();
+                    let max = start.world.max(end.world).cast::<f32>().unwrap();
 
-                    if min.coplanar(&max, 1.0) {
-                        max += end.normal.normalize() * 1.0;
-                    }
+                    let origin = min;
+                    let extent = max - min + vec3(1.0, 1.0, 1.0);
 
-                    let origin = min.min(&max);
-                    let max = min.max(&max);
-                    let extent = (max - min).boxify(1.0);
                     self.new_brush.bocks = Some(NewBrushBox {
                         origin,
                         extent,
@@ -390,19 +385,24 @@ impl BrushBank {
         }
     }
 
-    fn raycast_or_xz(&self, ray: Ray) -> Option<RaycastResult> {
-        self.raycast(ray).or_else(|| {
+    fn raycast_or_xz(&self, ray: Ray) -> RaycastResult {
+        let mut result = self.raycast(ray).unwrap_or_else(|| {
             let plane = Plane {
                 origin: Vector3::zero(),
                 normal: Vector3::unit_y(),
             };
 
-            ray.intersection_point(&plane).map(|p| RaycastResult {
-                brush: None,
-                point: p,
-                normal: plane.normal,
-            })
-        })
+            ray.intersection_point(&plane)
+                .map(|p| RaycastResult {
+                    brush: None,
+                    point: p,
+                    normal: plane.normal,
+                })
+                .unwrap()
+        });
+
+        result.point += result.normal * 0.01;
+        result
     }
 }
 
