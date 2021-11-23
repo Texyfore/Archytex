@@ -2,6 +2,7 @@ import { Language } from "@mui/icons-material";
 import { IconButton, Menu, MenuItem, Tooltip, Typography } from "@mui/material";
 import { changeLanguage } from "i18next";
 import React from "react";
+import i18n from "i18next";
 
 //TODO: Get language options from api
 const languageOptions = [
@@ -28,9 +29,12 @@ export default function LanguageSelectDropdown({
   handleClose,
   anchorEl,
 }: LanguageMenuProps) {
-  const handleChangeLanguage = (id: string) => {
+  const handleChangeLanguage = (
+    id: string,
+    handleClose: (event: {}, reason: "backdropClick" | "escapeKeyDown") => void
+  ) => {
     changeLanguage(id);
-    console.log("changed language to " + id);
+    handleClose({}, "backdropClick");
   };
 
   return (
@@ -62,7 +66,7 @@ export default function LanguageSelectDropdown({
           //TODO: Handle language change on menu item click
           <MenuItem
             key={option.id}
-            onClick={() => handleChangeLanguage(option.id)}
+            onClick={() => handleChangeLanguage(option.id, handleClose)}
           >
             <Typography>
               {`${option.name}\t(${option.id.toUpperCase()})`}
