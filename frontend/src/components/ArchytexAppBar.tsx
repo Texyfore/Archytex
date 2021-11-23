@@ -85,7 +85,9 @@ function DashboardAppBar({ open, handleOpenChange }: AppBarProps) {
               handleClose={handleLanguageMenuClose}
               anchorEl={anchorEl}
             />
-            <Button variant='outlined'>Login / register</Button>
+            <Button variant='outlined' sx={{ marginLeft: 2 }}>
+              Login / register
+            </Button>
           </Box>
         </Toolbar>
       </CustomAppBar>
