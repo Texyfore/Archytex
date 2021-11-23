@@ -1,7 +1,7 @@
-import React, { Suspense } from "react";
+import React, { Suspense, useMemo, useState } from "react";
 import { BrowserRouter as Router, Switch, Route } from "react-router-dom";
 import i18n from "i18next";
-import { initReactI18next } from "react-i18next";
+import { initReactI18next, useTranslation } from "react-i18next";
 import "./App.css";
 import { ThemeProvider } from "@mui/material/styles";
 import { createTheme } from "@mui/material/styles";
@@ -64,6 +64,17 @@ i18n.use(initReactI18next).init({
 });
 
 function App() {
+  const { i18n } = useTranslation();
+  const fontFamily = useMemo(() => {
+    switch (i18n.language) {
+      case "jp":
+        return "Noto Sans JP";
+
+      default:
+        return "Poppins";
+    }
+  }, [i18n.language]);
+
   const archytex_theme = createTheme({
     palette: {
       mode: "dark",
@@ -95,10 +106,10 @@ function App() {
       divider: "#f5f0f6",
     },
     shape: {
-      borderRadius: 1,
+      borderRadius: 2,
     },
     typography: {
-      fontFamily: "Poppins",
+      fontFamily: fontFamily,
     },
   });
 
