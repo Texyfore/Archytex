@@ -1,4 +1,4 @@
-import React, { Suspense, useMemo, useState } from "react";
+import React, { Suspense, useMemo } from "react";
 import { BrowserRouter as Router, Switch, Route } from "react-router-dom";
 import i18n from "i18next";
 import { initReactI18next, useTranslation } from "react-i18next";
@@ -63,7 +63,37 @@ i18n.use(initReactI18next).init({
   interpolation: { escapeValue: false },
 });
 
+export const ColorModeContext = React.createContext({
+  toggleColorMode: () => {},
+});
+
 function App() {
+  return (
+    <Suspense fallback='Loading...'>
+      <CssBaseline />
+      <Router>
+        <Switch>
+          <Route exact path='/'>
+            <MainPage />
+          </Route>
+          <Route path='/dashboard'>
+            <Dashboard />
+          </Route>
+          <Route path='/login'>
+            <LoginPage />
+          </Route>
+          <Route path='/register'>
+            <RegisterPage />
+          </Route>
+        </Switch>
+      </Router>
+    </Suspense>
+  );
+}
+
+//This solution is not very nice for changing between color modes :/
+export default function ToggleColorMode() {
+  //set different font for Japanese language
   const { i18n } = useTranslation();
   const fontFamily = useMemo(() => {
     switch (i18n.language) {
@@ -75,67 +105,63 @@ function App() {
     }
   }, [i18n.language]);
 
-  const archytex_theme = createTheme({
-    palette: {
-      mode: "dark",
-      primary: {
-        main: "#39A0ED",
+  //switch between light and dark themes
+  const [mode, setMode] = React.useState<"light" | "dark">("light");
+  const colorMode = React.useMemo(
+    () => ({
+      toggleColorMode: () => {
+        setMode((prevMode) => (prevMode === "light" ? "dark" : "light"));
       },
-      secondary: {
-        main: "#f68dd1",
-      },
-      text: {
-        primary: "#f5f0f6",
-      },
-      background: {
-        default: "#0c0c0c",
-        paper: "#0c0c0c",
-      },
-      error: {
-        main: "#fb4d3d",
-      },
-      warning: {
-        main: "#fea82f",
-      },
-      info: {
-        main: "#4c6085",
-      },
-      success: {
-        main: "#13c4a3",
-      },
-      divider: "#f5f0f6",
-    },
-    shape: {
-      borderRadius: 2,
-    },
-    typography: {
-      fontFamily: fontFamily,
-    },
-  });
+    }),
+    []
+  );
+  const archytex_theme = React.useMemo(
+    () =>
+      createTheme({
+        palette: {
+          mode,
+          primary: {
+            main: "#39A0ED",
+          },
+          secondary: {
+            main: "#f68dd1",
+          },
+          text: {
+            primary: "#f5f0f6",
+          },
+          background: {
+            default: "#0c0c0c",
+            paper: "#0c0c0c",
+          },
+          error: {
+            main: "#fb4d3d",
+          },
+          warning: {
+            main: "#fea82f",
+          },
+          info: {
+            main: "#4c6085",
+          },
+          success: {
+            main: "#13c4a3",
+          },
+          divider: "#f5f0f6",
+        },
+        shape: {
+          borderRadius: 2,
+        },
+        typography: {
+          fontFamily: fontFamily,
+        },
+      }),
+    [mode, fontFamily]
+  );
 
   return (
-    <Suspense fallback='Loading...'>
+    <ColorModeContext.Provider value={colorMode}>
       <ThemeProvider theme={archytex_theme}>
-        <CssBaseline />
-        <Router>
-          <Switch>
-            <Route exact path='/'>
-              <MainPage />
-            </Route>
-            <Route path='/dashboard'>
-              <Dashboard />
-            </Route>
-            <Route path='/login'>
-              <LoginPage />
-            </Route>
-            <Route path='/register'>
-              <RegisterPage />
-            </Route>
-          </Switch>
-        </Router>
+        <App />
       </ThemeProvider>
-    </Suspense>
+    </ColorModeContext.Provider>
   );
 }
-
-export default App;
