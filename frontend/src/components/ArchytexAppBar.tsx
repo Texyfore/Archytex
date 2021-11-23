@@ -13,6 +13,7 @@ import ArchytexIcon from "./ArchytexIcon";
 import { styled } from "@mui/material/styles";
 import MainPageSwipeableDrawer from "./main-page-components/MainPageSwipeableDrawer";
 import LanguageSelectDropdown from "./LanguageSelectDropdown";
+import DarkModeSwitch from "./DarkModeSwitch";
 
 const CustomAppBar = styled(AppBar)(({ theme }) => ({
   zIndex: theme.zIndex.drawer + 1,
@@ -79,6 +80,7 @@ function DashboardAppBar({ open, handleOpenChange }: AppBarProps) {
             display={{ xs: "none", md: "flex" }}
             justifyContent='end'
           >
+            <DarkModeSwitch />
             <LanguageSelectDropdown
               open={languageMenuOpen}
               handleClick={handleLanguageMenuClick}
