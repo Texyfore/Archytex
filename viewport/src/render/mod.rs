@@ -214,7 +214,7 @@ impl SceneRenderer {
         let baked_sprites = {
             let mut map = HashMap::new();
             for (texture, sprites) in &sprite_pass.sprites {
-                if scene.texture_bank.textures.contains_key(&texture) {
+                if scene.texture_bank.textures.contains_key(texture) {
                     map.insert(*texture, build_sprite_batch(&self.ctx, sprites));
                 }
             }
@@ -237,7 +237,7 @@ impl SceneRenderer {
 
                 pass.begin_solids(&self.solid_pipeline);
                 for (texture, batch) in &world_pass.solid_batches {
-                    if let Some(texture) = scene.texture_bank.textures.get(&texture) {
+                    if let Some(texture) = scene.texture_bank.textures.get(texture) {
                         pass.set_texture(texture);
                         pass.draw_mesh(&batch.vertices, &batch.triangles);
                     }
@@ -256,7 +256,7 @@ impl SceneRenderer {
 
                 pass.begin_sprites(&self.sprite_pipeline);
                 for (texture, (vertices, triangles)) in &baked_sprites {
-                    if let Some(texture) = scene.texture_bank.textures.get(&texture) {
+                    if let Some(texture) = scene.texture_bank.textures.get(texture) {
                         pass.set_texture(texture);
                         pass.draw_mesh(vertices, triangles);
                     }
@@ -277,8 +277,8 @@ fn build_sprite_batch(
 
     for sprite in sprites {
         let t0 = vertices.len() as u16;
-        triangles.push([t0 + 0, t0 + 1, t0 + 2]);
-        triangles.push([t0 + 0, t0 + 2, t0 + 3]);
+        triangles.push([t0, t0 + 1, t0 + 2]);
+        triangles.push([t0, t0 + 2, t0 + 3]);
 
         vertices.push(SpriteVertex {
             position: [

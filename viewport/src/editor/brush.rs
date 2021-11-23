@@ -1,3 +1,5 @@
+#![allow(clippy::too_many_arguments)]
+
 use std::{cmp::Ordering, collections::HashMap, rc::Rc};
 
 use cgmath::{vec2, vec3, ElementWise, InnerSpace, Vector2, Vector3, Zero};
@@ -107,15 +109,15 @@ impl BrushBank {
             let mut batches = HashMap::new();
             for brush in &self.brushes {
                 for face in &brush.faces {
-                    if !batches.contains_key(&face.texture) {
-                        batches.insert(face.texture, (Vec::new(), Vec::new()));
-                    }
+                    batches
+                        .entry(face.texture)
+                        .or_insert_with(|| (Vec::new(), Vec::new()));
 
                     let (vertices, triangles) = batches.get_mut(&face.texture).unwrap();
 
                     let t0 = vertices.len() as u16;
-                    triangles.push([t0 + 0, t0 + 1, t0 + 2]);
-                    triangles.push([t0 + 0, t0 + 2, t0 + 3]);
+                    triangles.push([t0, t0 + 1, t0 + 2]);
+                    triangles.push([t0, t0 + 2, t0 + 3]);
 
                     let points = face.quad.map(|i| brush.points[i as usize].position);
                     let edge0 = points[1] - points[0];
@@ -135,12 +137,10 @@ impl BrushBank {
                             } else {
                                 vec2(point.x, point.y)
                             }
+                        } else if normal.y.abs() > normal.z.abs() {
+                            vec2(point.x, point.z)
                         } else {
-                            if normal.y.abs() > normal.z.abs() {
-                                vec2(point.x, point.z)
-                            } else {
-                                vec2(point.x, point.y)
-                            }
+                            vec2(point.x, point.y)
                         };
 
                         vertices.push(SolidVertex {
@@ -155,7 +155,7 @@ impl BrushBank {
 
             self.batches = batches
                 .iter()
-                .map(|(t, (v, i))| (*t, solid_factory.create(&v, &i)))
+                .map(|(t, (v, i))| (*t, solid_factory.create(v, i)))
                 .collect();
 
             self.needs_rebuild = false;
@@ -304,7 +304,7 @@ impl BrushBank {
             }
 
             selection_candidates.sort_unstable_by(|(_, _, a), (_, _, b)| {
-                a.partial_cmp(&b).unwrap_or(Ordering::Equal)
+                a.partial_cmp(b).unwrap_or(Ordering::Equal)
             });
 
             if let Some((i, j, _)) = selection_candidates.get(0).copied() {
