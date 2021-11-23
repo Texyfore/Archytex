@@ -229,6 +229,11 @@ impl BrushBank {
             }
         }
 
+        if input.is_active_once(DeleteBrush) {
+            self.brushes.retain(|b| !b.selected);
+            self.needs_rebuild = true;
+        }
+
         if input.was_active_once(Select) && can_select {
             if !input.is_active(EnableMultiSelect) {
                 for brush in &mut self.brushes {
