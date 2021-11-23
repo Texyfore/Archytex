@@ -14,7 +14,7 @@ pub struct InputMapper {
 
 impl InputMapper {
     pub fn set_trigger(&mut self, trigger: Trigger, state: ElementState) {
-        for (_, mut action) in &mut self.actions {
+        for action in self.actions.values_mut() {
             if action.trigger == trigger {
                 match state {
                     ElementState::Pressed => {
@@ -37,7 +37,7 @@ impl InputMapper {
     }
 
     pub fn tick(&mut self) {
-        for (_, mut action) in &mut self.actions {
+        for action in self.actions.values_mut() {
             action.active_before = action.active;
         }
         self.mouse_pos_before = self.mouse_pos;

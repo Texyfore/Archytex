@@ -125,7 +125,7 @@ impl Editor {
 
         self.brush_bank.process(
             &self.mode,
-            &input,
+            input,
             &self.world_camera,
             &self.solid_factory,
             &self.line_factory,
