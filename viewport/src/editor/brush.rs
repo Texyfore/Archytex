@@ -129,10 +129,24 @@ impl BrushBank {
                     };
 
                     for point in points {
+                        let texcoord = if normal.x.abs() > normal.y.abs() {
+                            if normal.x.abs() > normal.z.abs() {
+                                vec2(point.y, point.z)
+                            } else {
+                                vec2(point.x, point.y)
+                            }
+                        } else {
+                            if normal.y.abs() > normal.z.abs() {
+                                vec2(point.x, point.z)
+                            } else {
+                                vec2(point.x, point.y)
+                            }
+                        };
+
                         vertices.push(SolidVertex {
                             position: point.into(),
                             normal: normal.into(),
-                            texcoord: [0.0, 0.0],
+                            texcoord: texcoord.into(),
                             color,
                         });
                     }

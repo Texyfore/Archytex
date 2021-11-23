@@ -70,38 +70,19 @@ var s_diffuse: sampler;
 
 [[stage(fragment)]]
 fn main(in: VertexOut) -> FragmentOut {
-    var GRID_THICKNESS = 0.025;
-    var GRID_LENGTH = 0.5;
+    // Grid disabled for now, as it is ugly.
+    // var GRID_THICKNESS = 0.025;
+    // var GRID_LENGTH = 1.0;
+    // var grid_texcoord = texcoord % GRID_LENGTH;
+    // var grid_x = grid_texcoord.x < GRID_THICKNESS || grid_texcoord.x > (GRID_LENGTH-GRID_THICKNESS);
+    // var grid_y = grid_texcoord.y < GRID_THICKNESS || grid_texcoord.y > (GRID_LENGTH-GRID_THICKNESS);
+    // if(grid_x || grid_y) {
+    //     color_rgb = color_rgb + vec3<f32>(0.1);
+    // }
 
     var color = textureSample(t_diffuse, s_diffuse, in.texcoord) * in.color;
     var color_rgb = color.rgb;
     var color_a = color.a;
-
-    var plane = vec2<f32>(0.0);
-
-    if (abs(in.normal.x) > abs(in.normal.y)) {
-        if (abs(in.normal.x) > abs(in.normal.z)) {
-            plane = in.world_position.yz;
-        }
-        else {
-            plane = in.world_position.xy;
-        }
-    } else
-    {
-        if (abs(in.normal.y) > abs(in.normal.z)) {
-            plane = in.world_position.xz;
-        } else {
-            plane = in.world_position.xy;
-        }
-    }
-
-    var plane_mod = (plane % GRID_LENGTH) / GRID_LENGTH;
-    var stripe_x = plane_mod.x < GRID_THICKNESS || plane_mod.x > (1.0-GRID_THICKNESS);
-    var stripe_y = plane_mod.y < GRID_THICKNESS || plane_mod.y > (1.0-GRID_THICKNESS);
-
-    if(stripe_x || stripe_y) {
-        color_rgb = vec3<f32>(0.5);
-    }
 
     var light_dir = normalize(vec3<f32>(0.1, 0.2, 0.3));
     var diffuse = clamp(dot(light_dir, in.normal), 0.0, 0.7) + 0.3;
