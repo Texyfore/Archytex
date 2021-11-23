@@ -12,6 +12,7 @@ import planningBoardImage from "../img/planning_board.jpg";
 import MainPageParallax from "../components/main-page-components/MainPageParallax";
 import ArchytexFooter from "../components/ArchytexFooter";
 import AppBarOffset from "../components/AppBarOffset";
+import { useTranslation } from "react-i18next";
 
 export default function MainPage() {
   const [open, setOpen] = useState(false);
@@ -21,6 +22,7 @@ export default function MainPage() {
   const executeScrollToStart = () =>
     window.scrollTo({ top: 760, behavior: "smooth" });
 
+  const { t } = useTranslation();
   return (
     <React.Fragment>
       <ArcytexAppBar handleOpenChange={handleOpenChange} open={open} />
@@ -40,10 +42,10 @@ export default function MainPage() {
             textAlign='center'
             marginBottom={2}
           >
-            Archytex
+            {t("archytex")}
           </Typography>
           <Typography variant='subtitle1' textAlign='center' marginBottom={2}>
-            Take your architectural visualisations to the next level
+            {t("motto")}
           </Typography>
           <Button
             variant='outlined'
@@ -53,7 +55,7 @@ export default function MainPage() {
             }}
             onClick={executeScrollToStart}
           >
-            Learn more
+            {t("learn_more")}
           </Button>
         </React.Fragment>
       </MainPageParallax>
@@ -61,9 +63,8 @@ export default function MainPage() {
       {/* Description */}
       <MainPageContainer>
         <MainPageContentCard
-          title='What is Archytex?'
-          text='Archytex is a lightweight 3D architecture design tool, combined with fast and
-          powerful ray-traced rendering. All while staying in your web browser.'
+          title={t("what_is_archytex")}
+          text={t("p1")}
           imgPath={houseImage4}
         ></MainPageContentCard>
       </MainPageContainer>
@@ -83,7 +84,7 @@ export default function MainPage() {
             textAlign='center'
             marginBottom={2}
           >
-            Archviz in your browser
+            {t("archviz_in_your_browser")}
           </Typography>
           <Button
             variant='text'
@@ -93,7 +94,7 @@ export default function MainPage() {
               marginX: "auto",
             }}
           >
-            Start creating now
+            {t("start_creating_now")}
           </Button>
         </React.Fragment>
       </MainPageParallax>
@@ -120,11 +121,10 @@ export default function MainPage() {
             textAlign='center'
             marginBottom={2}
           >
-            Blazing fast rendering
+            {t("blazing_fast_rendering")}
           </Typography>
           <Typography variant='subtitle1' textAlign='center' marginBottom={2}>
-            Try our server side ray-traced rendering solution, now with a 1
-            month free trial
+            {t("try_it_out")}
           </Typography>
           <Button
             variant='outlined'
@@ -133,7 +133,7 @@ export default function MainPage() {
               marginX: "auto",
             }}
           >
-            Subscribe now
+            {t("subscribe_now")}
           </Button>
         </React.Fragment>
       </MainPageParallax>

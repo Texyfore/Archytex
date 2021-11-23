@@ -1,5 +1,6 @@
 import React from "react";
 import {
+  Box,
   List,
   ListItem,
   ListItemIcon,
@@ -10,6 +11,7 @@ import {
 import { styled } from "@mui/material/styles";
 import { Home, Login, People } from "@mui/icons-material";
 import ArchytexIcon from "../ArchytexIcon";
+import LanguageSelectDropdown from "../LanguageSelectDropdown";
 
 const DrawerHeader = styled("div")(({ theme }) => ({
   display: "flex",
@@ -43,6 +45,14 @@ export default function DashboardSwipeableDrawer({
   open,
   handleOpenChange,
 }: SwipeableDrawerProps) {
+  const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
+  const languageMenuOpen = Boolean(anchorEl);
+  const handleLanguageMenuClick = (event: React.MouseEvent<HTMLElement>) => {
+    setAnchorEl(event.currentTarget);
+  };
+  const handleLanguageMenuClose = () => {
+    setAnchorEl(null);
+  };
   return (
     <SwipeableDrawer
       sx={{ display: { xs: "flex", md: "none" } }}
@@ -80,6 +90,20 @@ export default function DashboardSwipeableDrawer({
           </ListItem>
         ))}
       </List>
+      <Box
+        marginTop='auto'
+        marginBottom={2}
+        display='flex'
+        alignItems='end'
+        justifyContent='space-evenly'
+      >
+        <LanguageSelectDropdown
+          open={languageMenuOpen}
+          handleClick={handleLanguageMenuClick}
+          handleClose={handleLanguageMenuClose}
+          anchorEl={anchorEl}
+        />
+      </Box>
     </SwipeableDrawer>
   );
 }
