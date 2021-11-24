@@ -6,7 +6,7 @@ use cgmath::{vec2, vec3, ElementWise, InnerSpace, Vector2, Vector3, Zero};
 
 use crate::{
     input::InputMapper,
-    math::{BoxUtil, IntersectionPoint, MinMax, Plane, Ray, Triangle},
+    math::{IntersectionPoint, MinMax, Plane, Ray, SolidUtil, Triangle},
     render::{
         LineBatch, LineFactory, LineVertex, SolidBatch, SolidFactory, SolidVertex, Sprite,
         TextureID,
@@ -23,10 +23,13 @@ use super::{
     EditMode,
 };
 
+const GRID_LENGTH: f32 = 1.0;
+
 pub struct BrushBank {
     brushes: Vec<Brush>,
     batches: Vec<(TextureID, Rc<SolidBatch>)>,
     new_brush: NewBrush,
+    move_operation: Option<MoveOperation>,
     needs_rebuild: bool,
 }
 
@@ -76,12 +79,32 @@ struct RaycastBrush {
     face_id: usize,
 }
 
+struct MoveOperation {
+    plane: Plane,
+    start: Vector3<f32>,
+    end: Option<Vector3<f32>>,
+    points: Vec<MovePoint>,
+}
+
+struct MovePoint {
+    brush: usize,
+    point: usize,
+    original_pos: Vector3<f32>,
+}
+
+enum MoveKind {
+    Brush,
+    Face,
+    Vertex,
+}
+
 impl Default for BrushBank {
     fn default() -> Self {
         Self {
             brushes: Default::default(),
             batches: Default::default(),
             new_brush: Default::default(),
+            move_operation: None,
             needs_rebuild: false,
         }
     }
@@ -131,18 +154,7 @@ impl BrushBank {
                     };
 
                     for point in points {
-                        let texcoord = if normal.x.abs() > normal.y.abs() {
-                            if normal.x.abs() > normal.z.abs() {
-                                vec2(point.y, point.z)
-                            } else {
-                                vec2(point.x, point.y)
-                            }
-                        } else if normal.y.abs() > normal.z.abs() {
-                            vec2(point.x, point.z)
-                        } else {
-                            vec2(point.x, point.y)
-                        };
-
+                        let texcoord = point.texcoord(normal);
                         vertices.push(SolidVertex {
                             position: point.into(),
                             normal: normal.into(),
@@ -171,11 +183,13 @@ impl BrushBank {
         line_factory: &LineFactory,
         line_batches: &mut Vec<Rc<LineBatch>>,
     ) {
+        self.move_logic(input, camera, MoveKind::Brush);
+
         if input.is_active_once(AddBrush) {
             self.new_brush.start = {
                 let hit = self.raycast_or_xz(camera.screen_ray(input.mouse_pos()));
                 Some(NewBrushPoint {
-                    world: hit.point.grid(1.0),
+                    world: hit.point.grid(GRID_LENGTH),
                     screen: input.mouse_pos(),
                 })
             };
@@ -185,7 +199,7 @@ impl BrushBank {
             self.new_brush.end = {
                 let hit = self.raycast_or_xz(camera.screen_ray(input.mouse_pos()));
                 Some(NewBrushPoint {
-                    world: hit.point.grid(1.0),
+                    world: hit.point.grid(GRID_LENGTH),
                     screen: input.mouse_pos(),
                 })
             };
@@ -197,11 +211,11 @@ impl BrushBank {
                 let dist_sqr = (end.screen - start.screen).magnitude2();
 
                 if dist_sqr > MIN_SQR {
-                    let min = start.world.min(end.world).cast::<f32>().unwrap();
-                    let max = start.world.max(end.world).cast::<f32>().unwrap();
+                    let min = start.world.min(end.world).cast::<f32>().unwrap() * GRID_LENGTH;
+                    let max = start.world.max(end.world).cast::<f32>().unwrap() * GRID_LENGTH;
 
                     let origin = min;
-                    let extent = max - min + vec3(1.0, 1.0, 1.0);
+                    let extent = max - min + vec3(1.0, 1.0, 1.0) * GRID_LENGTH;
 
                     self.new_brush.bocks = Some(NewBrushBox {
                         origin,
@@ -258,6 +272,8 @@ impl BrushBank {
     }
 
     fn face_mode(&mut self, input: &InputMapper, camera: &WorldCamera) {
+        self.move_logic(input, camera, MoveKind::Face);
+
         if input.was_active_once(Select) {
             if !input.is_active(EnableMultiSelect) {
                 for brush in &mut self.brushes {
@@ -285,6 +301,8 @@ impl BrushBank {
         camera: &WorldCamera,
         sprites: &mut HashMap<TextureID, Vec<Sprite>>,
     ) {
+        self.move_logic(input, camera, MoveKind::Vertex);
+
         if input.was_active_once(Select) {
             if !input.is_active(EnableMultiSelect) {
                 for brush in &mut self.brushes {
@@ -423,6 +441,102 @@ impl BrushBank {
         result.point += result.normal * 0.01;
         result
     }
+
+    fn begin_move_brushes(&mut self, input: &InputMapper, camera: &WorldCamera) {
+        let mut points = Vec::new();
+        let mut center = Vector3::zero();
+        let mut div = 0.0;
+
+        for (i, brush) in self.brushes.iter().enumerate().filter(|(_, b)| b.selected) {
+            for (j, point) in brush.points.iter().enumerate() {
+                center += point.position;
+                div += 1.0;
+                points.push(MovePoint {
+                    brush: i,
+                    point: j,
+                    original_pos: point.position,
+                });
+            }
+        }
+
+        center /= div;
+        self.move_operation = MoveOperation::new(input, camera, center, points);
+    }
+
+    fn begin_move_faces(&mut self, input: &InputMapper, camera: &WorldCamera) {
+        let mut points = Vec::new();
+        let mut center = Vector3::zero();
+        let mut div = 0.0;
+
+        for (i, brush) in self.brushes.iter().enumerate() {
+            for face in brush.faces.iter().filter(|f| f.selected) {
+                for j in face.quad {
+                    let j = j as usize;
+                    let point = &brush.points[j];
+
+                    center += point.position;
+                    div += 1.0;
+                    points.push(MovePoint {
+                        brush: i,
+                        point: j,
+                        original_pos: point.position,
+                    });
+                }
+            }
+        }
+
+        center /= div;
+        self.move_operation = MoveOperation::new(input, camera, center, points);
+    }
+
+    fn begin_move_vertices(&mut self, input: &InputMapper, camera: &WorldCamera) {
+        let mut points = Vec::new();
+        let mut center = Vector3::zero();
+        let mut div = 0.0;
+
+        for (i, brush) in self.brushes.iter().enumerate() {
+            for (j, point) in brush.points.iter().enumerate().filter(|(_, p)| p.selected) {
+                center += point.position;
+                div += 1.0;
+                points.push(MovePoint {
+                    brush: i,
+                    point: j,
+                    original_pos: point.position,
+                });
+            }
+        }
+
+        center /= div;
+        self.move_operation = MoveOperation::new(input, camera, center, points);
+    }
+
+    fn move_logic(&mut self, input: &InputMapper, camera: &WorldCamera, kind: MoveKind) {
+        if input.is_active_once(Move) {
+            if self.move_operation.is_some() {
+                self.move_operation
+                    .take()
+                    .unwrap()
+                    .abort(&mut self.brushes, &mut self.needs_rebuild)
+            } else {
+                match kind {
+                    MoveKind::Brush => self.begin_move_brushes(input, camera),
+                    MoveKind::Face => self.begin_move_faces(input, camera),
+                    MoveKind::Vertex => self.begin_move_vertices(input, camera),
+                }
+            }
+        } else if input.is_active_once(ConfirmMove) {
+            self.move_operation = None;
+        } else if input.is_active_once(AbortMove) && self.move_operation.is_some() {
+            self.move_operation
+                .take()
+                .unwrap()
+                .abort(&mut self.brushes, &mut self.needs_rebuild)
+        }
+
+        if let Some(move_operation) = self.move_operation.as_mut() {
+            move_operation.update(input, camera, &mut self.brushes, &mut self.needs_rebuild);
+        }
+    }
 }
 
 impl Brush {
@@ -460,6 +574,62 @@ impl Brush {
             points,
             faces,
             selected: false,
+        }
+    }
+}
+
+impl MoveOperation {
+    fn new(
+        input: &InputMapper,
+        camera: &WorldCamera,
+        center: Vector3<f32>,
+        points: Vec<MovePoint>,
+    ) -> Option<Self> {
+        let ray = camera.screen_ray(input.mouse_pos());
+        let plane = Plane {
+            origin: center.snap(GRID_LENGTH),
+            normal: (-camera.forward()).cardinal(),
+        };
+
+        ray.intersection_point(&plane).map(|isp| MoveOperation {
+            plane,
+            start: isp.snap(GRID_LENGTH),
+            end: None,
+            points,
+        })
+    }
+
+    fn update(
+        &mut self,
+        input: &InputMapper,
+        camera: &WorldCamera,
+        brushes: &mut [Brush],
+        rebuild: &mut bool,
+    ) {
+        let ray = camera.screen_ray(input.mouse_pos());
+        if let Some(isp) = ray.intersection_point(&self.plane) {
+            let point = isp.snap(GRID_LENGTH);
+            if let Some(end) = self.end {
+                if (end - point).magnitude2() > 0.01 {
+                    let vec = point - self.start;
+                    for move_point in &self.points {
+                        let point = &mut brushes[move_point.brush].points[move_point.point];
+                        point.position = move_point.original_pos + vec;
+                        *rebuild = true;
+                    }
+                    self.end = Some(point);
+                }
+            } else {
+                self.end = Some(point);
+            }
+        }
+    }
+
+    fn abort(self, brushes: &mut [Brush], rebuild: &mut bool) {
+        for move_point in &self.points {
+            let point = &mut brushes[move_point.brush].points[move_point.point];
+            point.position = move_point.original_pos;
+            *rebuild = true;
         }
     }
 }

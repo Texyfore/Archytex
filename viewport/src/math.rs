@@ -1,11 +1,14 @@
-use cgmath::{vec3, InnerSpace, Vector3};
+use cgmath::{vec2, vec3, InnerSpace, Vector2, Vector3};
 
 pub trait IntersectionPoint<O> {
     fn intersection_point(&self, other: &O) -> Option<Vector3<f32>>;
 }
 
-pub trait BoxUtil {
+pub trait SolidUtil {
     fn grid(self, length: f32) -> Vector3<i32>;
+    fn snap(self, length: f32) -> Vector3<f32>;
+    fn texcoord(self, normal: Vector3<f32>) -> Vector2<f32>;
+    fn cardinal(self) -> Vector3<f32>;
 }
 
 pub trait MinMax {
@@ -90,13 +93,49 @@ impl IntersectionPoint<Plane> for Ray {
     }
 }
 
-impl BoxUtil for Vector3<f32> {
+impl SolidUtil for Vector3<f32> {
     fn grid(self, length: f32) -> Vector3<i32> {
         vec3(
             grid(self.x, length),
             grid(self.y, length),
             grid(self.z, length),
         )
+    }
+
+    fn snap(self, length: f32) -> Vector3<f32> {
+        vec3(
+            snap(self.x, length),
+            snap(self.y, length),
+            snap(self.z, length),
+        )
+    }
+
+    fn texcoord(self, normal: Vector3<f32>) -> Vector2<f32> {
+        if normal.x.abs() > normal.y.abs() {
+            if normal.x.abs() > normal.z.abs() {
+                vec2(self.y, self.z)
+            } else {
+                vec2(self.x, self.y)
+            }
+        } else if normal.y.abs() > normal.z.abs() {
+            vec2(self.x, self.z)
+        } else {
+            vec2(self.x, self.y)
+        }
+    }
+
+    fn cardinal(self) -> Vector3<f32> {
+        if self.x.abs() > self.y.abs() {
+            if self.x.abs() > self.z.abs() {
+                Vector3::unit_x() * self.x.signum()
+            } else {
+                Vector3::unit_z() * self.z.signum()
+            }
+        } else if self.y.abs() > self.z.abs() {
+            Vector3::unit_y() * self.y.signum()
+        } else {
+            Vector3::unit_z() * self.z.signum()
+        }
     }
 }
 
@@ -112,4 +151,8 @@ impl MinMax for Vector3<i32> {
 
 fn grid(x: f32, y: f32) -> i32 {
     (x / y).floor() as i32
+}
+
+fn snap(x: f32, y: f32) -> f32 {
+    (x / y).round() * y
 }
