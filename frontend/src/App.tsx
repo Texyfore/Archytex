@@ -10,6 +10,7 @@ import MainPage from "./pages/MainPage";
 import Dashboard from "./pages/Dashboard";
 import LoginPage from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
+import { ColorMode, ColorModeProvider, modeToString, useColorMode } from "./services/colorMode";
 
 //TODO: Get translations from api
 const translationEn = {
@@ -63,36 +64,8 @@ i18n.use(initReactI18next).init({
   interpolation: { escapeValue: false },
 });
 
-export const ColorModeContext = React.createContext({
-  toggleColorMode: () => {},
-});
 
 function App() {
-  return (
-    <Suspense fallback='Loading...'>
-      <CssBaseline />
-      <Router>
-        <Switch>
-          <Route exact path='/'>
-            <MainPage />
-          </Route>
-          <Route path='/dashboard'>
-            <Dashboard />
-          </Route>
-          <Route path='/login'>
-            <LoginPage />
-          </Route>
-          <Route path='/register'>
-            <RegisterPage />
-          </Route>
-        </Switch>
-      </Router>
-    </Suspense>
-  );
-}
-
-//This solution is not very nice for changing between color modes :/
-export default function ToggleColorMode() {
   //set different font for Japanese language
   const { i18n } = useTranslation();
   const fontFamily = useMemo(() => {
@@ -104,22 +77,12 @@ export default function ToggleColorMode() {
         return "Poppins";
     }
   }, [i18n.language]);
-
-  //switch between light and dark themes
-  const [mode, setMode] = React.useState<"light" | "dark">("light");
-  const colorMode = React.useMemo(
-    () => ({
-      toggleColorMode: () => {
-        setMode((prevMode) => (prevMode === "light" ? "dark" : "light"));
-      },
-    }),
-    []
-  );
+  const [mode, _] = useColorMode();
   const archytex_theme = React.useMemo(
     () =>
       createTheme({
         palette: {
-          mode,
+          mode: modeToString(mode),
           primary: {
             main: "#39A0ED",
           },
@@ -127,11 +90,11 @@ export default function ToggleColorMode() {
             main: "#f68dd1",
           },
           text: {
-            primary: mode === "dark" ? "#f5f0f6" : "#0c0c0c",
+            primary: mode === ColorMode.Dark ? "#f5f0f6" : "#0c0c0c",
           },
           background: {
-            default: mode === "dark" ? "#0c0c0c" : "#F5F0F6",
-            paper: mode === "dark" ? "#0c0c0c" : "#F5F0F6",
+            default: mode === ColorMode.Dark ? "#0c0c0c" : "#F5F0F6",
+            paper: mode === ColorMode.Dark ? "#0c0c0c" : "#F5F0F6",
           },
           error: {
             main: "#fb4d3d",
@@ -145,7 +108,7 @@ export default function ToggleColorMode() {
           success: {
             main: "#13c4a3",
           },
-          divider: mode === "dark" ? "#1F1F1F" : "#EBE7EC",
+          divider: mode === ColorMode.Dark ? "#1F1F1F" : "#EBE7EC",
         },
         shape: {
           borderRadius: 2,
@@ -158,10 +121,35 @@ export default function ToggleColorMode() {
   );
 
   return (
-    <ColorModeContext.Provider value={colorMode}>
-      <ThemeProvider theme={archytex_theme}>
-        <App />
-      </ThemeProvider>
-    </ColorModeContext.Provider>
+    <ThemeProvider theme={archytex_theme}>
+      <Suspense fallback='Loading...'>
+        <CssBaseline />
+        <Router>
+          <Switch>
+            <Route exact path='/'>
+              <MainPage />
+            </Route>
+            <Route path='/dashboard'>
+              <Dashboard />
+            </Route>
+            <Route path='/login'>
+              <LoginPage />
+            </Route>
+            <Route path='/register'>
+              <RegisterPage />
+            </Route>
+          </Switch>
+        </Router>
+      </Suspense>
+    </ThemeProvider>
+  );
+}
+
+export default function ToggleColorMode() {
+
+  return (
+    <ColorModeProvider>
+      <App />
+    </ColorModeProvider>
   );
 }
