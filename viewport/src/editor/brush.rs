@@ -29,6 +29,7 @@ pub struct BrushBank {
     brushes: Vec<Brush>,
     batches: Vec<(TextureID, Rc<SolidBatch>)>,
     new_brush: NewBrush,
+    move_operation: Option<MoveOperation>,
     needs_rebuild: bool,
 }
 
@@ -78,12 +79,26 @@ struct RaycastBrush {
     face_id: usize,
 }
 
+struct MoveOperation {
+    plane: Plane,
+    start: Vector3<f32>,
+    end: Option<Vector3<f32>>,
+    points: Vec<MovePoint>,
+}
+
+struct MovePoint {
+    brush: usize,
+    point: usize,
+    original_pos: Vector3<f32>,
+}
+
 impl Default for BrushBank {
     fn default() -> Self {
         Self {
             brushes: Default::default(),
             batches: Default::default(),
             new_brush: Default::default(),
+            move_operation: None,
             needs_rebuild: false,
         }
     }
@@ -162,6 +177,28 @@ impl BrushBank {
         line_factory: &LineFactory,
         line_batches: &mut Vec<Rc<LineBatch>>,
     ) {
+        if input.is_active_once(Move) {
+            if self.move_operation.is_some() {
+                self.move_operation
+                    .take()
+                    .unwrap()
+                    .abort(&mut self.brushes, &mut self.needs_rebuild)
+            } else {
+                self.begin_move_brushes(input, camera);
+            }
+        } else if input.is_active_once(ConfirmMove) {
+            self.move_operation = None;
+        } else if input.is_active_once(AbortMove) && self.move_operation.is_some() {
+            self.move_operation
+                .take()
+                .unwrap()
+                .abort(&mut self.brushes, &mut self.needs_rebuild)
+        }
+
+        if let Some(move_operation) = self.move_operation.as_mut() {
+            move_operation.update(input, camera, &mut self.brushes, &mut self.needs_rebuild);
+        }
+
         if input.is_active_once(AddBrush) {
             self.new_brush.start = {
                 let hit = self.raycast_or_xz(camera.screen_ray(input.mouse_pos()));
@@ -414,6 +451,41 @@ impl BrushBank {
         result.point += result.normal * 0.01;
         result
     }
+
+    fn begin_move_brushes(&mut self, input: &InputMapper, camera: &WorldCamera) {
+        let mut points = Vec::new();
+        let mut center = Vector3::zero();
+        let mut div = 0.0;
+
+        for (i, brush) in self.brushes.iter().enumerate().filter(|(_, b)| b.selected) {
+            for (j, point) in brush.points.iter().enumerate() {
+                center += point.position;
+                div += 1.0;
+                points.push(MovePoint {
+                    brush: i,
+                    point: j,
+                    original_pos: point.position,
+                });
+            }
+        }
+
+        center /= div;
+
+        let ray = camera.screen_ray(input.mouse_pos());
+        let plane = Plane {
+            origin: center.snap(GRID_LENGTH),
+            normal: (-camera.forward()).cardinal(),
+        };
+
+        if let Some(isp) = ray.intersection_point(&plane) {
+            self.move_operation = Some(MoveOperation {
+                plane,
+                start: isp.snap(GRID_LENGTH),
+                end: None,
+                points,
+            });
+        }
+    }
 }
 
 impl Brush {
@@ -451,6 +523,42 @@ impl Brush {
             points,
             faces,
             selected: false,
+        }
+    }
+}
+
+impl MoveOperation {
+    fn update(
+        &mut self,
+        input: &InputMapper,
+        camera: &WorldCamera,
+        brushes: &mut [Brush],
+        rebuild: &mut bool,
+    ) {
+        let ray = camera.screen_ray(input.mouse_pos());
+        if let Some(isp) = ray.intersection_point(&self.plane) {
+            let point = isp.snap(GRID_LENGTH);
+            if let Some(end) = self.end {
+                if (end - point).magnitude2() > 0.01 {
+                    let vec = point - self.start;
+                    for move_point in &self.points {
+                        let point = &mut brushes[move_point.brush].points[move_point.point];
+                        point.position = move_point.original_pos + vec;
+                        *rebuild = true;
+                    }
+                    self.end = Some(point);
+                }
+            } else {
+                self.end = Some(point);
+            }
+        }
+    }
+
+    fn abort(self, brushes: &mut [Brush], rebuild: &mut bool) {
+        for move_point in &self.points {
+            let point = &mut brushes[move_point.brush].points[move_point.point];
+            point.position = move_point.original_pos;
+            *rebuild = true;
         }
     }
 }
