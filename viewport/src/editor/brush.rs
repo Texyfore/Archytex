@@ -92,6 +92,12 @@ struct MovePoint {
     original_pos: Vector3<f32>,
 }
 
+enum MoveKind {
+    Brush,
+    Face,
+    Vertex,
+}
+
 impl Default for BrushBank {
     fn default() -> Self {
         Self {
@@ -177,27 +183,7 @@ impl BrushBank {
         line_factory: &LineFactory,
         line_batches: &mut Vec<Rc<LineBatch>>,
     ) {
-        if input.is_active_once(Move) {
-            if self.move_operation.is_some() {
-                self.move_operation
-                    .take()
-                    .unwrap()
-                    .abort(&mut self.brushes, &mut self.needs_rebuild)
-            } else {
-                self.begin_move_brushes(input, camera);
-            }
-        } else if input.is_active_once(ConfirmMove) {
-            self.move_operation = None;
-        } else if input.is_active_once(AbortMove) && self.move_operation.is_some() {
-            self.move_operation
-                .take()
-                .unwrap()
-                .abort(&mut self.brushes, &mut self.needs_rebuild)
-        }
-
-        if let Some(move_operation) = self.move_operation.as_mut() {
-            move_operation.update(input, camera, &mut self.brushes, &mut self.needs_rebuild);
-        }
+        self.move_logic(input, camera, MoveKind::Brush);
 
         if input.is_active_once(AddBrush) {
             self.new_brush.start = {
@@ -286,6 +272,8 @@ impl BrushBank {
     }
 
     fn face_mode(&mut self, input: &InputMapper, camera: &WorldCamera) {
+        self.move_logic(input, camera, MoveKind::Face);
+
         if input.was_active_once(Select) {
             if !input.is_active(EnableMultiSelect) {
                 for brush in &mut self.brushes {
@@ -313,6 +301,8 @@ impl BrushBank {
         camera: &WorldCamera,
         sprites: &mut HashMap<TextureID, Vec<Sprite>>,
     ) {
+        self.move_logic(input, camera, MoveKind::Vertex);
+
         if input.was_active_once(Select) {
             if !input.is_active(EnableMultiSelect) {
                 for brush in &mut self.brushes {
@@ -470,20 +460,81 @@ impl BrushBank {
         }
 
         center /= div;
+        self.move_operation = MoveOperation::new(input, camera, center, points);
+    }
 
-        let ray = camera.screen_ray(input.mouse_pos());
-        let plane = Plane {
-            origin: center.snap(GRID_LENGTH),
-            normal: (-camera.forward()).cardinal(),
-        };
+    fn begin_move_faces(&mut self, input: &InputMapper, camera: &WorldCamera) {
+        let mut points = Vec::new();
+        let mut center = Vector3::zero();
+        let mut div = 0.0;
 
-        if let Some(isp) = ray.intersection_point(&plane) {
-            self.move_operation = Some(MoveOperation {
-                plane,
-                start: isp.snap(GRID_LENGTH),
-                end: None,
-                points,
-            });
+        for (i, brush) in self.brushes.iter().enumerate() {
+            for face in brush.faces.iter().filter(|f| f.selected) {
+                for j in face.quad {
+                    let j = j as usize;
+                    let point = &brush.points[j];
+
+                    center += point.position;
+                    div += 1.0;
+                    points.push(MovePoint {
+                        brush: i,
+                        point: j,
+                        original_pos: point.position,
+                    });
+                }
+            }
+        }
+
+        center /= div;
+        self.move_operation = MoveOperation::new(input, camera, center, points);
+    }
+
+    fn begin_move_vertices(&mut self, input: &InputMapper, camera: &WorldCamera) {
+        let mut points = Vec::new();
+        let mut center = Vector3::zero();
+        let mut div = 0.0;
+
+        for (i, brush) in self.brushes.iter().enumerate() {
+            for (j, point) in brush.points.iter().enumerate().filter(|(_, p)| p.selected) {
+                center += point.position;
+                div += 1.0;
+                points.push(MovePoint {
+                    brush: i,
+                    point: j,
+                    original_pos: point.position,
+                });
+            }
+        }
+
+        center /= div;
+        self.move_operation = MoveOperation::new(input, camera, center, points);
+    }
+
+    fn move_logic(&mut self, input: &InputMapper, camera: &WorldCamera, kind: MoveKind) {
+        if input.is_active_once(Move) {
+            if self.move_operation.is_some() {
+                self.move_operation
+                    .take()
+                    .unwrap()
+                    .abort(&mut self.brushes, &mut self.needs_rebuild)
+            } else {
+                match kind {
+                    MoveKind::Brush => self.begin_move_brushes(input, camera),
+                    MoveKind::Face => self.begin_move_faces(input, camera),
+                    MoveKind::Vertex => self.begin_move_vertices(input, camera),
+                }
+            }
+        } else if input.is_active_once(ConfirmMove) {
+            self.move_operation = None;
+        } else if input.is_active_once(AbortMove) && self.move_operation.is_some() {
+            self.move_operation
+                .take()
+                .unwrap()
+                .abort(&mut self.brushes, &mut self.needs_rebuild)
+        }
+
+        if let Some(move_operation) = self.move_operation.as_mut() {
+            move_operation.update(input, camera, &mut self.brushes, &mut self.needs_rebuild);
         }
     }
 }
@@ -528,6 +579,26 @@ impl Brush {
 }
 
 impl MoveOperation {
+    fn new(
+        input: &InputMapper,
+        camera: &WorldCamera,
+        center: Vector3<f32>,
+        points: Vec<MovePoint>,
+    ) -> Option<Self> {
+        let ray = camera.screen_ray(input.mouse_pos());
+        let plane = Plane {
+            origin: center.snap(GRID_LENGTH),
+            normal: (-camera.forward()).cardinal(),
+        };
+
+        ray.intersection_point(&plane).map(|isp| MoveOperation {
+            plane,
+            start: isp.snap(GRID_LENGTH),
+            end: None,
+            points,
+        })
+    }
+
     fn update(
         &mut self,
         input: &InputMapper,
