@@ -23,7 +23,7 @@ use super::{
     EditMode,
 };
 
-const GRID_LENGTH: f32 = 0.25;
+const GRID_LENGTH: f32 = 1.0;
 
 pub struct BrushBank {
     brushes: Vec<Brush>,
