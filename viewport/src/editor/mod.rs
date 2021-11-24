@@ -51,11 +51,14 @@ actions! {
     Up                   Key E        ,
     Down                 Key Q        ,
 
-    // Selection //////////////////////
+    // Global operations //////////////
 
     EnableMultiSelect    Key LShift   ,
     Select               Btn Left     ,
     Deselect             Key X        ,
+    Move                 Key G        ,
+    ConfirmMove          Btn Left     ,
+    AbortMove            Btn Right    ,
 
     // Brush manipulation /////////////
 

@@ -6,7 +6,7 @@ use cgmath::{vec2, vec3, ElementWise, InnerSpace, Vector2, Vector3, Zero};
 
 use crate::{
     input::InputMapper,
-    math::{BoxUtil, IntersectionPoint, MinMax, Plane, Ray, Triangle},
+    math::{IntersectionPoint, MinMax, Plane, Ray, SolidUtil, Triangle},
     render::{
         LineBatch, LineFactory, LineVertex, SolidBatch, SolidFactory, SolidVertex, Sprite,
         TextureID,
@@ -22,6 +22,8 @@ use super::{
     ActionBinding::*,
     EditMode,
 };
+
+const GRID_LENGTH: f32 = 0.25;
 
 pub struct BrushBank {
     brushes: Vec<Brush>,
@@ -131,18 +133,7 @@ impl BrushBank {
                     };
 
                     for point in points {
-                        let texcoord = if normal.x.abs() > normal.y.abs() {
-                            if normal.x.abs() > normal.z.abs() {
-                                vec2(point.y, point.z)
-                            } else {
-                                vec2(point.x, point.y)
-                            }
-                        } else if normal.y.abs() > normal.z.abs() {
-                            vec2(point.x, point.z)
-                        } else {
-                            vec2(point.x, point.y)
-                        };
-
+                        let texcoord = point.texcoord(normal);
                         vertices.push(SolidVertex {
                             position: point.into(),
                             normal: normal.into(),
@@ -175,7 +166,7 @@ impl BrushBank {
             self.new_brush.start = {
                 let hit = self.raycast_or_xz(camera.screen_ray(input.mouse_pos()));
                 Some(NewBrushPoint {
-                    world: hit.point.grid(1.0),
+                    world: hit.point.grid(GRID_LENGTH),
                     screen: input.mouse_pos(),
                 })
             };
@@ -185,7 +176,7 @@ impl BrushBank {
             self.new_brush.end = {
                 let hit = self.raycast_or_xz(camera.screen_ray(input.mouse_pos()));
                 Some(NewBrushPoint {
-                    world: hit.point.grid(1.0),
+                    world: hit.point.grid(GRID_LENGTH),
                     screen: input.mouse_pos(),
                 })
             };
@@ -197,11 +188,11 @@ impl BrushBank {
                 let dist_sqr = (end.screen - start.screen).magnitude2();
 
                 if dist_sqr > MIN_SQR {
-                    let min = start.world.min(end.world).cast::<f32>().unwrap();
-                    let max = start.world.max(end.world).cast::<f32>().unwrap();
+                    let min = start.world.min(end.world).cast::<f32>().unwrap() * GRID_LENGTH;
+                    let max = start.world.max(end.world).cast::<f32>().unwrap() * GRID_LENGTH;
 
                     let origin = min;
-                    let extent = max - min + vec3(1.0, 1.0, 1.0);
+                    let extent = max - min + vec3(1.0, 1.0, 1.0) * GRID_LENGTH;
 
                     self.new_brush.bocks = Some(NewBrushBox {
                         origin,
