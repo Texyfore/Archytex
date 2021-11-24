@@ -20,6 +20,7 @@ import ProjectNewModal from "./ProjectNewModal";
 const headerHeight = 50;
 const projectMenuHeight = 50;
 const ProjectTableContainer = styled(TableContainer)(({ theme }) => ({
+  border: "none",
   height: `calc(100vh - 56px - ${headerHeight + projectMenuHeight}px)`,
   [`${theme.breakpoints.up("xs")} and (orientation: landscape)`]: {
     height: `calc(100vh - 48px - ${headerHeight + projectMenuHeight}px)`,
@@ -31,7 +32,6 @@ const ProjectTableContainer = styled(TableContainer)(({ theme }) => ({
     height: `calc(100% - ${headerHeight + projectMenuHeight}px)`,
   },
 }));
-
 
 export default function ProjectBrowser() {
   //new project modal
@@ -83,27 +83,16 @@ export default function ProjectBrowser() {
         <Table stickyHeader>
           <TableHead>
             <TableRow>
-              <TableCell width='10%' sx={{ borderBottom: "2px solid #14151A" }}>
+              <TableCell width='10%'>
                 <Box height='24px' width='24px' padding='10px' />
               </TableCell>
-              <TableCell sx={{ borderBottom: "2px solid #14151A" }}>
-                NAME
-              </TableCell>
-              <TableCell
-                align='right'
-                sx={{ borderBottom: "2px solid #14151A" }}
-              >
-                CREATED
-              </TableCell>
+              <TableCell>NAME</TableCell>
+              <TableCell align='right'>CREATED</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
             <TableRow>
-              <TableCell
-                padding='none'
-                colSpan={3}
-                sx={{ borderBottom: "2px solid #14151A" }}
-              >
+              <TableCell padding='none' colSpan={3} sx={{ border: "none" }}>
                 {projects.projects.map((project, index) => (
                   <ProjectRow
                     key={project.id}

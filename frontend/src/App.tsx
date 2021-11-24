@@ -127,11 +127,11 @@ export default function ToggleColorMode() {
             main: "#f68dd1",
           },
           text: {
-            primary: "#f5f0f6",
+            primary: mode === "dark" ? "#f5f0f6" : "#0c0c0c",
           },
           background: {
-            default: "#0c0c0c",
-            paper: "#0c0c0c",
+            default: mode === "dark" ? "#0c0c0c" : "#F5F0F6",
+            paper: mode === "dark" ? "#0c0c0c" : "#F5F0F6",
           },
           error: {
             main: "#fb4d3d",
@@ -145,7 +145,7 @@ export default function ToggleColorMode() {
           success: {
             main: "#13c4a3",
           },
-          divider: "#f5f0f6",
+          divider: mode === "dark" ? "#1F1F1F" : "#EBE7EC",
         },
         shape: {
           borderRadius: 2,

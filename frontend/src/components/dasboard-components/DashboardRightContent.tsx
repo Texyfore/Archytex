@@ -6,11 +6,12 @@ import ProjectBrowser from "./ProjectBrowser";
 const ColumnPaper = styled(Paper)(({ theme }) => ({
   width: "100%",
   height: "100%",
+  filter: "drop-shadow(0px 0px 4px rgba(0,0,0,0.5))",
 }));
 const ColumnHeader = styled(Box)(({ theme }) => ({
   width: "100%",
   height: "50px",
-  borderRadius: "1px 1px 0px 0px",
+  borderRadius: "2px 2px 0px 0px",
   display: "flex",
   justifyContent: "center",
   alignItems: "center",

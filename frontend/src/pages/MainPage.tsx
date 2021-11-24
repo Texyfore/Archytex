@@ -31,7 +31,7 @@ export default function MainPage() {
       {/* Header */}
       <MainPageParallax
         backgroundOffset='-200px'
-        backgroundOpacity={0.5}
+        backgroundOpacity={0.7}
         height='98vh'
         imgPath={houseImage9}
       >
@@ -74,13 +74,13 @@ export default function MainPage() {
       {/* In-browser archviz */}
       <MainPageParallax
         imgPath={planningBoardImage}
-        height='50vh'
-        backgroundOpacity={0.5}
+        height='75vh'
+        backgroundOpacity={0.7}
       >
         <React.Fragment>
           <Typography
             variant='h3'
-            fontWeight={100}
+            fontWeight={200}
             textAlign='center'
             marginBottom={2}
           >
@@ -111,13 +111,13 @@ export default function MainPage() {
       {/* Subscription tiers */}
       <MainPageParallax
         imgPath={houseImage14}
-        height='50vh'
-        backgroundOpacity={0.5}
+        height='75vh'
+        backgroundOpacity={0.7}
       >
         <React.Fragment>
           <Typography
             variant='h3'
-            fontWeight={100}
+            fontWeight={200}
             textAlign='center'
             marginBottom={2}
           >

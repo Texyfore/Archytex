@@ -51,7 +51,12 @@ function DashboardAppBar({ open, handleOpenChange }: AppBarProps) {
 
   return (
     <CustomAppBar position='fixed' elevation={0}>
-      <Toolbar sx={{ justifyContent: "space-between" }}>
+      <Toolbar
+        sx={{
+          justifyContent: "space-between",
+          backgroundColor: "background.paper",
+        }}
+      >
         <Box display={{ xs: "flex", md: "none" }}>
           <IconButton onClick={handleDrawerToggle}>
             {open ? <Close /> : <MenuOutlined />}
@@ -122,7 +127,7 @@ function DashboardAppBar({ open, handleOpenChange }: AppBarProps) {
                 overflow: "visible",
                 filter: "drop-shadow(0px 2px 8px rgba(0,0,0,0.5))",
                 mt: 1.5,
-                border: "2px solid #14151A",
+                // border: "2px solid #14151A",
                 borderRadius: 2,
                 "&:before": {
                   content: '""',

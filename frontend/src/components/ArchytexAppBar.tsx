@@ -18,6 +18,7 @@ import DarkModeSwitch from "./DarkModeSwitch";
 const CustomAppBar = styled(AppBar)(({ theme }) => ({
   zIndex: theme.zIndex.drawer + 1,
   filter: "drop-shadow(0px 2px 4px rgba(0,0,0,0.5))",
+  backgroundColor: theme.palette.background.paper,
 }));
 interface AppBarProps {
   open: boolean;

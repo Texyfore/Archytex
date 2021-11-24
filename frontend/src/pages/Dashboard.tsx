@@ -42,7 +42,6 @@ export default function Dashboard() {
   }
 
   return (
-    // TODO: pattern.css
     <React.Fragment>
       <DashboardAppBar open={open} handleOpenChange={handleOpenChange} />
 
@@ -73,7 +72,9 @@ export default function Dashboard() {
           padding={{ lg: 4 }}
           sx={{
             flexGrow: 1,
-            backgroundImage: "radial-gradient(#1c517a 0.75px, #0c0c0c 0.75px)",
+            backgroundImage: `radial-gradient(#1c517a 0.75px, ${
+              theme.palette.mode === "dark" ? "#0c0c0c" : "#F5F0F6"
+            } 0.75px)`,
             backgroundSize: "15px 15px",
           }}
         >

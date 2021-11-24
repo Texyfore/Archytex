@@ -1,5 +1,5 @@
 import React, { useContext } from "react";
-import { Checkbox } from "@mui/material";
+import { Checkbox, Tooltip } from "@mui/material";
 import { DarkMode, DarkModeOutlined } from "@mui/icons-material";
 import { ColorModeContext } from "../App";
 import { useTheme } from "@mui/material/styles";
@@ -10,11 +10,13 @@ export default function DarkModeSwitch() {
     colorMode.toggleColorMode();
   };
   return (
-    <Checkbox
-      icon={<DarkModeOutlined />}
-      checkedIcon={<DarkMode />}
-      checked={useTheme().palette.mode === "dark"}
-      onChange={handleDarkModeChange}
-    />
+    <Tooltip title='Toggle dark mode'>
+      <Checkbox
+        icon={<DarkModeOutlined />}
+        checkedIcon={<DarkMode />}
+        checked={useTheme().palette.mode === "dark"}
+        onChange={handleDarkModeChange}
+      />
+    </Tooltip>
   );
 }

@@ -10,6 +10,8 @@ const ColumnPaper = styled(Paper)(({ theme }) => ({
   display: "flex",
   flexDirection: "column",
   justifyContent: "start",
+  borderRadius: 2,
+  filter: "drop-shadow(0px 0px 4px rgba(0,0,0,0.5))",
 }));
 
 export default function DashboardLeftContent() {

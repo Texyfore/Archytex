@@ -1,6 +1,8 @@
 import React from "react";
 import { Avatar, Theme } from "@mui/material";
-import logo from "../logo.svg";
+import { useTheme } from "@mui/material/styles";
+import logo from "../img/logo.svg";
+import logoLight from "../img/logoLight.svg";
 import { SxProps } from "@mui/system";
 
 interface IconProps {
@@ -17,5 +19,12 @@ export default function ArchytexIcon({
     width: size,
     marginRight: marginRight,
   } as SxProps<Theme>;
-  return <Avatar src={logo} alt='ARCHYTEX_LOGO' variant='square' sx={style} />;
+  return (
+    <Avatar
+      src={useTheme().palette.mode === "dark" ? logo : logoLight}
+      alt='ARCHYTEX_LOGO'
+      variant='square'
+      sx={style}
+    />
+  );
 }

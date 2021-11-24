@@ -25,7 +25,7 @@ import {
   TextField,
   Typography,
 } from "@mui/material";
-import { styled } from "@mui/material/styles";
+import { styled, useTheme } from "@mui/material/styles";
 import {
   Close,
   Delete,
@@ -70,7 +70,6 @@ function LinearProgressWithLabel(
   );
 }
 
-
 export default function ProjectRow(props: {
   row: Project;
   expanded: string | boolean;
@@ -85,6 +84,8 @@ export default function ProjectRow(props: {
 
   const { dispatch: dispatchProjects } = useProjects();
 
+  //access theme
+  const theme = useTheme();
 
   //edit project menu
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
@@ -115,8 +116,8 @@ export default function ProjectRow(props: {
   const handleProjectDelete = () => {
     dispatchProjects({
       type: "delete-project",
-      id: row.id
-    })
+      id: row.id,
+    });
     handleDeleteModalClose();
     handleDeletedSnackbarOpen();
   };
@@ -124,14 +125,17 @@ export default function ProjectRow(props: {
   //title edit handling
   const [underEdit, setUnderEdit] = useState(false);
   const [underEditText, setUnderEditText] = useState("");
-  const handleUnderEditStart = () => { setUnderEditText(row.name); setUnderEdit(true); };
+  const handleUnderEditStart = () => {
+    setUnderEditText(row.name);
+    setUnderEdit(true);
+  };
   const handleUnderEditEnd = () => setUnderEdit(false);
 
   const handleSaveEdit = () => {
     dispatchProjects({
       type: "rename-project",
       id: row.id,
-      name: underEditText
+      name: underEditText,
     });
     handleUnderEditEnd();
   };
@@ -145,16 +149,18 @@ export default function ProjectRow(props: {
       sx={
         expanded === row.id
           ? {
-            backgroundColor: "#1F1F1F",
-            borderRadius: 4,
-          }
+              backgroundColor:
+                theme.palette.mode === "dark" ? "#1F1F1F" : "#EBE7EC",
+              borderRadius: 4,
+            }
           : {
-            position: "static",
-            borderRadius: 4,
-            ".MuiAccordionSummary-root:hover": {
-              backgroundColor: "#1F1F1F",
-            },
-          }
+              position: "static",
+              borderRadius: 4,
+              ".MuiAccordionSummary-root:hover": {
+                backgroundColor:
+                  theme.palette.mode === "dark" ? "#1F1F1F" : "#EBE7EC",
+              },
+            }
       }
     >
       <AccordionSummary sx={{ paddingX: 0 }}>

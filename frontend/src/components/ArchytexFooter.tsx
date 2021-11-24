@@ -27,29 +27,28 @@ export default function ArchytexFooter() {
           <Box display='flex' flexWrap='nowrap' gap={1} marginTop={4}>
             <SocialIcon
               style={{ height: 40, width: 40 }}
-              bgColor='#0c0c0c'
+              bgColor='transparent'
               fgColor='GrayText'
-              // fgColor='#f5f0f6'
               network='facebook'
               url='https://facebook.com'
             ></SocialIcon>
             <SocialIcon
               style={{ height: 40, width: 40 }}
-              bgColor='#0c0c0c'
+              bgColor='transparent'
               fgColor='GrayText'
               network='instagram'
               url='https://instagram.com'
             ></SocialIcon>
             <SocialIcon
               style={{ height: 40, width: 40 }}
-              bgColor='#0c0c0c'
+              bgColor='transparent'
               fgColor='GrayText'
               network='twitter'
               url='https://twitter.com'
             ></SocialIcon>
             <SocialIcon
               style={{ height: 40, width: 40 }}
-              bgColor='#0c0c0c'
+              bgColor='transparent'
               fgColor='GrayText'
               network='github'
               url='https://github.com'

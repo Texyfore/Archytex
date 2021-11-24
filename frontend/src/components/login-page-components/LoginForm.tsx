@@ -50,14 +50,14 @@ export default function LoginForm() {
   ) => {
     event.preventDefault();
   };
+
   return (
     <MaxHeightContainer
       display='flex'
       justifyContent='center'
       alignItems='center'
       sx={{
-        backgroundImage: "radial-gradient(#1c517a 0.75px, #0c0c0c 0.75px)",
-        backgroundSize: "15px 15px",
+        backgroundColor: "background.paper",
       }}
     >
       <Box
@@ -208,7 +208,7 @@ export default function LoginForm() {
               width: 304,
               marginTop: 2,
               marginBottom: 3,
-              backgroundColor: "text.primary",
+              backgroundColor: "#f5f0f6",
             }}
           >
             Sign in with Apple
