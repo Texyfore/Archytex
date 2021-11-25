@@ -225,7 +225,8 @@ impl MainLoop {
             },
         };
 
-        self.editor.process(&self.input_mapper, &mut scene);
+        self.editor
+            .process(&self.input_mapper, &self.texture_bank, &mut scene);
         self.input_mapper.tick();
         self.renderer.render(scene);
     }

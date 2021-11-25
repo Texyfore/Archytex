@@ -6,10 +6,7 @@ use std::rc::Rc;
 
 use winit::event::{MouseButton, VirtualKeyCode};
 
-use crate::{
-    input::{InputMapper, Trigger},
-    render::{LineBatch, LineFactory, LineVertex, Scene, SolidFactory},
-};
+use crate::{input::{InputMapper, Trigger}, render::{LineBatch, LineFactory, LineVertex, Scene, SolidFactory, TextureBank}};
 
 use self::{
     brush::BrushBank,
@@ -121,7 +118,7 @@ impl Editor {
         }
     }
 
-    pub fn process(&mut self, input: &InputMapper, scene: &mut Scene) {
+    pub fn process(&mut self, input: &InputMapper, texture_bank: &TextureBank, scene: &mut Scene) {
         if input.is_active(Control) {
             if input.is_active_once(BrushMode) {
                 self.mode = EditMode::Brush;
@@ -162,6 +159,7 @@ impl Editor {
             &self.mode,
             input,
             &self.world_camera,
+            texture_bank,
             &self.solid_factory,
             &self.line_factory,
             &mut scene.world_pass.solid_batches,

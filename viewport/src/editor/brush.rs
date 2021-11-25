@@ -9,7 +9,7 @@ use crate::{
     math::{IntersectionPoint, MinMax, Plane, Ray, SolidUtil, Triangle},
     render::{
         LineBatch, LineFactory, LineVertex, SolidBatch, SolidFactory, SolidVertex, Sprite,
-        TextureID,
+        TextureBank, TextureID,
     },
 };
 
@@ -122,6 +122,7 @@ impl BrushBank {
         mode: &EditMode,
         input: &InputMapper,
         camera: &WorldCamera,
+        texture_bank: &TextureBank,
         solid_factory: &SolidFactory,
         line_factory: &LineFactory,
         solid_batches: &mut Vec<(TextureID, Rc<SolidBatch>)>,
@@ -146,8 +147,14 @@ impl BrushBank {
             let mut batches = HashMap::new();
             for brush in &self.brushes {
                 for face in &brush.faces {
+                    let texture = if texture_bank.exists(face.texture) {
+                        face.texture
+                    } else {
+                        10
+                    };
+
                     batches
-                        .entry(face.texture)
+                        .entry(texture)
                         .or_insert_with(|| (Vec::new(), Vec::new()));
 
                     let (vertices, triangles) = batches.get_mut(&face.texture).unwrap();
@@ -167,14 +174,18 @@ impl BrushBank {
                         [1.0; 4]
                     };
 
-                    for point in points {
-                        let texcoord = point.texcoord(normal);
-                        vertices.push(SolidVertex {
-                            position: point.into(),
-                            normal: normal.into(),
-                            texcoord: texcoord.into(),
-                            color,
-                        });
+                    if let Some(texture_size) = texture_bank.size_of(texture) {
+                        let texture_size = texture_size.map(|x| x as f32);
+                        let scale_factor = texture_size.div_element_wise(vec2(256.0, 256.0));
+                        for point in points {
+                            let texcoord = point.texcoord(normal).div_element_wise(scale_factor);
+                            vertices.push(SolidVertex {
+                                position: point.into(),
+                                normal: normal.into(),
+                                texcoord: texcoord.into(),
+                                color,
+                            });
+                        }
                     }
                 }
             }

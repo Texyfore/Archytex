@@ -4,7 +4,7 @@ use std::{collections::HashMap, rc::Rc};
 
 use bytemuck::{Pod, Zeroable};
 use cgmath::{Matrix4, Vector2, Vector3};
-use image::DynamicImage;
+use image::{DynamicImage, GenericImageView};
 use stable_vec::StableVec;
 use wgpu::{BufferUsages, Sampler};
 use winit::window::Window;
@@ -121,16 +121,34 @@ pub struct TextureBank {
     ctx: Rc<Context>,
     layout: Rc<TextureLayout>,
     sampler: Rc<Sampler>,
-    textures: StableVec<TextureGroup>,
+    textures: StableVec<TextureData>,
+}
+
+struct TextureData {
+    group: TextureGroup,
+    size: Vector2<u32>,
 }
 
 impl TextureBank {
     pub fn insert(&mut self, id: TextureID, image: &DynamicImage) {
+        let size = image.dimensions();
         self.textures.insert(
             id,
-            self.ctx
-                .create_texture_group(&self.layout, image, &self.sampler),
+            TextureData {
+                group: self
+                    .ctx
+                    .create_texture_group(&self.layout, image, &self.sampler),
+                size: size.into(),
+            },
         );
+    }
+
+    pub fn exists(&self, id: TextureID) -> bool {
+        self.textures.has_element_at(id)
+    }
+
+    pub fn size_of(&self, id: TextureID) -> Option<Vector2<u32>> {
+        self.textures.get(id).map(|t| t.size)
     }
 }
 
@@ -239,7 +257,7 @@ impl SceneRenderer {
                 pass.begin_solids(&self.solid_pipeline);
                 for (texture, batch) in &world_pass.solid_batches {
                     if let Some(texture) = scene.texture_bank.textures.get(*texture) {
-                        pass.set_texture(texture);
+                        pass.set_texture(&texture.group);
                         pass.draw_mesh(&batch.vertices, &batch.triangles);
                     }
                 }
@@ -258,7 +276,7 @@ impl SceneRenderer {
                 pass.begin_sprites(&self.sprite_pipeline);
                 for (texture, (vertices, triangles)) in &baked_sprites {
                     if let Some(texture) = scene.texture_bank.textures.get(*texture) {
-                        pass.set_texture(texture);
+                        pass.set_texture(&texture.group);
                         pass.draw_mesh(vertices, triangles);
                     }
                 }
