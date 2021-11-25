@@ -210,11 +210,11 @@ impl BrushBank {
         line_batches: &mut Vec<Rc<LineBatch>>,
         grid_length: f32,
     ) {
+        self.move_logic(input, camera, MoveKind::Brush, grid_length);
+
         if input.is_active(MoveCamera) {
             return;
         }
-
-        self.move_logic(input, camera, MoveKind::Brush, grid_length);
 
         if input.is_active_once(AddBrush) {
             self.new_brush.start = {
@@ -303,11 +303,11 @@ impl BrushBank {
     }
 
     fn face_mode(&mut self, input: &InputMapper, camera: &WorldCamera, grid_length: f32) {
+        self.move_logic(input, camera, MoveKind::Face, grid_length);
+
         if input.is_active(MoveCamera) {
             return;
         }
-
-        self.move_logic(input, camera, MoveKind::Face, grid_length);
 
         if input.was_active_once(Select) {
             if !input.is_active(EnableMultiSelect) {
@@ -346,63 +346,61 @@ impl BrushBank {
         sprites: &mut HashMap<TextureID, Vec<Sprite>>,
         grid_length: f32,
     ) {
-        if !input.is_active(MoveCamera) {
-            self.move_logic(input, camera, MoveKind::Vertex, grid_length);
+        self.move_logic(input, camera, MoveKind::Vertex, grid_length);
 
-            if input.was_active_once(Select) {
-                if !input.is_active(EnableMultiSelect) {
-                    for brush in &mut self.brushes {
-                        for point in &mut brush.points {
-                            point.selected = false;
+        if !input.is_active(MoveCamera) && input.was_active_once(Select) {
+            if !input.is_active(EnableMultiSelect) {
+                for brush in &mut self.brushes {
+                    for point in &mut brush.points {
+                        point.selected = false;
+                    }
+                }
+            }
+
+            let mut selection_candidates = Vec::new();
+
+            for (i, brush) in self.brushes.iter_mut().enumerate() {
+                for (j, point) in brush.points.iter_mut().enumerate() {
+                    if let Some(screen_pos) = camera.project(point.position, 0.0) {
+                        let screen_pos = vec2(screen_pos.x, screen_pos.y);
+                        let dist = (screen_pos - input.mouse_pos()).magnitude2();
+                        if dist < POINT_SELECT_RADIUS * POINT_SELECT_RADIUS {
+                            selection_candidates.push((i, j, dist));
                         }
                     }
                 }
+            }
 
-                let mut selection_candidates = Vec::new();
+            selection_candidates.sort_unstable_by(|(_, _, a), (_, _, b)| {
+                a.partial_cmp(b).unwrap_or(Ordering::Equal)
+            });
 
-                for (i, brush) in self.brushes.iter_mut().enumerate() {
-                    for (j, point) in brush.points.iter_mut().enumerate() {
-                        if let Some(screen_pos) = camera.project(point.position, 0.0) {
-                            let screen_pos = vec2(screen_pos.x, screen_pos.y);
-                            let dist = (screen_pos - input.mouse_pos()).magnitude2();
-                            if dist < POINT_SELECT_RADIUS * POINT_SELECT_RADIUS {
-                                selection_candidates.push((i, j, dist));
-                            }
-                        }
-                    }
-                }
+            if let Some((i, j, _)) = selection_candidates.get(0).copied() {
+                let point = &self.brushes[i].points[j];
 
-                selection_candidates.sort_unstable_by(|(_, _, a), (_, _, b)| {
-                    a.partial_cmp(b).unwrap_or(Ordering::Equal)
-                });
+                let ray = Ray {
+                    origin: camera.position(),
+                    end: point.position,
+                };
 
-                if let Some((i, j, _)) = selection_candidates.get(0).copied() {
-                    let point = &self.brushes[i].points[j];
-
-                    let ray = Ray {
-                        origin: camera.position(),
-                        end: point.position,
-                    };
-
-                    let can_select = if let Some(RaycastResult {
-                        point: hit_point, ..
-                    }) = self.raycast(ray)
-                    {
-                        let a = (point.position - ray.origin).magnitude2();
-                        let b = (hit_point - ray.origin).magnitude2();
-                        if (a - b).abs() > 0.1 {
-                            a < b
-                        } else {
-                            true
-                        }
+                let can_select = if let Some(RaycastResult {
+                    point: hit_point, ..
+                }) = self.raycast(ray)
+                {
+                    let a = (point.position - ray.origin).magnitude2();
+                    let b = (hit_point - ray.origin).magnitude2();
+                    if (a - b).abs() > 0.1 {
+                        a < b
                     } else {
                         true
-                    };
-
-                    if can_select {
-                        let point = &mut self.brushes[i].points[j];
-                        point.selected = !point.selected;
                     }
+                } else {
+                    true
+                };
+
+                if can_select {
+                    let point = &mut self.brushes[i].points[j];
+                    point.selected = !point.selected;
                 }
             }
         }
@@ -564,22 +562,26 @@ impl BrushBank {
         kind: MoveKind,
         grid_length: f32,
     ) {
-        if input.is_active_once(Move) {
-            if self.move_operation.is_some() {
-                self.move_operation
-                    .take()
-                    .unwrap()
-                    .abort(&mut self.brushes, &mut self.needs_rebuild)
-            } else {
-                match kind {
-                    MoveKind::Brush => self.begin_move_brushes(input, camera, grid_length),
-                    MoveKind::Face => self.begin_move_faces(input, camera, grid_length),
-                    MoveKind::Vertex => self.begin_move_vertices(input, camera, grid_length),
+        if !input.is_active(MoveCamera) {
+            if input.is_active_once(Move) {
+                if self.move_operation.is_some() {
+                    self.move_operation
+                        .take()
+                        .unwrap()
+                        .abort(&mut self.brushes, &mut self.needs_rebuild)
+                } else {
+                    match kind {
+                        MoveKind::Brush => self.begin_move_brushes(input, camera, grid_length),
+                        MoveKind::Face => self.begin_move_faces(input, camera, grid_length),
+                        MoveKind::Vertex => self.begin_move_vertices(input, camera, grid_length),
+                    }
                 }
+            } else if input.is_active_once(ConfirmMove) {
+                self.move_operation = None;
             }
-        } else if input.is_active_once(ConfirmMove) {
-            self.move_operation = None;
-        } else if input.is_active_once(AbortMove) && self.move_operation.is_some() {
+        }
+
+        if input.is_active_once(AbortMove) && self.move_operation.is_some() {
             self.move_operation
                 .take()
                 .unwrap()
