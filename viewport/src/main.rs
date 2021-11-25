@@ -169,8 +169,9 @@ impl MainLoop {
 
         textures!(
             texture_bank,
-            0 => "editor/nodraw.png",
-            1 => "editor/vertex.png"
+            0 => "editor/vertex.png",
+            10 => "editor/nodraw.png",
+            11 => "editor/test.png"
         );
 
         let mut input_mapper = InputMapper::default();

@@ -309,6 +309,15 @@ impl BrushBank {
                 self.needs_rebuild = true;
             }
         }
+
+        if input.is_active_once(SetTexture) {
+            for brush in &mut self.brushes {
+                for face in brush.faces.iter_mut().filter(|f| f.selected) {
+                    face.texture = 11;
+                    self.needs_rebuild = true;
+                }
+            }
+        }
     }
 
     fn vertex_mode(
@@ -395,7 +404,7 @@ impl BrushBank {
                 }
             }
         }
-        sprites.insert(1, vertex_sprites);
+        sprites.insert(0, vertex_sprites);
     }
 
     fn raycast(&self, ray: Ray) -> Option<RaycastResult> {
@@ -609,7 +618,7 @@ impl Brush {
         ]
         .map(|f| Face {
             quad: f,
-            texture: 0,
+            texture: 10,
             selected: false,
         });
 

@@ -68,6 +68,10 @@ actions! {
     AddBrush             Btn Left     ,
     DeleteBrush          Key Delete   ,
 
+    // Face manipulation //////////////
+
+    SetTexture           Key T        ,
+
     // Debug //////////////////////////
 
     Shift                Key LShift   ,

@@ -11,6 +11,7 @@ console_error_panic_hook = "0.1.7"
 cgmath = "0.18.0"
 image = "0.23.14"
 base64 = "0.13.0"
+stable-vec = "0.4.0"
 wgpu = { version = "0.11.0", features = ["webgl"] }
 winit = { version = "0.25.0", features = ["web-sys"] }
 web-sys = { version = "0.3.55", features = ["Document", "Window", "Node"] }
