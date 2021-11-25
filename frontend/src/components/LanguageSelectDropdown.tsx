@@ -2,7 +2,6 @@ import { Language } from "@mui/icons-material";
 import { IconButton, Menu, MenuItem, Tooltip, Typography } from "@mui/material";
 import { changeLanguage } from "i18next";
 import React from "react";
-import i18n from "i18next";
 
 //TODO: Get language options from api
 const languageOptions = [

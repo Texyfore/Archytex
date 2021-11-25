@@ -1,4 +1,4 @@
-import React, { Suspense, useMemo, useState } from "react";
+import React, { Suspense, useMemo } from "react";
 import { BrowserRouter as Router, Switch, Route } from "react-router-dom";
 import i18n from "i18next";
 import { initReactI18next, useTranslation } from "react-i18next";
@@ -10,6 +10,7 @@ import MainPage from "./pages/MainPage";
 import Dashboard from "./pages/Dashboard";
 import LoginPage from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
+import { ColorMode, ColorModeProvider, modeToString, useColorMode } from "./services/colorMode";
 
 //TODO: Get translations from api
 const translationEn = {
@@ -63,7 +64,9 @@ i18n.use(initReactI18next).init({
   interpolation: { escapeValue: false },
 });
 
+
 function App() {
+  //set different font for Japanese language
   const { i18n } = useTranslation();
   const fontFamily = useMemo(() => {
     switch (i18n.language) {
@@ -74,48 +77,52 @@ function App() {
         return "Poppins";
     }
   }, [i18n.language]);
-
-  const archytex_theme = createTheme({
-    palette: {
-      mode: "dark",
-      primary: {
-        main: "#39A0ED",
-      },
-      secondary: {
-        main: "#f68dd1",
-      },
-      text: {
-        primary: "#f5f0f6",
-      },
-      background: {
-        default: "#0c0c0c",
-        paper: "#0c0c0c",
-      },
-      error: {
-        main: "#fb4d3d",
-      },
-      warning: {
-        main: "#fea82f",
-      },
-      info: {
-        main: "#4c6085",
-      },
-      success: {
-        main: "#13c4a3",
-      },
-      divider: "#f5f0f6",
-    },
-    shape: {
-      borderRadius: 2,
-    },
-    typography: {
-      fontFamily: fontFamily,
-    },
-  });
+  const [mode, _] = useColorMode();
+  const archytex_theme = React.useMemo(
+    () =>
+      createTheme({
+        palette: {
+          mode: modeToString(mode),
+          primary: {
+            main: "#39A0ED",
+          },
+          secondary: {
+            main: "#f68dd1",
+          },
+          text: {
+            primary: mode === ColorMode.Dark ? "#f5f0f6" : "#0c0c0c",
+          },
+          background: {
+            default: mode === ColorMode.Dark ? "#0c0c0c" : "#F5F0F6",
+            paper: mode === ColorMode.Dark ? "#0c0c0c" : "#F5F0F6",
+          },
+          error: {
+            main: "#fb4d3d",
+          },
+          warning: {
+            main: "#fea82f",
+          },
+          info: {
+            main: "#4c6085",
+          },
+          success: {
+            main: "#13c4a3",
+          },
+          divider: mode === ColorMode.Dark ? "#1F1F1F" : "#EBE7EC",
+        },
+        shape: {
+          borderRadius: 2,
+        },
+        typography: {
+          fontFamily: fontFamily,
+        },
+      }),
+    [mode, fontFamily]
+  );
 
   return (
-    <Suspense fallback='Loading...'>
-      <ThemeProvider theme={archytex_theme}>
+    <ThemeProvider theme={archytex_theme}>
+      <Suspense fallback='Loading...'>
         <CssBaseline />
         <Router>
           <Switch>
@@ -133,9 +140,16 @@ function App() {
             </Route>
           </Switch>
         </Router>
-      </ThemeProvider>
-    </Suspense>
+      </Suspense>
+    </ThemeProvider>
   );
 }
 
-export default App;
+export default function ToggleColorMode() {
+
+  return (
+    <ColorModeProvider>
+      <App />
+    </ColorModeProvider>
+  );
+}

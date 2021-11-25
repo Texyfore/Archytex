@@ -23,8 +23,7 @@ import {
 import houseImage12 from "../../img/12.jpg";
 
 const MaxHeightContainer = styled(Box)(({ theme }) => ({
-  backgroundImage: "radial-gradient(#1c517a 0.75px, #0c0c0c 0.75px)",
-  backgroundSize: "15px 15px",
+  backgroundColor: "background.paper",
   marginTop: 56,
   height: `calc(100vh - 56px)`,
   [`${theme.breakpoints.up("xs")} and (orientation: landscape)`]: {
@@ -109,7 +108,7 @@ export default function RegisterForm() {
           </Typography>
           <Button
             variant='contained'
-            sx={{ width: 304, marginY: 2, backgroundColor: "text.primary" }}
+            sx={{ width: 304, marginY: 2, backgroundColor: "#f5f0f6" }}
           >
             <Typography variant='button' color='primary.main'>
               Sign in with Google
@@ -121,7 +120,7 @@ export default function RegisterForm() {
               width: 304,
               marginTop: 2,
               marginBottom: 3,
-              backgroundColor: "text.primary",
+              backgroundColor: "#f5f0f6",
             }}
           >
             <Typography variant='button'>Sign in with Apple</Typography>

@@ -1,6 +1,6 @@
 import React from "react";
 import { Box } from "@mui/material";
-
+import { useTheme } from "@mui/material/styles";
 interface ParallaxProps {
   height: string;
   backgroundOpacity?: Number;
@@ -38,7 +38,12 @@ export default function MainPageParallax({
         flexDirection='column'
         justifyContent='center'
         alignItems='center'
-        sx={{ backgroundColor: `rgba(0, 0, 0, ${backgroundOpacity})` }}
+        sx={{
+          backgroundColor:
+            useTheme().palette.mode === "dark"
+              ? `rgba(0, 0, 0, ${backgroundOpacity})`
+              : `rgba(255, 255, 255, ${backgroundOpacity})`,
+        }}
       >
         {children}
       </Box>

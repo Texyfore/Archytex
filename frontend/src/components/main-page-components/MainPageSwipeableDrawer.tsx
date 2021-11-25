@@ -12,6 +12,7 @@ import { styled } from "@mui/material/styles";
 import { Home, Login, People } from "@mui/icons-material";
 import ArchytexIcon from "../ArchytexIcon";
 import LanguageSelectDropdown from "../LanguageSelectDropdown";
+import DarkModeSwitch from "../DarkModeSwitch";
 
 const DrawerHeader = styled("div")(({ theme }) => ({
   display: "flex",
@@ -97,6 +98,7 @@ export default function DashboardSwipeableDrawer({
         alignItems='end'
         justifyContent='space-evenly'
       >
+        <DarkModeSwitch />
         <LanguageSelectDropdown
           open={languageMenuOpen}
           handleClick={handleLanguageMenuClick}
