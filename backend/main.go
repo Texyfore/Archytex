@@ -3,8 +3,11 @@ package main
 import (
 	"fmt"
 	"log"
+	"math/rand"
 	"net/http"
+	"time"
 
+	"github.com/Texyfore/Archytex/backend/logging"
 	"github.com/Texyfore/Archytex/backend/routes"
 	"github.com/gorilla/mux"
 )
@@ -17,9 +20,12 @@ func jsonMiddleware(next http.Handler) http.Handler {
 }
 
 func main() {
+	rand.Seed(time.Now().UnixNano())
+
 	//TODO: Read port
 	port := 8080
 	r := mux.NewRouter()
+	r.Use(logging.LogMiddleware)
 	api := r.PathPrefix("/api").Subrouter()
 	api.Use(jsonMiddleware)
 
