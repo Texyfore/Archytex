@@ -137,6 +137,12 @@ impl Editor {
                 .create(&generate_grid(grid_cell_count, grid_length));
         }
 
+        self.world_camera
+            .process(input, &mut scene.world_pass.camera_matrix);
+
+        self.sprite_camera
+            .process(&mut scene.sprite_pass.camera_matrix);
+
         self.brush_bank.process(
             &self.mode,
             input,
@@ -149,12 +155,6 @@ impl Editor {
             &mut scene.sprite_pass.sprites,
             2.0f32.powi(self.grid_subdiv),
         );
-
-        self.world_camera
-            .process(input, &mut scene.world_pass.camera_matrix);
-
-        self.sprite_camera
-            .process(&mut scene.sprite_pass.camera_matrix);
 
         scene.world_pass.line_batches.push(self.grid.clone());
     }
