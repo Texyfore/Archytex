@@ -10,6 +10,8 @@ import (
 	"github.com/Texyfore/Archytex/backend/logging"
 	"github.com/Texyfore/Archytex/backend/routes"
 	"github.com/gorilla/mux"
+
+	_ "github.com/joho/godotenv/autoload"
 )
 
 func jsonMiddleware(next http.Handler) http.Handler {
