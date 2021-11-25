@@ -100,8 +100,14 @@ enum MoveKind {
 
 impl Default for BrushBank {
     fn default() -> Self {
+        // Phantom brush workaround for #161
+        let brushes = vec![Brush::cuboid(
+            vec3(1000000.0, 1000000.0, 1000000.0),
+            vec3(0.001, 0.001, 0.001),
+        )];
+
         Self {
-            brushes: Default::default(),
+            brushes,
             batches: Default::default(),
             new_brush: Default::default(),
             move_operation: None,
