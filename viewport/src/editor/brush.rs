@@ -210,6 +210,10 @@ impl BrushBank {
         line_batches: &mut Vec<Rc<LineBatch>>,
         grid_length: f32,
     ) {
+        if input.is_active(MoveCamera) {
+            return;
+        }
+
         self.move_logic(input, camera, MoveKind::Brush, grid_length);
 
         if input.is_active_once(AddBrush) {
@@ -299,6 +303,10 @@ impl BrushBank {
     }
 
     fn face_mode(&mut self, input: &InputMapper, camera: &WorldCamera, grid_length: f32) {
+        if input.is_active(MoveCamera) {
+            return;
+        }
+
         self.move_logic(input, camera, MoveKind::Face, grid_length);
 
         if input.was_active_once(Select) {
@@ -338,61 +346,63 @@ impl BrushBank {
         sprites: &mut HashMap<TextureID, Vec<Sprite>>,
         grid_length: f32,
     ) {
-        self.move_logic(input, camera, MoveKind::Vertex, grid_length);
+        if !input.is_active(MoveCamera) {
+            self.move_logic(input, camera, MoveKind::Vertex, grid_length);
 
-        if input.was_active_once(Select) {
-            if !input.is_active(EnableMultiSelect) {
-                for brush in &mut self.brushes {
-                    for point in &mut brush.points {
-                        point.selected = false;
-                    }
-                }
-            }
-
-            let mut selection_candidates = Vec::new();
-
-            for (i, brush) in self.brushes.iter_mut().enumerate() {
-                for (j, point) in brush.points.iter_mut().enumerate() {
-                    if let Some(screen_pos) = camera.project(point.position, 0.0) {
-                        let screen_pos = vec2(screen_pos.x, screen_pos.y);
-                        let dist = (screen_pos - input.mouse_pos()).magnitude2();
-                        if dist < POINT_SELECT_RADIUS * POINT_SELECT_RADIUS {
-                            selection_candidates.push((i, j, dist));
+            if input.was_active_once(Select) {
+                if !input.is_active(EnableMultiSelect) {
+                    for brush in &mut self.brushes {
+                        for point in &mut brush.points {
+                            point.selected = false;
                         }
                     }
                 }
-            }
 
-            selection_candidates.sort_unstable_by(|(_, _, a), (_, _, b)| {
-                a.partial_cmp(b).unwrap_or(Ordering::Equal)
-            });
+                let mut selection_candidates = Vec::new();
 
-            if let Some((i, j, _)) = selection_candidates.get(0).copied() {
-                let point = &self.brushes[i].points[j];
+                for (i, brush) in self.brushes.iter_mut().enumerate() {
+                    for (j, point) in brush.points.iter_mut().enumerate() {
+                        if let Some(screen_pos) = camera.project(point.position, 0.0) {
+                            let screen_pos = vec2(screen_pos.x, screen_pos.y);
+                            let dist = (screen_pos - input.mouse_pos()).magnitude2();
+                            if dist < POINT_SELECT_RADIUS * POINT_SELECT_RADIUS {
+                                selection_candidates.push((i, j, dist));
+                            }
+                        }
+                    }
+                }
 
-                let ray = Ray {
-                    origin: camera.position(),
-                    end: point.position,
-                };
+                selection_candidates.sort_unstable_by(|(_, _, a), (_, _, b)| {
+                    a.partial_cmp(b).unwrap_or(Ordering::Equal)
+                });
 
-                let can_select = if let Some(RaycastResult {
-                    point: hit_point, ..
-                }) = self.raycast(ray)
-                {
-                    let a = (point.position - ray.origin).magnitude2();
-                    let b = (hit_point - ray.origin).magnitude2();
-                    if (a - b).abs() > 0.1 {
-                        a < b
+                if let Some((i, j, _)) = selection_candidates.get(0).copied() {
+                    let point = &self.brushes[i].points[j];
+
+                    let ray = Ray {
+                        origin: camera.position(),
+                        end: point.position,
+                    };
+
+                    let can_select = if let Some(RaycastResult {
+                        point: hit_point, ..
+                    }) = self.raycast(ray)
+                    {
+                        let a = (point.position - ray.origin).magnitude2();
+                        let b = (hit_point - ray.origin).magnitude2();
+                        if (a - b).abs() > 0.1 {
+                            a < b
+                        } else {
+                            true
+                        }
                     } else {
                         true
-                    }
-                } else {
-                    true
-                };
+                    };
 
-                if can_select {
-                    let point = &mut self.brushes[i].points[j];
-                    point.selected = !point.selected;
+                    if can_select {
+                        let point = &mut self.brushes[i].points[j];
+                        point.selected = !point.selected;
+                    }
                 }
             }
         }
