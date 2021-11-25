@@ -6,7 +6,10 @@ use std::rc::Rc;
 
 use winit::event::{MouseButton, VirtualKeyCode};
 
-use crate::{input::{InputMapper, Trigger}, render::{LineBatch, LineFactory, LineVertex, Scene, SolidFactory, TextureBank}};
+use crate::{
+    input::{InputMapper, Trigger},
+    render::{LineBatch, LineFactory, LineVertex, Scene, SolidFactory, TextureBank},
+};
 
 use self::{
     brush::BrushBank,
@@ -40,7 +43,7 @@ macro_rules! actions {
 actions! {
     // Camera movement ////////////////
 
-    EnableCameraMovement Btn Right    ,
+    MoveCamera           Btn Right    ,
     Forward              Key W        ,
     Backward             Key S        ,
     Left                 Key A        ,
@@ -53,12 +56,13 @@ actions! {
     EnableMultiSelect    Key LShift   ,
     Select               Btn Left     ,
     Deselect             Key X        ,
+    SelectAll            Key A        ,
     Move                 Key G        ,
     ConfirmMove          Btn Left     ,
     AbortMove            Btn Right    ,
     GridUp               Key P        ,
     GridDown             Key O        ,
-
+    SwitchMode           Key Tab      ,
 
     // Brush manipulation /////////////
 
@@ -68,16 +72,6 @@ actions! {
     // Face manipulation //////////////
 
     SetTexture           Key T        ,
-
-    // Debug //////////////////////////
-
-    Shift                Key LShift   ,
-    Control              Key LControl ,
-    Inc                  Key Up       ,
-    Dec                  Key Down     ,
-    BrushMode            Key B        ,
-    FaceMode             Key F        ,
-    VertexMode           Key V        ,
 
     ///////////////////////////////////
 }
@@ -119,14 +113,8 @@ impl Editor {
     }
 
     pub fn process(&mut self, input: &InputMapper, texture_bank: &TextureBank, scene: &mut Scene) {
-        if input.is_active(Control) {
-            if input.is_active_once(BrushMode) {
-                self.mode = EditMode::Brush;
-            } else if input.is_active_once(FaceMode) {
-                self.mode = EditMode::Face;
-            } else if input.is_active_once(VertexMode) {
-                self.mode = EditMode::Vertex;
-            }
+        if input.is_active_once(SwitchMode) {
+            self.mode.switch();
         }
 
         if input.is_active_once(GridUp) && self.grid_subdiv < GRID_MAX {
@@ -149,7 +137,6 @@ impl Editor {
                 .create(&generate_grid(grid_cell_count, grid_length));
         }
 
-        
         self.brush_bank.process(
             &self.mode,
             input,
@@ -162,13 +149,13 @@ impl Editor {
             &mut scene.sprite_pass.sprites,
             2.0f32.powi(self.grid_subdiv),
         );
-        
+
         self.world_camera
             .process(input, &mut scene.world_pass.camera_matrix);
 
         self.sprite_camera
             .process(&mut scene.sprite_pass.camera_matrix);
-        
+
         scene.world_pass.line_batches.push(self.grid.clone());
     }
 
@@ -183,6 +170,16 @@ pub enum EditMode {
     Brush,
     Face,
     Vertex,
+}
+
+impl EditMode {
+    fn switch(&mut self) {
+        *self = match self {
+            Self::Brush => Self::Face,
+            Self::Face => Self::Vertex,
+            Self::Vertex => Self::Brush,
+        };
+    }
 }
 
 fn generate_grid(cell_count: i32, cell_size: f32) -> Vec<LineVertex> {
