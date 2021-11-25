@@ -42,7 +42,6 @@ const modalStyle = {
   transform: "translate(-50%, -50%)",
   width: { xs: 400, sm: 500, md: 600, lg: 600 },
   bgcolor: "background.paper",
-  border: "1px solid #14151A",
   boxShadow: 24,
   p: 4,
 };
@@ -267,7 +266,7 @@ export default function ProjectRow(props: {
           <Fade in={deleteModalOpen}>
             <Box
               sx={modalStyle}
-              borderRadius={4}
+              borderRadius={2}
               display='flex'
               flexDirection='column'
               justifyContent='space-between'
@@ -363,11 +362,11 @@ export default function ProjectRow(props: {
                     <LinearProgressWithLabel value={render.status} />
                   </Box>
                   <Box display={{ xs: "block", md: "none" }}>
-                    <Typography noWrap>{render.status}%</Typography>
+                    <Typography noWrap>{Math.round(render.status)}%</Typography>
                   </Box>
                 </ProjectTableCell>
                 <ProjectTableCell align='right'>
-                  <Typography width={{ xs: 50, sm: 150 }}>
+                  <Typography width={{ xs: 40, sm: 150 }}>
                     {render.renderTime}
                   </Typography>
                 </ProjectTableCell>
