@@ -43,7 +43,7 @@ impl Default for WorldCamera {
 
 impl WorldCamera {
     pub fn process(&mut self, input: &InputMapper, matrix: &mut Matrix4<f32>) {
-        if input.is_active(EnableCameraMovement) {
+        if input.is_active(MoveCamera) {
             if input.is_active(Forward) {
                 self.position += self.forward() * self.speed;
             }
