@@ -23,14 +23,13 @@ use super::{
     EditMode,
 };
 
-const GRID_LENGTH: f32 = 1.0;
-
 pub struct BrushBank {
     brushes: Vec<Brush>,
     batches: Vec<(TextureID, Rc<SolidBatch>)>,
     new_brush: NewBrush,
     move_operation: Option<MoveOperation>,
     needs_rebuild: bool,
+    previous_mode: EditMode,
 }
 
 struct Brush {
@@ -112,6 +111,7 @@ impl Default for BrushBank {
             new_brush: Default::default(),
             move_operation: None,
             needs_rebuild: false,
+            previous_mode: EditMode::Brush,
         }
     }
 }
@@ -127,11 +127,19 @@ impl BrushBank {
         solid_batches: &mut Vec<(TextureID, Rc<SolidBatch>)>,
         line_batches: &mut Vec<Rc<LineBatch>>,
         sprites: &mut HashMap<TextureID, Vec<Sprite>>,
+        grid_length: f32,
     ) {
         match mode {
-            EditMode::Brush => self.brush_mode(input, camera, line_factory, line_batches),
-            EditMode::Face => self.face_mode(input, camera),
-            EditMode::Vertex => self.vertex_mode(input, camera, sprites),
+            EditMode::Brush => {
+                self.brush_mode(input, camera, line_factory, line_batches, grid_length)
+            }
+            EditMode::Face => self.face_mode(input, camera, grid_length),
+            EditMode::Vertex => self.vertex_mode(input, camera, sprites, grid_length),
+        }
+
+        if mode != &self.previous_mode {
+            self.deselect_all();
+            self.needs_rebuild = true;
         }
 
         if self.needs_rebuild {
@@ -179,6 +187,7 @@ impl BrushBank {
             self.needs_rebuild = false;
         }
 
+        self.previous_mode = *mode;
         *solid_batches = self.batches.clone();
     }
 
@@ -188,14 +197,15 @@ impl BrushBank {
         camera: &WorldCamera,
         line_factory: &LineFactory,
         line_batches: &mut Vec<Rc<LineBatch>>,
+        grid_length: f32,
     ) {
-        self.move_logic(input, camera, MoveKind::Brush);
+        self.move_logic(input, camera, MoveKind::Brush, grid_length);
 
         if input.is_active_once(AddBrush) {
             self.new_brush.start = {
                 let hit = self.raycast_or_xz(camera.screen_ray(input.mouse_pos()));
                 Some(NewBrushPoint {
-                    world: hit.point.grid(GRID_LENGTH),
+                    world: hit.point.grid(grid_length),
                     screen: input.mouse_pos(),
                 })
             };
@@ -205,7 +215,7 @@ impl BrushBank {
             self.new_brush.end = {
                 let hit = self.raycast_or_xz(camera.screen_ray(input.mouse_pos()));
                 Some(NewBrushPoint {
-                    world: hit.point.grid(GRID_LENGTH),
+                    world: hit.point.grid(grid_length),
                     screen: input.mouse_pos(),
                 })
             };
@@ -217,11 +227,11 @@ impl BrushBank {
                 let dist_sqr = (end.screen - start.screen).magnitude2();
 
                 if dist_sqr > MIN_SQR {
-                    let min = start.world.min(end.world).cast::<f32>().unwrap() * GRID_LENGTH;
-                    let max = start.world.max(end.world).cast::<f32>().unwrap() * GRID_LENGTH;
+                    let min = start.world.min(end.world).cast::<f32>().unwrap() * grid_length;
+                    let max = start.world.max(end.world).cast::<f32>().unwrap() * grid_length;
 
                     let origin = min;
-                    let extent = max - min + vec3(1.0, 1.0, 1.0) * GRID_LENGTH;
+                    let extent = max - min + vec3(1.0, 1.0, 1.0) * grid_length;
 
                     self.new_brush.bocks = Some(NewBrushBox {
                         origin,
@@ -277,8 +287,8 @@ impl BrushBank {
         }
     }
 
-    fn face_mode(&mut self, input: &InputMapper, camera: &WorldCamera) {
-        self.move_logic(input, camera, MoveKind::Face);
+    fn face_mode(&mut self, input: &InputMapper, camera: &WorldCamera, grid_length: f32) {
+        self.move_logic(input, camera, MoveKind::Face, grid_length);
 
         if input.was_active_once(Select) {
             if !input.is_active(EnableMultiSelect) {
@@ -306,8 +316,9 @@ impl BrushBank {
         input: &InputMapper,
         camera: &WorldCamera,
         sprites: &mut HashMap<TextureID, Vec<Sprite>>,
+        grid_length: f32,
     ) {
-        self.move_logic(input, camera, MoveKind::Vertex);
+        self.move_logic(input, camera, MoveKind::Vertex, grid_length);
 
         if input.was_active_once(Select) {
             if !input.is_active(EnableMultiSelect) {
@@ -448,7 +459,7 @@ impl BrushBank {
         result
     }
 
-    fn begin_move_brushes(&mut self, input: &InputMapper, camera: &WorldCamera) {
+    fn begin_move_brushes(&mut self, input: &InputMapper, camera: &WorldCamera, grid_length: f32) {
         let mut points = Vec::new();
         let mut center = Vector3::zero();
         let mut div = 0.0;
@@ -466,10 +477,10 @@ impl BrushBank {
         }
 
         center /= div;
-        self.move_operation = MoveOperation::new(input, camera, center, points);
+        self.move_operation = MoveOperation::new(input, camera, center, points, grid_length);
     }
 
-    fn begin_move_faces(&mut self, input: &InputMapper, camera: &WorldCamera) {
+    fn begin_move_faces(&mut self, input: &InputMapper, camera: &WorldCamera, grid_length: f32) {
         let mut points = Vec::new();
         let mut center = Vector3::zero();
         let mut div = 0.0;
@@ -492,10 +503,10 @@ impl BrushBank {
         }
 
         center /= div;
-        self.move_operation = MoveOperation::new(input, camera, center, points);
+        self.move_operation = MoveOperation::new(input, camera, center, points, grid_length);
     }
 
-    fn begin_move_vertices(&mut self, input: &InputMapper, camera: &WorldCamera) {
+    fn begin_move_vertices(&mut self, input: &InputMapper, camera: &WorldCamera, grid_length: f32) {
         let mut points = Vec::new();
         let mut center = Vector3::zero();
         let mut div = 0.0;
@@ -513,10 +524,16 @@ impl BrushBank {
         }
 
         center /= div;
-        self.move_operation = MoveOperation::new(input, camera, center, points);
+        self.move_operation = MoveOperation::new(input, camera, center, points, grid_length);
     }
 
-    fn move_logic(&mut self, input: &InputMapper, camera: &WorldCamera, kind: MoveKind) {
+    fn move_logic(
+        &mut self,
+        input: &InputMapper,
+        camera: &WorldCamera,
+        kind: MoveKind,
+        grid_length: f32,
+    ) {
         if input.is_active_once(Move) {
             if self.move_operation.is_some() {
                 self.move_operation
@@ -525,9 +542,9 @@ impl BrushBank {
                     .abort(&mut self.brushes, &mut self.needs_rebuild)
             } else {
                 match kind {
-                    MoveKind::Brush => self.begin_move_brushes(input, camera),
-                    MoveKind::Face => self.begin_move_faces(input, camera),
-                    MoveKind::Vertex => self.begin_move_vertices(input, camera),
+                    MoveKind::Brush => self.begin_move_brushes(input, camera, grid_length),
+                    MoveKind::Face => self.begin_move_faces(input, camera, grid_length),
+                    MoveKind::Vertex => self.begin_move_vertices(input, camera, grid_length),
                 }
             }
         } else if input.is_active_once(ConfirmMove) {
@@ -540,7 +557,27 @@ impl BrushBank {
         }
 
         if let Some(move_operation) = self.move_operation.as_mut() {
-            move_operation.update(input, camera, &mut self.brushes, &mut self.needs_rebuild);
+            move_operation.update(
+                input,
+                camera,
+                &mut self.brushes,
+                &mut self.needs_rebuild,
+                grid_length,
+            );
+        }
+    }
+
+    fn deselect_all(&mut self) {
+        for brush in &mut self.brushes {
+            brush.selected = false;
+
+            for face in &mut brush.faces {
+                face.selected = false;
+            }
+
+            for point in &mut brush.points {
+                point.selected = false;
+            }
         }
     }
 }
@@ -590,16 +627,17 @@ impl MoveOperation {
         camera: &WorldCamera,
         center: Vector3<f32>,
         points: Vec<MovePoint>,
+        grid_length: f32,
     ) -> Option<Self> {
         let ray = camera.screen_ray(input.mouse_pos());
         let plane = Plane {
-            origin: center.snap(GRID_LENGTH),
+            origin: center.snap(grid_length),
             normal: (-camera.forward()).cardinal(),
         };
 
         ray.intersection_point(&plane).map(|isp| MoveOperation {
             plane,
-            start: isp.snap(GRID_LENGTH),
+            start: isp.snap(grid_length),
             end: None,
             points,
         })
@@ -611,16 +649,17 @@ impl MoveOperation {
         camera: &WorldCamera,
         brushes: &mut [Brush],
         rebuild: &mut bool,
+        grid_length: f32,
     ) {
         let ray = camera.screen_ray(input.mouse_pos());
         if let Some(isp) = ray.intersection_point(&self.plane) {
-            let point = isp.snap(GRID_LENGTH);
+            let point = isp.snap(grid_length);
             if let Some(end) = self.end {
                 if (end - point).magnitude2() > 0.01 {
                     let vec = point - self.start;
                     for move_point in &self.points {
                         let point = &mut brushes[move_point.brush].points[move_point.point];
-                        point.position = move_point.original_pos + vec;
+                        point.position = (move_point.original_pos + vec).snap(grid_length);
                         *rebuild = true;
                     }
                     self.end = Some(point);

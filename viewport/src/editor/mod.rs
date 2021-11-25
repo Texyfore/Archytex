@@ -59,6 +59,9 @@ actions! {
     Move                 Key G        ,
     ConfirmMove          Btn Left     ,
     AbortMove            Btn Right    ,
+    GridUp               Key P        ,
+    GridDown             Key O        ,
+
 
     // Brush manipulation /////////////
 
@@ -78,6 +81,9 @@ actions! {
     ///////////////////////////////////
 }
 
+const GRID_MIN: i32 = -3;
+const GRID_MAX: i32 = 2;
+
 pub struct Editor {
     solid_factory: SolidFactory,
     line_factory: LineFactory,
@@ -85,6 +91,7 @@ pub struct Editor {
     sprite_camera: SpriteCamera,
     brush_bank: BrushBank,
     mode: EditMode,
+    grid_subdiv: i32,
     grid: Rc<LineBatch>,
 }
 
@@ -96,7 +103,7 @@ impl Editor {
     ) -> Self {
         input.define_actions(ACTION_DEFINITIONS);
 
-        let grid = line_factory.create(&generate_grid(10, 1.0));
+        let grid = line_factory.create(&generate_grid(16, 1.0));
 
         Self {
             solid_factory,
@@ -105,6 +112,7 @@ impl Editor {
             sprite_camera: Default::default(),
             brush_bank: Default::default(),
             mode: EditMode::Brush,
+            grid_subdiv: 0,
             grid,
         }
     }
@@ -118,6 +126,26 @@ impl Editor {
             } else if input.is_active_once(VertexMode) {
                 self.mode = EditMode::Vertex;
             }
+        }
+
+        if input.is_active_once(GridUp) && self.grid_subdiv < GRID_MAX {
+            self.grid_subdiv += 1;
+
+            let grid_length = 2.0f32.powi(self.grid_subdiv);
+            let grid_cell_count = (16.0 / grid_length) as i32;
+
+            self.grid = self
+                .line_factory
+                .create(&generate_grid(grid_cell_count, grid_length));
+        } else if input.is_active_once(GridDown) && self.grid_subdiv > GRID_MIN {
+            self.grid_subdiv -= 1;
+
+            let grid_length = 2.0f32.powi(self.grid_subdiv);
+            let grid_cell_count = (16.0 / grid_length) as i32;
+
+            self.grid = self
+                .line_factory
+                .create(&generate_grid(grid_cell_count, grid_length));
         }
 
         self.world_camera
@@ -135,6 +163,7 @@ impl Editor {
             &mut scene.world_pass.solid_batches,
             &mut scene.world_pass.line_batches,
             &mut scene.sprite_pass.sprites,
+            2.0f32.powi(self.grid_subdiv),
         );
 
         scene.world_pass.line_batches.push(self.grid.clone());
@@ -146,6 +175,7 @@ impl Editor {
     }
 }
 
+#[derive(Clone, Copy, PartialEq)]
 pub enum EditMode {
     Brush,
     Face,
