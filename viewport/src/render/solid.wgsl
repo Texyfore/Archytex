@@ -80,11 +80,7 @@ fn main(in: VertexOut) -> FragmentOut {
     //     color_rgb = color_rgb + vec3<f32>(0.1);
     // }
 
-    var tex_dims = vec2<f32>(textureDimensions(t_diffuse));
-    var tex_scale = tex_dims / vec2<f32>(256.0);
-    var texcoord = ((in.texcoord % tex_scale + tex_scale) % tex_scale) / tex_scale;
-
-    var color = textureSample(t_diffuse, s_diffuse, texcoord) * in.color;
+    var color = textureSample(t_diffuse, s_diffuse, in.texcoord) * in.color;
     var color_rgb = color.rgb;
     var color_a = color.a;
 
