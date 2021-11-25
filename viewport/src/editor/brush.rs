@@ -395,7 +395,7 @@ impl BrushBank {
                 }
             }
         }
-        sprites.insert(1, vertex_sprites);
+        sprites.insert(0, vertex_sprites);
     }
 
     fn raycast(&self, ray: Ray) -> Option<RaycastResult> {
@@ -609,7 +609,7 @@ impl Brush {
         ]
         .map(|f| Face {
             quad: f,
-            texture: 0,
+            texture: 10,
             selected: false,
         });
 
