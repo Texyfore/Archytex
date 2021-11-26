@@ -3,7 +3,7 @@ use cgmath::{
     Vector3, Vector4, Zero,
 };
 
-use crate::{input::InputMapper, math::Ray};
+use crate::{input::InputMapper, math::Ray, render::Scene};
 
 use super::ActionBinding::*;
 
@@ -27,8 +27,8 @@ impl Default for WorldCamera {
         Self {
             position: Vector3::zero(),
             rotation: Vector2::zero(),
-            speed: 0.1,
-            sensitivity: 0.1,
+            speed: 8.0,
+            sensitivity: 4.0,
 
             fov: 80.0,
             near: 0.1,
@@ -42,33 +42,33 @@ impl Default for WorldCamera {
 }
 
 impl WorldCamera {
-    pub fn process(&mut self, input: &InputMapper, matrix: &mut Matrix4<f32>) {
+    pub fn process(&mut self, dt:f32, input: &InputMapper) {
         if input.is_active(MoveCamera) {
             if input.is_active(Forward) {
-                self.position += self.forward() * self.speed;
+                self.position += self.forward() * self.speed * dt;
             }
 
             if input.is_active(Backward) {
-                self.position -= self.forward() * self.speed;
+                self.position -= self.forward() * self.speed * dt;
             }
 
             if input.is_active(Left) {
-                self.position -= self.right() * self.speed;
+                self.position -= self.right() * self.speed * dt;
             }
 
             if input.is_active(Right) {
-                self.position += self.right() * self.speed;
+                self.position += self.right() * self.speed * dt;
             }
 
             if input.is_active(Up) {
-                self.position += Vector3::unit_y() * self.speed;
+                self.position += Vector3::unit_y() * self.speed * dt;
             }
 
             if input.is_active(Down) {
-                self.position -= Vector3::unit_y() * self.speed;
+                self.position -= Vector3::unit_y() * self.speed * dt;
             }
 
-            let delta = input.mouse_delta() * self.sensitivity;
+            let delta = input.mouse_delta() * self.sensitivity * dt;
 
             self.rotation.y += delta.x;
             self.rotation.x = clamp(self.rotation.x + delta.y, -90.0, 90.0);
@@ -85,8 +85,10 @@ impl WorldCamera {
         self.view = Matrix4::from_translation(self.position)
             * Matrix4::from_angle_y(Deg(self.rotation.y))
             * Matrix4::from_angle_x(Deg(self.rotation.x));
+    }
 
-        *matrix = self.projection * self.view.invert().unwrap();
+    pub fn render(&self, scene: &mut Scene) {
+        scene.world_pass.camera_matrix = self.projection * self.view.invert().unwrap();
     }
 
     pub fn resize_viewport(&mut self, width: u32, height: u32) {
@@ -168,8 +170,8 @@ impl Default for SpriteCamera {
 }
 
 impl SpriteCamera {
-    pub fn process(&self, matrix: &mut Matrix4<f32>) {
-        *matrix = self.projection;
+    pub fn render(&self, scene: &mut Scene) {
+        scene.sprite_pass.camera_matrix = self.projection;
     }
 
     pub fn resize_viewport(&mut self, width: u32, height: u32) {

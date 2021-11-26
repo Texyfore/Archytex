@@ -1556,6 +1556,7 @@ dependencies = [
  "console_error_panic_hook",
  "futures-lite",
  "image",
+ "instant",
  "serde",
  "serde_json",
  "stable-vec",

@@ -8,7 +8,7 @@ use crate::{
     input::InputMapper,
     math::{IntersectionPoint, MinMax, Plane, Ray, SolidUtil, Triangle},
     render::{
-        LineBatch, LineFactory, LineVertex, SolidBatch, SolidFactory, SolidVertex, Sprite,
+        LineBatch, LineFactory, LineVertex, Scene, SolidBatch, SolidFactory, SolidVertex, Sprite,
         TextureBank, TextureID,
     },
 };
@@ -125,17 +125,12 @@ impl BrushBank {
         texture_bank: &TextureBank,
         solid_factory: &SolidFactory,
         line_factory: &LineFactory,
-        solid_batches: &mut Vec<(TextureID, Rc<SolidBatch>)>,
-        line_batches: &mut Vec<Rc<LineBatch>>,
-        sprites: &mut HashMap<TextureID, Vec<Sprite>>,
         grid_length: f32,
     ) {
         match mode {
-            EditMode::Brush => {
-                self.brush_mode(input, camera, line_factory, line_batches, grid_length)
-            }
+            EditMode::Brush => self.brush_mode(input, camera, line_factory, grid_length),
             EditMode::Face => self.face_mode(input, camera, grid_length),
-            EditMode::Vertex => self.vertex_mode(input, camera, sprites, grid_length),
+            EditMode::Vertex => self.vertex_mode(input, camera, grid_length),
         }
 
         if mode != &self.previous_mode {
@@ -199,7 +194,39 @@ impl BrushBank {
         }
 
         self.previous_mode = *mode;
-        *solid_batches = self.batches.clone();
+    }
+
+    pub fn render(&self, scene: &mut Scene, camera: &WorldCamera, mode: &EditMode) {
+        scene.world_pass.solid_batches = self.batches.clone();
+        match mode {
+            EditMode::Brush => {
+                if let Some(bocks) = self.new_brush.bocks.as_ref() {
+                    scene.world_pass.line_batches.push(bocks.batch.clone());
+                }
+            }
+            EditMode::Face => {}
+            EditMode::Vertex => {
+                let mut vertex_sprites = Vec::new();
+                for brush in &self.brushes {
+                    for point in &brush.points {
+                        let color = if point.selected {
+                            VERTEX_HIGHLIGHT_COLOR
+                        } else {
+                            [0.0, 0.0, 0.0, 1.0]
+                        };
+
+                        if let Some(origin) = camera.project(point.position, -0.001) {
+                            vertex_sprites.push(Sprite {
+                                origin: origin - vec3(5.0, 5.0, 0.0),
+                                extent: vec2(10.0, 10.0),
+                                color,
+                            });
+                        }
+                    }
+                }
+                scene.sprite_pass.sprites.insert(0, vertex_sprites);
+            }
+        }
     }
 
     fn brush_mode(
@@ -207,7 +234,6 @@ impl BrushBank {
         input: &InputMapper,
         camera: &WorldCamera,
         line_factory: &LineFactory,
-        line_batches: &mut Vec<Rc<LineBatch>>,
         grid_length: f32,
     ) {
         self.move_logic(input, camera, MoveKind::Brush, grid_length);
@@ -296,10 +322,6 @@ impl BrushBank {
                 self.needs_rebuild = true;
             }
         }
-
-        if let Some(bocks) = self.new_brush.bocks.as_ref() {
-            line_batches.push(bocks.batch.clone());
-        }
     }
 
     fn face_mode(&mut self, input: &InputMapper, camera: &WorldCamera, grid_length: f32) {
@@ -339,13 +361,7 @@ impl BrushBank {
         }
     }
 
-    fn vertex_mode(
-        &mut self,
-        input: &InputMapper,
-        camera: &WorldCamera,
-        sprites: &mut HashMap<TextureID, Vec<Sprite>>,
-        grid_length: f32,
-    ) {
+    fn vertex_mode(&mut self, input: &InputMapper, camera: &WorldCamera, grid_length: f32) {
         self.move_logic(input, camera, MoveKind::Vertex, grid_length);
 
         if !input.is_active(MoveCamera) && input.was_active_once(Select) {
@@ -404,26 +420,6 @@ impl BrushBank {
                 }
             }
         }
-
-        let mut vertex_sprites = Vec::new();
-        for brush in &self.brushes {
-            for point in &brush.points {
-                let color = if point.selected {
-                    VERTEX_HIGHLIGHT_COLOR
-                } else {
-                    [0.0, 0.0, 0.0, 1.0]
-                };
-
-                if let Some(origin) = camera.project(point.position, -0.001) {
-                    vertex_sprites.push(Sprite {
-                        origin: origin - vec3(5.0, 5.0, 0.0),
-                        extent: vec2(10.0, 10.0),
-                        color,
-                    });
-                }
-            }
-        }
-        sprites.insert(0, vertex_sprites);
     }
 
     fn raycast(&self, ray: Ray) -> Option<RaycastResult> {
