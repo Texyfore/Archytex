@@ -112,7 +112,7 @@ impl Editor {
         }
     }
 
-    pub fn process(&mut self, input: &InputMapper, texture_bank: &TextureBank, scene: &mut Scene) {
+    pub fn process(&mut self, dt: f32, input: &InputMapper, texture_bank: &TextureBank) {
         if input.is_active_once(SwitchMode) {
             self.mode.switch();
         }
@@ -137,11 +137,7 @@ impl Editor {
                 .create(&generate_grid(grid_cell_count, grid_length));
         }
 
-        self.world_camera
-            .process(input, &mut scene.world_pass.camera_matrix);
-
-        self.sprite_camera
-            .process(&mut scene.sprite_pass.camera_matrix);
+        self.world_camera.process(dt, input);
 
         self.brush_bank.process(
             &self.mode,
@@ -150,12 +146,16 @@ impl Editor {
             texture_bank,
             &self.solid_factory,
             &self.line_factory,
-            &mut scene.world_pass.solid_batches,
-            &mut scene.world_pass.line_batches,
-            &mut scene.sprite_pass.sprites,
             2.0f32.powi(self.grid_subdiv),
         );
+    }
 
+    pub fn render(&self, scene: &mut Scene) {
+        self.world_camera.render(scene);
+        self.sprite_camera.render(scene);
+
+        self.brush_bank
+            .render(scene, &self.world_camera, &self.mode);
         scene.world_pass.line_batches.push(self.grid.clone());
     }
 

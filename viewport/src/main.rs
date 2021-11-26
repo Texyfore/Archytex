@@ -5,6 +5,7 @@ mod math;
 mod msg;
 mod render;
 
+use instant::Instant;
 #[cfg(target_arch = "wasm32")]
 use std::sync::mpsc::{channel, Sender};
 
@@ -153,6 +154,7 @@ fn insert_canvas(window: &Window) {
 
 struct MainLoop {
     _window: Window,
+    before: Instant,
     renderer: SceneRenderer,
     texture_bank: TextureBank,
     input_mapper: InputMapper,
@@ -179,6 +181,7 @@ impl MainLoop {
 
         Self {
             _window: window,
+            before: Instant::now(),
             renderer,
             texture_bank,
             input_mapper,
@@ -212,6 +215,10 @@ impl MainLoop {
     fn message_received(&mut self, _msg: Message) {}
 
     fn process(&mut self) {
+        let after = Instant::now();
+        let elapsed = (after - self.before).as_secs_f32();
+        self.before = after;
+
         let mut scene = Scene {
             texture_bank: &self.texture_bank,
             world_pass: WorldPass {
@@ -225,9 +232,10 @@ impl MainLoop {
             },
         };
 
-        self.editor
-            .process(&self.input_mapper, &self.texture_bank, &mut scene);
+        self.editor.process(elapsed, &self.input_mapper, &self.texture_bank);
+
         self.input_mapper.tick();
+        self.editor.render(&mut scene);
         self.renderer.render(scene);
     }
 }
