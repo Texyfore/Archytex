@@ -5,6 +5,8 @@ import (
 	"log"
 	"math/rand"
 	"net/http"
+	"os"
+	"strconv"
 	"time"
 
 	"github.com/Texyfore/Archytex/backend/logging"
@@ -25,7 +27,10 @@ func main() {
 	rand.Seed(time.Now().UnixNano())
 
 	//TODO: Read port
-	port := 8080
+	port, err := strconv.Atoi(os.Getenv("PORT"))
+	if err != nil {
+		panic(err)
+	}
 	r := mux.NewRouter()
 	r.Use(logging.LogMiddleware)
 	api := r.PathPrefix("/api").Subrouter()
