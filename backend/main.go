@@ -9,6 +9,7 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/Texyfore/Archytex/backend/database"
 	"github.com/Texyfore/Archytex/backend/logging"
 	"github.com/Texyfore/Archytex/backend/routes"
 	"github.com/gorilla/mux"
@@ -25,6 +26,13 @@ func jsonMiddleware(next http.Handler) http.Handler {
 
 func main() {
 	rand.Seed(time.Now().UnixNano())
+
+	db, err := database.MongoConnect(os.Getenv("MONGO_URI"), os.Getenv("MONGO_DB"))
+	if err != nil {
+		panic(err)
+	}
+
+	database.CurrentDatabase = db
 
 	//TODO: Read port
 	port, err := strconv.Atoi(os.Getenv("PORT"))
