@@ -152,7 +152,7 @@ impl BrushBank {
                         .entry(texture)
                         .or_insert_with(|| (Vec::new(), Vec::new()));
 
-                    let (vertices, triangles) = batches.get_mut(&face.texture).unwrap();
+                    let (vertices, triangles) = batches.get_mut(&texture).unwrap();
 
                     let t0 = vertices.len() as u16;
                     triangles.push([t0, t0 + 1, t0 + 2]);

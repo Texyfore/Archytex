@@ -6,6 +6,7 @@ mod msg;
 mod render;
 
 use instant::Instant;
+
 #[cfg(target_arch = "wasm32")]
 use std::sync::mpsc::{channel, Sender};
 
@@ -128,7 +129,7 @@ fn main() {
             },
             Event::MainEventsCleared => {
                 #[cfg(target_arch = "wasm32")]
-                if let Ok(msg) = msg_rx.try_recv() {
+                while let Ok(msg) = msg_rx.try_recv() {
                     main_loop.message_received(msg);
                 }
 
@@ -172,8 +173,7 @@ impl MainLoop {
         textures!(
             texture_bank,
             0 => "editor/vertex.png",
-            10 => "editor/nodraw.png",
-            11 => "editor/test.png"
+            10 => "editor/nodraw.png"
         );
 
         let mut input_mapper = InputMapper::default();
@@ -212,7 +212,17 @@ impl MainLoop {
     }
 
     #[cfg(target_arch = "wasm32")]
-    fn message_received(&mut self, _msg: Message) {}
+    fn message_received(&mut self, msg: Message) {
+        match msg {
+            Message::AddTexture { id, data } => {
+                if let Ok(image) = image::load_from_memory(&data) {
+                    self.texture_bank.insert(id, &image)
+                }else {
+                    error!("Received malformed texture");
+                }
+            },
+        }
+    }
 
     fn process(&mut self) {
         let after = Instant::now();
@@ -241,12 +251,8 @@ impl MainLoop {
 }
 
 #[cfg(target_arch = "wasm32")]
-#[wasm_bindgen(js_name = "sendMessage")]
-pub fn received_message(raw: &str) {
-    if let Ok(message) = serde_json::from_str(raw) {
-        let sender = unsafe { MSG_IN.as_mut().unwrap() };
-        sender.send(message).unwrap();
-    } else {
-        error!("Received malformed message");
-    }
+#[wasm_bindgen(js_name = "addTexture")]
+pub fn add_texture(id: usize, data: Vec<u8>) {
+    let sender = unsafe { MSG_IN.as_mut().unwrap() };
+    sender.send(Message::AddTexture {id, data}).unwrap();
 }
