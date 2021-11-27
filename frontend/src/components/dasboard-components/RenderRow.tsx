@@ -1,4 +1,5 @@
 import {
+  Close,
   Delete,
   Download,
   Edit,
@@ -26,11 +27,13 @@ import {
   Tooltip,
   IconButton,
   ListItem,
+  Modal,
 } from "@mui/material";
 import React, { useState } from "react";
 import { useTheme } from "@mui/material/styles";
 import { useProjects } from "../../services/projects";
 import CircularProgressWithLabel from "../CircularProgressWithLabel";
+import { render } from "@testing-library/react";
 
 interface ProjectModel {
   id: string;
@@ -114,6 +117,15 @@ export default function RenderRow({ project }: RenderRowProps) {
     handleUnderEditEnd();
   };
 
+  //Render image enlarge modal
+  const [openEnlargeRenderModal, setOpenEnlargeRenderModal] = useState<
+    undefined | RenderModel
+  >(undefined);
+  const handleOpenEnlargeRenderModal = (render: RenderModel) => {
+    setOpenEnlargeRenderModal(render);
+  };
+  const handleCloseEnlargeRenderModal = () =>
+    setOpenEnlargeRenderModal(undefined);
   return (
     <React.Fragment>
       {/* Projects list item */}
@@ -145,77 +157,77 @@ export default function RenderRow({ project }: RenderRowProps) {
       <Collapse in={open} unmountOnExit>
         <Grid container spacing={2} padding={2}>
           {project.renders.map((render: RenderModel) => (
-            <Grid item xs={6} sm={6} md={4} xl={3}>
-              <Card sx={{ maxWidth: 345 }}>
-                <CardActionArea
-                  disabled={render.status < 100}
-                  onClick={() => {
-                    console.log("Image clicked");
-                  }}
-                >
-                  <CardMedia
-                    component='img'
-                    sx={{
-                      height: { xs: "150px", sm: "200px", md: "250px" },
-                    }}
-                    image={render.img}
-                    alt='green iguana'
-                  />
-                  {/* Image overlay for progress information */}
-                  <Box
-                    position='relative'
-                    width='100%'
-                    height={0}
-                    display={render.status < 100 ? "block" : "none"}
+            <React.Fragment>
+              <Grid item xs={6} sm={6} md={4} xl={3}>
+                <Card sx={{ maxWidth: 345 }}>
+                  <CardActionArea
+                    disabled={render.status < 100}
+                    onClick={() => handleOpenEnlargeRenderModal(render)}
                   >
-                    <Box
-                      position='absolute'
-                      top={{ xs: "-150px", sm: "-200px", md: "-250px" }}
-                      height={{ xs: "150px", sm: "200px", md: "250px" }}
-                      width='100%'
-                      display='flex'
-                      justifyContent='center'
-                      alignItems='center'
+                    <CardMedia
+                      component='img'
                       sx={{
-                        backgroundColor: "rgba(0, 0, 0, 0.7)",
+                        height: { xs: "150px", sm: "200px", md: "250px" },
                       }}
+                      image={render.img}
+                      alt='green iguana'
+                    />
+                    {/* Image overlay for progress information */}
+                    <Box
+                      position='relative'
+                      width='100%'
+                      height={0}
+                      display={render.status < 100 ? "block" : "none"}
                     >
-                      <Box>
-                        <CircularProgressWithLabel
-                          size={80}
-                          thickness={1}
-                          value={render.status}
-                        />
+                      <Box
+                        position='absolute'
+                        top={{ xs: "-150px", sm: "-200px", md: "-250px" }}
+                        height={{ xs: "150px", sm: "200px", md: "250px" }}
+                        width='100%'
+                        display='flex'
+                        justifyContent='center'
+                        alignItems='center'
+                        sx={{
+                          backgroundColor: "rgba(0, 0, 0, 0.7)",
+                        }}
+                      >
+                        <Box>
+                          <CircularProgressWithLabel
+                            size={80}
+                            thickness={1}
+                            value={render.status}
+                          />
+                        </Box>
                       </Box>
                     </Box>
-                  </Box>
-                  <Tooltip title={render.renderName} placement='top'>
-                    <CardContent sx={{ maxHeight: "100px" }}>
-                      <Typography variant='h6' component='div' noWrap>
-                        {render.renderName}
-                      </Typography>
-                    </CardContent>
-                  </Tooltip>
-                </CardActionArea>
-                <CardActions>
-                  <Tooltip title='Download'>
-                    <IconButton size='small' disabled={render.status < 100}>
-                      <Download />
-                    </IconButton>
-                  </Tooltip>
-                  <Tooltip title='Share'>
-                    <IconButton size='small' disabled={render.status < 100}>
-                      <Share />
-                    </IconButton>
-                  </Tooltip>
-                  <Tooltip title='Details'>
-                    <IconButton size='small'>
-                      <InfoOutlined />
-                    </IconButton>
-                  </Tooltip>
-                </CardActions>
-              </Card>
-            </Grid>
+                    <Tooltip title={render.renderName} placement='top'>
+                      <CardContent sx={{ maxHeight: "100px" }}>
+                        <Typography variant='h6' component='div' noWrap>
+                          {render.renderName}
+                        </Typography>
+                      </CardContent>
+                    </Tooltip>
+                  </CardActionArea>
+                  <CardActions>
+                    <Tooltip title='Download'>
+                      <IconButton size='small' disabled={render.status < 100}>
+                        <Download />
+                      </IconButton>
+                    </Tooltip>
+                    <Tooltip title='Share'>
+                      <IconButton size='small' disabled={render.status < 100}>
+                        <Share />
+                      </IconButton>
+                    </Tooltip>
+                    <Tooltip title='Details'>
+                      <IconButton size='small'>
+                        <InfoOutlined />
+                      </IconButton>
+                    </Tooltip>
+                  </CardActions>
+                </Card>
+              </Grid>
+            </React.Fragment>
           ))}
         </Grid>
       </Collapse>
@@ -255,6 +267,56 @@ export default function RenderRow({ project }: RenderRowProps) {
           <Typography sx={{ color: "error.main" }}>Delete project</Typography>
         </MenuItem>
       </Menu>
+
+      {/* Enlarge render image modal */}
+      <Modal
+        open={openEnlargeRenderModal !== undefined}
+        onClose={handleCloseEnlargeRenderModal}
+        aria-labelledby='parent-modal-title'
+        aria-describedby='parent-modal-description'
+        BackdropProps={{
+          style: {
+            backgroundColor: "rgba(0,0,0, 0.95)",
+          },
+        }}
+        sx={{
+          width: "100%",
+          height: "100%",
+          display: "flex",
+          flexDirection: "column",
+          justifyContent: "center",
+          alignItems: "center",
+        }}
+      >
+        <React.Fragment>
+          <Box
+            width={{ xs: "98%", md: "60%" }}
+            display='flex'
+            maxHeight='90%'
+            justifyContent='center'
+          >
+            <Box>
+              <img
+                width='100%'
+                height='undefined'
+                style={{ objectFit: "scale-down" }}
+                src={openEnlargeRenderModal?.img}
+                alt={openEnlargeRenderModal?.renderName}
+              />
+            </Box>
+          </Box>
+          <Box position='absolute' top='5px' right='5px'>
+            <Tooltip title='Close image'>
+              <IconButton
+                sx={{ color: "#f5f0f6" }}
+                onClick={handleCloseEnlargeRenderModal}
+              >
+                <Close />
+              </IconButton>
+            </Tooltip>
+          </Box>
+        </React.Fragment>
+      </Modal>
     </React.Fragment>
   );
 }
