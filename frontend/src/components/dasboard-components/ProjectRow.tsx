@@ -25,8 +25,6 @@ import {
   Button,
   Backdrop,
   TextField,
-  Snackbar,
-  Alert,
   AlertColor,
 } from "@mui/material";
 import React, { useState } from "react";
@@ -35,13 +33,13 @@ import RenderCard from "./RenderCard";
 
 interface ProjectRowProps {
   project: Project;
-}
-interface actionFeedbackSnackbarProps {
-  text: string;
-  severity: AlertColor;
+  feedbackSnackbar: (text: string, severity: AlertColor) => void;
 }
 
-export default function ProjectRow({ project }: ProjectRowProps) {
+export default function ProjectRow({
+  project,
+  feedbackSnackbar,
+}: ProjectRowProps) {
   //Read projects
   const { dispatch: dispatchProjects } = useProjects();
 
@@ -79,29 +77,7 @@ export default function ProjectRow({ project }: ProjectRowProps) {
       id: project.id,
     });
     handleDeleteProjectModalClose();
-    handleActionFeedbackSnackbarOpen(
-      "Project deleted successfully!",
-      "success"
-    );
-  };
-
-  //Action feedback snackbar
-  const [actionFeedbackSnackbarOpen, setActionFeedbackSnackbarOpen] =
-    useState(false);
-  const [actionFeedbackSnackbarParams, setActionFeedbackSnackbarParams] =
-    useState<actionFeedbackSnackbarProps>({
-      text: "",
-      severity: "success",
-    });
-  const handleActionFeedbackSnackbarClose = () => {
-    setActionFeedbackSnackbarOpen(false);
-  };
-  const handleActionFeedbackSnackbarOpen = (
-    text: string,
-    severity: AlertColor
-  ) => {
-    setActionFeedbackSnackbarParams({ text: text, severity: severity });
-    setActionFeedbackSnackbarOpen(true);
+    feedbackSnackbar("Project deleted successfully!", "success");
   };
 
   //Title edit handling
@@ -121,6 +97,7 @@ export default function ProjectRow({ project }: ProjectRowProps) {
       name: underEditText,
     });
     handleUnderEditEnd();
+    feedbackSnackbar("Project renamed successfully!", "success");
   };
 
   return (
@@ -337,25 +314,6 @@ export default function ProjectRow({ project }: ProjectRowProps) {
           </Box>
         </Fade>
       </Modal>
-
-      {/* Action feedback snackbar */}
-      <Snackbar
-        open={actionFeedbackSnackbarOpen}
-        autoHideDuration={4000}
-        onClose={handleActionFeedbackSnackbarClose}
-        anchorOrigin={{ horizontal: "center", vertical: "bottom" }}
-      >
-        <Alert
-          onClose={handleActionFeedbackSnackbarClose}
-          severity={actionFeedbackSnackbarParams.severity}
-          sx={{
-            width: "100%",
-            filter: "drop-shadow(0px 0px 4px rgba(0,0,0,0.5))",
-          }}
-        >
-          {actionFeedbackSnackbarParams.text}
-        </Alert>
-      </Snackbar>
     </React.Fragment>
   );
 }

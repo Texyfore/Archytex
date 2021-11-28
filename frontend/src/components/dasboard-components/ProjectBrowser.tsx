@@ -1,5 +1,14 @@
 import React, { useState } from "react";
-import { Box, Button, IconButton, List, Tooltip } from "@mui/material";
+import {
+  Alert,
+  AlertColor,
+  Box,
+  Button,
+  IconButton,
+  List,
+  Snackbar,
+  Tooltip,
+} from "@mui/material";
 import { LibraryAdd } from "@mui/icons-material";
 import { styled, useTheme } from "@mui/material/styles";
 import SearchBar from "../SearchBar";
@@ -23,13 +32,38 @@ const ProjectList = styled(List)(({ theme }) => ({
     height: `calc(100% - ${headerHeight + projectMenuHeight}px)`,
   },
 }));
+interface actionFeedbackSnackbarProps {
+  text: string;
+  severity: AlertColor;
+}
 
 export default function ProjectBrowser() {
-  //new project modal
+  //Load projects
+  const { state: projects } = useProjects();
+
+  //New project modal
   const [newProjectModalOpen, setNewProjectModalOpen] = useState(false);
   const handleNewProjectModalOpen = () => setNewProjectModalOpen(true);
   const handleNewProjectModalClose = () => setNewProjectModalOpen(false);
-  const { state: projects } = useProjects();
+
+  //Action feedback snackbar
+  const [actionFeedbackSnackbarOpen, setActionFeedbackSnackbarOpen] =
+    useState(false);
+  const [actionFeedbackSnackbarParams, setActionFeedbackSnackbarParams] =
+    useState<actionFeedbackSnackbarProps>({
+      text: "",
+      severity: "success",
+    });
+  const handleActionFeedbackSnackbarClose = () => {
+    setActionFeedbackSnackbarOpen(false);
+  };
+  const handleActionFeedbackSnackbarOpen = (
+    text: string,
+    severity: AlertColor
+  ) => {
+    setActionFeedbackSnackbarParams({ text: text, severity: severity });
+    setActionFeedbackSnackbarOpen(true);
+  };
   return (
     <React.Fragment>
       {/* Project browser actions */}
@@ -67,15 +101,39 @@ export default function ProjectBrowser() {
       {/* Project list */}
       <ProjectList>
         {projects.projects.map((project: Project) => (
-          <ProjectRow project={project} />
+          <ProjectRow
+            project={project}
+            feedbackSnackbar={handleActionFeedbackSnackbarOpen}
+          />
         ))}
       </ProjectList>
 
+      {/* New project modal */}
       <ProjectNewModal
         handleModalClose={handleNewProjectModalClose}
         handleModalOpen={handleNewProjectModalOpen}
         modalOpen={newProjectModalOpen}
+        feedbackSnackbar={handleActionFeedbackSnackbarOpen}
       ></ProjectNewModal>
+
+      {/* Action feedback snackbar */}
+      <Snackbar
+        open={actionFeedbackSnackbarOpen}
+        autoHideDuration={4000}
+        onClose={handleActionFeedbackSnackbarClose}
+        anchorOrigin={{ horizontal: "center", vertical: "bottom" }}
+      >
+        <Alert
+          onClose={handleActionFeedbackSnackbarClose}
+          severity={actionFeedbackSnackbarParams.severity}
+          sx={{
+            width: "100%",
+            filter: "drop-shadow(0px 0px 4px rgba(0,0,0,0.5))",
+          }}
+        >
+          {actionFeedbackSnackbarParams.text}
+        </Alert>
+      </Snackbar>
     </React.Fragment>
   );
 }
