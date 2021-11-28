@@ -86,10 +86,20 @@ export default function ProjectNewModal({
               margin='normal'
               value={name}
               onChange={(ev) => setName(ev.target.value)}
+              onKeyPress={(ev) => {
+                if (ev.key === "Enter") {
+                  onCreate();
+                }
+              }}
             />
           </Box>
           <Box>
-            <Button size='large' variant='contained' onClick={onCreate}>
+            <Button
+              type='submit'
+              size='large'
+              variant='contained'
+              onClick={onCreate}
+            >
               Create
             </Button>
           </Box>
