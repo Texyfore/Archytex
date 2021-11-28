@@ -1,5 +1,6 @@
 import { Close } from "@mui/icons-material";
 import {
+  AlertColor,
   Backdrop,
   Box,
   Button,
@@ -30,12 +31,14 @@ interface Parameters {
   modalOpen: boolean;
   handleModalOpen: () => void;
   handleModalClose: () => void;
+  feedbackSnackbar: (text: string, severity: AlertColor) => void;
 }
 
 export default function ProjectNewModal({
   handleModalClose,
   handleModalOpen,
   modalOpen,
+  feedbackSnackbar,
   ...params
 }: Parameters) {
   const [name, setName] = useState("");
@@ -47,8 +50,9 @@ export default function ProjectNewModal({
         type: "create-project",
         name: name,
       });
-      handleModalClose();
       setName("");
+      handleModalClose();
+      feedbackSnackbar("Project created successfully!", "success");
     }
   };
   return (
