@@ -1,5 +1,4 @@
 import {
-  Collections,
   ColorLens,
   PlayCircleOutlined,
   Settings,
@@ -17,10 +16,6 @@ export default function DashboardControllerButtons() {
     {
       text: "Projects",
       icon: <Source sx={{ fontSize: { lg: 30, xl: 32 } }} />,
-    },
-    {
-      text: "Renders",
-      icon: <Collections sx={{ fontSize: { lg: 30, xl: 32 } }} />,
     },
     {
       text: "Community portfolio",
