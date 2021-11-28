@@ -1,7 +1,6 @@
-import React, { useContext } from "react";
+import React from "react";
 import { Checkbox, Tooltip } from "@mui/material";
 import { DarkMode, DarkModeOutlined } from "@mui/icons-material";
-import { useTheme } from "@mui/material/styles";
 import { ColorMode, useColorMode } from "../services/colorMode";
 
 export default function DarkModeSwitch() {
