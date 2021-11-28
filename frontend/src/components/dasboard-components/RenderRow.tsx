@@ -1,20 +1,13 @@
 import {
   Close,
   Delete,
-  Download,
   Edit,
   InfoOutlined,
   KeyboardArrowDown,
   KeyboardArrowRight,
   MoreVert,
-  Share,
 } from "@mui/icons-material";
 import {
-  Card,
-  CardActionArea,
-  CardActions,
-  CardContent,
-  CardMedia,
   Collapse,
   Divider,
   Grid,
@@ -28,83 +21,94 @@ import {
   IconButton,
   ListItem,
   Modal,
+  Fade,
+  Button,
+  Backdrop,
+  TextField,
+  Snackbar,
+  Alert,
+  AlertColor,
 } from "@mui/material";
 import React, { useState } from "react";
-import { useTheme } from "@mui/material/styles";
-import { useProjects } from "../../services/projects";
-import CircularProgressWithLabel from "../CircularProgressWithLabel";
-import { render } from "@testing-library/react";
-
-interface ProjectModel {
-  id: string;
-  created: string;
-  name: string;
-  renders: RenderModel[];
-}
-interface RenderModel {
-  renderName: string;
-  img: string;
-  status: number;
-}
+import { Project, Render, useProjects } from "../../services/projects";
+import RenderCard from "./RenderCard";
 
 interface RenderRowProps {
-  project: ProjectModel;
+  project: Project;
+}
+interface actionFeedbackSnackbarProps {
+  text: string;
+  severity: AlertColor;
 }
 
 export default function RenderRow({ project }: RenderRowProps) {
+  //Read projects
   const { dispatch: dispatchProjects } = useProjects();
 
-  //Open project collapse
+  //Project collapse
   const [openProject, setOpenProject] = React.useState(false);
-
   const handleProjectClick = () => {
     setOpenProject(!openProject);
   };
 
-  //access theme
-  const theme = useTheme();
-
   //Edit project menu
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
-  const editProjectMenuOpen = Boolean(anchorEl);
-  const handleEditProjectMenuClick = (
+  const ProjectActionsMenuOpen = Boolean(anchorEl);
+  const handleProjectActionsMenuClick = (
     event: React.MouseEvent<HTMLButtonElement>
   ) => {
     setAnchorEl(event.currentTarget);
   };
-  const handleEditProjectMenuClose = () => {
+  const handleProjectActionsMenuClose = () => {
     setAnchorEl(null);
   };
 
-  //confirm project delete modal
-  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
-  const handleDeleteModalOpen = () => setDeleteModalOpen(true);
-  const handleDeleteModalClose = () => setDeleteModalOpen(false);
-
-  //Snackbars
-  //Successful detete snackbar
-  const [deletedSnackbarOpen, setDeletedSnackbarOpen] = useState(false);
-  const handleDeletedSnackbarClose = () => {
-    setDeletedSnackbarOpen(false);
+  //Confirm project delete modal
+  const [deleteProjectModalOpen, setDeleteProjectModalOpen] = useState(false);
+  const handleDeleteProjectModalOpen = () => {
+    setDeleteProjectModalOpen(true);
+    handleProjectActionsMenuClose();
   };
-  const handleDeletedSnackbarOpen = () => {
-    setDeletedSnackbarOpen(true);
-  };
+  const handleDeleteProjectModalClose = () => setDeleteProjectModalOpen(false);
 
   //Project delete handling
+  //BUG: deleting the last project in the list doesn't make the "Successful deletion" snackbar appear
   const handleProjectDelete = () => {
     dispatchProjects({
       type: "delete-project",
       id: project.id,
     });
-    handleDeleteModalClose();
-    handleDeletedSnackbarOpen();
+    handleDeleteProjectModalClose();
+    handleActionFeedbackSnackbarOpen(
+      "Project deleted successfully!",
+      "success"
+    );
+  };
+
+  //Action feedback snackbar
+  const [actionFeedbackSnackbarOpen, setActionFeedbackSnackbarOpen] =
+    useState(false);
+  const [actionFeedbackSnackbarParams, setActionFeedbackSnackbarParams] =
+    useState<actionFeedbackSnackbarProps>({
+      text: "",
+      severity: "success",
+    });
+  const handleActionFeedbackSnackbarClose = () => {
+    setActionFeedbackSnackbarOpen(false);
+  };
+  const handleActionFeedbackSnackbarOpen = (
+    text: string,
+    severity: AlertColor
+  ) => {
+    setActionFeedbackSnackbarParams({ text: text, severity: severity });
+    setActionFeedbackSnackbarOpen(true);
   };
 
   //Title edit handling
   const [underEdit, setUnderEdit] = useState(false);
   const [underEditText, setUnderEditText] = useState("");
   const handleUnderEditStart = () => {
+    handleProjectActionsMenuClose();
     setUnderEditText(project.name);
     setUnderEdit(true);
   };
@@ -119,23 +123,15 @@ export default function RenderRow({ project }: RenderRowProps) {
     handleUnderEditEnd();
   };
 
-  //Enlarge render image modal
-  const [openEnlargeRenderModal, setOpenEnlargeRenderModal] = useState<
-    undefined | RenderModel
-  >(undefined);
-  const handleOpenEnlargeRenderModal = (render: RenderModel) => {
-    setOpenEnlargeRenderModal(render);
-  };
-  const handleCloseEnlargeRenderModal = () =>
-    setOpenEnlargeRenderModal(undefined);
   return (
     <React.Fragment>
       {/* Projects list item */}
       <ListItem
+        key={project.id}
         disablePadding
         secondaryAction={
           <Tooltip title='Project actions'>
-            <IconButton onClick={handleEditProjectMenuClick}>
+            <IconButton onClick={handleProjectActionsMenuClick}>
               <MoreVert />
             </IconButton>
           </Tooltip>
@@ -156,80 +152,11 @@ export default function RenderRow({ project }: RenderRowProps) {
       </ListItem>
 
       {/* Render cards */}
+      {/* BUG: In the 'medium' media query, when the renders collapse is open, the layout breaks */}
       <Collapse in={openProject} unmountOnExit>
         <Grid container spacing={2} padding={2}>
-          {project.renders.map((render: RenderModel) => (
-            <React.Fragment>
-              <Grid item xs={6} sm={6} md={4} xl={3}>
-                <Card sx={{ maxWidth: 345 }}>
-                  <CardActionArea
-                    disabled={render.status < 100}
-                    onClick={() => handleOpenEnlargeRenderModal(render)}
-                  >
-                    <CardMedia
-                      component='img'
-                      sx={{
-                        height: { xs: "150px", sm: "200px", md: "250px" },
-                      }}
-                      image={render.img}
-                      alt='green iguana'
-                    />
-                    {/* Image overlay for progress information */}
-                    <Box
-                      position='relative'
-                      width='100%'
-                      height={0}
-                      display={render.status < 100 ? "block" : "none"}
-                    >
-                      <Box
-                        position='absolute'
-                        top={{ xs: "-150px", sm: "-200px", md: "-250px" }}
-                        height={{ xs: "150px", sm: "200px", md: "250px" }}
-                        width='100%'
-                        display='flex'
-                        justifyContent='center'
-                        alignItems='center'
-                        sx={{
-                          backgroundColor: "rgba(0, 0, 0, 0.7)",
-                        }}
-                      >
-                        <Box>
-                          <CircularProgressWithLabel
-                            size={80}
-                            thickness={1}
-                            value={render.status}
-                          />
-                        </Box>
-                      </Box>
-                    </Box>
-                    <Tooltip title={render.renderName} placement='top'>
-                      <CardContent sx={{ maxHeight: "100px" }}>
-                        <Typography variant='h6' component='div' noWrap>
-                          {render.renderName}
-                        </Typography>
-                      </CardContent>
-                    </Tooltip>
-                  </CardActionArea>
-                  <CardActions>
-                    <Tooltip title='Download'>
-                      <IconButton size='small' disabled={render.status < 100}>
-                        <Download />
-                      </IconButton>
-                    </Tooltip>
-                    <Tooltip title='Share'>
-                      <IconButton size='small' disabled={render.status < 100}>
-                        <Share />
-                      </IconButton>
-                    </Tooltip>
-                    <Tooltip title='Details'>
-                      <IconButton size='small'>
-                        <InfoOutlined />
-                      </IconButton>
-                    </Tooltip>
-                  </CardActions>
-                </Card>
-              </Grid>
-            </React.Fragment>
+          {project.renders.map((render: Render) => (
+            <RenderCard render={render} key={render.id} />
           ))}
         </Grid>
       </Collapse>
@@ -237,8 +164,8 @@ export default function RenderRow({ project }: RenderRowProps) {
       {/* Project actions menu */}
       <Menu
         anchorEl={anchorEl}
-        open={editProjectMenuOpen}
-        onClose={handleEditProjectMenuClose}
+        open={ProjectActionsMenuOpen}
+        onClose={handleProjectActionsMenuClose}
         anchorOrigin={{
           vertical: "bottom",
           horizontal: "right",
@@ -262,7 +189,7 @@ export default function RenderRow({ project }: RenderRowProps) {
           Project details
         </MenuItem>
         <Divider />
-        <MenuItem onClick={handleDeleteModalOpen}>
+        <MenuItem onClick={handleDeleteProjectModalOpen}>
           <ListItemIcon>
             <Delete color='error' />
           </ListItemIcon>
@@ -270,53 +197,165 @@ export default function RenderRow({ project }: RenderRowProps) {
         </MenuItem>
       </Menu>
 
-      {/* Enlarge render image modal */}
+      {/* Edit project name modal */}
       <Modal
-        open={openEnlargeRenderModal !== undefined}
-        onClose={handleCloseEnlargeRenderModal}
-        aria-labelledby='parent-modal-title'
-        aria-describedby='parent-modal-description'
+        open={underEdit}
+        onClose={handleUnderEditEnd}
+        closeAfterTransition
+        BackdropComponent={Backdrop}
         BackdropProps={{
-          style: {
-            backgroundColor: "rgba(0,0,0, 0.95)",
-          },
-        }}
-        sx={{
-          width: "100%",
-          height: "100%",
-          display: "flex",
-          flexDirection: "column",
-          justifyContent: "center",
-          alignItems: "center",
+          timeout: 500,
         }}
       >
-        <React.Fragment>
+        <Fade in={underEdit}>
           <Box
-            width={{ xs: "98%", md: "60%" }}
+            sx={{
+              position: "absolute" as "absolute",
+              top: "50%",
+              left: "50%",
+              transform: "translate(-50%, -50%)",
+              width: { xs: 400, sm: 500, md: 600, lg: 600 },
+              bgcolor: "background.paper",
+              filter: "drop-shadow(0px 0px 4px rgba(0,0,0,0.5))",
+              boxShadow: 24,
+              p: 4,
+              borderRadius: 2,
+            }}
+            borderRadius={4}
             display='flex'
-            maxHeight='90%'
-            justifyContent='center'
+            flexDirection='column'
+            justifyContent='space-between'
           >
-            <img
-              width='100%'
-              height='undefined'
-              style={{ objectFit: "scale-down" }}
-              src={openEnlargeRenderModal?.img}
-              alt={openEnlargeRenderModal?.renderName}
-            />
-          </Box>
-          <Box position='absolute' top='5px' right='5px'>
-            <Tooltip title='Close image'>
-              <IconButton
-                sx={{ color: "#f5f0f6" }}
-                onClick={handleCloseEnlargeRenderModal}
+            <Box display='flex' justifyContent='space-between'>
+              <Typography
+                id='transition-modal-title'
+                variant='h6'
+                component='h2'
               >
+                Edit project name
+              </Typography>
+              <IconButton onClick={handleUnderEditEnd}>
                 <Close />
               </IconButton>
-            </Tooltip>
+            </Box>
+            <Box display='flex' flexDirection='column' marginBottom={3}>
+              <TextField
+                required
+                id='standard-required'
+                label='Project name'
+                variant='standard'
+                margin='normal'
+                value={underEditText}
+                onChange={(ev) => setUnderEditText(ev.target.value)}
+                onKeyPress={(ev) => {
+                  if (ev.key === "Enter") {
+                    handleSaveEdit();
+                  }
+                }}
+              />
+            </Box>
+            <Box>
+              <Button
+                type='submit'
+                size='large'
+                variant='contained'
+                onClick={handleSaveEdit}
+              >
+                Update
+              </Button>
+            </Box>
           </Box>
-        </React.Fragment>
+        </Fade>
       </Modal>
+
+      {/* Delete project modal */}
+      <Modal
+        open={deleteProjectModalOpen}
+        onClose={handleDeleteProjectModalClose}
+        closeAfterTransition
+        BackdropComponent={Backdrop}
+        BackdropProps={{
+          timeout: 500,
+        }}
+      >
+        <Fade in={deleteProjectModalOpen}>
+          <Box
+            sx={{
+              position: "absolute" as "absolute",
+              top: "50%",
+              left: "50%",
+              transform: "translate(-50%, -50%)",
+              width: { xs: 400, sm: 500, md: 600, lg: 600 },
+              bgcolor: "background.paper",
+              boxShadow: 24,
+              p: 4,
+            }}
+            borderRadius={2}
+            display='flex'
+            flexDirection='column'
+            justifyContent='space-between'
+          >
+            <Box display='flex' justifyContent='space-between'>
+              <Typography
+                id='transition-modal-title'
+                variant='h6'
+                component='h2'
+              >
+                Delete project
+              </Typography>
+              <IconButton onClick={handleDeleteProjectModalClose}>
+                <Close />
+              </IconButton>
+            </Box>
+            <Box display='flex' flexDirection='column' marginY={3}>
+              <Typography variant='body1'>
+                Are you sure you want to delete this project?
+              </Typography>
+              <Typography variant='body1' fontWeight='bold'>
+                This action cannot be reversed.
+              </Typography>
+            </Box>
+            <Box>
+              <Button
+                size='large'
+                variant='contained'
+                color='error'
+                onClick={handleProjectDelete}
+              >
+                Delete
+              </Button>
+              <Button
+                size='large'
+                variant='text'
+                color='inherit'
+                sx={{ marginLeft: 2 }}
+                onClick={handleDeleteProjectModalClose}
+              >
+                Cancel
+              </Button>
+            </Box>
+          </Box>
+        </Fade>
+      </Modal>
+
+      {/* Action feedback snackbar */}
+      <Snackbar
+        open={actionFeedbackSnackbarOpen}
+        autoHideDuration={4000}
+        onClose={handleActionFeedbackSnackbarClose}
+        anchorOrigin={{ horizontal: "center", vertical: "bottom" }}
+      >
+        <Alert
+          onClose={handleActionFeedbackSnackbarClose}
+          severity={actionFeedbackSnackbarParams.severity}
+          sx={{
+            width: "100%",
+            filter: "drop-shadow(0px 0px 4px rgba(0,0,0,0.5))",
+          }}
+        >
+          {actionFeedbackSnackbarParams.text}
+        </Alert>
+      </Snackbar>
     </React.Fragment>
   );
 }
