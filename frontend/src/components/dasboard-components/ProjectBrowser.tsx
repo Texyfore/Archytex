@@ -1,26 +1,17 @@
 import React, { useState } from "react";
-import ProjectRow from "./ProjectRow";
-import SearchBar from "../SearchBar";
-import { styled } from "@mui/material/styles";
-import {
-  Box,
-  Button,
-  IconButton,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-} from "@mui/material";
+import { Box, Button, IconButton, List, Tooltip } from "@mui/material";
 import { LibraryAdd } from "@mui/icons-material";
-import { useProjects } from "../../services/projects";
+import { styled, useTheme } from "@mui/material/styles";
+import SearchBar from "../SearchBar";
 import ProjectNewModal from "./ProjectNewModal";
+import { Project, useProjects } from "../../services/projects";
+import ProjectRow from "./ProjectRow";
 
 const headerHeight = 50;
-const projectMenuHeight = 50;
-const ProjectTableContainer = styled(TableContainer)(({ theme }) => ({
+const projectMenuHeight = 60;
+const ProjectList = styled(List)(({ theme }) => ({
   border: "none",
+  overflowY: "scroll",
   height: `calc(100vh - 56px - ${headerHeight + projectMenuHeight}px)`,
   [`${theme.breakpoints.up("xs")} and (orientation: landscape)`]: {
     height: `calc(100vh - 48px - ${headerHeight + projectMenuHeight}px)`,
@@ -35,82 +26,55 @@ const ProjectTableContainer = styled(TableContainer)(({ theme }) => ({
 
 export default function ProjectBrowser() {
   //new project modal
-  const [modalOpen, setModalOpen] = useState(false);
-  const handleModalOpen = () => setModalOpen(true);
-  const handleModalClose = () => setModalOpen(false);
+  const [newProjectModalOpen, setNewProjectModalOpen] = useState(false);
+  const handleNewProjectModalOpen = () => setNewProjectModalOpen(true);
+  const handleNewProjectModalClose = () => setNewProjectModalOpen(false);
   const { state: projects } = useProjects();
-
-  //expanded project
-  const [expanded, setExpanded] = useState<string | false>(false);
-  const handleChange =
-    (row: string) => (event: React.SyntheticEvent, isExpanded: boolean) => {
-      setExpanded(isExpanded ? row : false);
-    };
-
-  //project manager context
-  //TODO
-  //const projects = useProjects();
-
   return (
     <React.Fragment>
+      {/* Project browser actions */}
       <Box
         height={projectMenuHeight}
         display='flex'
         justifyContent='space-between'
         paddingX={{ xs: 2, sm: 4 }}
+        borderBottom={`1px solid ${
+          useTheme().palette.mode === "dark" ? "#1F1F1F" : "#EBE7EC"
+        }`}
       >
         <Box display={{ xs: "none", md: "block" }}>
           <Button
             size='large'
             color='inherit'
             startIcon={<LibraryAdd />}
-            onClick={handleModalOpen}
+            onClick={handleNewProjectModalOpen}
           >
             New project
           </Button>
         </Box>
         <Box display={{ xs: "block", md: "none" }}>
-          <IconButton size='large' onClick={handleModalOpen}>
-            <LibraryAdd />
-          </IconButton>
+          <Tooltip title='Create new project'>
+            <IconButton size='large' onClick={handleNewProjectModalOpen}>
+              <LibraryAdd />
+            </IconButton>
+          </Tooltip>
         </Box>
         <Box>
           <SearchBar />
         </Box>
       </Box>
 
-      <ProjectTableContainer>
-        <Table stickyHeader>
-          <TableHead>
-            <TableRow>
-              <TableCell width='10%'>
-                <Box height='24px' width='24px' padding='10px' />
-              </TableCell>
-              <TableCell>NAME</TableCell>
-              <TableCell align='right'>CREATED</TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            <TableRow>
-              <TableCell padding='none' colSpan={3} sx={{ border: "none" }}>
-                {projects.projects.map((project, index) => (
-                  <ProjectRow
-                    key={project.id}
-                    row={project}
-                    expanded={expanded}
-                    handleChange={handleChange}
-                  />
-                ))}
-              </TableCell>
-            </TableRow>
-          </TableBody>
-        </Table>
-      </ProjectTableContainer>
+      {/* Project list */}
+      <ProjectList>
+        {projects.projects.map((project: Project) => (
+          <ProjectRow project={project} />
+        ))}
+      </ProjectList>
 
       <ProjectNewModal
-        handleModalClose={handleModalClose}
-        handleModalOpen={handleModalOpen}
-        modalOpen={modalOpen}
+        handleModalClose={handleNewProjectModalClose}
+        handleModalOpen={handleNewProjectModalOpen}
+        modalOpen={newProjectModalOpen}
       ></ProjectNewModal>
     </React.Fragment>
   );
