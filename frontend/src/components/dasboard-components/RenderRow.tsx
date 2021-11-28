@@ -54,23 +54,25 @@ interface RenderRowProps {
 export default function RenderRow({ project }: RenderRowProps) {
   const { dispatch: dispatchProjects } = useProjects();
 
-  //open project details
-  const [open, setOpen] = React.useState(false);
+  //Open project collapse
+  const [openProject, setOpenProject] = React.useState(false);
 
-  const handleClick = () => {
-    setOpen(!open);
+  const handleProjectClick = () => {
+    setOpenProject(!openProject);
   };
 
   //access theme
   const theme = useTheme();
 
-  //edit project menu
+  //Edit project menu
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
-  const editMenuOpen = Boolean(anchorEl);
-  const handleEditMenuClick = (event: React.MouseEvent<HTMLButtonElement>) => {
+  const editProjectMenuOpen = Boolean(anchorEl);
+  const handleEditProjectMenuClick = (
+    event: React.MouseEvent<HTMLButtonElement>
+  ) => {
     setAnchorEl(event.currentTarget);
   };
-  const handleEditMenuClose = () => {
+  const handleEditProjectMenuClose = () => {
     setAnchorEl(null);
   };
 
@@ -79,8 +81,8 @@ export default function RenderRow({ project }: RenderRowProps) {
   const handleDeleteModalOpen = () => setDeleteModalOpen(true);
   const handleDeleteModalClose = () => setDeleteModalOpen(false);
 
-  //delete snackbars
-  //successful detete snackbar
+  //Snackbars
+  //Successful detete snackbar
   const [deletedSnackbarOpen, setDeletedSnackbarOpen] = useState(false);
   const handleDeletedSnackbarClose = () => {
     setDeletedSnackbarOpen(false);
@@ -89,7 +91,7 @@ export default function RenderRow({ project }: RenderRowProps) {
     setDeletedSnackbarOpen(true);
   };
 
-  //project delete handling
+  //Project delete handling
   const handleProjectDelete = () => {
     dispatchProjects({
       type: "delete-project",
@@ -99,7 +101,7 @@ export default function RenderRow({ project }: RenderRowProps) {
     handleDeletedSnackbarOpen();
   };
 
-  //title edit handling
+  //Title edit handling
   const [underEdit, setUnderEdit] = useState(false);
   const [underEditText, setUnderEditText] = useState("");
   const handleUnderEditStart = () => {
@@ -117,7 +119,7 @@ export default function RenderRow({ project }: RenderRowProps) {
     handleUnderEditEnd();
   };
 
-  //Render image enlarge modal
+  //Enlarge render image modal
   const [openEnlargeRenderModal, setOpenEnlargeRenderModal] = useState<
     undefined | RenderModel
   >(undefined);
@@ -133,18 +135,18 @@ export default function RenderRow({ project }: RenderRowProps) {
         disablePadding
         secondaryAction={
           <Tooltip title='Project actions'>
-            <IconButton onClick={handleEditMenuClick}>
+            <IconButton onClick={handleEditProjectMenuClick}>
               <MoreVert />
             </IconButton>
           </Tooltip>
         }
       >
         <ListItemButton
-          onClick={handleClick}
+          onClick={handleProjectClick}
           sx={{ paddingY: 3, borderRadius: 2 }}
         >
           <ListItemIcon>
-            {open ? <KeyboardArrowDown /> : <KeyboardArrowRight />}
+            {openProject ? <KeyboardArrowDown /> : <KeyboardArrowRight />}
           </ListItemIcon>
           <Typography variant='h6'>{project.name}</Typography>
           <Typography variant='caption' marginLeft={2}>
@@ -154,7 +156,7 @@ export default function RenderRow({ project }: RenderRowProps) {
       </ListItem>
 
       {/* Render cards */}
-      <Collapse in={open} unmountOnExit>
+      <Collapse in={openProject} unmountOnExit>
         <Grid container spacing={2} padding={2}>
           {project.renders.map((render: RenderModel) => (
             <React.Fragment>
@@ -235,8 +237,8 @@ export default function RenderRow({ project }: RenderRowProps) {
       {/* Project actions menu */}
       <Menu
         anchorEl={anchorEl}
-        open={editMenuOpen}
-        onClose={handleEditMenuClose}
+        open={editProjectMenuOpen}
+        onClose={handleEditProjectMenuClose}
         anchorOrigin={{
           vertical: "bottom",
           horizontal: "right",
@@ -295,15 +297,13 @@ export default function RenderRow({ project }: RenderRowProps) {
             maxHeight='90%'
             justifyContent='center'
           >
-            <Box>
-              <img
-                width='100%'
-                height='undefined'
-                style={{ objectFit: "scale-down" }}
-                src={openEnlargeRenderModal?.img}
-                alt={openEnlargeRenderModal?.renderName}
-              />
-            </Box>
+            <img
+              width='100%'
+              height='undefined'
+              style={{ objectFit: "scale-down" }}
+              src={openEnlargeRenderModal?.img}
+              alt={openEnlargeRenderModal?.renderName}
+            />
           </Box>
           <Box position='absolute' top='5px' right='5px'>
             <Tooltip title='Close image'>
