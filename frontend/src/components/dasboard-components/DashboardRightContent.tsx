@@ -16,7 +16,6 @@ const ColumnHeader = styled(Box)(({ theme }) => ({
   justifyContent: "center",
   alignItems: "center",
 }));
-
 export default function DashboardRightContent() {
   return (
     <ColumnPaper elevation={0}>

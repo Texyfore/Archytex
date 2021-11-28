@@ -22,6 +22,7 @@ import {
 } from "@mui/material";
 import ArchytexIcon from "../ArchytexIcon";
 import { styled } from "@mui/material/styles";
+import DarkModeSwitch from "../DarkModeSwitch";
 
 const CustomAppBar = styled(AppBar)(({ theme }) => ({
   zIndex: theme.zIndex.drawer + 1,
@@ -127,7 +128,6 @@ function DashboardAppBar({ open, handleOpenChange }: AppBarProps) {
                 overflow: "visible",
                 filter: "drop-shadow(0px 2px 8px rgba(0,0,0,0.5))",
                 mt: 1.5,
-                // border: "2px solid #14151A",
                 borderRadius: 2,
                 "&:before": {
                   content: '""',
@@ -165,6 +165,8 @@ function DashboardAppBar({ open, handleOpenChange }: AppBarProps) {
               </ListItemIcon>
               Logout
             </MenuItem>
+            {/* Dark mode switch for debugging */}
+            <DarkModeSwitch />
           </Menu>
         </Box>
       </Toolbar>

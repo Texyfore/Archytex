@@ -1,8 +1,8 @@
 import {
-  Collections,
   ColorLens,
   PlayCircleOutlined,
   Settings,
+  Source,
 } from "@mui/icons-material";
 import { List, ListItem, ListItemIcon, ListItemText } from "@mui/material";
 import React from "react";
@@ -15,7 +15,7 @@ export default function DashboardControllerButtons() {
     },
     {
       text: "Projects",
-      icon: <Collections sx={{ fontSize: { lg: 30, xl: 32 } }} />,
+      icon: <Source sx={{ fontSize: { lg: 30, xl: 32 } }} />,
     },
     {
       text: "Community portfolio",
@@ -26,6 +26,15 @@ export default function DashboardControllerButtons() {
       icon: <Settings sx={{ fontSize: { lg: 30, xl: 32 } }} />,
     },
   ];
+
+  const [selectedIndex, setSelectedIndex] = React.useState(1);
+
+  const handleListItemClick = (
+    event: React.MouseEvent<HTMLDivElement, MouseEvent>,
+    index: number
+  ) => {
+    setSelectedIndex(index);
+  };
 
   return (
     <List sx={{ marginX: { lg: 6 } }}>
@@ -39,6 +48,8 @@ export default function DashboardControllerButtons() {
           }}
           button
           key={index}
+          selected={selectedIndex === index}
+          onClick={(event) => handleListItemClick(event, index)}
         >
           <ListItemIcon sx={{ paddingLeft: { lg: 0, xl: 2 } }}>
             {props.icon}

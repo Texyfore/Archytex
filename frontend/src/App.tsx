@@ -10,7 +10,12 @@ import MainPage from "./pages/MainPage";
 import Dashboard from "./pages/Dashboard";
 import LoginPage from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
-import { ColorMode, ColorModeProvider, modeToString, useColorMode } from "./services/colorMode";
+import {
+  ColorMode,
+  ColorModeProvider,
+  modeToString,
+  useColorMode,
+} from "./services/colorMode";
 
 //TODO: Get translations from api
 const translationEn = {
@@ -64,7 +69,6 @@ i18n.use(initReactI18next).init({
   interpolation: { escapeValue: false },
 });
 
-
 function App() {
   //set different font for Japanese language
   const { i18n } = useTranslation();
@@ -77,7 +81,7 @@ function App() {
         return "Poppins";
     }
   }, [i18n.language]);
-  const [mode, _] = useColorMode();
+  const [mode] = useColorMode();
   const archytex_theme = React.useMemo(
     () =>
       createTheme({
@@ -146,7 +150,6 @@ function App() {
 }
 
 export default function ToggleColorMode() {
-
   return (
     <ColorModeProvider>
       <App />
