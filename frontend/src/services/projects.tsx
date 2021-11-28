@@ -1,4 +1,13 @@
 import React, { useContext } from "react";
+import houseImage4 from "../img/4.jpg";
+import houseImage5 from "../img/5.jpg";
+import houseImage6 from "../img/6.jpg";
+import houseImage7 from "../img/7.jpg";
+import houseImage8 from "../img/8.jpg";
+import houseImage9 from "../img/9.jpg";
+import houseImage10 from "../img/10.jpg";
+import houseImage11 from "../img/11.jpg";
+import houseImage12 from "../img/12.jpg";
 
 interface DeleteProject {
   type: "delete-project";
@@ -28,6 +37,7 @@ interface Render {
   renderName: string;
   status: number;
   renderTime: string;
+  img: string;
 }
 
 interface ProjectsState {
@@ -71,22 +81,30 @@ function projectsReducer(
         projects: [
           ...state.projects,
           {
-            id: Date.now().toString(),
+            id: Math.round(Math.random() * 10000).toString(),
             created: new Date().toLocaleDateString("en-US"),
             name: action.name,
             renders: [
               {
-                id: Date.now().toString(),
-                renderName:
-                  "Project1-project-render-1-and it's very long so it can be abbreviated",
-                status: Math.random() * 100, //percentage
+                id: Math.round(Math.random() * 10000).toString(),
+                renderName: action.name + "-render-1",
+                status: Math.random() > 0.5 ? Math.random() * 100 : 100, //percentage
                 renderTime: "1 h 40 min 23 sec",
+                img: houseImage12,
               },
               {
-                id: (Date.now() + 1).toString(),
-                renderName: "Project1-project-render-2",
-                status: Math.random() * 100, //percentage
-                renderTime: "1000h 35 min 21 sec",
+                id: Math.round(Math.random() * 10000).toString(),
+                renderName: action.name + "-render-1",
+                status: Math.random() > 0.5 ? Math.random() * 100 : 100, //percentage
+                renderTime: "2 h 30 min 23 sec",
+                img: houseImage11,
+              },
+              {
+                id: Math.round(Math.random() * 10000).toString(),
+                renderName: action.name + "-render-1",
+                status: Math.random() > 0.5 ? Math.random() * 100 : 100, //percentage
+                renderTime: "20 min 23 sec",
+                img: houseImage10,
               },
             ],
           },
@@ -104,23 +122,120 @@ function ProjectsProvider({
   const initialstate: ProjectsState = {
     projects: [
       {
-        id: Date.now().toString(),
-        name: "Nice Boat",
+        id: Math.round(Math.random() * 10000).toString(),
+        name: "Nice House",
         created: "Now",
         renders: [
           {
-            id: Date.now().toString(),
+            id: Math.round(Math.random() * 10000).toString(),
             renderName:
               "Project1" +
               "-project-render-1-and it's very long so it can be abbreviated",
-            status: Math.random() * 100, //percentage
+            status: Math.random() > 0.5 ? Math.random() * 100 : 100, //percentage
             renderTime: "1 h 40 min 23 sec",
+            img: houseImage10,
           },
           {
-            id: (Date.now() + 1).toString(),
+            id: Math.round(Math.random() * 10000).toString(),
             renderName: "Project1-project-render-2",
-            status: Math.random() * 100, //percentage
+            status: Math.random() > 0.5 ? Math.random() * 100 : 100, //percentage
             renderTime: "1000h 35 min 21 sec",
+            img: houseImage9,
+          },
+          {
+            id: Math.round(Math.random() * 10000).toString(),
+            renderName: "Project1-project-render-2",
+            status: Math.random() > 0.5 ? Math.random() * 100 : 100, //percentage
+            renderTime: "1000h 35 min 21 sec",
+            img: houseImage8,
+          },
+          {
+            id: Math.round(Math.random() * 10000).toString(),
+            renderName: "Project1-project-render-2",
+            status: Math.random() > 0.5 ? Math.random() * 100 : 100, //percentage
+            renderTime: "1000h 35 min 21 sec",
+            img: houseImage7,
+          },
+        ],
+      },
+      {
+        id: Math.round(Math.random() * 10000).toString(),
+        name: "Test project 2",
+        created: "Now",
+        renders: [
+          {
+            id: Math.round(Math.random() * 10000).toString(),
+            renderName:
+              "Project2" +
+              "-project-render-1-and it's very long so it can be abbreviated",
+            status: Math.random() > 0.5 ? Math.random() * 100 : 100, //percentage
+            renderTime: "1 h 40 min 23 sec",
+            img: houseImage4,
+          },
+          {
+            id: Math.round(Math.random() * 10000).toString(),
+            renderName: "Project1-project-render-2",
+            status: Math.random() > 0.5 ? Math.random() * 100 : 100, //percentage
+            renderTime: "1000h 35 min 21 sec",
+            img: houseImage6,
+          },
+          {
+            id: Math.round(Math.random() * 10000).toString(),
+            renderName: "Project1-project-render-2",
+            status: Math.random() > 0.5 ? Math.random() * 100 : 100, //percentage
+            renderTime: "1000h 35 min 21 sec",
+            img: houseImage5,
+          },
+          {
+            id: Math.round(Math.random() * 10000).toString(),
+            renderName: "Project1-project-render-2",
+            status: Math.random() > 0.5 ? Math.random() * 100 : 100, //percentage
+            renderTime: "1000h 35 min 21 sec",
+            img: houseImage7,
+          },
+        ],
+      },
+      {
+        id: Math.round(Math.random() * 10000).toString(),
+        name: "Test project 3",
+        created: "Now",
+        renders: [
+          {
+            id: Math.round(Math.random() * 10000).toString(),
+            renderName:
+              "Project2" +
+              "-project-render-1-and it's very long so it can be abbreviated",
+            status: Math.random() > 0.5 ? Math.random() * 100 : 100, //percentage
+            renderTime: "1 h 40 min 23 sec",
+            img: houseImage11,
+          },
+          {
+            id: Math.round(Math.random() * 10000).toString(),
+            renderName: "Project1-project-render-2",
+            status: Math.random() > 0.5 ? Math.random() * 100 : 100, //percentage
+            renderTime: "1000h 35 min 21 sec",
+            img: houseImage6,
+          },
+          {
+            id: Math.round(Math.random() * 10000).toString(),
+            renderName: "Project1-project-render-2",
+            status: Math.random() > 0.5 ? Math.random() * 100 : 100, //percentage
+            renderTime: "1000h 35 min 21 sec",
+            img: houseImage8,
+          },
+          {
+            id: Math.round(Math.random() * 10000).toString(),
+            renderName: "Project1-project-render-2",
+            status: Math.random() > 0.5 ? Math.random() * 100 : 100, //percentage
+            renderTime: "1000h 35 min 21 sec",
+            img: houseImage9,
+          },
+          {
+            id: Math.round(Math.random() * 10000).toString(),
+            renderName: "Project1-project-render-2",
+            status: Math.random() > 0.5 ? Math.random() * 100 : 100, //percentage
+            renderTime: "1000h 35 min 21 sec",
+            img: houseImage10,
           },
         ],
       },
@@ -136,4 +251,4 @@ function ProjectsProvider({
 }
 
 export { ProjectsProvider, ProjectsContext, useProjects };
-export type { Project };
+export type { Project, Render };
