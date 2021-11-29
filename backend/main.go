@@ -45,6 +45,7 @@ func main() {
 	api.Use(jsonMiddleware)
 
 	api.HandleFunc("/hello", routes.Hello).Methods("GET")
+	api.HandleFunc("/register", routes.Register).Methods("GET")
 
 	http.Handle("/", r)
 	fmt.Printf("Listening on port %d\n", port)
