@@ -121,9 +121,27 @@ export default function ProjectRow({
           <ListItemIcon>
             {openProject ? <KeyboardArrowDown /> : <KeyboardArrowRight />}
           </ListItemIcon>
-          <Typography variant='h6'>{project.name}</Typography>
-          <Typography variant='caption' marginLeft={2}>
+          <Typography
+            noWrap
+            variant='h6'
+            width={{ xs: "200px", md: "50%", lg: "unset" }}
+          >
+            {project.name}
+          </Typography>
+          <Typography
+            variant='caption'
+            marginLeft={2}
+            display={{ xs: "none", lg: "block" }}
+          >
             ( {project.renders.length} renders )
+          </Typography>
+          <Typography
+            noWrap
+            variant='caption'
+            marginLeft={2}
+            display={{ xs: "block", lg: "none" }}
+          >
+            ( {project.renders.length} )
           </Typography>
         </ListItemButton>
       </ListItem>
