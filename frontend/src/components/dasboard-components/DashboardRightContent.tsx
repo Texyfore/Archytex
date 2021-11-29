@@ -2,6 +2,7 @@ import React from "react";
 import { Paper, Box, Typography } from "@mui/material";
 import { styled } from "@mui/material/styles";
 import ProjectBrowser from "./ProjectBrowser";
+import SettingsBrowser from "./SettingsBrowser";
 
 const ColumnPaper = styled(Paper)(({ theme }) => ({
   width: "100%",
@@ -26,7 +27,8 @@ export default function DashboardRightContent() {
         </Typography>
         <Box height={1.01} width='100%' sx={{ backgroundColor: "#39A0ED" }} />
       </ColumnHeader>
-      <ProjectBrowser />
+      {/* <ProjectBrowser /> */}
+      <SettingsBrowser />
     </ColumnPaper>
   );
 }
