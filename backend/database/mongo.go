@@ -11,7 +11,6 @@ import (
 )
 
 type MongoDatabase struct {
-	cancel   context.CancelFunc
 	ctx      context.Context
 	Client   *mongo.Client
 	Database *mongo.Database
@@ -20,15 +19,14 @@ type MongoDatabase struct {
 
 func MongoConnect(connectionString string, database string) (*MongoDatabase, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
+	defer cancel()
 	client, err := mongo.Connect(ctx, options.Client().ApplyURI(connectionString))
 	if err != nil {
-		cancel()
 		return nil, err
 	}
 	db := client.Database(database)
 	usersCollection := db.Collection("users")
 	return &MongoDatabase{
-		cancel:   cancel,
 		Client:   client,
 		ctx:      ctx,
 		Database: db,
@@ -40,7 +38,6 @@ func (m MongoDatabase) Close() {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
 	defer cancel()
 	m.Client.Disconnect(ctx)
-	m.cancel()
 }
 
 func (m MongoDatabase) GetUser(id interface{}) (*models.User, error) {
