@@ -117,6 +117,7 @@ export default function ProjectBrowser() {
         ) : (
           projects.projects.map((project: Project) => (
             <ProjectRow
+              key={project.id}
               project={project}
               feedbackSnackbar={handleActionFeedbackSnackbarOpen}
             />
