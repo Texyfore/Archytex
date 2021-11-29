@@ -4,10 +4,12 @@ import {
   AlertColor,
   Box,
   Button,
+  CircularProgress,
   IconButton,
   List,
   Snackbar,
   Tooltip,
+  Typography,
 } from "@mui/material";
 import { LibraryAdd } from "@mui/icons-material";
 import { styled, useTheme } from "@mui/material/styles";
@@ -100,12 +102,26 @@ export default function ProjectBrowser() {
 
       {/* Project list */}
       <ProjectList>
-        {projects.projects.map((project: Project) => (
-          <ProjectRow
-            project={project}
-            feedbackSnackbar={handleActionFeedbackSnackbarOpen}
-          />
-        ))}
+        {projects === undefined ? (
+          <Box
+            height='100%'
+            display='flex'
+            justifyContent='center'
+            alignItems='center'
+            flexDirection='column'
+            gap={2}
+          >
+            <CircularProgress />
+            <Typography>Loading projects...</Typography>
+          </Box>
+        ) : (
+          projects.projects.map((project: Project) => (
+            <ProjectRow
+              project={project}
+              feedbackSnackbar={handleActionFeedbackSnackbarOpen}
+            />
+          ))
+        )}
       </ProjectList>
 
       {/* New project modal */}

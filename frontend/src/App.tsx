@@ -3,8 +3,7 @@ import { BrowserRouter as Router, Switch, Route } from "react-router-dom";
 import i18n from "i18next";
 import { initReactI18next, useTranslation } from "react-i18next";
 import "./App.css";
-import { ThemeProvider } from "@mui/material/styles";
-import { createTheme } from "@mui/material/styles";
+import { ThemeProvider, createTheme } from "@mui/material/styles";
 import CssBaseline from "@mui/material/CssBaseline";
 import MainPage from "./pages/MainPage";
 import Dashboard from "./pages/Dashboard";
@@ -16,6 +15,7 @@ import {
   modeToString,
   useColorMode,
 } from "./services/colorMode";
+import { CircularProgress } from "@mui/material";
 
 //TODO: Get translations from api
 const translationEn = {
@@ -126,7 +126,7 @@ function App() {
 
   return (
     <ThemeProvider theme={archytex_theme}>
-      <Suspense fallback='Loading...'>
+      <Suspense fallback={<CircularProgress color='primary' />}>
         <CssBaseline />
         <Router>
           <Switch>
