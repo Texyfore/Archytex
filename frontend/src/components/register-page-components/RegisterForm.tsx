@@ -21,6 +21,7 @@ import {
   VpnKey,
 } from "@mui/icons-material";
 import houseImage12 from "../../img/12.jpg";
+import ColoredReCaptcha from "../ColoredReCaptcha";
 
 const MaxHeightContainer = styled(Box)(({ theme }) => ({
   backgroundColor: "background.paper",
@@ -58,6 +59,11 @@ export default function RegisterForm() {
     event: React.MouseEvent<HTMLButtonElement>
   ) => {
     event.preventDefault();
+  };
+
+  // ReCAPTCHA
+  const onChange = (value: any) => {
+    console.log("Captcha value:", value);
   };
   return (
     <MaxHeightContainer
@@ -264,6 +270,14 @@ export default function RegisterForm() {
               />
             </FormControl>
           </Box>
+        </Box>
+
+        {/* ReCAPTCHA */}
+        <Box paddingY={1} display='flex' justifyContent='center'>
+          <ColoredReCaptcha
+            sitekey='6Lc5gWodAAAAAEVg3MPTn5Nj7KN-ishnafqV4ZL8'
+            onChange={onChange}
+          />
         </Box>
 
         {/* Submit button */}
