@@ -4,7 +4,10 @@ import (
 	"encoding/json"
 	"net/http"
 
+	"github.com/Texyfore/Archytex/backend/database"
+	"github.com/Texyfore/Archytex/backend/database/models"
 	"github.com/Texyfore/Archytex/backend/logging"
+	"github.com/Texyfore/Archytex/backend/mailing"
 	"github.com/Texyfore/Archytex/backend/utilities"
 )
 
@@ -39,6 +42,26 @@ func Register(w http.ResponseWriter, r *http.Request) {
 	}
 	if !check {
 		logging.Error(w, r, nil, "Invalid captcha", http.StatusForbidden)
+		return
+	}
+
+	register, err := models.NewRegister(*data.Username, *data.Password, *data.Email)
+	if err != nil {
+		logging.Error(w, r, err, "Failed to register", http.StatusInternalServerError)
+		return
+	}
+	_, err = database.CurrentDatabase.CreateRegister(*register)
+	if err != nil {
+		logging.Error(w, r, err, "Failed to save account", http.StatusInternalServerError)
+		return
+	}
+	args := make(map[string]string)
+	//TODO: Replace with correct URL
+	args["Link"] = "http://localhost:8080/api/verify?token=" + register.Token
+	args["Username"] = register.Username
+	err = mailing.SendTemplate(*data.Email, "Thank you for joining Archytex!", "register", args)
+	if err != nil {
+		logging.Error(w, r, err, "Failed to send Email", http.StatusInternalServerError)
 		return
 	}
 }

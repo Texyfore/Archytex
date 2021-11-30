@@ -6,7 +6,9 @@ var CurrentDatabase Database
 
 type Database interface {
 	GetUser(id interface{}) (*models.User, error)
+	GetRegister(id interface{}) (*models.Register, error)
 	CreateUser(user models.User) (interface{}, error)
+	CreateRegister(register models.Register) (interface{}, error)
 }
 
 type UserHandler interface {
