@@ -86,6 +86,22 @@ func (m MongoDatabase) GetRegister(id interface{}) (*models.Register, error) {
 	}
 	return &register, nil
 }
+func (m MongoDatabase) GetRegisterByToken(token string) (*models.Register, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*1)
+	defer cancel()
+	result := m.Registers.FindOne(ctx, bson.D{
+		{"token", token},
+	})
+	if result.Err() != nil {
+		return nil, result.Err()
+	}
+	var register models.Register
+	err := result.Decode(&register)
+	if err != nil {
+		return nil, err
+	}
+	return &register, nil
+}
 func (m MongoDatabase) CreateRegister(register models.Register) (interface{}, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*2)
 	defer cancel()
@@ -94,4 +110,14 @@ func (m MongoDatabase) CreateRegister(register models.Register) (interface{}, er
 		return nil, err
 	}
 	return result.InsertedID, nil
+}
+
+func (m MongoDatabase) DeleteRegister(register models.Register) error {
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*2)
+	defer cancel()
+	_, err := m.Registers.DeleteOne(ctx, bson.D{{"_id", register.Id}})
+	if err != nil {
+		return err
+	}
+	return nil
 }
