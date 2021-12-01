@@ -12,9 +12,15 @@ type errorMessage struct {
 }
 
 func Error(w http.ResponseWriter, r *http.Request, err error, message string, code int) {
+	errLogged := ""
+	if err == nil {
+		errLogged = message
+	} else {
+		errLogged = err.Error()
+	}
 	w.WriteHeader(code)
 	requestId := GetRequestId(r.Context())
-	log.Printf("[ERROR] %s %s", requestId, err)
+	log.Printf("[ERROR] %s %s", requestId, errLogged)
 	json.NewEncoder(w).Encode(errorMessage{
 		Message:   message,
 		RequestId: requestId,
