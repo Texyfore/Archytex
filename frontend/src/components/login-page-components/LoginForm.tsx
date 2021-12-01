@@ -20,6 +20,7 @@ import {
   VpnKey,
 } from "@mui/icons-material";
 import { styled } from "@mui/material/styles";
+import ColoredReCaptcha from "../ColoredReCaptcha";
 
 const MaxHeightContainer = styled(Box)(({ theme }) => ({
   marginTop: 56,
@@ -33,7 +34,7 @@ const MaxHeightContainer = styled(Box)(({ theme }) => ({
     height: `calc(100vh - 64px)`,
   },
   // eslint-disable-next-line no-useless-computed-key
-  ["@media (max-height: 612px)"]: {
+  ["@media (max-height: 700px)"]: {
     height: "unset",
   },
 }));
@@ -49,6 +50,11 @@ export default function LoginForm() {
     event: React.MouseEvent<HTMLButtonElement>
   ) => {
     event.preventDefault();
+  };
+
+  // ReCAPTCHA
+  const onChange = (value: any) => {
+    console.log("Captcha value:", value);
   };
 
   return (
@@ -160,6 +166,12 @@ export default function LoginForm() {
               control={<Checkbox />}
               label={<Typography variant='caption'>Stay signed in</Typography>}
               labelPlacement='end'
+            />
+          </Box>
+          <Box paddingY={1}>
+            <ColoredReCaptcha
+              sitekey='6Lc5gWodAAAAAEVg3MPTn5Nj7KN-ishnafqV4ZL8'
+              onChange={onChange}
             />
           </Box>
           <Button variant='outlined' sx={{ width: 304, marginY: 2 }}>

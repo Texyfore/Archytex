@@ -11,10 +11,11 @@ import (
 )
 
 type MongoDatabase struct {
-	ctx      context.Context
-	Client   *mongo.Client
-	Database *mongo.Database
-	Users    *mongo.Collection
+	ctx       context.Context
+	Client    *mongo.Client
+	Database  *mongo.Database
+	Users     *mongo.Collection
+	Registers *mongo.Collection
 }
 
 func MongoConnect(connectionString string, database string) (*MongoDatabase, error) {
@@ -26,11 +27,13 @@ func MongoConnect(connectionString string, database string) (*MongoDatabase, err
 	}
 	db := client.Database(database)
 	usersCollection := db.Collection("users")
+	registersCollection := db.Collection("registers")
 	return &MongoDatabase{
-		Client:   client,
-		ctx:      ctx,
-		Database: db,
-		Users:    usersCollection,
+		Client:    client,
+		ctx:       ctx,
+		Database:  db,
+		Users:     usersCollection,
+		Registers: registersCollection,
 	}, nil
 }
 
@@ -65,4 +68,81 @@ func (m MongoDatabase) CreateUser(user models.User) (interface{}, error) {
 		return nil, err
 	}
 	return result.InsertedID, nil
+}
+
+func (m MongoDatabase) GetRegister(id interface{}) (*models.Register, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*1)
+	defer cancel()
+	result := m.Registers.FindOne(ctx, bson.D{
+		{"_id", id},
+	})
+	if result.Err() != nil {
+		return nil, result.Err()
+	}
+	var register models.Register
+	err := result.Decode(&register)
+	if err != nil {
+		return nil, err
+	}
+	return &register, nil
+}
+func (m MongoDatabase) GetRegisterByToken(token string) (*models.Register, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*1)
+	defer cancel()
+	result := m.Registers.FindOne(ctx, bson.D{
+		{"token", token},
+	})
+	if result.Err() != nil {
+		return nil, result.Err()
+	}
+	var register models.Register
+	err := result.Decode(&register)
+	if err != nil {
+		return nil, err
+	}
+	return &register, nil
+}
+func (m MongoDatabase) CreateRegister(register models.Register) (interface{}, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*2)
+	defer cancel()
+	result, err := m.Registers.InsertOne(ctx, register)
+	if err != nil {
+		return nil, err
+	}
+	return result.InsertedID, nil
+}
+
+func (m MongoDatabase) DeleteRegister(register models.Register) error {
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*2)
+	defer cancel()
+	_, err := m.Registers.DeleteOne(ctx, bson.D{{"_id", register.Id}})
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (m MongoDatabase) UserExists(username, email string) (bool, error) {
+	//TODO: find a solution for possible race conditions
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*2)
+	defer cancel()
+	countUser, err := m.Users.CountDocuments(ctx, bson.D{
+		{"$or", bson.A{
+			bson.D{{"username", username}},
+			bson.D{{"email", email}},
+		}},
+	})
+	if err != nil {
+		return false, err
+	}
+	countRegister, err := m.Registers.CountDocuments(ctx, bson.D{
+		{"$or", bson.A{
+			bson.D{{"username", username}},
+			bson.D{{"email", email}},
+		}},
+	})
+	if err != nil {
+		return false, err
+	}
+	return !(countUser == 0 && countRegister == 0), nil
 }

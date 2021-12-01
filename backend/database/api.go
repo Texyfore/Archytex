@@ -6,17 +6,12 @@ var CurrentDatabase Database
 
 type Database interface {
 	GetUser(id interface{}) (*models.User, error)
+	GetRegister(id interface{}) (*models.Register, error)
+	GetRegisterByToken(token string) (*models.Register, error)
 	CreateUser(user models.User) (interface{}, error)
-}
+	CreateRegister(register models.Register) (interface{}, error)
 
-type UserHandler interface {
-	Update() error
-	Delete() error
-	AddProject(project models.Project) (interface{}, error)
-}
+	UserExists(username, email string) (bool, error)
 
-type ProjectHandler interface {
-	Update() error
-	Delete() error
-	AddRender(render models.Render) (interface{}, error)
+	DeleteRegister(register models.Register) error
 }
