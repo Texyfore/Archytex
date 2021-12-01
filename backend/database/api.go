@@ -11,5 +11,7 @@ type Database interface {
 	CreateUser(user models.User) (interface{}, error)
 	CreateRegister(register models.Register) (interface{}, error)
 
+	UserExists(username, email string) (bool, error)
+
 	DeleteRegister(register models.Register) error
 }

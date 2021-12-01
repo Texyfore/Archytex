@@ -44,7 +44,15 @@ func Register(w http.ResponseWriter, r *http.Request) {
 		logging.Error(w, r, nil, "Invalid captcha", http.StatusForbidden)
 		return
 	}
-
+	exists, err := database.CurrentDatabase.UserExists(*data.Username, *data.Email)
+	if err != nil {
+		logging.Error(w, r, err, "internal server error", http.StatusInternalServerError)
+		return
+	}
+	if exists {
+		logging.Error(w, r, nil, "user already exists", http.StatusBadRequest)
+		return
+	}
 	register, err := models.NewRegister(*data.Username, *data.Password, *data.Email)
 	if err != nil {
 		logging.Error(w, r, err, "Failed to register", http.StatusInternalServerError)
