@@ -23,12 +23,12 @@ export default function DashboardRightContent() {
       <ColumnHeader>
         <Box height={1.01} width='100%' sx={{ backgroundColor: "#39A0ED" }} />
         <Typography variant='h6' fontWeight={600} fontSize='1em' paddingX={2}>
-          PROJECTS
+          SETTINGS
         </Typography>
         <Box height={1.01} width='100%' sx={{ backgroundColor: "#39A0ED" }} />
       </ColumnHeader>
-      {/* <ProjectBrowser /> */}
-      <SettingsBrowser />
+      <ProjectBrowser />
+      {/* <SettingsBrowser /> */}
     </ColumnPaper>
   );
 }
