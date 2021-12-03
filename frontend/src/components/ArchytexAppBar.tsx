@@ -14,6 +14,7 @@ import { styled } from "@mui/material/styles";
 import MainPageSwipeableDrawer from "./main-page-components/MainPageSwipeableDrawer";
 import LanguageSelectDropdown from "./LanguageSelectDropdown";
 import DarkModeSwitch from "./DarkModeSwitch";
+import { useApi } from "../services/user/api";
 
 const CustomAppBar = styled(AppBar)(({ theme }) => ({
   zIndex: theme.zIndex.drawer + 1,
@@ -37,6 +38,9 @@ function DashboardAppBar({ open, handleOpenChange }: AppBarProps) {
   const handleLanguageMenuClose = () => {
     setAnchorEl(null);
   };
+
+  const api = useApi();
+
   return (
     <React.Fragment>
       <CustomAppBar position='fixed' elevation={0}>
@@ -88,9 +92,11 @@ function DashboardAppBar({ open, handleOpenChange }: AppBarProps) {
               handleClose={handleLanguageMenuClose}
               anchorEl={anchorEl}
             />
-            <Button variant='outlined' sx={{ marginLeft: 2 }}>
+            {
+              api?.state === "logged-in" ? <Typography>{api.user.username}</Typography> : <Button variant='outlined' sx={{ marginLeft: 2 }}>
               Login / register
             </Button>
+            }
           </Box>
         </Toolbar>
       </CustomAppBar>

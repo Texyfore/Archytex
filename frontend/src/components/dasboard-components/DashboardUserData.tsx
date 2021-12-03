@@ -3,6 +3,7 @@ import { BoltOutlined } from "@mui/icons-material";
 import { Avatar, Box, Typography } from "@mui/material";
 import { styled } from "@mui/material/styles";
 import { blue } from "@mui/material/colors";
+import { useApi } from "../../services/user/api";
 
 const ContentBox = styled(Box)(({ theme }) => ({
   display: "flex",
@@ -18,7 +19,10 @@ const UserAvatar = styled(Avatar)(({ theme }) => ({
   alignSelf: "center",
   fontSize: "30pt",
 }));
+
 export default function DashboardUserData() {
+  const api = useApi();
+  const username = api?.state === "logged-in" ? api.user.username : "UNDEFINED";
   return (
     //TODO: Collapse animation
     <ContentBox
@@ -35,7 +39,7 @@ export default function DashboardUserData() {
         fontWeight={600}
         textAlign='center'
       >
-        Test User
+        {username}
       </Typography>
       <Box display='flex' justifyContent='center'>
         <BoltOutlined />
