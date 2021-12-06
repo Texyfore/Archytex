@@ -140,6 +140,7 @@ impl Editor {
         self.world_camera.process(dt, input);
         self.solid_editor.process(SolidEditorContext {
             input,
+            world_camera: &self.world_camera,
             solid_factory: &self.solid_factory,
             line_factory: &self.line_factory,
             texture_bank,
