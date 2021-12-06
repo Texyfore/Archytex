@@ -7,6 +7,7 @@ import DashboardSwipeableDrawer from "../components/dasboard-components/Dashboar
 import DashboardLeftContent from "../components/dasboard-components/DashboardLeftContent";
 import DashboardRightContent from "../components/dasboard-components/DashboardRightContent";
 import { ProjectsProvider } from "../services/projects";
+import { SubPageProvider } from "../services/selectedDashboardSubPage";
 
 const MaxHeightGrid = styled(Grid)(({ theme }) => ({
   marginTop: 56,
@@ -42,57 +43,59 @@ export default function Dashboard() {
   }
 
   return (
-    <React.Fragment>
-      <DashboardAppBar open={open} handleOpenChange={handleOpenChange} />
+    <SubPageProvider>
+      <React.Fragment>
+        <DashboardAppBar open={open} handleOpenChange={handleOpenChange} />
 
-      <DashboardSwipeableDrawer
-        open={open}
-        handleOpenChange={handleOpenChange}
-      />
+        <DashboardSwipeableDrawer
+          open={open}
+          handleOpenChange={handleOpenChange}
+        />
 
-      <MaxHeightGrid
-        container
-        overflow='hidden'
-        display='flex'
-        direction={{ lg: "column" }}
-        key='left'
-      >
-        <Grid item>
-          <DashboardMiniDrawer
-            open={open}
-            handleOpenChange={handleOpenChange}
-          />
-        </Grid>
-
-        <Grid
-          item
-          container={isContainer}
-          component='main'
-          columnSpacing={{ xs: 0, lg: 10 }}
-          padding={{ lg: 4 }}
-          sx={{
-            flexGrow: 1,
-            backgroundImage: `radial-gradient(#1c517a 0.75px, ${
-              theme.palette.mode === "dark" ? "#0c0c0c" : "#F5F0F6"
-            } 0.75px)`,
-            backgroundSize: "15px 15px",
-          }}
+        <MaxHeightGrid
+          container
+          overflow='hidden'
+          display='flex'
+          direction={{ lg: "column" }}
+          key='left'
         >
-          <CalcHeightGridItem
+          <Grid item>
+            <DashboardMiniDrawer
+              open={open}
+              handleOpenChange={handleOpenChange}
+            />
+          </Grid>
+
+          <Grid
             item
-            xs={12}
-            md={4}
-            display={{ xs: "none", lg: "flex" }}
+            container={isContainer}
+            component='main'
+            columnSpacing={{ xs: 0, lg: 10 }}
+            padding={{ lg: 4 }}
+            sx={{
+              flexGrow: 1,
+              backgroundImage: `radial-gradient(#1c517a 0.75px, ${
+                theme.palette.mode === "dark" ? "#0c0c0c" : "#F5F0F6"
+              } 0.75px)`,
+              backgroundSize: "15px 15px",
+            }}
           >
-            <DashboardLeftContent />
-          </CalcHeightGridItem>
-          <CalcHeightGridItem item xs={12} lg={8}>
-            <ProjectsProvider>
-              <DashboardRightContent />
-            </ProjectsProvider>
-          </CalcHeightGridItem>
-        </Grid>
-      </MaxHeightGrid>
-    </React.Fragment>
+            <CalcHeightGridItem
+              item
+              xs={12}
+              md={4}
+              display={{ xs: "none", lg: "flex" }}
+            >
+              <DashboardLeftContent />
+            </CalcHeightGridItem>
+            <CalcHeightGridItem item xs={12} lg={8}>
+              <ProjectsProvider>
+                <DashboardRightContent />
+              </ProjectsProvider>
+            </CalcHeightGridItem>
+          </Grid>
+        </MaxHeightGrid>
+      </React.Fragment>
+    </SubPageProvider>
   );
 }
