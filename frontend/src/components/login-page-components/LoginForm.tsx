@@ -22,6 +22,7 @@ import {
 import { styled } from "@mui/material/styles";
 import ColoredReCaptcha from "../ColoredReCaptcha";
 import { useApi } from "../../services/user/api";
+import { useHistory } from "react-router";
 
 const MaxHeightContainer = styled(Box)(({ theme }) => ({
   marginTop: 56,
@@ -62,11 +63,12 @@ export default function LoginForm() {
 
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
-
+  const history = useHistory();
   const loginClick = () => {
     if (api?.state === "not-logged-in") {
       //TODO: Handle login result
       api.logIn(username, password);
+      history.push("/dashboard")
     }
   }
 
