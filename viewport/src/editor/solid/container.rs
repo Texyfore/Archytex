@@ -9,7 +9,7 @@ use crate::{
         config::{FACE_HIGHLIGHT_COLOR, MAX_FACES, MAX_POINTS, MAX_SOLIDS, POINT_SELECT_RADIUS},
     },
     math::{IntersectionPoint, Plane, Ray, SolidUtil, Triangle},
-    render::{SolidBatch, SolidFactory, SolidVertex, TextureBank, TextureID},
+    render::{SolidBatch, SolidFactory, SolidVertex, TextureBank, TextureID}, info,
 };
 
 pub struct SolidContainer {
@@ -188,6 +188,54 @@ impl SolidContainer {
         }
     }
 
+    pub fn move_plane(&self, ray: Ray) -> Option<Plane> {
+        self.selected.as_ref().map(|selected| {
+            let mut center = Vector3::zero();
+
+            match selected {
+                Selection::Points(points) => points
+                    .iter()
+                    .map(|p| self.points[*p].position)
+                    .for_each(|p| center += p / points.len() as f32),
+                Selection::Faces(faces) => {
+                    let mut div = 0.0;
+                    faces
+                        .iter()
+                        .map(|f| self.faces[*f].quad.iter())
+                        .flatten()
+                        .map(|p| self.points[*p].position)
+                        .for_each(|p| {
+                            center += p;
+                            div += 1.0
+                        });
+                    center /= div;
+                }
+                Selection::Solids(solids) => {
+                    let mut div = 0.0;
+                    solids
+                        .iter()
+                        .map(|s| self.solids[*s].faces.iter())
+                        .flatten()
+                        .map(|f| self.faces[*f].quad.iter())
+                        .flatten()
+                        .map(|p| self.points[*p].position)
+                        .for_each(|p| {
+                            center += p;
+                            div += 1.0
+                        });
+                    center /= div;
+                }
+            }
+
+            info!("{:?}, {:?}", center, -(ray.vec().normalize()).cardinal());
+
+            Plane {
+                origin: center,
+                normal: -(ray.vec().normalize()).cardinal(),
+            }
+        })
+    }
+
     pub fn select_point(&mut self, camera: WorldCamera, position: Vector2<f32>) {
         if let Some(Selection::Points(_)) = self.selected.as_ref() {
             let mut candidates = Vec::new();
@@ -337,7 +385,7 @@ impl SolidContainer {
             let mut batches = HashMap::new();
             println!("---");
             for (i, solid) in &self.solids {
-                println!("{}",i);
+                println!("{}", i);
                 for j in &solid.faces {
                     let face = self.faces.get(*j).unwrap();
                     let selected = if let Some(selected) = self.selected.as_ref() {

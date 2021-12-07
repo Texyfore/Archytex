@@ -1,11 +1,11 @@
 use std::rc::Rc;
 
-use cgmath::{vec3, ElementWise, InnerSpace, Vector2, Vector3};
+use cgmath::{vec3, ElementWise, InnerSpace, Vector2, Vector3, Zero};
 
 use crate::{
     editor::{camera::WorldCamera, config::NEW_BRUSH_MIN_SCREEN_DISTANCE, ActionBinding::*},
     input::InputMapper,
-    math::{MinMax, SolidUtil},
+    math::{IntersectionPoint, MinMax, Plane, SolidUtil},
     render::{LineBatch, LineFactory, LineVertex, Scene, SolidFactory, TextureBank},
 };
 
@@ -80,6 +80,7 @@ impl EditState {
 #[derive(Default)]
 struct SolidState {
     new_solid: Option<NewSolid>,
+    move_op: Option<Move>,
 }
 
 impl SolidState {
@@ -88,7 +89,7 @@ impl SolidState {
             if let Some(raycast) =
                 container.raycast(ctx.world_camera.screen_ray(ctx.input.mouse_pos()))
             {
-                let world = raycast.point.grid(1.0);
+                let world = (raycast.point + raycast.normal * 0.01).grid(1.0);
                 let screen = ctx.input.mouse_pos();
 
                 self.new_solid = Some(NewSolid {
@@ -135,6 +136,50 @@ impl SolidState {
 
         if ctx.input.is_active_once(DeleteBrush) {
             container.delete_selected();
+        }
+
+        if ctx.input.is_active_once(Move) {
+            if self.move_op.is_none() {
+                let ray = ctx.world_camera.screen_ray(ctx.input.mouse_pos());
+                let plane = container.move_plane(ray);
+
+                if let Some(plane) = plane {
+                    let start = ray.intersection_point(&plane);
+                    if let Some(start) = start {
+                        let start = (start + plane.normal * 0.01).snap(1.0);
+                        self.move_op = Some(Move {
+                            plane,
+                            start,
+                            end: start,
+                        })
+                    }
+                }
+            } else {
+                self.move_op = None;
+                container.abort_move();
+            }
+        }
+
+        if let Some(move_op) = self.move_op.as_mut() {
+            let ray = ctx.world_camera.screen_ray(ctx.input.mouse_pos());
+            if let Some(end) = ray.intersection_point(&move_op.plane) {
+                let end = (end + move_op.plane.normal * 0.01).snap(1.0);
+                if (end - move_op.end).magnitude2() > 0.01 {
+                    let vec = end - move_op.start;
+                    container.move_selected(vec);
+                    move_op.end = end;
+                }
+            }
+
+            if ctx.input.is_active_once(ConfirmMove) {
+                container.confirm_move();
+                self.move_op = None;
+            }
+
+            if ctx.input.is_active_once(AbortMove) {
+                self.move_op = None;
+                container.abort_move();
+            }
         }
     }
 
@@ -256,4 +301,10 @@ impl NewSolid {
 struct NewSolidPoint {
     world: Vector3<i32>,
     screen: Vector2<f32>,
+}
+
+struct Move {
+    plane: Plane,
+    start: Vector3<f32>,
+    end: Vector3<f32>,
 }
