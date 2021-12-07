@@ -5,9 +5,10 @@ use std::{collections::HashMap, rc::Rc};
 use bytemuck::{Pod, Zeroable};
 use cgmath::{Matrix4, Vector2, Vector3};
 use image::{DynamicImage, GenericImageView};
-use stable_vec::StableVec;
 use wgpu::{BufferUsages, Sampler};
 use winit::window::Window;
+
+use crate::ring_vec::RingVec;
 
 use self::gpu::{
     Context, DepthBuffer, LinePipeline, MsaaFramebuffer, SolidPipeline, SpritePipeline,
@@ -79,7 +80,7 @@ impl Init {
             ctx: self.ctx.clone(),
             layout: self.texture_layout.clone(),
             sampler: self.sampler.clone(),
-            textures: StableVec::with_capacity(64),
+            textures: RingVec::new(64),
         }
     }
 
@@ -121,7 +122,7 @@ pub struct TextureBank {
     ctx: Rc<Context>,
     layout: Rc<TextureLayout>,
     sampler: Rc<Sampler>,
-    textures: StableVec<TextureData>,
+    textures: RingVec<TextureData>,
 }
 
 struct TextureData {

@@ -4,6 +4,7 @@ mod log;
 mod math;
 mod msg;
 mod render;
+mod ring_vec;
 
 use instant::Instant;
 

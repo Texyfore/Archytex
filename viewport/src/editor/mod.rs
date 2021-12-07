@@ -1,6 +1,6 @@
-mod brush;
 mod camera;
 mod config;
+mod solid;
 
 use std::rc::Rc;
 
@@ -12,8 +12,8 @@ use crate::{
 };
 
 use self::{
-    brush::BrushBank,
     camera::{SpriteCamera, WorldCamera},
+    solid::{SolidEditor, SolidEditorContext},
     ActionBinding::*,
 };
 
@@ -64,10 +64,11 @@ actions! {
     GridDown             Key O        ,
     SwitchMode           Key Tab      ,
 
-    // Brush manipulation /////////////
+    // Solid manipulation /////////////
 
-    AddBrush             Btn Left     ,
-    DeleteBrush          Key Delete   ,
+    AddSolid             Btn Left     ,
+    DeleteSolid          Key Delete   ,
+    CopySolid            Key C        ,
 
     // Face manipulation //////////////
 
@@ -84,8 +85,8 @@ pub struct Editor {
     line_factory: LineFactory,
     world_camera: WorldCamera,
     sprite_camera: SpriteCamera,
-    brush_bank: BrushBank,
     mode: EditMode,
+    solid_editor: SolidEditor,
     grid_subdiv: i32,
     grid: Rc<LineBatch>,
 }
@@ -105,8 +106,8 @@ impl Editor {
             line_factory,
             world_camera: Default::default(),
             sprite_camera: Default::default(),
-            brush_bank: Default::default(),
-            mode: EditMode::Brush,
+            mode: EditMode::Solid,
+            solid_editor: Default::default(),
             grid_subdiv: 0,
             grid,
         }
@@ -138,24 +139,20 @@ impl Editor {
         }
 
         self.world_camera.process(dt, input);
-
-        self.brush_bank.process(
-            &self.mode,
+        self.solid_editor.process(SolidEditorContext {
             input,
-            &self.world_camera,
+            world_camera: &self.world_camera,
+            solid_factory: &self.solid_factory,
+            line_factory: &self.line_factory,
             texture_bank,
-            &self.solid_factory,
-            &self.line_factory,
-            2.0f32.powi(self.grid_subdiv),
-        );
+            grid_length: 2.0f32.powi(self.grid_subdiv),
+        });
     }
 
     pub fn render(&self, scene: &mut Scene) {
         self.world_camera.render(scene);
         self.sprite_camera.render(scene);
-
-        self.brush_bank
-            .render(scene, &self.world_camera, &self.mode);
+        self.solid_editor.render(scene, &self.world_camera);
         scene.world_pass.line_batches.push(self.grid.clone());
     }
 
@@ -167,17 +164,15 @@ impl Editor {
 
 #[derive(Clone, Copy, PartialEq)]
 pub enum EditMode {
-    Brush,
-    Face,
-    Vertex,
+    Solid,
+    Prop,
 }
 
 impl EditMode {
     fn switch(&mut self) {
         *self = match self {
-            Self::Brush => Self::Face,
-            Self::Face => Self::Vertex,
-            Self::Vertex => Self::Brush,
+            Self::Solid => Self::Prop,
+            Self::Prop => Self::Solid,
         };
     }
 }
