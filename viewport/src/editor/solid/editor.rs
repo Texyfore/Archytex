@@ -33,8 +33,13 @@ impl SolidEditor {
             self.mode.switch();
             self.container.deselect();
         }
-        self.mode.process(&ctx, &mut self.container);
-        self.move_logic(&ctx);
+
+        let mut solids_copied = false;
+
+        self.mode
+            .process(&ctx, &mut self.container, &mut solids_copied);
+
+        self.move_logic(&ctx, solids_copied);
     }
 
     pub fn render(&self, scene: &mut Scene, camera: &WorldCamera) {
@@ -42,26 +47,35 @@ impl SolidEditor {
         self.mode.render(scene, camera, &self.container);
     }
 
-    fn move_logic(&mut self, ctx: &SolidEditorContext) {
+    fn move_logic(&mut self, ctx: &SolidEditorContext, solids_copied: bool) {
+        let mut begin_move = false;
+
         if ctx.input.is_active_once(Move) {
             if self.move_op.is_none() {
-                let ray = ctx.world_camera.screen_ray(ctx.input.mouse_pos());
-                let plane = self.container.move_plane(ray);
-
-                if let Some(plane) = plane {
-                    let start = ray.intersection_point(&plane);
-                    if let Some(start) = start {
-                        let start = (start + plane.normal * 0.01).snap(1.0);
-                        self.move_op = Some(Move {
-                            plane,
-                            start,
-                            end: start,
-                        })
-                    }
-                }
+                begin_move = true;
             } else {
                 self.move_op = None;
                 self.container.abort_move();
+            }
+        }
+        if solids_copied {
+            begin_move = true;
+        }
+
+        if begin_move {
+            let ray = ctx.world_camera.screen_ray(ctx.input.mouse_pos());
+            let plane = self.container.move_plane(ray);
+
+            if let Some(plane) = plane {
+                let start = ray.intersection_point(&plane);
+                if let Some(start) = start {
+                    let start = (start + plane.normal * 0.01).snap(1.0);
+                    self.move_op = Some(Move {
+                        plane,
+                        start,
+                        end: start,
+                    })
+                }
             }
         }
 
@@ -118,9 +132,14 @@ impl EditState {
         };
     }
 
-    fn process(&mut self, ctx: &SolidEditorContext, container: &mut SolidContainer) {
+    fn process(
+        &mut self,
+        ctx: &SolidEditorContext,
+        container: &mut SolidContainer,
+        solids_copied: &mut bool,
+    ) {
         match self {
-            EditState::Solid(state) => state.process(ctx, container),
+            EditState::Solid(state) => state.process(ctx, container, solids_copied),
             EditState::Face(state) => state.process(ctx, container),
             EditState::Point(state) => state.process(ctx, container),
         };
@@ -142,8 +161,13 @@ struct SolidState {
 }
 
 impl SolidState {
-    fn process(&mut self, ctx: &SolidEditorContext, container: &mut SolidContainer) {
-        if ctx.input.is_active_once(AddBrush) {
+    fn process(
+        &mut self,
+        ctx: &SolidEditorContext,
+        container: &mut SolidContainer,
+        solids_copied: &mut bool,
+    ) {
+        if ctx.input.is_active_once(AddSolid) {
             if let Some(raycast) =
                 container.raycast(ctx.world_camera.screen_ray(ctx.input.mouse_pos()))
             {
@@ -159,7 +183,7 @@ impl SolidState {
         }
 
         if let (true, Some(new_solid), Some(raycast)) = (
-            ctx.input.is_active(AddBrush),
+            ctx.input.is_active(AddSolid),
             self.new_solid.as_mut(),
             container.raycast(ctx.world_camera.screen_ray(ctx.input.mouse_pos())),
         ) {
@@ -175,7 +199,7 @@ impl SolidState {
         let mut can_select = true;
 
         if let (true, Some(new_solid)) =
-            (ctx.input.was_active_once(AddBrush), self.new_solid.as_ref())
+            (ctx.input.was_active_once(AddSolid), self.new_solid.as_ref())
         {
             if new_solid.enough_mouse_distance() {
                 let (origin, extent) = new_solid.origin_extent(1.0);
@@ -192,8 +216,13 @@ impl SolidState {
             container.select_solid(ctx.world_camera, ctx.input.mouse_pos());
         }
 
-        if ctx.input.is_active_once(DeleteBrush) {
+        if ctx.input.is_active_once(DeleteSolid) {
             container.delete_selected();
+        }
+
+        if ctx.input.is_active_once(CopySolid) {
+            container.copy_solids();
+            *solids_copied = true;
         }
     }
 

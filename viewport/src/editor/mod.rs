@@ -64,10 +64,11 @@ actions! {
     GridDown             Key O        ,
     SwitchMode           Key Tab      ,
 
-    // Brush manipulation /////////////
+    // Solid manipulation /////////////
 
-    AddBrush             Btn Left     ,
-    DeleteBrush          Key Delete   ,
+    AddSolid             Btn Left     ,
+    DeleteSolid          Key Delete   ,
+    CopySolid            Key C        ,
 
     // Face manipulation //////////////
 

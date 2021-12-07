@@ -1,4 +1,8 @@
-use std::{cmp::Ordering, collections::HashMap, rc::Rc};
+use std::{
+    cmp::Ordering,
+    collections::{HashMap, HashSet},
+    rc::Rc,
+};
 
 use cgmath::{vec2, vec3, ElementWise, InnerSpace, Vector2, Vector3, Zero};
 
@@ -7,7 +11,6 @@ use crate::{
         camera::WorldCamera,
         config::{FACE_HIGHLIGHT_COLOR, MAX_FACES, MAX_POINTS, MAX_SOLIDS, POINT_SELECT_RADIUS},
     },
-    info,
     math::{IntersectionPoint, Plane, Ray, SolidUtil, Triangle},
     render::{SolidBatch, SolidFactory, SolidVertex, TextureBank, TextureID},
     ring_vec::RingVec,
@@ -350,6 +353,42 @@ impl SolidContainer {
         }
     }
 
+    pub fn copy_solids(&mut self) {
+        if let Some(Selection::Solids(solids)) = self.selected.as_mut() {
+            let mut new_selection = Vec::new();
+
+            for solid in solids.iter() {
+                let mut points = HashSet::new();
+                self.solids[*solid]
+                    .faces
+                    .iter()
+                    .map(|f| self.faces[*f].quad.iter())
+                    .flatten()
+                    .for_each(|p| {
+                        points.insert(*p);
+                    });
+
+                let points = points
+                    .iter()
+                    .map(|p| (*p, self.points.push(self.points[*p].clone())))
+                    .collect::<HashMap<_, _>>();
+
+                let faces = self.solids[*solid].faces.map(|f| {
+                    let face = self.faces[f].clone();
+                    self.faces.push(Face {
+                        quad: face.quad.map(|p| points[&p]),
+                        texture: face.texture,
+                    })
+                });
+
+                new_selection.push(self.solids.push(Solid { faces }));
+            }
+
+            *solids = new_selection;
+            self.needs_rebuild = true;
+        }
+    }
+
     pub fn raycast(&self, ray: Ray) -> Option<Raycast> {
         let mut hits = Vec::new();
 
@@ -404,9 +443,7 @@ impl SolidContainer {
     pub fn rebuild(&mut self, factory: &SolidFactory, textures: &TextureBank) {
         if self.needs_rebuild {
             let mut batches = HashMap::new();
-            info!("---");
             for (i, solid) in &self.solids {
-                info!("{}", i);
                 for j in &solid.faces {
                     let face = self.faces.get(*j).unwrap();
                     let selected = if let Some(selected) = self.selected.as_ref() {
@@ -461,7 +498,6 @@ impl SolidContainer {
                     }
                 }
             }
-            info!("---");
 
             self.mesh_cache = batches
                 .iter()
@@ -513,11 +549,13 @@ pub struct PointGraphics {
     pub selected: bool,
 }
 
+#[derive(Clone)]
 struct Point {
     position: Vector3<f32>,
     previous: Vector3<f32>,
 }
 
+#[derive(Clone)]
 struct Face {
     quad: [usize; 4],
     texture: TextureID,
