@@ -145,6 +145,7 @@ impl Editor {
             solid_factory: &self.solid_factory,
             line_factory: &self.line_factory,
             texture_bank,
+            grid_length: 2.0f32.powi(self.grid_subdiv),
         });
     }
 

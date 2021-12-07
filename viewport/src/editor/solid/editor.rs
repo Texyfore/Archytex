@@ -15,11 +15,26 @@ use crate::{
 
 use super::container::SolidContainer;
 
-#[derive(Default)]
 pub struct SolidEditor {
     container: SolidContainer,
     mode: EditState,
     move_op: Option<Move>,
+}
+
+impl Default for SolidEditor {
+    fn default() -> Self {
+        let mut container = SolidContainer::default();
+        container.add(
+            vec3(1000000.0, 1000000.0, 1000000.0),
+            vec3(0.0001, 0.0001, 0.0001),
+        );
+
+        Self {
+            container,
+            mode: Default::default(),
+            move_op: None,
+        }
+    }
 }
 
 impl SolidEditor {
@@ -69,7 +84,7 @@ impl SolidEditor {
             if let Some(plane) = plane {
                 let start = ray.intersection_point(&plane);
                 if let Some(start) = start {
-                    let start = (start + plane.normal * 0.01).snap(1.0);
+                    let start = (start + plane.normal * 0.01).snap(ctx.grid_length);
                     self.move_op = Some(Move {
                         plane,
                         start,
@@ -82,7 +97,7 @@ impl SolidEditor {
         if let Some(move_op) = self.move_op.as_mut() {
             let ray = ctx.world_camera.screen_ray(ctx.input.mouse_pos());
             if let Some(end) = ray.intersection_point(&move_op.plane) {
-                let end = (end + move_op.plane.normal * 0.01).snap(1.0);
+                let end = (end + move_op.plane.normal * 0.01).snap(ctx.grid_length);
                 if (end - move_op.end).magnitude2() > 0.01 {
                     let vec = end - move_op.start;
                     self.container.move_selected(vec);
@@ -109,6 +124,7 @@ pub struct SolidEditorContext<'a> {
     pub solid_factory: &'a SolidFactory,
     pub line_factory: &'a LineFactory,
     pub texture_bank: &'a TextureBank,
+    pub grid_length: f32,
 }
 
 enum EditState {
@@ -171,7 +187,7 @@ impl SolidState {
             if let Some(raycast) =
                 container.raycast(ctx.world_camera.screen_ray(ctx.input.mouse_pos()))
             {
-                let world = (raycast.point + raycast.normal * 0.01).grid(1.0);
+                let world = (raycast.point + raycast.normal * 0.01).grid(ctx.grid_length);
                 let screen = ctx.input.mouse_pos();
 
                 self.new_solid = Some(NewSolid {
@@ -188,11 +204,11 @@ impl SolidState {
             container.raycast(ctx.world_camera.screen_ray(ctx.input.mouse_pos())),
         ) {
             new_solid.end = NewSolidPoint {
-                world: (raycast.point + raycast.normal * 0.01).grid(1.0),
+                world: (raycast.point + raycast.normal * 0.01).grid(ctx.grid_length),
                 screen: ctx.input.mouse_pos(),
             };
             if new_solid.enough_mouse_distance() {
-                new_solid.build_mesh(1.0, ctx.line_factory);
+                new_solid.build_mesh(ctx.grid_length, ctx.line_factory);
             }
         }
 
@@ -202,7 +218,7 @@ impl SolidState {
             (ctx.input.was_active_once(AddSolid), self.new_solid.as_ref())
         {
             if new_solid.enough_mouse_distance() {
-                let (origin, extent) = new_solid.origin_extent(1.0);
+                let (origin, extent) = new_solid.origin_extent(ctx.grid_length);
                 container.add(origin, extent);
                 can_select = false;
             }
