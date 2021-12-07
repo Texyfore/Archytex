@@ -79,7 +79,7 @@ impl SolidContainer {
             for solid in solids {
                 self.solids.remove(*solid);
             }
-            self.needs_rebuild = true;
+            self.deselect()
         }
     }
 
@@ -326,7 +326,7 @@ impl SolidContainer {
 
             ray.intersection_point(&plane).map(|point| Raycast {
                 point,
-                normal: Vector3::unit_y(),
+                normal: plane.normal,
                 solid: None,
             })
         }
@@ -335,7 +335,9 @@ impl SolidContainer {
     pub fn rebuild(&mut self, factory: &SolidFactory, textures: &TextureBank) {
         if self.needs_rebuild {
             let mut batches = HashMap::new();
+            println!("---");
             for (i, solid) in &self.solids {
+                println!("{}",i);
                 for j in &solid.faces {
                     let face = self.faces.get(*j).unwrap();
                     let selected = if let Some(selected) = self.selected.as_ref() {
@@ -389,12 +391,13 @@ impl SolidContainer {
                         }
                     }
                 }
-
-                self.mesh_cache = batches
-                    .iter()
-                    .map(|(t, (v, i))| (*t, factory.create(v, i)))
-                    .collect();
             }
+            println!("---");
+
+            self.mesh_cache = batches
+                .iter()
+                .map(|(t, (v, i))| (*t, factory.create(v, i)))
+                .collect();
 
             self.needs_rebuild = false;
         }
