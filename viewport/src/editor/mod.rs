@@ -150,7 +150,7 @@ impl Editor {
     pub fn render(&self, scene: &mut Scene) {
         self.world_camera.render(scene);
         self.sprite_camera.render(scene);
-        self.solid_editor.render(scene);
+        self.solid_editor.render(scene, &self.world_camera);
         scene.world_pass.line_batches.push(self.grid.clone());
     }
 

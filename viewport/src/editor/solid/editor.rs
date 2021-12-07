@@ -1,12 +1,16 @@
 use std::rc::Rc;
 
-use cgmath::{vec3, ElementWise, InnerSpace, Vector2, Vector3, Zero};
+use cgmath::{vec2, vec3, ElementWise, InnerSpace, Vector2, Vector3};
 
 use crate::{
-    editor::{camera::WorldCamera, config::NEW_BRUSH_MIN_SCREEN_DISTANCE, ActionBinding::*},
+    editor::{
+        camera::WorldCamera,
+        config::{NEW_BRUSH_MIN_SCREEN_DISTANCE, VERTEX_HIGHLIGHT_COLOR},
+        ActionBinding::*,
+    },
     input::InputMapper,
     math::{IntersectionPoint, MinMax, Plane, SolidUtil},
-    render::{LineBatch, LineFactory, LineVertex, Scene, SolidFactory, TextureBank},
+    render::{LineBatch, LineFactory, LineVertex, Scene, SolidFactory, Sprite, TextureBank},
 };
 
 use super::container::SolidContainer;
@@ -15,18 +19,73 @@ use super::container::SolidContainer;
 pub struct SolidEditor {
     container: SolidContainer,
     mode: EditState,
+    move_op: Option<Move>,
 }
 
 impl SolidEditor {
     pub fn process(&mut self, ctx: SolidEditorContext) {
         if ctx.input.is_active_once(SwitchMode) {
+            if self.move_op.is_some() {
+                self.move_op = None;
+                self.container.abort_move();
+            }
+
             self.mode.switch();
+            self.container.deselect();
         }
         self.mode.process(&ctx, &mut self.container);
+        self.move_logic(&ctx);
     }
 
-    pub fn render(&self, scene: &mut Scene) {
-        self.mode.render(scene, &self.container);
+    pub fn render(&self, scene: &mut Scene, camera: &WorldCamera) {
+        scene.world_pass.solid_batches = self.container.mesh();
+        self.mode.render(scene, camera, &self.container);
+    }
+
+    fn move_logic(&mut self, ctx: &SolidEditorContext) {
+        if ctx.input.is_active_once(Move) {
+            if self.move_op.is_none() {
+                let ray = ctx.world_camera.screen_ray(ctx.input.mouse_pos());
+                let plane = self.container.move_plane(ray);
+
+                if let Some(plane) = plane {
+                    let start = ray.intersection_point(&plane);
+                    if let Some(start) = start {
+                        let start = (start + plane.normal * 0.01).snap(1.0);
+                        self.move_op = Some(Move {
+                            plane,
+                            start,
+                            end: start,
+                        })
+                    }
+                }
+            } else {
+                self.move_op = None;
+                self.container.abort_move();
+            }
+        }
+
+        if let Some(move_op) = self.move_op.as_mut() {
+            let ray = ctx.world_camera.screen_ray(ctx.input.mouse_pos());
+            if let Some(end) = ray.intersection_point(&move_op.plane) {
+                let end = (end + move_op.plane.normal * 0.01).snap(1.0);
+                if (end - move_op.end).magnitude2() > 0.01 {
+                    let vec = end - move_op.start;
+                    self.container.move_selected(vec);
+                    move_op.end = end;
+                }
+            }
+
+            if ctx.input.is_active_once(ConfirmMove) {
+                self.container.confirm_move();
+                self.move_op = None;
+            }
+
+            if ctx.input.is_active_once(AbortMove) {
+                self.move_op = None;
+                self.container.abort_move();
+            }
+        }
     }
 }
 
@@ -68,11 +127,11 @@ impl EditState {
         container.rebuild(ctx.solid_factory, ctx.texture_bank);
     }
 
-    fn render(&self, scene: &mut Scene, container: &SolidContainer) {
+    fn render(&self, scene: &mut Scene, camera: &WorldCamera, container: &SolidContainer) {
         match self {
             EditState::Solid(state) => state.render(scene, container),
             EditState::Face(state) => state.render(scene, container),
-            EditState::Point(state) => state.render(scene, container),
+            EditState::Point(state) => state.render(scene, camera, container),
         }
     }
 }
@@ -80,7 +139,6 @@ impl EditState {
 #[derive(Default)]
 struct SolidState {
     new_solid: Option<NewSolid>,
-    move_op: Option<Move>,
 }
 
 impl SolidState {
@@ -137,54 +195,9 @@ impl SolidState {
         if ctx.input.is_active_once(DeleteBrush) {
             container.delete_selected();
         }
-
-        if ctx.input.is_active_once(Move) {
-            if self.move_op.is_none() {
-                let ray = ctx.world_camera.screen_ray(ctx.input.mouse_pos());
-                let plane = container.move_plane(ray);
-
-                if let Some(plane) = plane {
-                    let start = ray.intersection_point(&plane);
-                    if let Some(start) = start {
-                        let start = (start + plane.normal * 0.01).snap(1.0);
-                        self.move_op = Some(Move {
-                            plane,
-                            start,
-                            end: start,
-                        })
-                    }
-                }
-            } else {
-                self.move_op = None;
-                container.abort_move();
-            }
-        }
-
-        if let Some(move_op) = self.move_op.as_mut() {
-            let ray = ctx.world_camera.screen_ray(ctx.input.mouse_pos());
-            if let Some(end) = ray.intersection_point(&move_op.plane) {
-                let end = (end + move_op.plane.normal * 0.01).snap(1.0);
-                if (end - move_op.end).magnitude2() > 0.01 {
-                    let vec = end - move_op.start;
-                    container.move_selected(vec);
-                    move_op.end = end;
-                }
-            }
-
-            if ctx.input.is_active_once(ConfirmMove) {
-                container.confirm_move();
-                self.move_op = None;
-            }
-
-            if ctx.input.is_active_once(AbortMove) {
-                self.move_op = None;
-                container.abort_move();
-            }
-        }
     }
 
     fn render(&self, scene: &mut Scene, container: &SolidContainer) {
-        scene.world_pass.solid_batches = container.mesh();
         if let Some(new_solid) = self.new_solid.as_ref() {
             if new_solid.enough_mouse_distance() {
                 scene.world_pass.line_batches.push(new_solid.mesh());
@@ -197,7 +210,14 @@ impl SolidState {
 struct FaceState;
 
 impl FaceState {
-    fn process(&mut self, ctx: &SolidEditorContext, container: &mut SolidContainer) {}
+    fn process(&mut self, ctx: &SolidEditorContext, container: &mut SolidContainer) {
+        if ctx.input.was_active_once(Select) {
+            if !ctx.input.is_active(EnableMultiSelect) {
+                container.deselect();
+            }
+            container.select_face(ctx.world_camera, ctx.input.mouse_pos());
+        }
+    }
 
     fn render(&self, scene: &mut Scene, container: &SolidContainer) {}
 }
@@ -206,9 +226,36 @@ impl FaceState {
 struct PointState;
 
 impl PointState {
-    fn process(&mut self, ctx: &SolidEditorContext, container: &mut SolidContainer) {}
+    fn process(&mut self, ctx: &SolidEditorContext, container: &mut SolidContainer) {
+        if ctx.input.was_active_once(Select) {
+            if !ctx.input.is_active(EnableMultiSelect) {
+                container.deselect();
+            }
+            container.select_point(ctx.world_camera, ctx.input.mouse_pos());
+        }
+    }
 
-    fn render(&self, scene: &mut Scene, container: &SolidContainer) {}
+    fn render(&self, scene: &mut Scene, camera: &WorldCamera, container: &SolidContainer) {
+        scene.sprite_pass.sprites.insert(
+            0,
+            container
+                .point_graphics()
+                .iter()
+                .map(|pg| {
+                    camera.project(pg.position, -0.001).map(|p| Sprite {
+                        origin: p - vec3(5.0, 5.0, 0.0),
+                        extent: vec2(10.0, 10.0),
+                        color: if pg.selected {
+                            VERTEX_HIGHLIGHT_COLOR
+                        } else {
+                            [0.0, 0.0, 0.0, 1.0]
+                        },
+                    })
+                })
+                .flatten()
+                .collect(),
+        );
+    }
 }
 
 struct NewSolid {

@@ -9,7 +9,7 @@ use crate::{
         config::{FACE_HIGHLIGHT_COLOR, MAX_FACES, MAX_POINTS, MAX_SOLIDS, POINT_SELECT_RADIUS},
     },
     math::{IntersectionPoint, Plane, Ray, SolidUtil, Triangle},
-    render::{SolidBatch, SolidFactory, SolidVertex, TextureBank, TextureID}, info,
+    render::{SolidBatch, SolidFactory, SolidVertex, TextureBank, TextureID},
 };
 
 pub struct SolidContainer {
@@ -227,8 +227,6 @@ impl SolidContainer {
                 }
             }
 
-            info!("{:?}, {:?}", center, -(ray.vec().normalize()).cardinal());
-
             Plane {
                 origin: center,
                 normal: -(ray.vec().normalize()).cardinal(),
@@ -236,7 +234,11 @@ impl SolidContainer {
         })
     }
 
-    pub fn select_point(&mut self, camera: WorldCamera, position: Vector2<f32>) {
+    pub fn select_point(&mut self, camera: &WorldCamera, position: Vector2<f32>) {
+        if self.selected.is_none() {
+            self.selected = Some(Selection::Points(Vec::new()));
+        }
+
         if let Some(Selection::Points(_)) = self.selected.as_ref() {
             let mut candidates = Vec::new();
             for (i, point) in &self.points {
@@ -277,7 +279,11 @@ impl SolidContainer {
 
                 if can_select {
                     if let Some(Selection::Points(points)) = self.selected.as_mut() {
-                        points.push(*i);
+                        if points.contains(i) {
+                            points.retain(|p| *p != *i);
+                        } else {
+                            points.push(*i);
+                        }
                     }
                 }
             }
@@ -285,6 +291,10 @@ impl SolidContainer {
     }
 
     pub fn select_face(&mut self, camera: &WorldCamera, position: Vector2<f32>) {
+        if self.selected.is_none() {
+            self.selected = Some(Selection::Faces(Vec::new()));
+        }
+
         let raycast = self.raycast(camera.screen_ray(position));
         if let (
             Some(Selection::Faces(faces)),
@@ -294,7 +304,11 @@ impl SolidContainer {
             }),
         ) = (self.selected.as_mut(), raycast)
         {
-            faces.push(face);
+            if faces.contains(&face) {
+                faces.retain(|f| *f != face);
+            } else {
+                faces.push(face);
+            }
             self.needs_rebuild = true;
         }
     }
@@ -454,6 +468,26 @@ impl SolidContainer {
     pub fn mesh(&self) -> Vec<(TextureID, Rc<SolidBatch>)> {
         self.mesh_cache.clone()
     }
+
+    pub fn point_graphics(&self) -> Vec<PointGraphics> {
+        if let Some(Selection::Points(selected)) = self.selected.as_ref() {
+            self.points
+                .iter()
+                .map(|(i, p)| PointGraphics {
+                    position: p.position,
+                    selected: selected.contains(&i),
+                })
+                .collect()
+        } else {
+            self.points
+                .iter()
+                .map(|(_, p)| PointGraphics {
+                    position: p.position,
+                    selected: false,
+                })
+                .collect()
+        }
+    }
 }
 
 pub struct Raycast {
@@ -465,6 +499,11 @@ pub struct Raycast {
 pub struct RaycastSolid {
     pub solid: usize,
     pub face: usize,
+}
+
+pub struct PointGraphics {
+    pub position: Vector3<f32>,
+    pub selected: bool,
 }
 
 struct Point {
