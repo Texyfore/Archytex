@@ -1,25 +1,61 @@
+use std::ops::Index;
+
 pub struct RingVec<T> {
     items: Vec<Option<T>>,
 }
 
 impl<T> RingVec<T> {
-    pub fn with_capacity(capacity: usize) -> Self {
+    pub fn new(capacity: usize) -> Self {
         Self {
-            items: Vec::with_capacity(capacity),
+            items: (0..capacity).map(|_| None).collect(),
         }
     }
 
     pub fn push(&mut self, item: T) -> usize {
         let mut i = 0;
-        while self.items[i].is_none() {
+        while self.items[i].is_some() {
             i += 1;
         }
         self.items[i] = Some(item);
         i
     }
 
+    pub fn insert(&mut self, index: usize, item: T) -> Option<T> {
+        let old = self.items[index].take();
+        self.items[index] = Some(item);
+        old
+    }
+
     pub fn remove(&mut self, index: usize) -> Option<T> {
         self.items[index].take()
+    }
+
+    pub fn has_element_at(&self, index: usize) -> bool {
+        self.items[index].is_some()
+    }
+
+    pub fn get(&self, index: usize) -> Option<&T> {
+        self.items[index].as_ref()
+    }
+
+    pub fn get_mut(&mut self, index: usize) -> Option<&mut T> {
+        self.items[index].as_mut()
+    }
+
+    pub fn iter(&self) -> Iter<T> {
+        self.into_iter()
+    }
+
+    pub fn iter_mut(&mut self) -> IterMut<T> {
+        self.into_iter()
+    }
+}
+
+impl<T> Index<usize> for RingVec<T> {
+    type Output = T;
+
+    fn index(&self, index: usize) -> &Self::Output {
+        self.items[index].as_ref().unwrap()
     }
 }
 

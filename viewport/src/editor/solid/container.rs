@@ -1,21 +1,22 @@
 use std::{cmp::Ordering, collections::HashMap, rc::Rc};
 
 use cgmath::{vec2, vec3, ElementWise, InnerSpace, Vector2, Vector3, Zero};
-use stable_vec::StableVec;
 
 use crate::{
     editor::{
         camera::WorldCamera,
         config::{FACE_HIGHLIGHT_COLOR, MAX_FACES, MAX_POINTS, MAX_SOLIDS, POINT_SELECT_RADIUS},
     },
+    info,
     math::{IntersectionPoint, Plane, Ray, SolidUtil, Triangle},
     render::{SolidBatch, SolidFactory, SolidVertex, TextureBank, TextureID},
+    ring_vec::RingVec,
 };
 
 pub struct SolidContainer {
-    points: StableVec<Point>,
-    faces: StableVec<Face>,
-    solids: StableVec<Solid>,
+    points: RingVec<Point>,
+    faces: RingVec<Face>,
+    solids: RingVec<Solid>,
     selected: Option<Selection>,
     needs_rebuild: bool,
     mesh_cache: Vec<(TextureID, Rc<SolidBatch>)>,
@@ -24,9 +25,9 @@ pub struct SolidContainer {
 impl Default for SolidContainer {
     fn default() -> Self {
         Self {
-            points: StableVec::with_capacity(MAX_POINTS),
-            faces: StableVec::with_capacity(MAX_FACES),
-            solids: StableVec::with_capacity(MAX_SOLIDS),
+            points: RingVec::new(MAX_POINTS),
+            faces: RingVec::new(MAX_FACES),
+            solids: RingVec::new(MAX_SOLIDS),
             selected: None,
             needs_rebuild: false,
             mesh_cache: Default::default(),
@@ -77,6 +78,12 @@ impl SolidContainer {
     pub fn delete_selected(&mut self) {
         if let Some(Selection::Solids(solids)) = self.selected.as_ref() {
             for solid in solids {
+                self.solids[*solid].faces.iter().for_each(|f| {
+                    self.faces[*f].quad.iter().for_each(|p| {
+                        self.points.remove(*p);
+                    });
+                    self.faces.remove(*f);
+                });
                 self.solids.remove(*solid);
             }
             self.deselect()
@@ -397,9 +404,9 @@ impl SolidContainer {
     pub fn rebuild(&mut self, factory: &SolidFactory, textures: &TextureBank) {
         if self.needs_rebuild {
             let mut batches = HashMap::new();
-            println!("---");
+            info!("---");
             for (i, solid) in &self.solids {
-                println!("{}", i);
+                info!("{}", i);
                 for j in &solid.faces {
                     let face = self.faces.get(*j).unwrap();
                     let selected = if let Some(selected) = self.selected.as_ref() {
@@ -454,7 +461,7 @@ impl SolidContainer {
                     }
                 }
             }
-            println!("---");
+            info!("---");
 
             self.mesh_cache = batches
                 .iter()

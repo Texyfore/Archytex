@@ -129,8 +129,8 @@ impl EditState {
 
     fn render(&self, scene: &mut Scene, camera: &WorldCamera, container: &SolidContainer) {
         match self {
-            EditState::Solid(state) => state.render(scene, container),
-            EditState::Face(state) => state.render(scene, container),
+            EditState::Solid(state) => state.render(scene),
+            EditState::Face(state) => state.render(scene),
             EditState::Point(state) => state.render(scene, camera, container),
         }
     }
@@ -197,7 +197,7 @@ impl SolidState {
         }
     }
 
-    fn render(&self, scene: &mut Scene, container: &SolidContainer) {
+    fn render(&self, scene: &mut Scene) {
         if let Some(new_solid) = self.new_solid.as_ref() {
             if new_solid.enough_mouse_distance() {
                 scene.world_pass.line_batches.push(new_solid.mesh());
@@ -219,7 +219,7 @@ impl FaceState {
         }
     }
 
-    fn render(&self, scene: &mut Scene, container: &SolidContainer) {}
+    fn render(&self, _scene: &mut Scene) {}
 }
 
 #[derive(Default)]
