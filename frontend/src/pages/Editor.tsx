@@ -1,9 +1,9 @@
 import { Box } from "@mui/material";
 import React from "react";
-import EditorMenu from "../components/viewport-components/EditorMenu";
-import EditorAppBar from "../components/viewport-components/EditorAppBar";
+import EditorMenu from "../components/editor-components/EditorMenu";
+import EditorAppBar from "../components/editor-components/EditorAppBar";
 import AppBarOffset from "../components/AppBarOffset";
-import Viewport from "../components/viewport-components/Viewport";
+import Viewport from "../components/editor-components/Viewport";
 
 const appBarHeight = 48;
 
