@@ -1,43 +1,58 @@
-import {
-  ColorLens,
-  PlayCircleOutlined,
-  Settings,
-  Source,
-} from "@mui/icons-material";
+import { PlayCircleOutlined, Settings, Source } from "@mui/icons-material";
 import { List, ListItem, ListItemIcon, ListItemText } from "@mui/material";
 import React from "react";
+import { SubPage, useSubPage } from "../../services/selectedDashboardSubPage";
 
 export default function DashboardControllerButtons() {
-  const buttonList = [
-    {
-      text: "Launch Archytex",
-      icon: <PlayCircleOutlined sx={{ fontSize: { lg: 30, xl: 35 } }} />,
-    },
+  const buttonList: { text: string; icon: JSX.Element; id: SubPage }[] = [
     {
       text: "Projects",
       icon: <Source sx={{ fontSize: { lg: 30, xl: 32 } }} />,
+      id: "projects" as SubPage,
     },
-    {
-      text: "Community portfolio",
-      icon: <ColorLens sx={{ fontSize: { lg: 30, xl: 32 } }} />,
-    },
+    // {
+    //   text: "Community portfolio",
+    //   icon: <ColorLens sx={{ fontSize: { lg: 30, xl: 32 } }} />,
+    // },
     {
       text: "Settings",
       icon: <Settings sx={{ fontSize: { lg: 30, xl: 32 } }} />,
+      id: "settings" as SubPage,
     },
   ];
-
-  const [selectedIndex, setSelectedIndex] = React.useState(1);
-
+  const [page, dispatch] = useSubPage();
   const handleListItemClick = (
     event: React.MouseEvent<HTMLDivElement, MouseEvent>,
-    index: number
+    id: SubPage
   ) => {
-    setSelectedIndex(index);
+    dispatch(id);
   };
 
   return (
     <List sx={{ marginX: { lg: 6 } }}>
+      <ListItem
+        sx={{
+          paddingX: { lg: 3 },
+          paddingY: { lg: 2 },
+          marginTop: { sm: 2, lg: 1 },
+          marginBottom: 2,
+          borderRadius: "2px",
+          border: ".5px solid white",
+        }}
+        button
+        key={0}
+      >
+        <ListItemIcon sx={{ paddingLeft: { lg: 0, xl: 2 } }}>
+          <PlayCircleOutlined sx={{ fontSize: { lg: 30, xl: 35 } }} />
+        </ListItemIcon>
+        <ListItemText
+          sx={{ marginLeft: { lg: 0, xl: 8 } }}
+          primary='Launch Archytex'
+          primaryTypographyProps={{
+            fontSize: { lg: "12pt", xl: "15pt" },
+          }}
+        />
+      </ListItem>
       {buttonList.map((props, index) => (
         <ListItem
           sx={{
@@ -47,9 +62,9 @@ export default function DashboardControllerButtons() {
             borderRadius: "2px",
           }}
           button
-          key={index}
-          selected={selectedIndex === index}
-          onClick={(event) => handleListItemClick(event, index)}
+          key={index + 1}
+          selected={page === props.id}
+          onClick={(event) => handleListItemClick(event, props.id)}
         >
           <ListItemIcon sx={{ paddingLeft: { lg: 0, xl: 2 } }}>
             {props.icon}

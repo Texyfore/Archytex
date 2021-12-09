@@ -15,7 +15,8 @@ import {
   modeToString,
   useColorMode,
 } from "./services/colorMode";
-import { CircularProgress } from "@mui/material";
+import { Box, CircularProgress, Typography } from "@mui/material";
+import { DummyProvider } from "./services/user/dummy";
 
 //TODO: Get translations from api
 const translationEn = {
@@ -128,22 +129,29 @@ function App() {
     <ThemeProvider theme={archytex_theme}>
       <Suspense fallback={<CircularProgress color='primary' />}>
         <CssBaseline />
-        <Router>
-          <Switch>
-            <Route exact path='/'>
-              <MainPage />
-            </Route>
-            <Route path='/dashboard'>
-              <Dashboard />
-            </Route>
-            <Route path='/login'>
-              <LoginPage />
-            </Route>
-            <Route path='/register'>
-              <RegisterPage />
-            </Route>
-          </Switch>
-        </Router>
+        <DummyProvider fallback={
+          <Box display='flex' height='100vh' justifyContent='center' alignItems='center' flexDirection='column'>
+            <CircularProgress color='primary' />
+            <Typography marginTop={2}>Just a moment...</Typography>
+          </Box>
+        }>
+          <Router>
+            <Switch>
+              <Route exact path='/'>
+                <MainPage />
+              </Route>
+              <Route path='/dashboard'>
+                <Dashboard />
+              </Route>
+              <Route path='/login'>
+                <LoginPage />
+              </Route>
+              <Route path='/register'>
+                <RegisterPage />
+              </Route>
+            </Switch>
+          </Router>
+        </DummyProvider>
       </Suspense>
     </ThemeProvider>
   );

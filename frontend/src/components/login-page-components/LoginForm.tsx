@@ -21,6 +21,8 @@ import {
 } from "@mui/icons-material";
 import { styled } from "@mui/material/styles";
 import ColoredReCaptcha from "../ColoredReCaptcha";
+import { useApi } from "../../services/user/api";
+import { useHistory } from "react-router";
 
 const MaxHeightContainer = styled(Box)(({ theme }) => ({
   marginTop: 56,
@@ -56,6 +58,19 @@ export default function LoginForm() {
   const onChange = (value: any) => {
     console.log("Captcha value:", value);
   };
+
+  const api = useApi();
+
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+  const history = useHistory();
+  const loginClick = () => {
+    if (api?.state === "not-logged-in") {
+      //TODO: Handle login result
+      api.logIn(username, password);
+      history.push("/dashboard")
+    }
+  }
 
   return (
     <MaxHeightContainer
@@ -121,6 +136,8 @@ export default function LoginForm() {
               label='Username'
               variant='standard'
               margin='normal'
+              value={username}
+              onChange={(ev) => setUsername(ev.target.value)}
             />
           </Box>
           <Box
@@ -151,6 +168,8 @@ export default function LoginForm() {
                     </IconButton>
                   </InputAdornment>
                 }
+                value={password}
+                onChange={(ev) => setPassword(ev.target.value)}
               />
             </FormControl>
           </Box>
@@ -174,7 +193,7 @@ export default function LoginForm() {
               onChange={onChange}
             />
           </Box>
-          <Button variant='outlined' sx={{ width: 304, marginY: 2 }}>
+          <Button variant='outlined' sx={{ width: 304, marginY: 2 }} onClick={loginClick}>
             Sign in
           </Button>
           <Typography variant='caption'>Don't have an account?</Typography>
