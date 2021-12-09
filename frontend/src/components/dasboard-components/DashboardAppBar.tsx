@@ -169,8 +169,6 @@ function DashboardAppBar({ open, handleOpenChange }: AppBarProps) {
               </ListItemIcon>
               Logout
             </MenuItem>
-            {/* Dark mode switch for debugging */}
-            <DarkModeSwitch />
           </Menu>
         </Box>
       </Toolbar>
