@@ -26,6 +26,8 @@ import {
   Backdrop,
   TextField,
   AlertColor,
+  Grow,
+  easing,
 } from "@mui/material";
 import React, { useState } from "react";
 import { Project, Render, useProjects } from "../../services/projects";
@@ -150,8 +152,17 @@ export default function ProjectRow({
       {/* BUG: In the 'medium' media query, when the renders collapse is open, the layout breaks */}
       <Collapse in={openProject} unmountOnExit>
         <Grid container spacing={2} padding={2}>
-          {project.renders.map((render: Render) => (
-            <RenderCard render={render} key={render.id} />
+          {project.renders.map((render: Render, index) => (
+            <Grow
+              key={render.id}
+              in={openProject}
+              style={{ transitionDelay: `${index * 40 + 40}ms` }}
+              easing={easing.easeInOut}
+            >
+              <Grid item xs={6} sm={6} md={4} xl={3} key={render.id}>
+                <RenderCard render={render} key={render.id} />
+              </Grid>
+            </Grow>
           ))}
         </Grid>
       </Collapse>
