@@ -23,6 +23,7 @@ import {
 import ArchytexIcon from "../ArchytexIcon";
 import { styled } from "@mui/material/styles";
 import DarkModeSwitch from "../DarkModeSwitch";
+import { useApi } from "../../services/user/api";
 
 const CustomAppBar = styled(AppBar)(({ theme }) => ({
   zIndex: theme.zIndex.drawer + 1,
@@ -35,6 +36,9 @@ interface AppBarProps {
 }
 
 function DashboardAppBar({ open, handleOpenChange }: AppBarProps) {
+  const api = useApi();
+  const username = api?.state === "logged-in" ? api.user.username : "UNDEFINED";
+
   const handleDrawerToggle = () => {
     handleOpenChange(!open);
   };
@@ -110,9 +114,9 @@ function DashboardAppBar({ open, handleOpenChange }: AppBarProps) {
               fontSize='1.2em'
               noWrap
               width={{ md: "280px", lg: "400px", xl: "500px" }}
+              textAlign='end'
             >
-              Lorem Ipsum Dolor Sit Amet and other things to make this really
-              long
+              {username}
             </Typography>
           </Button>
           <IconButton onClick={handleAvatarMenuClick}>
