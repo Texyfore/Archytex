@@ -20,7 +20,7 @@ pub type Normal = [f32; 3];
 pub type TexCoord = [f32; 2];
 pub type Color = [f32; 4];
 pub type Triangle = [u16; 3];
-pub type TextureID = usize;
+pub type TextureID = u32;
 
 const MSAA_SAMPLE_COUNT: u32 = 4;
 
@@ -134,7 +134,7 @@ impl TextureBank {
     pub fn insert(&mut self, id: TextureID, image: &DynamicImage) {
         let size = image.dimensions();
         self.textures.insert(
-            id,
+            id as usize,
             TextureData {
                 group: self
                     .ctx
@@ -145,11 +145,11 @@ impl TextureBank {
     }
 
     pub fn exists(&self, id: TextureID) -> bool {
-        self.textures.has_element_at(id)
+        self.textures.has_element_at(id as usize)
     }
 
     pub fn size_of(&self, id: TextureID) -> Option<Vector2<u32>> {
-        self.textures.get(id).map(|t| t.size)
+        self.textures.get(id as usize).map(|t| t.size)
     }
 }
 
@@ -234,7 +234,11 @@ impl SceneRenderer {
         let baked_sprites = {
             let mut map = HashMap::new();
             for (texture, sprites) in &sprite_pass.sprites {
-                if scene.texture_bank.textures.has_element_at(*texture) {
+                if scene
+                    .texture_bank
+                    .textures
+                    .has_element_at(*texture as usize)
+                {
                     map.insert(*texture, build_sprite_batch(&self.ctx, sprites));
                 }
             }
@@ -257,7 +261,7 @@ impl SceneRenderer {
 
                 pass.begin_solids(&self.solid_pipeline);
                 for (texture, batch) in &world_pass.solid_batches {
-                    if let Some(texture) = scene.texture_bank.textures.get(*texture) {
+                    if let Some(texture) = scene.texture_bank.textures.get(*texture as usize) {
                         pass.set_texture(&texture.group);
                         pass.draw_mesh(&batch.vertices, &batch.triangles);
                     }
@@ -276,7 +280,7 @@ impl SceneRenderer {
 
                 pass.begin_sprites(&self.sprite_pipeline);
                 for (texture, (vertices, triangles)) in &baked_sprites {
-                    if let Some(texture) = scene.texture_bank.textures.get(*texture) {
+                    if let Some(texture) = scene.texture_bank.textures.get(*texture as usize) {
                         pass.set_texture(&texture.group);
                         pass.draw_mesh(vertices, triangles);
                     }
