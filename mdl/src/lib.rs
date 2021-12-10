@@ -9,7 +9,7 @@ pub struct Scene {
 
 #[derive(Serialize, Deserialize)]
 pub struct Model {
-    pub faces: Vec<Face>,
+    pub meshes: Vec<Mesh>,
 }
 
 #[derive(Serialize, Deserialize)]
@@ -19,9 +19,9 @@ pub struct Camera {
 }
 
 #[derive(Serialize, Deserialize)]
-pub struct Face {
-    pub vertices: [Vertex; 4],
-    pub triangles: [Triangle; 2],
+pub struct Mesh {
+    pub vertices: Vec<Vertex>,
+    pub triangles: Vec<Triangle>,
     pub texture_id: TextureID,
 }
 
@@ -78,6 +78,16 @@ impl From<TextureID> for u32 {
 }
 
 impl Scene {
+    pub fn encode(self) -> Option<Vec<u8>> {
+        bincode::serialize(&self).ok()
+    }
+
+    pub fn decode(buf: &[u8]) -> Option<Self> {
+        bincode::deserialize(buf).ok()
+    }
+}
+
+impl Model {
     pub fn encode(self) -> Option<Vec<u8>> {
         bincode::serialize(&self).ok()
     }
