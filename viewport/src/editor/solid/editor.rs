@@ -62,6 +62,25 @@ impl SolidEditor {
         self.mode.render(scene, camera, &self.container);
     }
 
+    pub fn export_scene(&self, textures: &TextureBank) -> mdl::Scene {
+        mdl::Scene {
+            camera: mdl::Camera {
+                position: mdl::Vector3 {
+                    x: 0.0,
+                    y: 0.0,
+                    z: 0.0,
+                },
+                rotation: mdl::Vector3 {
+                    x: 0.0,
+                    y: 0.0,
+                    z: 0.0,
+                },
+            },
+            model: self.container.export(textures),
+            props: Vec::new(),
+        }
+    }
+
     fn move_logic(&mut self, ctx: &SolidEditorContext, solids_copied: bool) {
         let mut begin_move = false;
 

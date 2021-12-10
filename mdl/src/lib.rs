@@ -29,7 +29,7 @@ pub struct Mesh {
 pub struct Vertex {
     pub position: Vector3,
     pub normal: Vector3,
-    pub texcord: Vector2,
+    pub texcoord: Vector2,
 }
 
 #[derive(Serialize, Deserialize)]
@@ -40,7 +40,7 @@ pub struct Triangle {
 }
 
 #[derive(Serialize, Deserialize)]
-pub struct TextureID(u32);
+pub struct TextureID(pub u32);
 
 #[derive(Serialize, Deserialize)]
 pub struct Prop {
@@ -50,7 +50,7 @@ pub struct Prop {
 }
 
 #[derive(Serialize, Deserialize)]
-pub struct PropID(u32);
+pub struct PropID(pub u32);
 
 #[derive(Serialize, Deserialize)]
 pub struct Vector3 {
@@ -63,18 +63,6 @@ pub struct Vector3 {
 pub struct Vector2 {
     pub x: f32,
     pub y: f32,
-}
-
-impl From<PropID> for u32 {
-    fn from(val: PropID) -> Self {
-        val.0
-    }
-}
-
-impl From<TextureID> for u32 {
-    fn from(val: TextureID) -> Self {
-        val.0
-    }
 }
 
 impl Scene {

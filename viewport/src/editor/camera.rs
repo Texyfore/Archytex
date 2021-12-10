@@ -42,7 +42,7 @@ impl Default for WorldCamera {
 }
 
 impl WorldCamera {
-    pub fn process(&mut self, dt:f32, input: &InputMapper) {
+    pub fn process(&mut self, dt: f32, input: &InputMapper) {
         if input.is_active(MoveCamera) {
             if input.is_active(Forward) {
                 self.position += self.forward() * self.speed * dt;

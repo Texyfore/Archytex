@@ -5,6 +5,7 @@ use std::{
 };
 
 use cgmath::{vec2, vec3, ElementWise, InnerSpace, Vector2, Vector3, Zero};
+use mdl::{Mesh, Model, Vertex};
 
 use crate::{
     editor::{
@@ -529,6 +530,76 @@ impl SolidContainer {
                     selected: false,
                 })
                 .collect()
+        }
+    }
+
+    pub fn export(&self, textures: &TextureBank) -> Model {
+        let mut meshes = HashMap::new();
+
+        for (_, solid) in self.solids.iter().filter(|(i, _)| *i != 0) {
+            for face in solid.faces.map(|face| &self.faces[face]) {
+                let (vertices, triangles) = meshes
+                    .entry(&face.texture)
+                    .or_insert_with(|| (Vec::new(), Vec::new()));
+
+                let t0 = vertices.len() as u16;
+                triangles.push(mdl::Triangle {
+                    a: t0,
+                    b: t0 + 1,
+                    c: t0 + 2,
+                });
+                triangles.push(mdl::Triangle {
+                    a: t0,
+                    b: t0 + 2,
+                    c: t0 + 3,
+                });
+
+                let points = face.quad.map(|i| self.points[i].position);
+                let edge0 = points[1] - points[0];
+                let edge1 = points[3] - points[0];
+                let normal = (edge0.cross(edge1)).normalize();
+
+                let texture = if textures.exists(face.texture) {
+                    face.texture
+                } else {
+                    10
+                };
+
+                if let Some(texture_size) = textures.size_of(texture) {
+                    let texture_size = texture_size.map(|x| x as f32);
+                    let scale_factor = texture_size.div_element_wise(vec2(256.0, 256.0));
+                    for point in points {
+                        let texcoord = point.texcoord(normal).div_element_wise(scale_factor);
+                        vertices.push(Vertex {
+                            position: mdl::Vector3 {
+                                x: point.x,
+                                y: point.y,
+                                z: point.z,
+                            },
+                            normal: mdl::Vector3 {
+                                x: normal.x,
+                                y: normal.y,
+                                z: normal.z,
+                            },
+                            texcoord: mdl::Vector2 {
+                                x: texcoord.x,
+                                y: texcoord.y,
+                            },
+                        });
+                    }
+                }
+            }
+        }
+
+        Model {
+            meshes: meshes
+                .into_iter()
+                .map(|(texture, (vertices, triangles))| Mesh {
+                    vertices,
+                    triangles,
+                    texture_id: mdl::TextureID(*texture),
+                })
+                .collect(),
         }
     }
 }
