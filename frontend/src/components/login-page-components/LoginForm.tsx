@@ -54,11 +54,6 @@ export default function LoginForm() {
     event.preventDefault();
   };
 
-  // ReCAPTCHA
-  const onChange = (value: any) => {
-    console.log("Captcha value:", value);
-  };
-
   const api = useApi();
 
   const [username, setUsername] = useState("");
@@ -68,9 +63,9 @@ export default function LoginForm() {
     if (api?.state === "not-logged-in") {
       //TODO: Handle login result
       api.logIn(username, password);
-      history.push("/dashboard")
+      history.push("/dashboard");
     }
-  }
+  };
 
   return (
     <MaxHeightContainer
@@ -95,7 +90,8 @@ export default function LoginForm() {
       >
         {/* Login title */}
         <Box
-          width='100%'
+          width='304px'
+          marginX='auto'
           display='flex'
           alignItems='center'
           justifyContent='center'
@@ -187,13 +183,11 @@ export default function LoginForm() {
               labelPlacement='end'
             />
           </Box>
-          <Box paddingY={1}>
-            <ColoredReCaptcha
-              sitekey='6Lc5gWodAAAAAEVg3MPTn5Nj7KN-ishnafqV4ZL8'
-              onChange={onChange}
-            />
-          </Box>
-          <Button variant='outlined' sx={{ width: 304, marginY: 2 }} onClick={loginClick}>
+          <Button
+            variant='outlined'
+            sx={{ width: 304, marginY: 2 }}
+            onClick={loginClick}
+          >
             Sign in
           </Button>
           <Typography variant='caption'>Don't have an account?</Typography>
