@@ -35,6 +35,7 @@ with open("temp/viewport.js", "r") as file:
 script = re.sub(r'input = new URL\(.*, import\.meta\.url\);', "", script);
 script = script.replace("var ret = globalThis.globalThis", "var ret = window.globalThis.globalThis")
 script = script.replace("var ret = self.self", "var ret = window.self.self")
+script = script.replace("wasm.__wbindgen_start();", "try { wasm.__wbindgen_start(); } catch(e) { console.log('LMAO LMAO LMAO LMAO') }")
 
 with open("temp/viewport.js", "w") as file:
   file.write(script)
