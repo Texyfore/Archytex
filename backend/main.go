@@ -12,6 +12,7 @@ import (
 	"github.com/Texyfore/Archytex/backend/database"
 	"github.com/Texyfore/Archytex/backend/logging"
 	"github.com/Texyfore/Archytex/backend/routes"
+	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
 
 	_ "github.com/joho/godotenv/autoload"
@@ -50,5 +51,11 @@ func main() {
 
 	http.Handle("/", r)
 	fmt.Printf("Listening on port %d\n", port)
-	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%d", port), r))
+
+	//TODO: Restrict access origin
+	headersOk := handlers.AllowedHeaders([]string{"X-Requested-With", "Content-Type"})
+	originsOk := handlers.AllowedOrigins([]string{"*"})
+	methodsOk := handlers.AllowedMethods([]string{"GET", "HEAD", "POST", "PUT", "OPTIONS"})
+
+	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%d", port), handlers.CORS(headersOk, originsOk, methodsOk)(r)))
 }
