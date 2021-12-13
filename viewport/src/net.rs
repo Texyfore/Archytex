@@ -26,13 +26,25 @@ pub fn query_packet() -> Option<Vec<u8>> {
 #[cfg(target_arch = "wasm32")]
 #[wasm_bindgen(js_name = "sendPacket")]
 pub fn __send_packet(packet: Vec<u8>) {
-    let mut deque = unsafe { FROM_JS.as_mut().unwrap().try_lock().unwrap() };
+    let mut deque = unsafe {
+        FROM_JS
+            .as_mut()
+            .expect("Sent packet while uninitialized!")
+            .try_lock()
+            .unwrap()
+    };
     deque.push_back(packet);
 }
 
 #[cfg(target_arch = "wasm32")]
 #[wasm_bindgen(js_name = "queryPacket")]
 pub fn __query_packet() -> Option<Vec<u8>> {
-    let mut deque = unsafe { TO_JS.as_mut().unwrap().try_lock().unwrap() };
-    deque.pop_front()
+    unsafe {
+        if let Some(deque) = TO_JS.as_mut() {
+            let mut deque = deque.try_lock().unwrap();
+            deque.pop_front()
+        } else {
+            None
+        }
+    }
 }
