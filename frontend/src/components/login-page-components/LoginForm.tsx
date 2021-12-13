@@ -191,7 +191,7 @@ export default function LoginForm() {
             Sign in
           </Button>
           <Typography variant='caption'>Don't have an account?</Typography>
-          <Link variant='caption' href='#'>
+          <Link variant='caption' href='/register'>
             Sign up to Archytex
           </Link>
         </Box>
