@@ -7,6 +7,7 @@ mod render;
 mod ring_vec;
 
 use instant::Instant;
+use wasm_bindgen::JsCast;
 
 #[cfg(target_arch = "wasm32")]
 use std::sync::mpsc::{channel, Sender};
@@ -20,6 +21,7 @@ use winit::{
         WindowEvent,
     },
     event_loop::{ControlFlow, EventLoop},
+    platform::web::WindowBuilderExtWebSys,
     window::{Window, WindowBuilder},
 };
 
@@ -71,10 +73,24 @@ fn main() {
     console_error_panic_hook::set_once();
 
     let event_loop = EventLoop::new();
+
+    #[cfg(not(target_arch = "wasm32"))]
     let window = WindowBuilder::default().build(&event_loop).unwrap();
 
     #[cfg(target_arch = "wasm32")]
-    insert_canvas(&window);
+    let window = WindowBuilder::default()
+        .with_canvas(Some(
+            web_sys::window()
+                .unwrap()
+                .document()
+                .unwrap()
+                .get_element_by_id("viewport-canvas")
+                .unwrap()
+                .dyn_into()
+                .unwrap(),
+        ))
+        .build(&event_loop)
+        .unwrap();
 
     let mut main_loop = {
         let (width, height) = window.inner_size().into();
@@ -141,19 +157,6 @@ fn main() {
     });
 }
 
-#[cfg(target_arch = "wasm32")]
-fn insert_canvas(window: &Window) {
-    use winit::platform::web::WindowExtWebSys;
-    web_sys::window()
-        .unwrap()
-        .document()
-        .unwrap()
-        .body()
-        .unwrap()
-        .append_child(&window.canvas())
-        .unwrap();
-}
-
 struct MainLoop {
     _window: Window,
     before: Instant,
@@ -213,17 +216,7 @@ impl MainLoop {
     }
 
     #[cfg(target_arch = "wasm32")]
-    fn message_received(&mut self, msg: Message) {
-        match msg {
-            Message::AddTexture { id, data } => {
-                if let Ok(image) = image::load_from_memory(&data) {
-                    self.texture_bank.insert(id, &image)
-                }else {
-                    error!("Received malformed texture");
-                }
-            },
-        }
-    }
+    fn message_received(&mut self, msg: Message) {}
 
     fn process(&mut self) {
         let after = Instant::now();
@@ -243,7 +236,8 @@ impl MainLoop {
             },
         };
 
-        self.editor.process(elapsed, &self.input_mapper, &self.texture_bank);
+        self.editor
+            .process(elapsed, &self.input_mapper, &self.texture_bank);
 
         self.input_mapper.tick();
         self.editor.render(&mut scene);
@@ -255,5 +249,5 @@ impl MainLoop {
 #[wasm_bindgen(js_name = "addTexture")]
 pub fn add_texture(id: usize, data: Vec<u8>) {
     let sender = unsafe { MSG_IN.as_mut().unwrap() };
-    sender.send(Message::AddTexture {id, data}).unwrap();
+    sender.send(Message::AddTexture { id, data }).unwrap();
 }
