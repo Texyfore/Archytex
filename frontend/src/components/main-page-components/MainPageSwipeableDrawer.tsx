@@ -2,7 +2,7 @@ import React from "react";
 import {
   Box,
   List,
-  ListItem,
+  ListItemButton,
   ListItemIcon,
   ListItemText,
   SwipeableDrawer,
@@ -13,6 +13,8 @@ import { Home, Login, People } from "@mui/icons-material";
 import ArchytexIcon from "../ArchytexIcon";
 import LanguageSelectDropdown from "../LanguageSelectDropdown";
 import DarkModeSwitch from "../DarkModeSwitch";
+import { ColorMode, useColorMode } from "../../services/colorMode";
+import { useHistory } from "react-router-dom";
 
 const DrawerHeader = styled("div")(({ theme }) => ({
   display: "flex",
@@ -27,18 +29,26 @@ interface SwipeableDrawerProps {
   open: boolean;
   handleOpenChange: (value: boolean) => void;
 }
-const buttonList = [
+interface navButton {
+  text: string;
+  icon: JSX.Element;
+  route: string;
+}
+const buttonList: navButton[] = [
   {
     text: "Home",
     icon: <Home />,
+    route: "/",
   },
   {
     text: "Community",
     icon: <People />,
+    route: "/community",
   },
   {
     text: "Login",
     icon: <Login />,
+    route: "/login",
   },
 ];
 
@@ -54,6 +64,12 @@ export default function DashboardSwipeableDrawer({
   const handleLanguageMenuClose = () => {
     setAnchorEl(null);
   };
+  const [colorMode, _] = useColorMode();
+
+  const history = useHistory();
+  const handleClick = (route: string) => {
+    history.push(route);
+  };
   return (
     <SwipeableDrawer
       sx={{ display: { xs: "flex", md: "none" } }}
@@ -67,11 +83,14 @@ export default function DashboardSwipeableDrawer({
       <DrawerHeader
         sx={{
           width: 300,
-          height: 100,
+          height: 150,
           display: "flex",
           justifyContent: "center",
           backgroundSize: "10px 10px",
-          backgroundImage: "radial-gradient(#1c517a .75px, #0c0c0c .75px)",
+          backgroundImage:
+            colorMode === ColorMode.Dark
+              ? "radial-gradient(#1c517a .75px, #0c0c0c .75px)"
+              : "radial-gradient(#1c517a .75px, #f5f0f6 .75px)",
         }}
       >
         <ArchytexIcon />
@@ -79,16 +98,16 @@ export default function DashboardSwipeableDrawer({
       </DrawerHeader>
       <List>
         {buttonList.map((props, index) => (
-          <ListItem
+          <ListItemButton
             sx={{
               borderRadius: "2px",
             }}
-            button
-            key={index}
+            key={props.text}
+            onClick={() => handleClick(props.route)}
           >
             <ListItemIcon>{props.icon}</ListItemIcon>
             <ListItemText primary={props.text} />
-          </ListItem>
+          </ListItemButton>
         ))}
       </List>
       <Box
