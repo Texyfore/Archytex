@@ -321,7 +321,7 @@ export default function RegisterForm() {
             Sign up
           </Button>
           <Typography variant='caption'>Already have an account?</Typography>
-          <Link variant='caption' href='#'>
+          <Link variant='caption' href='/login'>
             Log in to Archytex
           </Link>
         </Box>
