@@ -3,6 +3,7 @@
 import os
 import shutil
 import sys
+import re
 
 release_arg = ""
 from_dir = "debug"
@@ -31,7 +32,7 @@ script = ""
 with open("temp/viewport.js", "r") as file:
     script = file.read()
 
-script = script.replace("if (typeof input === 'undefined') {\ninput = new URL('viewport_bg.wasm', import.meta.url);\n}", "")
+script = re.sub(r'input = new URL\(.*, import\.meta\.url\);', "", script);
 script = script.replace("var ret = globalThis.globalThis", "var ret = window.globalThis.globalThis")
 script = script.replace("var ret = self.self", "var ret = window.self.self")
 
