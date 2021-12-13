@@ -2,6 +2,7 @@ mod editor;
 mod input;
 mod log;
 mod math;
+mod net;
 mod render;
 mod ring_vec;
 
