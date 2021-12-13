@@ -2,15 +2,11 @@ mod editor;
 mod input;
 mod log;
 mod math;
-mod msg;
 mod render;
 mod ring_vec;
 
 use instant::Instant;
 use wasm_bindgen::JsCast;
-
-#[cfg(target_arch = "wasm32")]
-use std::sync::mpsc::{channel, Sender};
 
 use cgmath::{Matrix4, SquareMatrix};
 use render::{Scene, SceneRenderer, SpritePass, TextureBank};
@@ -21,12 +17,11 @@ use winit::{
         WindowEvent,
     },
     event_loop::{ControlFlow, EventLoop},
-    platform::web::WindowBuilderExtWebSys,
     window::{Window, WindowBuilder},
 };
 
 #[cfg(target_arch = "wasm32")]
-use wasm_bindgen::prelude::*;
+use winit::platform::web::WindowBuilderExtWebSys;
 
 use crate::render::WorldPass;
 
@@ -34,18 +29,6 @@ use self::{
     editor::Editor,
     input::{InputMapper, Trigger},
 };
-
-#[cfg(target_arch = "wasm32")]
-use self::msg::Message;
-
-macro_rules! message {
-    ($msg:expr) => {
-        #[cfg(target_arch = "wasm32")]
-        unsafe {
-            $crate::handleMessage($msg);
-        }
-    };
-}
 
 macro_rules! textures {
     ($bank:ident $(,$id:literal => $path:literal)*) => {
@@ -57,16 +40,6 @@ macro_rules! textures {
         )*
     };
 }
-
-#[cfg(target_arch = "wasm32")]
-#[wasm_bindgen(raw_module = "../glue.js")]
-extern "C" {
-    #[wasm_bindgen]
-    pub fn handleMessage(msg: &str);
-}
-
-#[cfg(target_arch = "wasm32")]
-static mut MSG_IN: Option<Sender<Message>> = None;
 
 fn main() {
     #[cfg(target_arch = "wasm32")]
@@ -97,13 +70,6 @@ fn main() {
         let mut main_loop = MainLoop::init(window);
         main_loop.window_resized(width, height);
         main_loop
-    };
-
-    #[cfg(target_arch = "wasm32")]
-    let msg_rx = {
-        let (tx, rx) = channel();
-        unsafe { MSG_IN = Some(tx) };
-        rx
     };
 
     event_loop.run(move |event, _, flow| {
@@ -145,11 +111,6 @@ fn main() {
                 _ => {}
             },
             Event::MainEventsCleared => {
-                #[cfg(target_arch = "wasm32")]
-                while let Ok(msg) = msg_rx.try_recv() {
-                    main_loop.message_received(msg);
-                }
-
                 main_loop.process();
             }
             _ => {}
@@ -215,9 +176,6 @@ impl MainLoop {
         self.input_mapper.set_scroll_wheel(wheel);
     }
 
-    #[cfg(target_arch = "wasm32")]
-    fn message_received(&mut self, msg: Message) {}
-
     fn process(&mut self) {
         let after = Instant::now();
         let elapsed = (after - self.before).as_secs_f32();
@@ -243,11 +201,4 @@ impl MainLoop {
         self.editor.render(&mut scene);
         self.renderer.render(scene);
     }
-}
-
-#[cfg(target_arch = "wasm32")]
-#[wasm_bindgen(js_name = "addTexture")]
-pub fn add_texture(id: usize, data: Vec<u8>) {
-    let sender = unsafe { MSG_IN.as_mut().unwrap() };
-    sender.send(Message::AddTexture { id, data }).unwrap();
 }
