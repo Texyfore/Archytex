@@ -20,10 +20,10 @@ os.system(f"wasm-bindgen --target web --out-dir temp viewport/target/wasm32-unkn
 
 # Copy necessary files to their appropriate positions
 os.mkdir("frontend/src/wasm")
-shutil.copyfile("temp/viewport_bg.wasm", "frontend/src/wasm/viewport_bg.wasm")
-shutil.copyfile("temp/viewport_bg.wasm.d.ts", "frontend/public/viewport_bg.wasm.d.ts")
-shutil.copyfile("temp/viewport.d.ts", "frontend/public/viewport.d.ts")
-shutil.copyfile("temp/viewport.js", "frontend/public/viewport.js")
+shutil.copyfile("temp/viewport_bg.wasm", "frontend/public/viewport_bg.wasm")
+shutil.copyfile("temp/viewport_bg.wasm.d.ts", "frontend/src/wasm/viewport_bg.wasm.d.ts")
+shutil.copyfile("temp/viewport.d.ts", "frontend/src/wasm/viewport.d.ts")
+shutil.copyfile("temp/viewport.js", "frontend/src/wasm/viewport.js")
 
 # Cleanup
 shutil.rmtree("temp")
