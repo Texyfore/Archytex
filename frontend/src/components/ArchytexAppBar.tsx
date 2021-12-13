@@ -15,6 +15,7 @@ import MainPageSwipeableDrawer from "./main-page-components/MainPageSwipeableDra
 import LanguageSelectDropdown from "./LanguageSelectDropdown";
 import DarkModeSwitch from "./DarkModeSwitch";
 import { useApi } from "../services/user/api";
+import { useHistory } from "react-router-dom";
 
 const CustomAppBar = styled(AppBar)(({ theme }) => ({
   zIndex: theme.zIndex.drawer + 1,
@@ -40,6 +41,8 @@ function DashboardAppBar({ open, handleOpenChange }: AppBarProps) {
   };
 
   const api = useApi();
+
+  const history = useHistory();
 
   return (
     <React.Fragment>
@@ -72,10 +75,18 @@ function DashboardAppBar({ open, handleOpenChange }: AppBarProps) {
             justifyContent='space-between'
             gap={2}
           >
-            <Button color='inherit' variant='text'>
+            <Button
+              color='inherit'
+              variant='text'
+              onClick={() => history.push("/")}
+            >
               Home
             </Button>
-            <Button color='inherit' variant='text'>
+            <Button
+              color='inherit'
+              variant='text'
+              onClick={() => history.push("/community")}
+            >
               Community
             </Button>
           </Box>
@@ -92,11 +103,17 @@ function DashboardAppBar({ open, handleOpenChange }: AppBarProps) {
               handleClose={handleLanguageMenuClose}
               anchorEl={anchorEl}
             />
-            {
-              api?.state === "logged-in" ? <Typography>{api.user.username}</Typography> : <Button variant='outlined' sx={{ marginLeft: 2 }}>
-              Login / register
-            </Button>
-            }
+            {api?.state === "logged-in" ? (
+              <Typography>{api.user.username}</Typography>
+            ) : (
+              <Button
+                variant='outlined'
+                sx={{ marginLeft: 2 }}
+                onClick={() => history.push("/register")}
+              >
+                Login / register
+              </Button>
+            )}
           </Box>
         </Toolbar>
       </CustomAppBar>
