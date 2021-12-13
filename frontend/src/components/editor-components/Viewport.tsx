@@ -1,8 +1,8 @@
 import React, { useEffect } from "react";
 import { Box } from "@mui/material";
 
-import init from "../../web/app/viewport.js";
-import addEventListener from "events";
+// import init from "../../web/app/viewport.js";
+// import addEventListener from "events";
 
 // addEventListener("load", () => {
 //   init();
@@ -14,7 +14,7 @@ export function handleMessage(msg: any) {
 
 export default function Editor() {
   useEffect(() => {
-    init("viewport_bg.wasm");
+    // init("viewport_bg.wasm");
   }, []);
 
   return (
