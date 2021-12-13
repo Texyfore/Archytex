@@ -7,6 +7,7 @@ import {
   CardContent,
   CardMedia,
   Grid,
+  Grow,
   IconButton,
   Modal,
   Tooltip,
@@ -33,81 +34,79 @@ export default function RenderCard({ render }: RenderCardProps) {
 
   return (
     <React.Fragment>
-      <Grid item xs={6} sm={6} md={4} xl={3} key={render.id}>
-        <Card sx={{ maxWidth: 345 }} key={render.id}>
-          <CardActionArea
-            disabled={render.status < 100}
-            onClick={() => handleOpenEnlargeRenderModal(render)}
+      <Card sx={{ maxWidth: 345 }} key={render.id}>
+        <CardActionArea
+          disabled={render.status < 100}
+          onClick={() => handleOpenEnlargeRenderModal(render)}
+        >
+          <CardMedia
+            component='img'
+            sx={{
+              height: { xs: "150px", sm: "200px", md: "250px" },
+            }}
+            image={render.img}
+            alt='green iguana'
+          />
+          {/* Image overlay for progress information */}
+          <Box
+            position='relative'
+            width='100%'
+            height={0}
+            display={render.status < 100 ? "block" : "none"}
           >
-            <CardMedia
-              component='img'
-              sx={{
-                height: { xs: "150px", sm: "200px", md: "250px" },
-              }}
-              image={render.img}
-              alt='green iguana'
-            />
-            {/* Image overlay for progress information */}
             <Box
-              position='relative'
+              position='absolute'
+              top={{ xs: "-150px", sm: "-200px", md: "-250px" }}
+              height={{ xs: "150px", sm: "200px", md: "250px" }}
               width='100%'
-              height={0}
-              display={render.status < 100 ? "block" : "none"}
+              display='flex'
+              justifyContent='center'
+              alignItems='center'
+              sx={{
+                backgroundColor: "rgba(0, 0, 0, 0.7)",
+              }}
             >
-              <Box
-                position='absolute'
-                top={{ xs: "-150px", sm: "-200px", md: "-250px" }}
-                height={{ xs: "150px", sm: "200px", md: "250px" }}
-                width='100%'
-                display='flex'
-                justifyContent='center'
-                alignItems='center'
-                sx={{
-                  backgroundColor: "rgba(0, 0, 0, 0.7)",
-                }}
-              >
-                <Box>
-                  <CircularProgressWithLabel
-                    size={80}
-                    thickness={1}
-                    value={render.status}
-                  />
-                </Box>
+              <Box>
+                <CircularProgressWithLabel
+                  size={80}
+                  thickness={1}
+                  value={render.status}
+                />
               </Box>
             </Box>
-            <Tooltip title={render.renderName} placement='top'>
-              <CardContent sx={{ maxHeight: "100px" }}>
-                <Typography variant='h6' component='div' noWrap>
-                  {render.renderName}
-                </Typography>
-              </CardContent>
-            </Tooltip>
-          </CardActionArea>
-          <CardActions>
-            <Tooltip title='Download' arrow>
-              <span>
-                <IconButton size='small' disabled={render.status < 100}>
-                  <Download />
-                </IconButton>
-              </span>
-            </Tooltip>
-            <Tooltip title='Share' arrow>
-              <span>
-                <IconButton size='small' disabled={render.status < 100}>
-                  <Share />
-                </IconButton>
-              </span>
-            </Tooltip>
-            <Tooltip title='Details' arrow>
-              <span>
-                <IconButton size='small'>
-                  <InfoOutlined />
-                </IconButton>
-              </span>
-            </Tooltip>
-          </CardActions>
-        </Card>
-      </Grid>
+          </Box>
+          <Tooltip title={render.renderName} placement='top'>
+            <CardContent sx={{ maxHeight: "100px" }}>
+              <Typography variant='h6' component='div' noWrap>
+                {render.renderName}
+              </Typography>
+            </CardContent>
+          </Tooltip>
+        </CardActionArea>
+        <CardActions>
+          <Tooltip title='Download' arrow>
+            <span>
+              <IconButton size='small' disabled={render.status < 100}>
+                <Download />
+              </IconButton>
+            </span>
+          </Tooltip>
+          <Tooltip title='Share' arrow>
+            <span>
+              <IconButton size='small' disabled={render.status < 100}>
+                <Share />
+              </IconButton>
+            </span>
+          </Tooltip>
+          <Tooltip title='Details' arrow>
+            <span>
+              <IconButton size='small'>
+                <InfoOutlined />
+              </IconButton>
+            </span>
+          </Tooltip>
+        </CardActions>
+      </Card>
 
       {/* Enlarge render image modal */}
       <Modal
@@ -130,20 +129,22 @@ export default function RenderCard({ render }: RenderCardProps) {
         }}
       >
         <React.Fragment>
-          <Box
-            width={{ xs: "98%", md: "60%" }}
-            display='flex'
-            maxHeight='90%'
-            justifyContent='center'
-          >
-            <img
-              width='100%'
-              height='undefined'
-              style={{ objectFit: "scale-down" }}
-              src={openEnlargeRenderModal?.img}
-              alt={openEnlargeRenderModal?.renderName}
-            />
-          </Box>
+          <Grow in={openEnlargeRenderModal !== undefined}>
+            <Box
+              width={{ xs: "98%", md: "60%" }}
+              display='flex'
+              maxHeight='90%'
+              justifyContent='center'
+            >
+              <img
+                width='100%'
+                height='undefined'
+                style={{ objectFit: "scale-down" }}
+                src={openEnlargeRenderModal?.img}
+                alt={openEnlargeRenderModal?.renderName}
+              />
+            </Box>
+          </Grow>
           <Box position='absolute' top='5px' right='5px'>
             <Tooltip title='Close image'>
               <IconButton
