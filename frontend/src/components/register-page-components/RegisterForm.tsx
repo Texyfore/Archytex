@@ -22,6 +22,7 @@ import {
 } from "@mui/icons-material";
 import houseImage12 from "../../img/12.jpg";
 import ColoredReCaptcha from "../ColoredReCaptcha";
+import { Register } from "../../services/register";
 
 const MaxHeightContainer = styled(Box)(({ theme }) => ({
   backgroundColor: "background.paper",
@@ -47,6 +48,22 @@ const MaxHeightContainer = styled(Box)(({ theme }) => ({
 export default function RegisterForm() {
   const [showPassword, setShowPassword] = useState(false);
   const [showRePassword, setShowRePassword] = useState(false);
+  const [captchaKey, setCaptchaKey] = useState(0);
+
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+  const [email, setEmail] = useState("");
+  const [captcha, setCaptcha] = useState<string | null>(null);
+
+  const register = () => {
+    //TODO: Handle errors
+    if (captcha !== null) {
+      Register(username, password, email, captcha).catch((err) => {
+        alert(JSON.stringify(err));
+        setCaptchaKey(captchaKey^1);
+      })
+    }
+  };
 
   const handleClickShowPassword = () => {
     setShowPassword(!showPassword);
@@ -59,11 +76,6 @@ export default function RegisterForm() {
     event: React.MouseEvent<HTMLButtonElement>
   ) => {
     event.preventDefault();
-  };
-
-  // ReCAPTCHA
-  const onChange = (value: any) => {
-    console.log("Captcha value:", value);
   };
   return (
     <MaxHeightContainer
@@ -189,6 +201,8 @@ export default function RegisterForm() {
               variant='standard'
               margin='normal'
               type='text'
+              value={username}
+              onChange={(ev) => setUsername(ev.target.value)}
             />
           </Box>
           <Box
@@ -204,6 +218,8 @@ export default function RegisterForm() {
               variant='standard'
               margin='normal'
               type='email'
+              value={email}
+              onChange={ev => setEmail(ev.target.value)}
             />
           </Box>
           <Box
@@ -234,6 +250,8 @@ export default function RegisterForm() {
                     </IconButton>
                   </InputAdornment>
                 }
+                value={password}
+                onChange={(ev) => setPassword(ev.target.value)}
               />
             </FormControl>
           </Box>
@@ -276,7 +294,8 @@ export default function RegisterForm() {
         <Box paddingY={1} display='flex' justifyContent='center'>
           <ColoredReCaptcha
             sitekey='6Lc5gWodAAAAAEVg3MPTn5Nj7KN-ishnafqV4ZL8'
-            onChange={onChange}
+            onChange={setCaptcha}
+            key={captchaKey}
           />
         </Box>
 
@@ -288,7 +307,7 @@ export default function RegisterForm() {
           paddingX={{ sm: 0, md: 6 }}
           marginBottom={1}
         >
-          <Button variant='outlined' sx={{ width: 304, marginY: 2 }}>
+          <Button variant='outlined' sx={{ width: 304, marginY: 2 }} onClick={register}>
             Sign up
           </Button>
           <Typography variant='caption'>Already have an account?</Typography>
