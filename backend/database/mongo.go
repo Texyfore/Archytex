@@ -2,6 +2,8 @@ package database
 
 import (
 	"context"
+	"errors"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"time"
 
 	"github.com/Texyfore/Archytex/backend/database/models"
@@ -16,6 +18,76 @@ type MongoDatabase struct {
 	Database  *mongo.Database
 	Users     *mongo.Collection
 	Registers *mongo.Collection
+	Sessions  *mongo.Collection
+}
+
+func (m MongoDatabase) GetSession(id interface{}) (*models.Session, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*3)
+	defer cancel()
+	cursor, err := m.Sessions.Aggregate(ctx, bson.A{
+		bson.D{
+			{"$match", bson.D{{"_id", id}}},
+		},
+		bson.D{
+			{"$lookup", bson.D{
+				{"from", "users"},
+				{"localField", "user_id"},
+				{"foreignField", "_id"},
+				{"as", "user"},
+			}},
+		},
+		bson.D{
+			{"$project", bson.D{
+				{"_id", 1},
+				{"user", bson.D{
+					{"$arrayElemAt", bson.A{"$user", 0}},
+				}},
+			}},
+		},
+	})
+	if err != nil {
+		return nil, err
+	}
+	var session models.Session
+	cursor.Next(ctx)
+	err = cursor.Decode(&session)
+	if err != nil {
+		return nil, err
+	}
+	return &session, nil
+}
+
+func (m MongoDatabase) CreateSession(user *models.User) (string, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*3)
+	defer cancel()
+	result, err := m.Sessions.InsertOne(ctx, bson.D{
+		{"user_id", user.Id},
+	})
+	if err != nil {
+		return "", err
+	}
+	id, ok := result.InsertedID.(primitive.ObjectID)
+	if !ok {
+		return "", errors.New("id type was not ObjectID")
+	}
+	return id.Hex(), nil
+}
+
+func (m MongoDatabase) GetUserByUsername(username string) (*models.User, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*1)
+	defer cancel()
+	result := m.Users.FindOne(ctx, bson.D{
+		{"username", username},
+	})
+	if result.Err() != nil {
+		return nil, result.Err()
+	}
+	var user models.User
+	err := result.Decode(&user)
+	if err != nil {
+		return nil, err
+	}
+	return &user, nil
 }
 
 func MongoConnect(connectionString string, database string) (*MongoDatabase, error) {
@@ -28,12 +100,14 @@ func MongoConnect(connectionString string, database string) (*MongoDatabase, err
 	db := client.Database(database)
 	usersCollection := db.Collection("users")
 	registersCollection := db.Collection("registers")
+	sessionsCollection := db.Collection("sessions")
 	return &MongoDatabase{
 		Client:    client,
 		ctx:       ctx,
 		Database:  db,
 		Users:     usersCollection,
 		Registers: registersCollection,
+		Sessions:  sessionsCollection,
 	}, nil
 }
 

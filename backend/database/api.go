@@ -6,6 +6,7 @@ var CurrentDatabase Database
 
 type Database interface {
 	GetUser(id interface{}) (*models.User, error)
+	GetUserByUsername(username string) (*models.User, error)
 	GetRegister(id interface{}) (*models.Register, error)
 	GetRegisterByToken(token string) (*models.Register, error)
 	CreateUser(user models.User) (interface{}, error)
@@ -14,4 +15,7 @@ type Database interface {
 	UserExists(username, email string) (bool, error)
 
 	DeleteRegister(register models.Register) error
+
+	GetSession(id interface{}) (*models.Session, error)
+	CreateSession(user *models.User) (string, error)
 }
