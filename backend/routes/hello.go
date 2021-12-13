@@ -2,6 +2,7 @@ package routes
 
 import (
 	"encoding/json"
+	"github.com/Texyfore/Archytex/backend/database/models"
 	"net/http"
 	"strconv"
 
@@ -20,8 +21,16 @@ func Hello(w http.ResponseWriter, r *http.Request) {
 		logging.Error(w, r, err, "Could not convert argument to number", http.StatusBadRequest)
 		return
 	}
+
+	session := models.GetSession(r.Context())
+	var username *string
+	if session != nil {
+		username = &session.User.Username
+	}
+
 	json.NewEncoder(w).Encode(map[string]interface{}{
-		"value":   num,
-		"squared": num * num,
+		"value":    num,
+		"squared":  num * num,
+		"username": username,
 	})
 }
