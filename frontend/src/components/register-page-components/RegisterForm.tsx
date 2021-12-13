@@ -23,6 +23,7 @@ import {
 import houseImage12 from "../../img/12.jpg";
 import ColoredReCaptcha from "../ColoredReCaptcha";
 import { Register } from "../../services/register";
+import { useHistory } from "react-router-dom";
 
 const MaxHeightContainer = styled(Box)(({ theme }) => ({
   backgroundColor: "background.paper",
@@ -54,14 +55,18 @@ export default function RegisterForm() {
   const [password, setPassword] = useState("");
   const [email, setEmail] = useState("");
   const [captcha, setCaptcha] = useState<string | null>(null);
-
+  const history = useHistory();
   const register = () => {
     //TODO: Handle errors
     if (captcha !== null) {
-      Register(username, password, email, captcha).catch((err) => {
-        alert(JSON.stringify(err));
-        setCaptchaKey(captchaKey^1);
-      })
+      Register(username, password, email, captcha)
+        .then(() => {
+          history.push("/success");
+        })
+        .catch((err) => {
+          alert(JSON.stringify(err));
+          setCaptchaKey(captchaKey ^ 1);
+        });
     }
   };
 
@@ -159,7 +164,8 @@ export default function RegisterForm() {
       >
         {/* Register title */}
         <Box
-          width='100%'
+          width='304px'
+          marginX='auto'
           display='flex'
           alignItems='center'
           justifyContent='center'
@@ -219,7 +225,7 @@ export default function RegisterForm() {
               margin='normal'
               type='email'
               value={email}
-              onChange={ev => setEmail(ev.target.value)}
+              onChange={(ev) => setEmail(ev.target.value)}
             />
           </Box>
           <Box
@@ -307,7 +313,11 @@ export default function RegisterForm() {
           paddingX={{ sm: 0, md: 6 }}
           marginBottom={1}
         >
-          <Button variant='outlined' sx={{ width: 304, marginY: 2 }} onClick={register}>
+          <Button
+            variant='outlined'
+            sx={{ width: 304, marginY: 2 }}
+            onClick={register}
+          >
             Sign up
           </Button>
           <Typography variant='caption'>Already have an account?</Typography>
