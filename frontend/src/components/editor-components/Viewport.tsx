@@ -1,10 +1,26 @@
+import React, { useEffect } from "react";
 import { Box } from "@mui/material";
-import React from "react";
+
+import init from "../../web/app/viewport.js";
+import addEventListener from "events";
+
+// addEventListener("load", () => {
+//   init();
+// });
+
+export function handleMessage(msg: any) {
+  alert(msg);
+}
 
 export default function Editor() {
+  useEffect(() => {
+    init("viewport_bg.wasm");
+  }, []);
+
   return (
-    <Box width='100%' height='100%' sx={{ backgroundColor: "GrayText" }}>
-      <script type='module' src='web/glue.js'></script>
-    </Box>
+    <canvas
+      id='viewport-canvas'
+      style={{ backgroundColor: "red", width: "80%", height: "100%" }}
+    ></canvas>
   );
 }
