@@ -58,6 +58,7 @@ func (m MongoDatabase) GetSession(id interface{}) (*models.Session, error) {
 }
 
 func (m MongoDatabase) CreateSession(user *models.User) (string, error) {
+	//TODO: Use a more secure token
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*3)
 	defer cancel()
 	result, err := m.Sessions.InsertOne(ctx, bson.D{
