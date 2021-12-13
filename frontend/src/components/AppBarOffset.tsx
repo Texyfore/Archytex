@@ -11,6 +11,23 @@ const Offset = styled("div")(({ theme }) => ({
   },
 }));
 
-export default function AppBarOffset() {
-  return <Offset />;
+const DenseOffset = styled("div")(({ theme }) => ({
+  height: `48px`,
+}));
+
+type variant = "regular" | "dense";
+interface AppBarOffsetProps {
+  variant?: variant;
+}
+export default function AppBarOffset({
+  variant = "regular",
+}: AppBarOffsetProps): JSX.Element {
+  switch (variant) {
+    case "regular":
+      return <Offset />;
+    case "dense":
+      return <DenseOffset />;
+    default:
+      return <Offset />;
+  }
 }

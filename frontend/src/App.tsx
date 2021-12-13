@@ -17,6 +17,7 @@ import {
 } from "./services/colorMode";
 import { Box, CircularProgress, Typography } from "@mui/material";
 import { DummyProvider } from "./services/user/dummy";
+import Editor from "./pages/Editor";
 
 //TODO: Get translations from api
 const translationEn = {
@@ -148,6 +149,9 @@ function App() {
               </Route>
               <Route path='/register'>
                 <RegisterPage />
+              </Route>
+              <Route path='/editor'>
+                <Editor />
               </Route>
             </Switch>
           </Router>
