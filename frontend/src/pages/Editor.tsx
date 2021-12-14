@@ -3,7 +3,7 @@ import React from "react";
 import EditorMenu from "../components/editor-components/EditorMenu";
 import EditorAppBar from "../components/editor-components/EditorAppBar";
 import AppBarOffset from "../components/AppBarOffset";
-import Viewport from "../components/editor-components/Viewport.jsx";
+import Viewport from "../components/editor-components/Viewport";
 
 const appBarHeight = 48;
 
