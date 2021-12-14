@@ -46,6 +46,8 @@ fn main() {
     #[cfg(target_arch = "wasm32")]
     console_error_panic_hook::set_once();
 
+    net::init();
+    net::send_packet(vec![2, 3, 5, 7]);
     let event_loop = EventLoop::new();
 
     #[cfg(not(target_arch = "wasm32"))]

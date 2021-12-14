@@ -1,16 +1,18 @@
 import React, { MouseEventHandler, useEffect } from "react";
 import { Box } from "@mui/material";
 
-import init from "../../wasm/viewport.js";
-
-export function handleMessage(msg: any) {
-  alert(msg);
-}
+import * as wasm from "../../wasm/viewport";
+import init, {queryPacket} from "../../wasm/viewport";
 
 export default function Editor() {
   useEffect(() => {
-    init("viewport_bg.wasm");
+    init("viewport_bg.wasm").then((mod) => {
+      setInterval(() => {
+        console.log(queryPacket());
+      }, 500);
+    });
   }, []);
+
   return (
     <canvas
       id="viewport-canvas"
