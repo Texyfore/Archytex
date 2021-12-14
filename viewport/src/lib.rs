@@ -6,11 +6,11 @@ mod net;
 mod render;
 mod ring_vec;
 
-use instant::Instant;
-use wasm_bindgen::JsCast;
-
 use cgmath::{Matrix4, SquareMatrix};
+use instant::Instant;
 use render::{Scene, SceneRenderer, SpritePass, TextureBank};
+use wasm_bindgen::{prelude::*, JsCast};
+use winit::platform::web::WindowBuilderExtWebSys;
 use winit::{
     dpi::{PhysicalPosition, PhysicalSize},
     event::{
@@ -20,9 +20,6 @@ use winit::{
     event_loop::{ControlFlow, EventLoop},
     window::{Window, WindowBuilder},
 };
-
-#[cfg(target_arch = "wasm32")]
-use winit::platform::web::WindowBuilderExtWebSys;
 
 use crate::render::WorldPass;
 
@@ -42,18 +39,14 @@ macro_rules! textures {
     };
 }
 
-fn main() {
-    #[cfg(target_arch = "wasm32")]
+#[wasm_bindgen]
+pub fn main() {
     console_error_panic_hook::set_once();
 
     net::init();
     net::send_packet(vec![2, 3, 5, 7]);
+
     let event_loop = EventLoop::new();
-
-    #[cfg(not(target_arch = "wasm32"))]
-    let window = WindowBuilder::default().build(&event_loop).unwrap();
-
-    #[cfg(target_arch = "wasm32")]
     let window = WindowBuilder::default()
         .with_canvas(Some(
             web_sys::window()

@@ -1,8 +1,7 @@
-use std::{collections::VecDeque, sync::Mutex};
-use crate::info;
-
-#[cfg(target_arch = "wasm32")]
 use wasm_bindgen::prelude::*;
+use std::{collections::VecDeque, sync::Mutex};
+
+use crate::info;
 
 static mut FROM_JS: Option<Mutex<VecDeque<Vec<u8>>>> = None;
 static mut TO_JS: Option<Mutex<VecDeque<Vec<u8>>>> = None;
@@ -25,7 +24,6 @@ pub fn query_packet() -> Option<Vec<u8>> {
     deque.pop_front()
 }
 
-#[cfg(target_arch = "wasm32")]
 #[wasm_bindgen(js_name = "sendPacket")]
 pub fn __send_packet(packet: Vec<u8>) {
     let mut deque = unsafe {
@@ -38,7 +36,6 @@ pub fn __send_packet(packet: Vec<u8>) {
     deque.push_back(packet);
 }
 
-#[cfg(target_arch = "wasm32")]
 #[wasm_bindgen(js_name = "queryPacket")]
 pub fn __query_packet() -> Option<Vec<u8>> {
     unsafe {

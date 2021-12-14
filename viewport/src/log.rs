@@ -15,29 +15,20 @@ extern "C" {
 #[macro_export]
 macro_rules! info {
     ($fmt:literal $(,$arg:expr)*) => {
-        #[cfg(target_arch="wasm32")]
         $crate::log::log(&format!($fmt $(,$arg)*));
-        #[cfg(not(target_arch="wasm32"))]
-        println!($fmt $(,$arg)*);
     };
 }
 
 #[macro_export]
 macro_rules! warn {
     ($fmt:literal $(,$arg:expr)*) => {
-        #[cfg(target_arch="wasm32")]
         $crate::log::warn(&format!($fmt $(,$arg)*));
-        #[cfg(not(target_arch="wasm32"))]
-        println!($fmt $(,$arg)*);
     };
 }
 
 #[macro_export]
 macro_rules! error {
     ($fmt:literal $(,$arg:expr)*) => {
-        #[cfg(target_arch="wasm32")]
         $crate::log::error(&format!($fmt $(,$arg)*));
-        #[cfg(not(target_arch="wasm32"))]
-        println!($fmt $(,$arg)*);
     };
 }

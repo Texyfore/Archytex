@@ -1,6 +1,6 @@
 .vscode
+.idea
 
 **/*.rs.bk
 target
-web/app
-web/.netlify
+pkg
