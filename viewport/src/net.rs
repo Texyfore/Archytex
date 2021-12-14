@@ -1,7 +1,5 @@
-use wasm_bindgen::prelude::*;
 use std::{collections::VecDeque, sync::Mutex};
-
-use crate::info;
+use wasm_bindgen::prelude::*;
 
 static mut FROM_JS: Option<Mutex<VecDeque<Vec<u8>>>> = None;
 static mut TO_JS: Option<Mutex<VecDeque<Vec<u8>>>> = None;
@@ -15,7 +13,6 @@ pub fn init() {
 
 pub fn send_packet(packet: Vec<u8>) {
     let mut deque = unsafe { TO_JS.as_mut().unwrap().try_lock().unwrap() };
-    info!("Sent packet len: {}", packet.len());
     deque.push_back(packet);
 }
 
@@ -41,9 +38,7 @@ pub fn __query_packet() -> Option<Vec<u8>> {
     unsafe {
         if let Some(deque) = TO_JS.as_mut() {
             let mut deque = deque.try_lock().unwrap();
-            let p = deque.pop_front();
-            info!("Received packet: {:?}", p);
-            p
+            deque.pop_front()
         } else {
             None
         }

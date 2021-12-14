@@ -44,7 +44,6 @@ pub fn main() {
     console_error_panic_hook::set_once();
 
     net::init();
-    net::send_packet(vec![2, 3, 5, 7]);
 
     let event_loop = EventLoop::new();
     let window = WindowBuilder::default()
@@ -67,6 +66,9 @@ pub fn main() {
         main_loop.window_resized(width, height);
         main_loop
     };
+
+    // Initialization done, make it known to the outside world
+    net::send_packet(vec![0]);
 
     event_loop.run(move |event, _, flow| {
         *flow = ControlFlow::Poll;
