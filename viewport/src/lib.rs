@@ -179,6 +179,19 @@ impl MainLoop {
         let elapsed = (after - self.before).as_secs_f32();
         self.before = after;
 
+        while let Some(packet) = net::query_packet() {
+            match packet[0] {
+                0 => {
+                    let width = u16::from_le_bytes(packet[1..3].try_into().unwrap()) as u32;
+                    let height = u16::from_le_bytes(packet[3..5].try_into().unwrap()) as u32;
+                    self._window.set_inner_size(PhysicalSize { width, height })
+                }
+                _ => {
+                    warn!("Received malformed packet");
+                }
+            }
+        }
+
         let mut scene = Scene {
             texture_bank: &self.texture_bank,
             world_pass: WorldPass {
