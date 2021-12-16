@@ -1,3 +1,4 @@
+import { Box } from "@mui/material";
 import { useEffect } from "react";
 import useDimensions from "react-cool-dimensions";
 
@@ -6,7 +7,7 @@ let editorInitialized = false;
 
 export default function Editor() {
   useEffect(() => {
-    import("viewport").then(module => {
+    import("viewport").then((module) => {
       editor = module;
       module.main();
     });
@@ -20,26 +21,41 @@ export default function Editor() {
         }
       }
     }, 100);
-  });
+  }, []);
 
   const { observe } = useDimensions({
     onResize: ({ width, height }) => {
-      console.log(`[${width}x${height}]`);
-    }
+      if (editor !== undefined) {
+        let buffer = new Uint16Array([width, height]);
+        let bytes = new Uint8Array(buffer.buffer);
+        let packet = new Uint8Array([
+          0,
+          bytes[0],
+          bytes[1],
+          bytes[2],
+          bytes[3],
+        ]);
+        editor.sendPacket(packet);
+        console.log(`[${buffer[0]}x${buffer[1]}]`);
+      }
+    },
   });
 
   return (
-    <canvas
-      id="viewport-canvas"
-      style={{
-        backgroundColor: "red",
-        width: "80%",
-        height: "100%",
-        outline: "none",
-      }}
+    <Box
+      width='100%'
+      height='100%'
+      sx={{ backgroundColor: "red" }}
       ref={observe}
-      onContextMenu={(e) => e.preventDefault()}
-    ></canvas>
+    >
+      <canvas
+        id='viewport-canvas'
+        style={{
+          outline: "none",
+        }}
+        onContextMenu={(e) => e.preventDefault()}
+      ></canvas>
+    </Box>
   );
 }
 
