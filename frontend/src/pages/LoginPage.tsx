@@ -11,7 +11,7 @@ export default function LoginPage() {
 
   return (
     <React.Fragment>
-      <ArchytexAppBar open={open} handleOpenChange={handleOpenChange} />
+      <ArchytexAppBar content="general" />
       <LoginForm />
       <ArchytexFooter />
     </React.Fragment>
