@@ -22,7 +22,7 @@ func Hello(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	session := models.GetSession(r.Context())
+	session := models.UseSession(r.Context())
 	var username *string
 	if session != nil {
 		username = &session.User.Username

@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"github.com/Texyfore/Archytex/backend/routes/authenticated"
 	"github.com/Texyfore/Archytex/backend/session"
 	"log"
 	"math/rand"
@@ -54,12 +55,13 @@ func main() {
 	auth := api.PathPrefix("/auth").Subrouter()
 	auth.Use(session.UserMiddleware)
 	auth.HandleFunc("/hello", routes.Hello).Methods("GET")
+	auth.HandleFunc("/user", authenticated.User).Methods("POST")
 
 	http.Handle("/", r)
 	fmt.Printf("Listening on port %d\n", port)
 
 	//TODO: Restrict access origin
-	headersOk := handlers.AllowedHeaders([]string{"X-Requested-With", "Content-Type"})
+	headersOk := handlers.AllowedHeaders([]string{"X-Requested-With", "Content-Type", "Authorization"})
 	originsOk := handlers.AllowedOrigins([]string{"*"})
 	methodsOk := handlers.AllowedMethods([]string{"GET", "HEAD", "POST", "PUT", "OPTIONS"})
 

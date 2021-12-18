@@ -54,21 +54,18 @@ export default function LoginForm() {
     event.preventDefault();
   };
 
-  // ReCAPTCHA
-  const onChange = (value: any) => {
-    console.log("Captcha value:", value);
-  };
-
   const api = useApi();
 
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const [stayLoggedIn, setStayLoggedIn] = useState(false);
   const history = useHistory();
   const loginClick = () => {
     if (api?.state === "not-logged-in") {
       //TODO: Handle login result
-      api.logIn(username, password);
-      history.push("/dashboard")
+      api.logIn(username, password, stayLoggedIn).then(()=>{
+        history.push("/dashboard")
+      });
     }
   }
 
@@ -182,15 +179,10 @@ export default function LoginForm() {
           >
             <FormControlLabel
               value='end'
-              control={<Checkbox />}
+              control={<Checkbox checked={stayLoggedIn} onChange={(ev)=>setStayLoggedIn(ev.target.checked)} />}
               label={<Typography variant='caption'>Stay signed in</Typography>}
               labelPlacement='end'
-            />
-          </Box>
-          <Box paddingY={1}>
-            <ColoredReCaptcha
-              sitekey='6Lc5gWodAAAAAEVg3MPTn5Nj7KN-ishnafqV4ZL8'
-              onChange={onChange}
+              
             />
           </Box>
           <Button variant='outlined' sx={{ width: 304, marginY: 2 }} onClick={loginClick}>
