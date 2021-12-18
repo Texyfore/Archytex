@@ -2,16 +2,19 @@ import React from "react";
 import {
   Box,
   List,
-  ListItem,
+  ListItemButton,
   ListItemIcon,
   ListItemText,
   Typography,
 } from "@mui/material";
 import { styled } from "@mui/material/styles";
-import { Home, Login, People } from "@mui/icons-material";
+import { DashboardRounded, Home, Login } from "@mui/icons-material";
 import ArchytexIcon from "./ArchytexIcon";
 import LanguageSelectDropdown from "./LanguageSelectDropdown";
 import DarkModeSwitch from "./DarkModeSwitch";
+import { ColorMode, useColorMode } from "../services/colorMode";
+import { useHistory } from "react-router-dom";
+import { useApi } from "../services/user/api";
 
 const DrawerHeader = styled("div")(({ theme }) => ({
   display: "flex",
@@ -21,23 +24,47 @@ const DrawerHeader = styled("div")(({ theme }) => ({
   // necessary for content to be below app bar
   ...theme.mixins.toolbar,
 }));
-
-const buttonList = [
-  {
-    text: "Home",
-    icon: <Home />,
-  },
-  {
-    text: "Community",
-    icon: <People />,
-  },
-  {
-    text: "Login",
-    icon: <Login />,
-  },
-];
+interface navButton {
+  text: string;
+  icon: JSX.Element;
+  route: string;
+}
 
 export default function GeneralSwipeableDrawerContent() {
+  const api = useApi();
+  const buttonList: navButton[] =
+    api?.state === "logged-in"
+      ? [
+          {
+            text: "Home",
+            icon: <Home />,
+            route: "/",
+          },
+          {
+            text: "Dashboard",
+            icon: <DashboardRounded />,
+            route: "/dashboard",
+          },
+        ]
+      : [
+          {
+            text: "Home",
+            icon: <Home />,
+            route: "/",
+          },
+          {
+            text: "Login",
+            icon: <Login />,
+            route: "/login",
+          },
+        ];
+  const [colorMode, _] = useColorMode();
+
+  const history = useHistory();
+  const handleClick = (route: string) => {
+    history.push(route);
+  };
+
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
   const languageMenuOpen = Boolean(anchorEl);
   const handleLanguageMenuClick = (event: React.MouseEvent<HTMLElement>) => {
@@ -52,11 +79,14 @@ export default function GeneralSwipeableDrawerContent() {
       <DrawerHeader
         sx={{
           width: 300,
-          height: 100,
+          height: 150,
           display: "flex",
           justifyContent: "center",
           backgroundSize: "10px 10px",
-          backgroundImage: "radial-gradient(#1c517a .75px, #0c0c0c .75px)",
+          backgroundImage:
+            colorMode === ColorMode.Dark
+              ? "radial-gradient(#1c517a .75px, #0c0c0c .75px)"
+              : "radial-gradient(#1c517a .75px, #f5f0f6 .75px)",
         }}
       >
         <ArchytexIcon />
@@ -64,16 +94,16 @@ export default function GeneralSwipeableDrawerContent() {
       </DrawerHeader>
       <List>
         {buttonList.map((props, index) => (
-          <ListItem
+          <ListItemButton
             sx={{
               borderRadius: "2px",
             }}
-            button
-            key={index}
+            key={props.text}
+            onClick={() => handleClick(props.route)}
           >
             <ListItemIcon>{props.icon}</ListItemIcon>
             <ListItemText primary={props.text} />
-          </ListItem>
+          </ListItemButton>
         ))}
       </List>
       <Box
