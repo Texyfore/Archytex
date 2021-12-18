@@ -17,10 +17,10 @@ func GenerateRequestId() RequestId {
 	return RequestId(hex.EncodeToString(bytes))
 }
 
-func (r RequestId) WithContext(ctx context.Context) context.Context {
+func (r RequestId) Context(ctx context.Context) context.Context {
 	return context.WithValue(ctx, RequestIdKey, r)
 }
 
-func GetRequestId(ctx context.Context) RequestId {
+func UseRequestId(ctx context.Context) RequestId {
 	return ctx.Value(RequestIdKey).(RequestId)
 }

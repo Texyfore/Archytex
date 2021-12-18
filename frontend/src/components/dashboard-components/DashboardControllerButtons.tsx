@@ -1,11 +1,5 @@
-import { PlayCircleOutlined, Settings, Source } from "@mui/icons-material";
-import {
-  List,
-  ListItem,
-  ListItemButton,
-  ListItemIcon,
-  ListItemText,
-} from "@mui/material";
+import { Home, PlayCircleOutlined, Settings, Source } from "@mui/icons-material";
+import { List, ListItemButton, ListItemIcon, ListItemText } from "@mui/material";
 import React from "react";
 import { useHistory } from "react-router-dom";
 import { SubPage, useSubPage } from "../../services/selectedDashboardSubPage";
@@ -86,6 +80,28 @@ export default function DashboardControllerButtons() {
           />
         </ListItemButton>
       ))}
+      <ListItemButton
+          sx={{
+            display: {xs: 'flex', md: 'none'},
+            paddingX: { lg: 3 },
+            paddingY: { lg: 2 },
+            marginY: { lg: 1 },
+            borderRadius: "2px",
+          }}
+          key={99}
+          onClick={() => history.push("/")}
+        >
+          <ListItemIcon sx={{ paddingLeft: { lg: 0, xl: 2 } }}>
+            <Home />
+          </ListItemIcon>
+          <ListItemText
+            sx={{ marginLeft: { lg: 0, xl: 8 } }}
+            primary="Home page"
+            primaryTypographyProps={{
+              fontSize: { lg: "12pt", xl: "15pt" },
+            }}
+          />
+        </ListItemButton>
     </List>
   );
 }

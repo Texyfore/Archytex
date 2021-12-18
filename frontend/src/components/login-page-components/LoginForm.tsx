@@ -20,7 +20,6 @@ import {
   VpnKey,
 } from "@mui/icons-material";
 import { styled } from "@mui/material/styles";
-import ColoredReCaptcha from "../ColoredReCaptcha";
 import { useApi } from "../../services/user/api";
 import { useHistory } from "react-router";
 
@@ -58,12 +57,14 @@ export default function LoginForm() {
 
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const [stayLoggedIn, setStayLoggedIn] = useState(false);
   const history = useHistory();
   const loginClick = () => {
     if (api?.state === "not-logged-in") {
       //TODO: Handle login result
-      api.logIn(username, password);
-      history.push("/dashboard");
+      api.logIn(username, password, stayLoggedIn).then(()=>{
+        history.push("/dashboard")
+      });
     }
   };
 
@@ -178,16 +179,12 @@ export default function LoginForm() {
           >
             <FormControlLabel
               value='end'
-              control={<Checkbox />}
+              control={<Checkbox checked={stayLoggedIn} onChange={(ev)=>setStayLoggedIn(ev.target.checked)} />}
               label={<Typography variant='caption'>Stay signed in</Typography>}
               labelPlacement='end'
             />
           </Box>
-          <Button
-            variant='outlined'
-            sx={{ width: 304, marginY: 2 }}
-            onClick={loginClick}
-          >
+          <Button variant='outlined' sx={{ width: 304, marginY: 2 }} onClick={loginClick}>
             Sign in
           </Button>
           <Typography variant='caption'>Don't have an account?</Typography>

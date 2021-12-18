@@ -10,7 +10,7 @@ export default function RegisterPage() {
   }
   return (
     <React.Fragment>
-      <ArchytexAppBar open={open} handleOpenChange={handleOpenChange} />
+      <ArchytexAppBar content="general" />
       <RegisterForm />
       <ArchytexFooter />
     </React.Fragment>

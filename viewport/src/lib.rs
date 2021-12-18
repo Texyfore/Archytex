@@ -2,17 +2,15 @@ mod editor;
 mod input;
 mod log;
 mod math;
-mod msg;
+mod net;
 mod render;
 mod ring_vec;
 
-use instant::Instant;
-
-#[cfg(target_arch = "wasm32")]
-use std::sync::mpsc::{channel, Sender};
-
 use cgmath::{Matrix4, SquareMatrix};
+use instant::Instant;
 use render::{Scene, SceneRenderer, SpritePass, TextureBank};
+use wasm_bindgen::{prelude::*, JsCast};
+use winit::platform::web::WindowBuilderExtWebSys;
 use winit::{
     dpi::{PhysicalPosition, PhysicalSize},
     event::{
@@ -23,27 +21,12 @@ use winit::{
     window::{Window, WindowBuilder},
 };
 
-#[cfg(target_arch = "wasm32")]
-use wasm_bindgen::prelude::*;
-
 use crate::render::WorldPass;
 
 use self::{
     editor::Editor,
     input::{InputMapper, Trigger},
 };
-
-#[cfg(target_arch = "wasm32")]
-use self::msg::Message;
-
-macro_rules! message {
-    ($msg:expr) => {
-        #[cfg(target_arch = "wasm32")]
-        unsafe {
-            $crate::handleMessage($msg);
-        }
-    };
-}
 
 macro_rules! textures {
     ($bank:ident $(,$id:literal => $path:literal)*) => {
@@ -56,25 +39,26 @@ macro_rules! textures {
     };
 }
 
-#[cfg(target_arch = "wasm32")]
-#[wasm_bindgen(raw_module = "../glue.js")]
-extern "C" {
-    #[wasm_bindgen]
-    pub fn handleMessage(msg: &str);
-}
-
-#[cfg(target_arch = "wasm32")]
-static mut MSG_IN: Option<Sender<Message>> = None;
-
-fn main() {
-    #[cfg(target_arch = "wasm32")]
+#[wasm_bindgen]
+pub fn main() {
     console_error_panic_hook::set_once();
 
-    let event_loop = EventLoop::new();
-    let window = WindowBuilder::default().build(&event_loop).unwrap();
+    net::init();
 
-    #[cfg(target_arch = "wasm32")]
-    insert_canvas(&window);
+    let event_loop = EventLoop::new();
+    let window = WindowBuilder::default()
+        .with_canvas(Some(
+            web_sys::window()
+                .unwrap()
+                .document()
+                .unwrap()
+                .get_element_by_id("viewport-canvas")
+                .unwrap()
+                .dyn_into()
+                .unwrap(),
+        ))
+        .build(&event_loop)
+        .unwrap();
 
     let mut main_loop = {
         let (width, height) = window.inner_size().into();
@@ -83,12 +67,8 @@ fn main() {
         main_loop
     };
 
-    #[cfg(target_arch = "wasm32")]
-    let msg_rx = {
-        let (tx, rx) = channel();
-        unsafe { MSG_IN = Some(tx) };
-        rx
-    };
+    // Initialization done, make it known to the outside world
+    net::send_packet(vec![0]);
 
     event_loop.run(move |event, _, flow| {
         *flow = ControlFlow::Poll;
@@ -129,29 +109,11 @@ fn main() {
                 _ => {}
             },
             Event::MainEventsCleared => {
-                #[cfg(target_arch = "wasm32")]
-                while let Ok(msg) = msg_rx.try_recv() {
-                    main_loop.message_received(msg);
-                }
-
                 main_loop.process();
             }
             _ => {}
         }
     });
-}
-
-#[cfg(target_arch = "wasm32")]
-fn insert_canvas(window: &Window) {
-    use winit::platform::web::WindowExtWebSys;
-    web_sys::window()
-        .unwrap()
-        .document()
-        .unwrap()
-        .body()
-        .unwrap()
-        .append_child(&window.canvas())
-        .unwrap();
 }
 
 struct MainLoop {
@@ -212,23 +174,23 @@ impl MainLoop {
         self.input_mapper.set_scroll_wheel(wheel);
     }
 
-    #[cfg(target_arch = "wasm32")]
-    fn message_received(&mut self, msg: Message) {
-        match msg {
-            Message::AddTexture { id, data } => {
-                if let Ok(image) = image::load_from_memory(&data) {
-                    self.texture_bank.insert(id, &image)
-                }else {
-                    error!("Received malformed texture");
-                }
-            },
-        }
-    }
-
     fn process(&mut self) {
         let after = Instant::now();
         let elapsed = (after - self.before).as_secs_f32();
         self.before = after;
+
+        while let Some(packet) = net::query_packet() {
+            match packet[0] {
+                0 => {
+                    let width = u16::from_le_bytes(packet[1..3].try_into().unwrap()) as u32;
+                    let height = u16::from_le_bytes(packet[3..5].try_into().unwrap()) as u32;
+                    self._window.set_inner_size(PhysicalSize { width, height })
+                }
+                _ => {
+                    warn!("Received malformed packet");
+                }
+            }
+        }
 
         let mut scene = Scene {
             texture_bank: &self.texture_bank,
@@ -243,17 +205,11 @@ impl MainLoop {
             },
         };
 
-        self.editor.process(elapsed, &self.input_mapper, &self.texture_bank);
+        self.editor
+            .process(elapsed, &self.input_mapper, &self.texture_bank);
 
         self.input_mapper.tick();
         self.editor.render(&mut scene);
         self.renderer.render(scene);
     }
-}
-
-#[cfg(target_arch = "wasm32")]
-#[wasm_bindgen(js_name = "addTexture")]
-pub fn add_texture(id: usize, data: Vec<u8>) {
-    let sender = unsafe { MSG_IN.as_mut().unwrap() };
-    sender.send(Message::AddTexture {id, data}).unwrap();
 }
