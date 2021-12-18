@@ -1,69 +1,82 @@
-import React from "react";
-import { Close, MenuOutlined } from "@mui/icons-material";
+import React, { useState } from "react";
+import {
+  AccountCircle,
+  Close,
+  CreditCard,
+  Logout,
+  MenuOutlined,
+} from "@mui/icons-material";
 import {
   AppBar,
+  Avatar,
   IconButton,
   Toolbar,
   Typography,
   Box,
   Tooltip,
   Button,
+  Menu,
+  MenuItem,
+  ListItemIcon,
+  Divider,
 } from "@mui/material";
 import ArchytexIcon from "./ArchytexIcon";
 import { styled } from "@mui/material/styles";
-import MainPageSwipeableDrawer from "./main-page-components/MainPageSwipeableDrawer";
-import LanguageSelectDropdown from "./LanguageSelectDropdown";
 import DarkModeSwitch from "./DarkModeSwitch";
 import { useApi } from "../services/user/api";
+import ArchytexLogoWithText from "./ArchytexLogoWithText";
+import UserIconButton from "./UserIconButton";
+import GeneralSwipeableDrawer from "./GeneralSwipeableDrawer";
+import { useHistory } from "react-router-dom";
 
 const CustomAppBar = styled(AppBar)(({ theme }) => ({
   zIndex: theme.zIndex.drawer + 1,
   filter: "drop-shadow(0px 2px 4px rgba(0,0,0,0.5))",
-  backgroundColor: theme.palette.background.paper,
 }));
+
 interface AppBarProps {
-  open: boolean;
-  handleOpenChange: (value: boolean) => void;
+  content: "general" | "dashboard"
 }
 
-function DashboardAppBar({ open, handleOpenChange }: AppBarProps) {
+function ArchytexAppBar({ content }: AppBarProps) {
+  const api = useApi();
+  const history = useHistory();
+
+  const [open, setOpen] = useState(false);
+  const handleOpenChange = (value: boolean) => {
+    setOpen(value)
+  }
   const handleDrawerToggle = () => {
     handleOpenChange(!open);
   };
+
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
-  const languageMenuOpen = Boolean(anchorEl);
-  const handleLanguageMenuClick = (event: React.MouseEvent<HTMLElement>) => {
+  const avatarMenuOpen = Boolean(anchorEl);
+  const handleAvatarMenuClick = (
+    event: React.MouseEvent<HTMLButtonElement>
+  ) => {
     setAnchorEl(event.currentTarget);
   };
-  const handleLanguageMenuClose = () => {
+  const handleAvatarMenuClose = () => {
     setAnchorEl(null);
   };
 
-  const api = useApi();
-
   return (
-    <React.Fragment>
+    <>
       <CustomAppBar position='fixed' elevation={0}>
-        <Toolbar sx={{ justifyContent: "space-between" }}>
+        <Toolbar
+          sx={{
+            justifyContent: "space-between",
+            backgroundColor: "background.paper",
+          }}
+        >
           <Box display={{ xs: "flex", md: "none" }}>
             <IconButton onClick={handleDrawerToggle}>
               {open ? <Close /> : <MenuOutlined />}
             </IconButton>
           </Box>
           <Box width='100%' height='100%'>
-            <Tooltip title='Archytex version 0.0.1' placement='bottom-start'>
-              <Box display={{ xs: "none", md: "flex" }} alignItems='center'>
-                <ArchytexIcon />
-                <Typography
-                  variant='h6'
-                  component='h2'
-                  fontSize='1em'
-                  sx={{ display: { xs: "none", sm: "block" } }}
-                >
-                  ARCHYTEX
-                </Typography>
-              </Box>
-            </Tooltip>
+            <ArchytexLogoWithText />
           </Box>
           <Box
             marginX={2}
@@ -72,40 +85,27 @@ function DashboardAppBar({ open, handleOpenChange }: AppBarProps) {
             justifyContent='space-between'
             gap={2}
           >
-            <Button color='inherit' variant='text'>
+            <Button color='inherit' variant='text' onClick={()=>history.push("/")}>
               Home
             </Button>
-            <Button color='inherit' variant='text'>
-              Community
-            </Button>
+            {api?.state === "logged-in" ?
+            <Button color='inherit' variant='text' onClick={()=>history.push("/dashboard")}>
+              Dashboard
+            </Button> : null}
           </Box>
-          <Box
-            width='100%'
-            height='100%'
-            display={{ xs: "none", md: "flex" }}
-            justifyContent='end'
-          >
-            <DarkModeSwitch />
-            <LanguageSelectDropdown
-              open={languageMenuOpen}
-              handleClick={handleLanguageMenuClick}
-              handleClose={handleLanguageMenuClose}
-              anchorEl={anchorEl}
-            />
-            {
-              api?.state === "logged-in" ? <Typography>{api.user.username}</Typography> : <Button variant='outlined' sx={{ marginLeft: 2 }}>
-              Login / register
-            </Button>
+          <Box width='100%' height='100%' display='flex' justifyContent='end'>
+            {api?.state === "not-logged-in" ?
+              <Button variant='outlined' onClick={() => history.push("/login")}>
+                Login
+              </Button> :
+              <UserIconButton />
             }
           </Box>
         </Toolbar>
       </CustomAppBar>
-      <MainPageSwipeableDrawer
-        open={open}
-        handleOpenChange={handleOpenChange}
-      />
-    </React.Fragment>
+      <GeneralSwipeableDrawer content={content} open={open} handleOpenChange={handleOpenChange} />
+    </>
   );
 }
 
-export default DashboardAppBar;
+export default ArchytexAppBar;

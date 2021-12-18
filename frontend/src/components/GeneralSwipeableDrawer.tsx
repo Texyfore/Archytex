@@ -10,9 +10,8 @@ import {
 } from "@mui/material";
 import { styled } from "@mui/material/styles";
 import { Home, Login, People } from "@mui/icons-material";
-import ArchytexIcon from "../ArchytexIcon";
-import LanguageSelectDropdown from "../LanguageSelectDropdown";
-import DarkModeSwitch from "../DarkModeSwitch";
+import GeneralSwipeableDrawerContent from "./GeneralSwipeableDrawerContent";
+import DashboardSwipeableDrawerContent from "./dashboard-components/DashboardSwipeableDrawerContent";
 
 const DrawerHeader = styled("div")(({ theme }) => ({
   display: "flex",
@@ -26,6 +25,7 @@ const DrawerHeader = styled("div")(({ theme }) => ({
 interface SwipeableDrawerProps {
   open: boolean;
   handleOpenChange: (value: boolean) => void;
+  content: "general" | "dashboard";
 }
 const buttonList = [
   {
@@ -42,9 +42,21 @@ const buttonList = [
   },
 ];
 
+const getDrawerContent = (content: "general" | "dashboard") => {
+  switch (content) {
+    case "general":
+      return <GeneralSwipeableDrawerContent />
+    case "dashboard":
+      return <DashboardSwipeableDrawerContent />
+    default:
+      return;
+  }
+}
+
 export default function DashboardSwipeableDrawer({
   open,
   handleOpenChange,
+  content
 }: SwipeableDrawerProps) {
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
   const languageMenuOpen = Boolean(anchorEl);
@@ -54,6 +66,7 @@ export default function DashboardSwipeableDrawer({
   const handleLanguageMenuClose = () => {
     setAnchorEl(null);
   };
+
   return (
     <SwipeableDrawer
       sx={{ display: { xs: "flex", md: "none" } }}
@@ -63,49 +76,7 @@ export default function DashboardSwipeableDrawer({
       onClose={() => handleOpenChange(false)}
       onOpen={() => handleOpenChange(true)}
     >
-      <DrawerHeader sx={{ width: 300 }} />
-      <DrawerHeader
-        sx={{
-          width: 300,
-          height: 100,
-          display: "flex",
-          justifyContent: "center",
-          backgroundSize: "10px 10px",
-          backgroundImage: "radial-gradient(#1c517a .75px, #0c0c0c .75px)",
-        }}
-      >
-        <ArchytexIcon />
-        <Typography variant='h6'>Archytex</Typography>
-      </DrawerHeader>
-      <List>
-        {buttonList.map((props, index) => (
-          <ListItem
-            sx={{
-              borderRadius: "2px",
-            }}
-            button
-            key={index}
-          >
-            <ListItemIcon>{props.icon}</ListItemIcon>
-            <ListItemText primary={props.text} />
-          </ListItem>
-        ))}
-      </List>
-      <Box
-        marginTop='auto'
-        marginBottom={2}
-        display='flex'
-        alignItems='end'
-        justifyContent='space-evenly'
-      >
-        <DarkModeSwitch />
-        <LanguageSelectDropdown
-          open={languageMenuOpen}
-          handleClick={handleLanguageMenuClick}
-          handleClose={handleLanguageMenuClose}
-          anchorEl={anchorEl}
-        />
-      </Box>
+      {getDrawerContent(content)}
     </SwipeableDrawer>
   );
 }
