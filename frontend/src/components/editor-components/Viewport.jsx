@@ -4,6 +4,8 @@ import useDimensions from "react-cool-dimensions";
 
 let editor = undefined;
 let editorInitialized = false;
+let currentCanvasSize = [1024, 768];
+let desiredCanvasSize = undefined;
 
 export default function Editor() {
   useEffect(() => {
@@ -19,25 +21,27 @@ export default function Editor() {
         if (packet !== undefined) {
           onPacket(packet);
         }
+
+        if (currentCanvasSize !== desiredCanvasSize) {
+          let buffer = new Uint16Array(desiredCanvasSize);
+          let bytes = new Uint8Array(buffer.buffer);
+          let packet = new Uint8Array([
+            0,
+            bytes[0],
+            bytes[1],
+            bytes[2],
+            bytes[3],
+          ]);
+          editor.sendPacket(packet);
+          currentCanvasSize = desiredCanvasSize;
+        }
       }
     }, 100);
   }, []);
 
   const { observe } = useDimensions({
     onResize: ({ width, height }) => {
-      if (editor !== undefined) {
-        let buffer = new Uint16Array([width, height]);
-        let bytes = new Uint8Array(buffer.buffer);
-        let packet = new Uint8Array([
-          0,
-          bytes[0],
-          bytes[1],
-          bytes[2],
-          bytes[3],
-        ]);
-        editor.sendPacket(packet);
-        console.log(`[${buffer[0]}x${buffer[1]}]`);
-      }
+      desiredCanvasSize = [width, height];
     },
   });
 
@@ -45,7 +49,6 @@ export default function Editor() {
     <Box
       width='100%'
       height='100%'
-      sx={{ backgroundColor: "red" }}
       ref={observe}
     >
       <canvas

@@ -20,7 +20,6 @@ use winit::{
     event_loop::{ControlFlow, EventLoop},
     window::{Window, WindowBuilder},
 };
-
 use crate::render::WorldPass;
 
 use self::{
@@ -184,7 +183,8 @@ impl MainLoop {
                 0 => {
                     let width = u16::from_le_bytes(packet[1..3].try_into().unwrap()) as u32;
                     let height = u16::from_le_bytes(packet[3..5].try_into().unwrap()) as u32;
-                    self._window.set_inner_size(PhysicalSize { width, height })
+                    self._window.set_inner_size(PhysicalSize { width, height });
+                    info!("Received packet: Resize {{ {}x{} }}", width, height);
                 }
                 _ => {
                     warn!("Received malformed packet");
