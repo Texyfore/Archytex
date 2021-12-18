@@ -27,7 +27,7 @@ func UserMiddleware(next http.Handler) http.Handler {
 			logging.Error(w, r, err, "unauthorized", http.StatusUnauthorized)
 			return
 		}
-		ctx := session.WithContext(r.Context())
+		ctx := session.Context(r.Context())
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }

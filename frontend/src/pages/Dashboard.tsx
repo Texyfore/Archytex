@@ -8,6 +8,7 @@ import DashboardLeftContent from "../components/dasboard-components/DashboardLef
 import DashboardRightContent from "../components/dasboard-components/DashboardRightContent";
 import { ProjectsProvider } from "../services/projects";
 import { SubPageProvider } from "../services/selectedDashboardSubPage";
+import { useApi } from "../services/user/api";
 
 const MaxHeightGrid = styled(Grid)(({ theme }) => ({
   marginTop: 56,
@@ -34,7 +35,7 @@ const CalcHeightGridItem = styled(Grid)(({ theme }) => ({
 
 export default function Dashboard() {
   const [open, setOpen] = useState(false);
-
+  useApi(true);
   const theme = useTheme();
   const isContainer = useMediaQuery(theme.breakpoints.up("lg"));
 
