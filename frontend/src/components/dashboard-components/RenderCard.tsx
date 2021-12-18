@@ -6,7 +6,6 @@ import {
   CardActions,
   CardContent,
   CardMedia,
-  Grid,
   Grow,
   IconButton,
   Modal,

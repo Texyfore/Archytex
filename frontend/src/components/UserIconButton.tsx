@@ -16,7 +16,7 @@ const UserIconButton = () => {
     setAnchorEl(null);
   };
   const api = useApi();
-  const username = api?.state == "logged-in" ? api.user.username : "";
+  const username = api?.state === "logged-in" ? api.user.username : "";
 
   return (
     <>

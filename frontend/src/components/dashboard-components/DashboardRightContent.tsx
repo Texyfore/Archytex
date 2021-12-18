@@ -1,9 +1,9 @@
 import React from "react";
-import { Paper, Box, Typography, Grow, Fade } from "@mui/material";
+import { Paper, Box, Typography, Grow } from "@mui/material";
 import { styled } from "@mui/material/styles";
 import ProjectBrowser from "./ProjectBrowser";
 import SettingsBrowser from "./settings-subpage/SettingsBrowser";
-import { SubPage, useSubPage } from "../../services/selectedDashboardSubPage";
+import { useSubPage } from "../../services/selectedDashboardSubPage";
 
 const ColumnPaper = styled(Paper)(({ theme }) => ({
   width: "100%",
@@ -20,30 +20,6 @@ const ColumnHeader = styled(Box)(({ theme }) => ({
 }));
 export default function DashboardRightContent() {
   const [subpage, _] = useSubPage();
-  const getSubPage = (subpage: SubPage) => {
-    console.log(subpage);
-    switch (subpage) {
-      case "projects":
-        return (
-          <Grow in={subpage === "projects"}>
-            <Box display={subpage === "projects" ? "block" : "none"}>
-              <ProjectBrowser />
-            </Box>
-          </Grow>
-        );
-      case "settings":
-        return (
-          <Grow in={subpage === "settings"}>
-            <Box display={subpage === "settings" ? "block" : "none"}>
-              <SettingsBrowser />
-            </Box>
-          </Grow>
-        );
-      default:
-        break;
-    }
-  };
-
   return (
     <ColumnPaper elevation={0}>
       <ColumnHeader>
@@ -74,7 +50,6 @@ export default function DashboardRightContent() {
         </Grow>
         <Box height={1.01} width='100%' sx={{ backgroundColor: "#39A0ED" }} />
       </ColumnHeader>
-      {/* {getSubPage(subpage)} */}
       <Grow in={subpage === "projects"}>
         <Box height='100%' display={subpage === "projects" ? "block" : "none"}>
           <ProjectBrowser />

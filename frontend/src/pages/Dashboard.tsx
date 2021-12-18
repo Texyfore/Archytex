@@ -1,7 +1,6 @@
-import React, { useState } from "react";
+import React from "react";
 import { styled, useTheme } from "@mui/material/styles";
 import { Grid, useMediaQuery } from "@mui/material";
-import DashboardMiniDrawer from "../components/dashboard-components/DashboardMiniDrawer";
 import DashboardLeftContent from "../components/dashboard-components/DashboardLeftContent";
 import DashboardRightContent from "../components/dashboard-components/DashboardRightContent";
 import { ProjectsProvider } from "../services/projects";
@@ -41,7 +40,7 @@ export default function Dashboard() {
     <SubPageProvider>
       <React.Fragment>
         <ArchytexAppBar content="dashboard" />
-
+        {/* TODO: Bring back mini drawer */}
         <MaxHeightGrid
           container
           overflow='hidden'
