@@ -73,10 +73,9 @@ export default class EditorHandle {
         this.currentResolution = this.desiredResolution;
       }
 
-      let texture = this.textures[0];
+      let texture = this.textures[this.textures.length - 1];
       if (texture !== undefined) {
         module.sendTextureData(texture.id, texture.next(1024));
-        console.log(`${texture.ptr} / ${texture.bytes.length}`);
         if (texture.eof()) {
           module.finishTexture(texture.id);
           this.textures.pop();

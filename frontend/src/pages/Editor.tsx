@@ -1,4 +1,4 @@
-import { Box, Button } from "@mui/material";
+import { Box } from "@mui/material";
 import React, { useEffect } from "react";
 import EditorMenu from "../components/editor-components/EditorMenu";
 import EditorAppBar from "../components/editor-components/EditorAppBar";
@@ -19,12 +19,9 @@ export default function Editor() {
 
   useEffect(() => {
     editorHandle = new EditorHandle();
-  }, []);
-
-  const handleClick = () => {
     editorHandle.loadTexture(0, `${Environment.asset_url}/vertex.png`);
     editorHandle.loadTexture(10, `${Environment.asset_url}/nodraw.png`);
-  };
+  }, []);
 
   return (
     <React.Fragment>
@@ -50,9 +47,6 @@ export default function Editor() {
           e.preventDefault();
         }}
       ></canvas>
-      <Box position="absolute" top={`${appBarHeight}px`} left={10}>
-        <Button onClick={handleClick}>CLICKME</Button>
-      </Box>
     </React.Fragment>
   );
 }
