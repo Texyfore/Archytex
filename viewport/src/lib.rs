@@ -6,6 +6,7 @@ mod net;
 mod render;
 mod ring_vec;
 
+use crate::render::WorldPass;
 use cgmath::{Matrix4, SquareMatrix};
 use instant::Instant;
 use render::{Scene, SceneRenderer, SpritePass, TextureBank};
@@ -20,23 +21,12 @@ use winit::{
     event_loop::{ControlFlow, EventLoop},
     window::{Window, WindowBuilder},
 };
-use crate::render::WorldPass;
 
 use self::{
     editor::Editor,
     input::{InputMapper, Trigger},
+    net::Message,
 };
-
-macro_rules! textures {
-    ($bank:ident $(,$id:literal => $path:literal)*) => {
-        $(
-            $bank.insert(
-                $id,
-                &image::load_from_memory(include_bytes!($path)).unwrap(),
-            );
-        )*
-    };
-}
 
 #[wasm_bindgen]
 pub fn main() {
@@ -67,7 +57,7 @@ pub fn main() {
     };
 
     // Initialization done, make it known to the outside world
-    net::send_packet(vec![0]);
+    net::send_packet(r#"{ "message": "init" }"#.to_owned());
 
     event_loop.run(move |event, _, flow| {
         *flow = ControlFlow::Poll;
@@ -132,12 +122,6 @@ impl MainLoop {
         let solid_factory = gfx_init.create_solid_factory();
         let line_factory = gfx_init.create_line_factory();
 
-        textures!(
-            texture_bank,
-            0 => "editor/vertex.png",
-            10 => "editor/nodraw.png"
-        );
-
         let mut input_mapper = InputMapper::default();
         let editor = Editor::init(solid_factory, line_factory, &mut input_mapper);
 
@@ -178,16 +162,16 @@ impl MainLoop {
         let elapsed = (after - self.before).as_secs_f32();
         self.before = after;
 
-        while let Some(packet) = net::query_packet() {
-            match packet[0] {
-                0 => {
-                    let width = u16::from_le_bytes(packet[1..3].try_into().unwrap()) as u32;
-                    let height = u16::from_le_bytes(packet[3..5].try_into().unwrap()) as u32;
+        while let Some(message) = net::query_packet() {
+            match message {
+                Message::SetResolution { width, height } => {
                     self._window.set_inner_size(PhysicalSize { width, height });
-                    info!("Received packet: Resize {{ {}x{} }}", width, height);
                 }
-                _ => {
-                    warn!("Received malformed packet");
+                Message::TextureData { id, data } => {
+                    self.texture_bank.insert_data(id, data);
+                }
+                Message::FinishTexture { id } => {
+                    self.texture_bank.finish(id);
                 }
             }
         }
