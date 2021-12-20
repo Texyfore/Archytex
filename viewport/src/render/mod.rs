@@ -81,6 +81,7 @@ impl Init {
             layout: self.texture_layout.clone(),
             sampler: self.sampler.clone(),
             textures: RingVec::new(64),
+            partial: Default::default(),
         }
     }
 
@@ -123,6 +124,7 @@ pub struct TextureBank {
     layout: Rc<TextureLayout>,
     sampler: Rc<Sampler>,
     textures: RingVec<TextureData>,
+    partial: HashMap<TextureID, Vec<u8>>,
 }
 
 struct TextureData {
@@ -131,7 +133,27 @@ struct TextureData {
 }
 
 impl TextureBank {
-    pub fn insert(&mut self, id: TextureID, image: &DynamicImage) {
+    pub fn insert_data(&mut self, id: TextureID, mut data: Vec<u8>) {
+        self.partial.entry(id).or_default().append(&mut data);
+    }
+
+    pub fn finish(&mut self, id: TextureID) {
+        self.insert(
+            id,
+            &image::load_from_memory(&self.partial.get(&id).unwrap()).unwrap(),
+        );
+        self.partial.remove(&id);
+    }
+
+    pub fn exists(&self, id: TextureID) -> bool {
+        self.textures.has_element_at(id as usize)
+    }
+
+    pub fn size_of(&self, id: TextureID) -> Option<Vector2<u32>> {
+        self.textures.get(id as usize).map(|t| t.size)
+    }
+
+    fn insert(&mut self, id: TextureID, image: &DynamicImage) {
         let size = image.dimensions();
         self.textures.insert(
             id as usize,
@@ -142,14 +164,6 @@ impl TextureBank {
                 size: size.into(),
             },
         );
-    }
-
-    pub fn exists(&self, id: TextureID) -> bool {
-        self.textures.has_element_at(id as usize)
-    }
-
-    pub fn size_of(&self, id: TextureID) -> Option<Vector2<u32>> {
-        self.textures.get(id as usize).map(|t| t.size)
     }
 }
 
