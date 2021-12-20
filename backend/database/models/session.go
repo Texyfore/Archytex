@@ -11,11 +11,11 @@ type keys string
 
 var SessionKey keys = keys("sessionkey")
 
-func (session Session) WithContext(ctx context.Context) context.Context {
+func (session Session) Context(ctx context.Context) context.Context {
 	return context.WithValue(ctx, SessionKey, session)
 }
 
-func GetSession(ctx context.Context) *Session {
+func UseSession(ctx context.Context) *Session {
 	session, ok := ctx.Value(SessionKey).(Session)
 	if ok {
 		return &session

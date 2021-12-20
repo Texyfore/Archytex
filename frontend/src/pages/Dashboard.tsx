@@ -1,13 +1,12 @@
-import React, { useState } from "react";
+import React from "react";
 import { styled, useTheme } from "@mui/material/styles";
 import { Grid, useMediaQuery } from "@mui/material";
-import DashboardAppBar from "../components/dasboard-components/DashboardAppBar";
-import DashboardMiniDrawer from "../components/dasboard-components/DashboardMiniDrawer";
-import DashboardSwipeableDrawer from "../components/dasboard-components/DashboardSwipeableDrawer";
-import DashboardLeftContent from "../components/dasboard-components/DashboardLeftContent";
-import DashboardRightContent from "../components/dasboard-components/DashboardRightContent";
+import DashboardLeftContent from "../components/dashboard-components/DashboardLeftContent";
+import DashboardRightContent from "../components/dashboard-components/DashboardRightContent";
 import { ProjectsProvider } from "../services/projects";
 import { SubPageProvider } from "../services/selectedDashboardSubPage";
+import { useApi } from "../services/user/api";
+import ArchytexAppBar from "../components/ArchytexAppBar";
 
 const MaxHeightGrid = styled(Grid)(({ theme }) => ({
   marginTop: 56,
@@ -33,25 +32,15 @@ const CalcHeightGridItem = styled(Grid)(({ theme }) => ({
 }));
 
 export default function Dashboard() {
-  const [open, setOpen] = useState(false);
-
+  useApi(true);
   const theme = useTheme();
   const isContainer = useMediaQuery(theme.breakpoints.up("lg"));
-
-  function handleOpenChange(value: boolean): void {
-    setOpen(value);
-  }
 
   return (
     <SubPageProvider>
       <React.Fragment>
-        <DashboardAppBar open={open} handleOpenChange={handleOpenChange} />
-
-        <DashboardSwipeableDrawer
-          open={open}
-          handleOpenChange={handleOpenChange}
-        />
-
+        <ArchytexAppBar content="dashboard" />
+        {/* TODO: Bring back mini drawer */}
         <MaxHeightGrid
           container
           overflow='hidden'
@@ -60,10 +49,6 @@ export default function Dashboard() {
           key='left'
         >
           <Grid item>
-            <DashboardMiniDrawer
-              open={open}
-              handleOpenChange={handleOpenChange}
-            />
           </Grid>
 
           <Grid

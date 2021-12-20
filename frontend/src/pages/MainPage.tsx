@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React from "react";
 import { Button, Typography } from "@mui/material";
 import ArcytexAppBar from "../components/ArchytexAppBar";
 import MainPageContainer from "../components/main-page-components/MainPageContainer";
@@ -15,17 +15,13 @@ import AppBarOffset from "../components/AppBarOffset";
 import { useTranslation } from "react-i18next";
 
 export default function MainPage() {
-  const [open, setOpen] = useState(false);
-  function handleOpenChange(value: boolean): void {
-    setOpen(value);
-  }
   const executeScrollToStart = () =>
     window.scrollTo({ top: 760, behavior: "smooth" });
 
   const { t } = useTranslation();
   return (
     <React.Fragment>
-      <ArcytexAppBar handleOpenChange={handleOpenChange} open={open} />
+      <ArcytexAppBar content="general" />
       <AppBarOffset />
 
       {/* Header */}

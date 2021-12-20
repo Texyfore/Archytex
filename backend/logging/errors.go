@@ -19,7 +19,7 @@ func Error(w http.ResponseWriter, r *http.Request, err error, message string, co
 		errLogged = err.Error()
 	}
 	w.WriteHeader(code)
-	requestId := GetRequestId(r.Context())
+	requestId := UseRequestId(r.Context())
 	log.Printf("[ERROR] %s %s", requestId, errLogged)
 	json.NewEncoder(w).Encode(errorMessage{
 		Message:   message,
