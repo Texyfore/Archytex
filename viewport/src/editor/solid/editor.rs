@@ -10,6 +10,7 @@ use crate::{
     },
     input::InputMapper,
     math::{IntersectionPoint, MinMax, Plane, SolidUtil},
+    net,
     render::{LineBatch, LineFactory, LineVertex, Scene, SolidFactory, Sprite, TextureBank},
 };
 
@@ -165,6 +166,15 @@ impl EditState {
             Self::Face(_) => Self::Point(Default::default()),
             Self::Point(_) => Self::Solid(Default::default()),
         };
+
+        net::send_packet(format!(
+            r#"{{"message": "newMode", "mode": "{}"}}"#,
+            match self {
+                EditState::Solid(_) => "solid",
+                EditState::Face(_) => "face",
+                EditState::Point(_) => "point",
+            }
+        ))
     }
 
     fn process(

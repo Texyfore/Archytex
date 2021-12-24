@@ -56,9 +56,6 @@ pub fn main() {
         main_loop
     };
 
-    // Initialization done, make it known to the outside world
-    net::send_packet(r#"{ "message": "init" }"#.to_owned());
-
     event_loop.run(move |event, _, flow| {
         *flow = ControlFlow::Poll;
         match event {
@@ -118,7 +115,7 @@ impl MainLoop {
     fn init(window: Window) -> Self {
         let gfx_init = render::init(&window);
         let renderer = gfx_init.create_scene_renderer();
-        let mut texture_bank = gfx_init.create_texture_bank();
+        let texture_bank = gfx_init.create_texture_bank();
         let solid_factory = gfx_init.create_solid_factory();
         let line_factory = gfx_init.create_line_factory();
 
@@ -172,6 +169,18 @@ impl MainLoop {
                 }
                 Message::FinishTexture { id } => {
                     self.texture_bank.finish(id);
+                }
+                Message::SetMode(mode) => {
+                    info!("The edit mode changed to: {:?}", mode);
+                }
+                Message::SelectTexture(texture) => {
+                    info!("A texture was selected: {}", texture);
+                }
+                Message::SelectProp(prop) => {
+                    info!("A prop was selected: {}", prop);
+                }
+                Message::SaveScene => {
+                    info!("Scene will be saved!");
                 }
             }
         }
