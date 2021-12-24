@@ -10,6 +10,10 @@ import Environment from "../env";
 const appBarHeight = 48;
 let editorHandle: EditorHandle;
 
+function onPacket(packet: any) {
+  console.log(`Frontend packet: ${packet}`);
+}
+
 export default function Editor() {
   const { observe } = useDimensions({
     onResize: ({ width, height }) => {
@@ -18,7 +22,7 @@ export default function Editor() {
   });
 
   useEffect(() => {
-    editorHandle = new EditorHandle();
+    editorHandle = new EditorHandle(onPacket);
     editorHandle.loadTexture(0, `${Environment.asset_url}/vertex.png`);
     editorHandle.loadTexture(10, `${Environment.asset_url}/nodraw.png`);
   }, []);

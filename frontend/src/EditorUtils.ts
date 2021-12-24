@@ -24,18 +24,23 @@ class Texture {
 
 export default class EditorHandle {
   private loopTimeout: NodeJS.Timeout | undefined;
+  private module: any;
   private currentResolution: [number, number];
   private desiredResolution: [number, number] | undefined;
   private textures: Texture[];
+  private messageCallback: (message: any) => void;
 
-  constructor() {
+  constructor(messageCallback: (message: any) => void) {
     this.loopTimeout = undefined;
+    this.module = undefined;
     this.currentResolution = [1024, 768];
     this.desiredResolution = undefined;
     this.textures = [];
+    this.messageCallback = messageCallback;
 
     import("viewport").then((module) => {
       this.loopTimeout = setInterval(this.loop(module), 16);
+      this.module = module;
       module.main();
     });
   }
@@ -52,6 +57,25 @@ export default class EditorHandle {
       this.textures.push(new Texture(id, bytes));
     };
     get();
+  }
+
+  setMode(mode: string) {
+    switch (mode) {
+      case "solid":
+        this.module.setSolidMode();
+        break;
+      case "prop":
+        this.module.setPropMode();
+        break;
+    }
+  }
+
+  saveScene() {
+    this.module.saveScene();
+  }
+
+  getSavedScene(): Uint8Array | undefined {
+    return this.module.getSavedScene();
   }
 
   destroy() {
@@ -80,6 +104,11 @@ export default class EditorHandle {
           module.finishTexture(texture.id);
           this.textures.pop();
         }
+      }
+
+      const message = module.queryMessage();
+      if (message !== undefined) {
+        this.messageCallback(JSON.parse(message));
       }
     };
   }
