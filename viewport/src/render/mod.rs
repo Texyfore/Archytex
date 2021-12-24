@@ -140,7 +140,7 @@ impl TextureBank {
     pub fn finish(&mut self, id: TextureID) {
         self.insert(
             id,
-            &image::load_from_memory(&self.partial.get(&id).unwrap()).unwrap(),
+            &image::load_from_memory(self.partial.get(&id).unwrap()).unwrap(),
         );
         self.partial.remove(&id);
     }
