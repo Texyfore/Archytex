@@ -59,6 +59,7 @@ export default function Editor() {
   const [viewportMode, setViewportMode] = useState<viewportMode>("solid");
   const handleViewportModeChange = (e: any) => {
     setViewportMode(e.target.value);
+    editorHandle.setEditorMode(e.target.value === "solid" ? 0 : 1);
   };
 
   // Selection mode change
@@ -70,6 +71,22 @@ export default function Editor() {
     newSelectionMode: selectionMode
   ) => {
     setSelectionMode(newSelectionMode);
+    let id = -1;
+    switch (newSelectionMode) {
+      case "mesh":
+        id = 0;
+        break;
+      case "face":
+        id = 1;
+        break;
+      case "vertex":
+        id = 2;
+        break;
+
+      default:
+        break;
+    }
+    editorHandle.setSolidEditorMode(id);
   };
   // Translate mode change
   const [translateMode, setTranslateMode] =
@@ -80,6 +97,24 @@ export default function Editor() {
     newTranslateMode: translateMode
   ) => {
     setTranslateMode(newTranslateMode);
+    let id = -1;
+    switch (newTranslateMode) {
+      case "select":
+        id = 0;
+        break;
+      case "move":
+        id = 1;
+        break;
+      case "rotate":
+        id = 2;
+        break;
+      case "scale":
+        id = 3;
+        break;
+      default:
+        break;
+    }
+    editorHandle.setGizmo(id);
   };
 
   // Camera settings dropdown
