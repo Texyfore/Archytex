@@ -6,7 +6,7 @@ mod net;
 mod render;
 mod ring_vec;
 
-use crate::render::WorldPass;
+use crate::{editor::EditMode, render::WorldPass};
 use cgmath::{Matrix4, SquareMatrix};
 use instant::Instant;
 use render::{Scene, SceneRenderer, SpritePass, TextureBank};
@@ -103,7 +103,7 @@ pub fn main() {
 }
 
 struct MainLoop {
-    _window: Window,
+    window: Window,
     before: Instant,
     renderer: SceneRenderer,
     texture_bank: TextureBank,
@@ -123,7 +123,7 @@ impl MainLoop {
         let editor = Editor::init(solid_factory, line_factory, &mut input_mapper);
 
         Self {
-            _window: window,
+            window,
             before: Instant::now(),
             renderer,
             texture_bank,
@@ -162,16 +162,30 @@ impl MainLoop {
         while let Some(message) = net::query_packet() {
             match message {
                 Message::SetResolution { width, height } => {
-                    self._window.set_inner_size(PhysicalSize { width, height });
+                    self.window.set_inner_size(PhysicalSize { width, height });
+                    info!("Resolution changed to [{}x{}]", width, height);
                 }
                 Message::TextureData { id, data } => {
                     self.texture_bank.insert_data(id, data);
+                    info!("Uploaded texture {}", id);
                 }
-                Message::FinishTexture { id } => {
-                    self.texture_bank.finish(id);
+                Message::LoadTextures => {
+                    self.texture_bank.finish();
+                    info!("All textures loaded");
                 }
-                Message::SetMode(mode) => {
-                    info!("The edit mode changed to: {:?}", mode);
+                Message::SetEditorMode(mode) => {
+                    match mode {
+                        0 => self.editor.mode = EditMode::Solid,
+                        1 => self.editor.mode = EditMode::Prop,
+                        _ => {}
+                    }
+                    info!("Editor mode changed to: {:?}", mode);
+                }
+                Message::SetSolidEditorMode(mode) => {
+                    self.editor.set_solid_editor_mode(mode);
+                }
+                Message::SetGizmo(gizmo) => {
+                    info!("Gizmo will be set to: {}", gizmo);
                 }
                 Message::SelectTexture(texture) => {
                     info!("A texture was selected: {}", texture);
@@ -180,7 +194,8 @@ impl MainLoop {
                     info!("A prop was selected: {}", prop);
                 }
                 Message::SaveScene => {
-                    info!("Scene will be saved!");
+                    self.editor.save_scene(&self.texture_bank);
+                    info!("Scene saved");
                 }
             }
         }

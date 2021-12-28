@@ -1,115 +1,145 @@
-class Texture {
-  id: number;
-  bytes: Uint8Array;
-  ptr: number;
-
-  constructor(id: number, bytes: Uint8Array) {
-    this.id = id;
-    this.bytes = bytes;
-    this.ptr = 0;
-  }
-
-  eof(): boolean {
-    return this.ptr === this.bytes.length;
-  }
-
-  next(length: number): Uint8Array {
-    let end = Math.min(this.ptr + length, this.bytes.length);
-    let arr = this.bytes.subarray(this.ptr, end);
-
-    this.ptr = Math.min(this.ptr + length, this.bytes.length);
-    return arr;
-  }
-}
-
 export default class EditorHandle {
   private loopTimeout: NodeJS.Timeout | undefined;
-  private module: any;
-  private currentResolution: [number, number];
-  private desiredResolution: [number, number] | undefined;
-  private textures: Texture[];
-  private messageCallback: (message: any) => void;
+  private actionQueue: any[];
+  private savedScene: Uint8Array | undefined;
 
-  constructor(messageCallback: (message: any) => void) {
+  constructor() {
     this.loopTimeout = undefined;
-    this.module = undefined;
-    this.currentResolution = [1024, 768];
-    this.desiredResolution = undefined;
-    this.textures = [];
-    this.messageCallback = messageCallback;
+    this.actionQueue = [];
+    this.savedScene = undefined;
 
     import("viewport").then((module) => {
-      this.loopTimeout = setInterval(this.loop(module), 16);
-      this.module = module;
+      this.loopTimeout = setInterval(() => {
+        while (this.actionQueue.length > 0) {
+          const action = this.actionQueue.pop();
+          if (action !== undefined) {
+            switch (action.type) {
+              case "resolution": {
+                module.setResolution(action.width, action.height);
+                break;
+              }
+              case "texture-data": {
+                module.textureData(action.id, action.data);
+                break;
+              }
+              case "load-textures": {
+                module.loadTextures();
+                break;
+              }
+              case "set-editor-mode": {
+                module.setEditorMode(action.mode);
+                break;
+              }
+              case "set-solid-editor-mode": {
+                module.setSolidEditorMode(action.mode);
+                break;
+              }
+              case "set-gizmo": {
+                module.setGizmo(action.gizmo);
+                break;
+              }
+              case "select-texture": {
+                module.selectTexture(action.id);
+                break;
+              }
+              case "select-prop": {
+                module.selectProp(action.id);
+                break;
+              }
+              case "save-scene": {
+                module.saveScene();
+                break;
+              }
+            }
+          }
+        }
+
+        const savedScene = module.getSavedScene();
+        if (savedScene !== undefined) {
+          this.savedScene = savedScene;
+        }
+      }, 16);
+
       module.main();
     });
   }
 
   setResolution(width: number, height: number) {
-    this.desiredResolution = [width + 1, height];
+    this.actionQueue.unshift([{
+      type: "resolution",
+      width: width,
+      height: height,
+    }]);
   }
 
-  loadTexture(id: number, url: string) {
+  textureData(id: number, url: string) {
     let get = async () => {
       let image = await fetch(url);
       let arrayBuffer = await image.arrayBuffer();
-      let bytes = new Uint8Array(arrayBuffer);
-      this.textures.push(new Texture(id, bytes));
+      let data = new Uint8Array(arrayBuffer);
+      this.actionQueue.unshift([{
+        type: "texture-data",
+        id: id,
+        data: data,
+      }]);
     };
     get();
   }
 
-  setMode(mode: string) {
-    switch (mode) {
-      case "solid":
-        this.module.setSolidMode();
-        break;
-      case "prop":
-        this.module.setPropMode();
-        break;
-    }
+  loadTextures() {
+    this.actionQueue.unshift([{
+      type: "load-textures",
+    }]);
+  }
+
+  setEditorMode(mode: number) {
+    this.actionQueue.unshift([{
+      type: "set-editor-mode",
+      mode: mode,
+    }]);
+  }
+
+  setSolidEditorMode(mode: number) {
+    this.actionQueue.unshift([{
+      type: "set-solid-editor-mode",
+      mode: mode,
+    }]);
+  }
+
+  setGizmo(gizmo: number) {
+    this.actionQueue.unshift([{
+      type: "set-gizmo",
+      gizmo: gizmo,
+    }]);
   }
 
   saveScene() {
-    this.module.saveScene();
+    this.actionQueue.unshift([{
+      type: "save-scene",
+    }]);
+  }
+
+  selectTexture(id: number) {
+    this.actionQueue.unshift([{
+      type: "select-texture",
+      id: id,
+    }]);
+  }
+
+  selectProp(id: number) {
+    this.actionQueue.unshift([{
+      type: "select-prop",
+      id: id,
+    }]);
   }
 
   getSavedScene(): Uint8Array | undefined {
-    return this.module.getSavedScene();
+    return this.savedScene;
   }
 
   destroy() {
     if (this.loopTimeout !== undefined) {
       clearInterval(this.loopTimeout);
     }
-  }
-
-  private loop(module: any) {
-    return () => {
-      if (
-        this.currentResolution !== this.desiredResolution &&
-        this.desiredResolution !== undefined
-      ) {
-        module.setResolution(
-          this.desiredResolution[0],
-          this.desiredResolution[1]
-        );
-        this.currentResolution = this.desiredResolution;
-      }
-
-      let texture = this.textures[this.textures.length - 1];
-      if (texture !== undefined) {
-        module.sendTextureData(texture.id, texture.next(1024));
-        if (texture.eof()) {
-          module.finishTexture(texture.id);
-          this.textures.pop();
-        }
-      }
-
-      const message = module.queryMessage();
-      if (message !== undefined) {
-        this.messageCallback(JSON.parse(message));
-      }
-    };
   }
 }

@@ -81,7 +81,7 @@ impl Init {
             layout: self.texture_layout.clone(),
             sampler: self.sampler.clone(),
             textures: RingVec::new(64),
-            partial: Default::default(),
+            partial: Some(Vec::new()),
         }
     }
 
@@ -124,7 +124,7 @@ pub struct TextureBank {
     layout: Rc<TextureLayout>,
     sampler: Rc<Sampler>,
     textures: RingVec<TextureData>,
-    partial: HashMap<TextureID, Vec<u8>>,
+    partial: Option<Vec<(TextureID, Vec<u8>)>>,
 }
 
 struct TextureData {
@@ -133,16 +133,14 @@ struct TextureData {
 }
 
 impl TextureBank {
-    pub fn insert_data(&mut self, id: TextureID, mut data: Vec<u8>) {
-        self.partial.entry(id).or_default().append(&mut data);
+    pub fn insert_data(&mut self, id: TextureID, data: Vec<u8>) {
+        self.partial.as_mut().unwrap().push((id, data));
     }
 
-    pub fn finish(&mut self, id: TextureID) {
-        self.insert(
-            id,
-            &image::load_from_memory(self.partial.get(&id).unwrap()).unwrap(),
-        );
-        self.partial.remove(&id);
+    pub fn finish(&mut self) {
+        for (id, data) in self.partial.take().unwrap() {
+            self.insert(id, &image::load_from_memory(&data).unwrap());
+        }
     }
 
     pub fn exists(&self, id: TextureID) -> bool {

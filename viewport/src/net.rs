@@ -58,24 +58,29 @@ pub fn __set_resolution(width: u32, height: u32) {
     push_from_js(Message::SetResolution { width, height });
 }
 
-#[wasm_bindgen(js_name = "sendTextureData")]
-pub fn __send_texture_data(id: u32, data: Vec<u8>) {
+#[wasm_bindgen(js_name = "textureData")]
+pub fn __texture_data(id: u32, data: Vec<u8>) {
     push_from_js(Message::TextureData { id, data })
 }
 
-#[wasm_bindgen(js_name = "finishTexture")]
-pub fn __finish_texture(id: u32) {
-    push_from_js(Message::FinishTexture { id })
+#[wasm_bindgen(js_name = "loadTextures")]
+pub fn __load_textures() {
+    push_from_js(Message::LoadTextures)
 }
 
-#[wasm_bindgen(js_name = "setSolidMode")]
-pub fn __set_solid_mode() {
-    push_from_js(Message::SetMode(EditMode::Solid));
+#[wasm_bindgen(js_name = "setEditorMode")]
+pub fn __set_editor_mode(mode: i32) {
+    push_from_js(Message::SetEditorMode(mode));
 }
 
-#[wasm_bindgen(js_name = "setPropMode")]
-pub fn __set_prop_mode() {
-    push_from_js(Message::SetMode(EditMode::Prop));
+#[wasm_bindgen(js_name = "setSolidEditorMode")]
+pub fn __set_solid_editor_mode(mode: i32) {
+    push_from_js(Message::SetSolidEditorMode(mode));
+}
+
+#[wasm_bindgen(js_name = "setGizmo")]
+pub fn __set_gizmo(gizmo: i32) {
+    push_from_js(Message::SetGizmo(gizmo));
 }
 
 #[wasm_bindgen(js_name = "selectTexture")]
@@ -102,15 +107,11 @@ pub fn __get_saved_scene() -> Option<Vec<u8>> {
 pub enum Message {
     SetResolution { width: u32, height: u32 },
     TextureData { id: u32, data: Vec<u8> },
-    FinishTexture { id: u32 },
-    SetMode(EditMode),
+    LoadTextures,
+    SetEditorMode(i32),
+    SetSolidEditorMode(i32),
+    SetGizmo(i32),
     SelectTexture(u32),
     SelectProp(u32),
     SaveScene,
-}
-
-#[derive(Debug)]
-pub enum EditMode {
-    Solid,
-    Prop,
 }

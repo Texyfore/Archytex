@@ -74,6 +74,10 @@ actions! {
 
     SetTexture           Key T        ,
 
+    // Modifiers //////////////////////
+
+    Control              Key LControl ,
+
     ///////////////////////////////////
 }
 
@@ -81,11 +85,11 @@ const GRID_MIN: i32 = -3;
 const GRID_MAX: i32 = 2;
 
 pub struct Editor {
+    pub mode: EditMode,
     solid_factory: SolidFactory,
     line_factory: LineFactory,
     world_camera: WorldCamera,
     sprite_camera: SpriteCamera,
-    mode: EditMode,
     solid_editor: SolidEditor,
     grid_subdiv: i32,
     grid: Rc<LineBatch>,
@@ -102,11 +106,11 @@ impl Editor {
         let grid = line_factory.create(&generate_grid(16, 1.0));
 
         Self {
+            mode: EditMode::Solid,
             solid_factory,
             line_factory,
             world_camera: Default::default(),
             sprite_camera: Default::default(),
-            mode: EditMode::Solid,
             solid_editor: Default::default(),
             grid_subdiv: 0,
             grid,
@@ -114,7 +118,7 @@ impl Editor {
     }
 
     pub fn process(&mut self, dt: f32, input: &InputMapper, texture_bank: &TextureBank) {
-        if input.is_active_once(SwitchMode) {
+        if input.is_active_once(SwitchMode) && input.is_active(Control) {
             self.mode.switch();
         }
 
@@ -139,14 +143,20 @@ impl Editor {
         }
 
         self.world_camera.process(dt, input);
-        self.solid_editor.process(SolidEditorContext {
-            input,
-            world_camera: &self.world_camera,
-            solid_factory: &self.solid_factory,
-            line_factory: &self.line_factory,
-            texture_bank,
-            grid_length: 2.0f32.powi(self.grid_subdiv),
-        });
+
+        match self.mode {
+            EditMode::Solid => {
+                self.solid_editor.process(SolidEditorContext {
+                    input,
+                    world_camera: &self.world_camera,
+                    solid_factory: &self.solid_factory,
+                    line_factory: &self.line_factory,
+                    texture_bank,
+                    grid_length: 2.0f32.powi(self.grid_subdiv),
+                });
+            }
+            EditMode::Prop => {}
+        }
     }
 
     pub fn render(&self, scene: &mut Scene) {
@@ -160,9 +170,17 @@ impl Editor {
         self.world_camera.resize_viewport(width, height);
         self.sprite_camera.resize_viewport(width, height);
     }
+
+    pub fn set_solid_editor_mode(&mut self, mode: i32) {
+        self.solid_editor.set_mode(mode);
+    }
+
+    pub fn save_scene(&self, texture_bank: &TextureBank) {
+        self.solid_editor.save_scene(texture_bank);
+    }
 }
 
-#[derive(Clone, Copy, PartialEq)]
+#[derive(Clone, Copy, PartialEq, Debug)]
 pub enum EditMode {
     Solid,
     Prop,
