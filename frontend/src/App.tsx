@@ -1,20 +1,14 @@
-import React, { Suspense, useMemo } from "react";
+import React, { Suspense } from "react";
 import { BrowserRouter as Router, Switch, Route } from "react-router-dom";
 import i18n from "i18next";
-import { initReactI18next, useTranslation } from "react-i18next";
+import { initReactI18next } from "react-i18next";
 import "./App.css";
-import { ThemeProvider, createTheme } from "@mui/material/styles";
 import CssBaseline from "@mui/material/CssBaseline";
 import MainPage from "./pages/MainPage";
 import Dashboard from "./pages/Dashboard";
 import LoginPage from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
-import {
-  ColorMode,
-  ColorModeProvider,
-  modeToString,
-  useColorMode,
-} from "./services/colorMode";
+import { ColorModeProvider } from "./services/colorMode";
 import { Box, CircularProgress, Typography } from "@mui/material";
 import { DummyProvider } from "./services/user/dummy";
 import Editor from "./pages/Editor";
@@ -74,112 +68,56 @@ i18n.use(initReactI18next).init({
 });
 
 function App() {
-  //set different font for Japanese language
-  const { i18n } = useTranslation();
-  const fontFamily = useMemo(() => {
-    switch (i18n.language) {
-      case "jp":
-        return "Noto Sans JP";
-
-      default:
-        return "Poppins";
-    }
-  }, [i18n.language]);
-  const [mode] = useColorMode();
-  const archytex_theme = React.useMemo(
-    () =>
-      createTheme({
-        palette: {
-          mode: modeToString(mode),
-          primary: {
-            main: "#39A0ED",
-          },
-          secondary: {
-            main: "#f68dd1",
-          },
-          text: {
-            primary: mode === ColorMode.Dark ? "#f5f0f6" : "#0c0c0c",
-          },
-          background: {
-            default: mode === ColorMode.Dark ? "#0c0c0c" : "#F5F0F6",
-            paper: mode === ColorMode.Dark ? "#0c0c0c" : "#F5F0F6",
-          },
-          error: {
-            main: "#fb4d3d",
-          },
-          warning: {
-            main: "#fea82f",
-          },
-          info: {
-            main: "#4c6085",
-          },
-          success: {
-            main: "#13c4a3",
-          },
-          divider: mode === ColorMode.Dark ? "#1F1F1F" : "#EBE7EC",
-        },
-        shape: {
-          borderRadius: 2,
-        },
-        typography: {
-          fontFamily: fontFamily,
-        },
-      }),
-    [mode, fontFamily]
-  );
-
   return (
-    <ThemeProvider theme={archytex_theme}>
-      <Suspense fallback={<CircularProgress color='primary' />}>
-        <CssBaseline />
-        <DummyProvider
-          fallback={
-            <Box
-              display='flex'
-              height='100vh'
-              justifyContent='center'
-              alignItems='center'
-              flexDirection='column'
-            >
-              <CircularProgress color='primary' />
-              <Typography marginTop={2}>Just a moment...</Typography>
-            </Box>
-          }
-        >
-          <Router>
-            <Switch>
-              <Route exact path='/'>
-                <MainPage />
-              </Route>
-              <Route path='/dashboard'>
-                <Dashboard />
-              </Route>
-              <Route path='/login'>
-                <LoginPage />
-              </Route>
-              <Route path='/register'>
-                <RegisterPage />
-              </Route>
-              <Route path='/editor'>
-                <Editor />
-              </Route>
-              <Route path='/editor'>
-                <Editor />
-              </Route>
-              <Route path='/editor'>
-                <Editor />
-              </Route>
-              <Route path='/success'>
-                <SuccessfulRegistration />
-              </Route>
-              <Route>
-                <PageNotFound />
-              </Route>
-            </Switch>
-          </Router>
-        </DummyProvider>
-      </Suspense>
-    </ThemeProvider>
+    <Suspense fallback={<CircularProgress color='primary' />}>
+      <CssBaseline />
+      <DummyProvider
+        fallback={
+          <Box
+            display='flex'
+            height='100vh'
+            justifyContent='center'
+            alignItems='center'
+            flexDirection='column'
+          >
+            <CircularProgress color='primary' />
+            <Typography marginTop={2}>Just a moment...</Typography>
+          </Box>
+        }
+      >
+        <Router>
+          <Switch>
+            <Route exact path='/'>
+              <MainPage />
+            </Route>
+            <Route path='/dashboard'>
+              <Dashboard />
+            </Route>
+            <Route path='/login'>
+              <LoginPage />
+            </Route>
+            <Route path='/register'>
+              <RegisterPage />
+            </Route>
+            <Route path='/editor'>
+              <Editor />
+            </Route>
+            <Route path='/editor'>
+              <Editor />
+            </Route>
+            <Route path='/editor'>
+              <Editor />
+            </Route>
+            <Route path='/success'>
+              <SuccessfulRegistration />
+            </Route>
+            <Route>
+              <PageNotFound />
+            </Route>
+          </Switch>
+        </Router>
+      </DummyProvider>
+    </Suspense>
   );
 }
 

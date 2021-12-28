@@ -1,8 +1,65 @@
 import React, { useContext, useReducer } from "react";
+import { ThemeProvider, createTheme } from "@mui/material/styles";
+import { useTranslation } from "react-i18next";
 
 enum ColorMode {
   Light,
   Dark,
+}
+
+function GetTheme(mode: ColorMode): any {
+  //set different font for Japanese language
+  const { i18n } = useTranslation();
+  const fontFamily = React.useMemo(() => {
+    switch (i18n.language) {
+      case "jp":
+        return "Noto Sans JP";
+
+      default:
+        return "Poppins";
+    }
+  }, [i18n.language]);
+  return React.useMemo(
+    () =>
+      createTheme({
+        palette: {
+          mode: modeToString(mode),
+          primary: {
+            main: "#39A0ED",
+          },
+          secondary: {
+            main: "#f68dd1",
+          },
+          text: {
+            primary: mode === ColorMode.Dark ? "#f5f0f6" : "#0c0c0c",
+          },
+          background: {
+            default: mode === ColorMode.Dark ? "#0c0c0c" : "#F5F0F6",
+            paper: mode === ColorMode.Dark ? "#0c0c0c" : "#F5F0F6",
+          },
+          error: {
+            main: "#fb4d3d",
+          },
+          warning: {
+            main: "#fea82f",
+          },
+          info: {
+            main: "#4c6085",
+          },
+          success: {
+            main: "#13c4a3",
+          },
+          divider: mode === ColorMode.Dark ? "#1F1F1F" : "#EBE7EC",
+        },
+        shape: {
+          borderRadius: 2,
+        },
+        typography: {
+          fontFamily: fontFamily,
+        },
+      }),
+    [mode, fontFamily]
+  );
 }
 
 function invert(mode: ColorMode): ColorMode {
@@ -49,10 +106,26 @@ export const ColorModeProvider = ({
   let mode =
     modeFromString(localStorage.getItem("colormode")) ?? ColorMode.Dark;
   const [state, dispatch] = useReducer(colorModeReducer, mode);
+  const theme = GetTheme(state);
   return (
-    <ColorModeContext.Provider value={[state, dispatch]}>
-      {children}
-    </ColorModeContext.Provider>
+    <ThemeProvider theme={theme}>
+      <ColorModeContext.Provider value={[state, dispatch]}>
+        {children}
+      </ColorModeContext.Provider>
+    </ThemeProvider>
+  );
+};
+
+export const ForceDarkProvider = ({
+  children,
+}: React.PropsWithChildren<{}>) => {
+  const theme = GetTheme(ColorMode.Dark);
+  return (
+    <ThemeProvider theme={theme}>
+      <ColorModeContext.Provider value={[ColorMode.Dark, () => {}]}>
+        {children}
+      </ColorModeContext.Provider>
+    </ThemeProvider>
   );
 };
 
