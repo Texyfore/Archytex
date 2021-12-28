@@ -74,13 +74,3 @@ impl Scene {
         bincode::deserialize(buf).ok()
     }
 }
-
-impl Model {
-    pub fn encode(self) -> Option<Vec<u8>> {
-        bincode::serialize(&self).ok()
-    }
-
-    pub fn decode(buf: &[u8]) -> Option<Self> {
-        bincode::deserialize(buf).ok()
-    }
-}

@@ -32,8 +32,12 @@ type viewportMode = "solid" | "prop";
 type selectionMode = "mesh" | "face" | "vertex";
 type translateMode = "select" | "move" | "rotate" | "scale";
 
-function onPacket(packet: any) {
-  console.log(`Frontend packet: ${packet}`);
+function editorModeChanged(mode: number) {
+  console.log(`Editor mode was changed with hotkey (${mode})`);
+}
+
+function solidEditorModeChanged(mode: number) {
+  console.log(`Solid editor mode was changed with hotkey (${mode})`);
 }
 
 export default function Editor() {
@@ -43,9 +47,15 @@ export default function Editor() {
     },
   });
   useEffect(() => {
-    editorHandle = new EditorHandle(onPacket);
-    editorHandle.loadTexture(0, `${Environment.asset_url}/vertex.png`);
-    editorHandle.loadTexture(10, `${Environment.asset_url}/nodraw.png`);
+    editorHandle = new EditorHandle({
+      editorModeChanged: editorModeChanged,
+      solidEditorModeChanged: solidEditorModeChanged,
+    });
+
+    editorHandle.textureData(0, `${Environment.asset_url}/vertex.png`);
+    editorHandle.textureData(10, `${Environment.asset_url}/nodraw.png`);
+    editorHandle.loadTextures();
+    return editorHandle.destroy;
   }, []);
 
   // Viewport mode change
