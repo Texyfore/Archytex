@@ -1,18 +1,18 @@
 import React, { useContext, useEffect } from "react";
 import { useHistory } from "react-router-dom";
-import { Projects, ProjectsDispatch, Subscription } from "../projects";
+import { Projects, ProjectsDispatch } from "../projects";
 
 interface User {
     username: string,
     email: string,
     coins: number,
 }
-
+type Callback = (projects: Projects)=>void;
 interface UserLoggedIn {
     state: "logged-in"
     logOut: ()=>void
     user: User
-    subscribe: ()=>Subscription
+    subscribe: ( callback: Callback )=>{dispatch: ProjectsDispatch, dispose: ()=>void}
 }
 interface UserNotLoggedIn {
     state: "not-logged-in"
@@ -36,5 +36,5 @@ const useApi = (required?: boolean)=>{
     return val;
 }
 
-export type { User, UserController }
+export type { User, UserController, Callback }
 export { ApiContext, useApi }

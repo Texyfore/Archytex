@@ -22,6 +22,57 @@ type MongoDatabase struct {
 	Sessions  *mongo.Collection
 }
 
+func (m MongoDatabase) CreateProject(userId interface{}, name string) error {
+	//TODO implement me
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
+	defer cancel()
+	project := models.Project{
+		Id:      primitive.NewObjectID(),
+		Created: time.Now(),
+		Assets:  []interface{}{},
+		Renders: []models.Render{},
+		Path:    "TODO",
+		Title:   name,
+	}
+	_, err := m.Users.UpdateOne(ctx, bson.D{
+		{"_id", userId},
+	}, bson.D{
+		{"$push", bson.D{
+			{"projects", project},
+		}},
+	})
+	return err
+}
+
+func (m MongoDatabase) RenameProject(userId interface{}, projectId interface{}, name string) error {
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
+	defer cancel()
+	_, err := m.Users.UpdateOne(ctx, bson.D{
+		{"_id", userId},
+		{"projects._id", projectId},
+	}, bson.D{
+		{"$set", bson.D{
+			{"projects.$.title", name},
+		}},
+	})
+	return err
+}
+
+func (m MongoDatabase) DeleteProject(userId interface{}, projectId interface{}) error {
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
+	defer cancel()
+	_, err := m.Users.UpdateOne(ctx, bson.D{
+		{"_id", userId},
+	}, bson.D{
+		{"$pull", bson.D{
+			{"projects", bson.D{
+				{"_id", projectId},
+			}},
+		}},
+	})
+	return err
+}
+
 func (m MongoDatabase) GetSession(id interface{}) (*models.Session, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*3)
 	defer cancel()
@@ -231,8 +282,10 @@ func (m MongoDatabase) SubscribeProjects(userId interface{}) (chan Updates, erro
 	}
 	project := bson.D{
 		{"$project", bson.D{
+			{"fullDocument.projects._id", 1},
 			{"fullDocument.projects.title", 1},
 			{"fullDocument.projects.created", 1},
+			{"fullDocument.projects.renders._id", 1},
 			{"fullDocument.projects.renders.name", 1},
 			{"fullDocument.projects.renders.status", 1},
 			{"fullDocument.projects.renders.started", 1},

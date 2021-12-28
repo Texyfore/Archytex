@@ -1,4 +1,5 @@
-import React from "react";
+import React, { useState } from "react";
+import { useEffect } from "react";
 import { useContext } from "react";
 import { useApi } from "./user/api";
 
@@ -36,18 +37,29 @@ interface ActionDelete{
 
 type Projects = Project[];
 type Action = ActionCreate | ActionRename | ActionDelete;
-type ProjectsDispatch = (action: Action)=>void
-type Subscription = { projects: Projects, dispatch: ProjectsDispatch, dispose: ()=>void};
+type ProjectsDispatch = (action: Action)=>Promise<void>
+type Subscription = { projects: Projects, dispatch: ProjectsDispatch};
+
+
 
 const ProjectsContext = React.createContext<Subscription>(undefined as unknown as Subscription)
 
 const ProjectsProvider = ({children}: JSX.ElementChildrenAttribute)=>{
     const api = useApi(true);
-    if (api?.state === "not-logged-in") {
-        return null;
-    }
-    const sub = api?.subscribe();
-    return <ProjectsContext.Provider value={sub as Subscription}>
+
+    const [projects, setProjects] = useState([] as Projects)
+    const [dispatch, setDispatch] = useState<ProjectsDispatch>(async ()=>{})
+    useEffect(()=>{
+        if (api?.state === "not-logged-in" || api === null) {
+            return ()=>{};
+        }
+        const {dispatch, dispose} = api.subscribe((p)=>{
+            setProjects(p);
+        });
+        setDispatch(()=>dispatch);
+        return dispose;
+    }, [api]);
+    return <ProjectsContext.Provider value={{projects: projects, dispatch: dispatch}}>
         {children}
     </ProjectsContext.Provider>
 }

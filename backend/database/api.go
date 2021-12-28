@@ -21,6 +21,10 @@ type Database interface {
 
 	GetSession(id interface{}) (*models.Session, error)
 	CreateSession(user *models.User) (string, error)
+
+	CreateProject(userId interface{}, name string) error
+	RenameProject(userId interface{}, projectId interface{}, name string) error
+	DeleteProject(userId interface{}, projectId interface{}) error
 	SubscribeProjects(userId interface{}) (chan Updates, error)
 }
 type Updates struct {
@@ -28,12 +32,14 @@ type Updates struct {
 }
 
 type ProjectUpdate struct {
+	Id      string         `json:"id" bson:"_id"`
 	Title   string         `json:"title" bson:"title"`
 	Created time.Time      `json:"created" bson:"created"`
 	Renders []RenderUpdate `json:"renders" bson:"renders"`
 }
 
 type RenderUpdate struct {
+	Id       string     `json:"id" bson:"_id"`
 	Name     string     `json:"name" bson:"name"`
 	Status   float64    `json:"status" bson:"status"`
 	Started  time.Time  `json:"started" bson:"started"`

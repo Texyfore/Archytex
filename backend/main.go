@@ -51,12 +51,14 @@ func main() {
 	api.HandleFunc("/register", routes.Register).Methods("POST")
 	api.HandleFunc("/login", routes.Login).Methods("POST")
 	api.HandleFunc("/verify", routes.Verify).Methods("GET")
+	api.HandleFunc("/ws", routes.Ws)
 
 	auth := api.PathPrefix("/auth").Subrouter()
 	auth.Use(session.UserMiddleware)
 	auth.HandleFunc("/hello", routes.Hello).Methods("GET")
 	auth.HandleFunc("/user", authenticated.User).Methods("POST")
-	auth.HandleFunc("/ws", authenticated.Ws)
+	auth.HandleFunc("/project", authenticated.Project).Methods("POST")
+	auth.HandleFunc("/project/{id}", authenticated.Project).Methods("DELETE", "PATCH")
 
 	http.Handle("/", r)
 	fmt.Printf("Listening on port %d\n", port)
@@ -64,7 +66,7 @@ func main() {
 	//TODO: Restrict access origin
 	headersOk := handlers.AllowedHeaders([]string{"X-Requested-With", "Content-Type", "Authorization"})
 	originsOk := handlers.AllowedOrigins([]string{"*"})
-	methodsOk := handlers.AllowedMethods([]string{"GET", "HEAD", "POST", "PUT", "OPTIONS"})
+	methodsOk := handlers.AllowedMethods([]string{"GET", "HEAD", "POST", "PUT", "OPTIONS", "DELETE", "PATCH"})
 
 	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%d", port), handlers.CORS(headersOk, originsOk, methodsOk)(r)))
 }

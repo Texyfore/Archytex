@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from "react";
-import { ApiContext, User, UserController } from "./api";
+import { ApiContext, Callback, User, UserController } from "./api";
 import Environment from "../../env";
 import { TypeOfTag } from "typescript";
-import { Subscription } from "../projects";
+import { Project, ProjectsDispatch, Subscription, Render, Action } from "../projects";
+import internal from "stream";
 
 const USER_URL = `${Environment.base_url}auth/user`;
 const LOGIN_URL = `${Environment.base_url}login`;
@@ -14,8 +15,8 @@ function get_fetch(token: string){
             ...init?.headers
         };
         let _init: RequestInit = {
-            headers,
-            ...init
+            ...init,
+            headers
         }
         return fetch(resource, _init)
     };
@@ -61,6 +62,89 @@ async function LogIn(username: string, password: string, stayLoggedIn: Boolean){
 }
 
 
+interface RenderUpdate{
+    id: string,
+    name: string,
+    status: number,
+    started: string,
+    finished: string,
+    icon: string
+}
+
+interface ProjectUpdate{
+    id: string
+    title: string,
+    created: string,
+    renders: RenderUpdate[]
+}
+
+function convertRender(r: RenderUpdate): Render{
+    return {
+        ...r,
+        started: new Date(r.started),
+        finished: new Date(r.finished),
+    }
+}
+
+function convertProjectUpdate(p: ProjectUpdate): Project{
+    return {
+        ...p,
+        created: new Date(p.created),
+        renders: p.renders.map(convertRender),
+    }
+}
+
+interface Updates{
+    projects: ProjectUpdate[] | undefined
+}
+
+const PROJECT_URL = `${Environment.base_url}auth/project`;
+
+const subscribe: (internal: Internal)=>(callback: Callback)=>{dispatch: ProjectsDispatch, dispose: () => void;} = (internal: Internal)=>(callback: Callback)=>{
+    const ws = new WebSocket(Environment.ws_url)
+    ws.addEventListener("open", ()=>{
+        ws.send(JSON.stringify(internal?.token));
+    })
+    ws.addEventListener("message", (ev: MessageEvent<string>)=>{
+        const data: Updates = JSON.parse(ev.data);
+        const converted = data.projects?.map(convertProjectUpdate);
+        callback(converted ?? []);
+    })
+    return {
+        dispose: ()=>{ws.close()},
+        dispatch: async (action: Action)=>{
+            switch (action.type) {
+                case "create":
+                    await internal?.fetch(PROJECT_URL, {
+                        headers: {
+                            "Content-Type": "application/json",
+                        },
+                        method: "POST",
+                        body: JSON.stringify(action.name)
+                    });
+                    return;
+                case "delete":
+                    await internal?.fetch(PROJECT_URL + "/" + action.id, {
+                        headers: {
+                            "Content-Type": "application/json",
+                        },
+                        method: "DELETE"
+                    });
+                    return;
+                case "rename":
+                    await internal?.fetch(PROJECT_URL + "/" + action.id, {
+                        headers: {
+                            "Content-Type": "application/json",
+                        },
+                        method: "PATCH",
+                        body: JSON.stringify(action.name)
+                    });
+                    return;
+            }
+        }
+    }
+}
+
 const RestProvider = ({ children, fallback }: JSX.ElementChildrenAttribute & { fallback: JSX.Element }) => {
     const [value, setValue] = useState<UserController>(null);
     const [internal, setInternal] = useState<Internal|undefined>(undefined);
@@ -87,10 +171,7 @@ const RestProvider = ({ children, fallback }: JSX.ElementChildrenAttribute & { f
             state: "logged-in",
             user: internal.user,
             logOut: ()=>setInternal(null),
-            subscribe: ()=>{
-                //TODO: Do subscription
-                return null as unknown as Subscription;
-            }
+            subscribe: subscribe(internal)
         });
     }, [internal]);
     return value == null ? fallback : <ApiContext.Provider value={value}>

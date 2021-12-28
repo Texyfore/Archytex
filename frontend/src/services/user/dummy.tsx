@@ -1,7 +1,7 @@
 import { randomInt } from "crypto";
 import React, { useEffect, useReducer, useState } from "react";
-import { Action, Projects, ProjectsDispatch, Subscription } from "../projects";
-import { ApiContext, UserController } from "./api";
+import { Action, Projects, ProjectsDispatch} from "../projects";
+import { ApiContext, Callback, UserController } from "./api";
 
 function reducer(projects: Projects, action: Action): Projects{
     switch (action.type) {
@@ -29,9 +29,16 @@ function reducer(projects: Projects, action: Action): Projects{
     }
 }
 
-function Subscribe(): Subscription{
-    const [projects, dispatch] = useReducer(reducer, [])
-    return {projects, dispatch, dispose: ()=>{}}
+function Subscribe(callback: Callback): {dispatch: ProjectsDispatch, dispose: () => void;}
+{
+    let s: Projects = [];
+    return {
+        dispatch: async (action: Action)=>{
+            s = reducer(s, action);
+            callback(s);
+        },
+        dispose: ()=>{}
+    }
 }
 
 const DummyProvider = ({ children, fallback }: JSX.ElementChildrenAttribute & { fallback: JSX.Element }) => {

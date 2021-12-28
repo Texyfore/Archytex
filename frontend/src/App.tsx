@@ -18,6 +18,7 @@ import {
 import { Box, CircularProgress, Typography } from "@mui/material";
 import { DummyProvider } from "./services/user/dummy";
 import Editor from "./pages/Editor";
+import { RestProvider } from "./services/user/rest";
 
 //TODO: Get translations from api
 const translationEn = {
