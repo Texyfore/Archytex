@@ -10,6 +10,14 @@ import Environment from "../env";
 const appBarHeight = 48;
 let editorHandle: EditorHandle;
 
+function editorModeChanged(mode: number) {
+  console.log(`Editor mode was changed with hotkey (${mode})`);
+}
+
+function solidEditorModeChanged(mode: number) {
+  console.log(`Solid editor mode was changed with hotkey (${mode})`);
+}
+
 export default function Editor() {
   const { observe } = useDimensions({
     onResize: ({ width, height }) => {
@@ -18,7 +26,11 @@ export default function Editor() {
   });
 
   useEffect(() => {
-    editorHandle = new EditorHandle();
+    editorHandle = new EditorHandle({
+      editorModeChanged: editorModeChanged,
+      solidEditorModeChanged: solidEditorModeChanged,
+    });
+
     editorHandle.textureData(0, `${Environment.asset_url}/vertex.png`);
     editorHandle.textureData(10, `${Environment.asset_url}/nodraw.png`);
     editorHandle.loadTextures();
