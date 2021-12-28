@@ -1,5 +1,5 @@
 import { Home, PlayCircleOutlined, Settings, Source } from "@mui/icons-material";
-import { List, ListItem, ListItemIcon, ListItemText } from "@mui/material";
+import { List, ListItemButton, ListItemIcon, ListItemText } from "@mui/material";
 import React from "react";
 import { useHistory } from "react-router-dom";
 import { SubPage, useSubPage } from "../../services/selectedDashboardSubPage";
@@ -30,9 +30,10 @@ export default function DashboardControllerButtons() {
   };
 
   const history = useHistory();
+
   return (
     <List sx={{ marginX: { lg: 6 } }}>
-      <ListItem
+      <ListItemButton
         sx={{
           paddingX: { lg: 3 },
           paddingY: { lg: 2 },
@@ -41,7 +42,6 @@ export default function DashboardControllerButtons() {
           borderRadius: "2px",
           border: ".5px solid white",
         }}
-        button
         key={0}
       >
         <ListItemIcon sx={{ paddingLeft: { lg: 0, xl: 2 } }}>
@@ -53,17 +53,17 @@ export default function DashboardControllerButtons() {
           primaryTypographyProps={{
             fontSize: { lg: "12pt", xl: "15pt" },
           }}
+          onClick={() => history.push("/editor")}
         />
-      </ListItem>
+      </ListItemButton>
       {buttonList.map((props, index) => (
-        <ListItem
+        <ListItemButton
           sx={{
             paddingX: { lg: 3 },
             paddingY: { lg: 2 },
             marginY: { lg: 1 },
             borderRadius: "2px",
           }}
-          button
           key={index + 1}
           selected={page === props.id}
           onClick={(event) => handleListItemClick(event, props.id)}
@@ -78,9 +78,9 @@ export default function DashboardControllerButtons() {
               fontSize: { lg: "12pt", xl: "15pt" },
             }}
           />
-        </ListItem>
+        </ListItemButton>
       ))}
-      <ListItem
+      <ListItemButton
           sx={{
             display: {xs: 'flex', md: 'none'},
             paddingX: { lg: 3 },
@@ -88,7 +88,6 @@ export default function DashboardControllerButtons() {
             marginY: { lg: 1 },
             borderRadius: "2px",
           }}
-          button
           key={99}
           onClick={() => history.push("/")}
         >
@@ -102,7 +101,7 @@ export default function DashboardControllerButtons() {
               fontSize: { lg: "12pt", xl: "15pt" },
             }}
           />
-        </ListItem>
+        </ListItemButton>
     </List>
   );
 }

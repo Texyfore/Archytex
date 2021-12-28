@@ -10,6 +10,7 @@ use crate::{
     },
     input::InputMapper,
     math::{IntersectionPoint, MinMax, Plane, SolidUtil},
+    net,
     render::{LineBatch, LineFactory, LineVertex, Scene, SolidFactory, Sprite, TextureBank},
 };
 
@@ -17,7 +18,7 @@ use super::container::SolidContainer;
 
 pub struct SolidEditor {
     container: SolidContainer,
-    mode: EditState,
+    mode: EditorMode,
     move_op: Option<Move>,
 }
 
@@ -47,6 +48,11 @@ impl SolidEditor {
 
             self.mode.switch();
             self.container.deselect();
+
+            net::send_packet(format!(
+                r#"{{ "message": "set-solid-editor-mode", "mode": {} }}"#,
+                self.mode.as_i32()
+            ));
         }
 
         let mut solids_copied = false;
@@ -62,23 +68,36 @@ impl SolidEditor {
         self.mode.render(scene, camera, &self.container);
     }
 
-    pub fn export_scene(&self, textures: &TextureBank) -> mdl::Scene {
-        mdl::Scene {
-            camera: mdl::Camera {
-                position: mdl::Vector3 {
-                    x: 0.0,
-                    y: 0.0,
-                    z: 0.0,
-                },
-                rotation: mdl::Vector3 {
-                    x: 0.0,
-                    y: 0.0,
-                    z: 0.0,
-                },
-            },
-            model: self.container.export(textures),
-            props: Vec::new(),
+    pub fn set_mode(&mut self, mode: i32) {
+        match mode {
+            0 => self.mode = EditorMode::Solid(Default::default()),
+            1 => self.mode = EditorMode::Face(Default::default()),
+            2 => self.mode = EditorMode::Point(Default::default()),
+            _ => {}
         }
+    }
+
+    pub fn save_scene(&self, textures: &TextureBank) {
+        net::set_saved_scene(
+            mdl::Scene {
+                camera: mdl::Camera {
+                    position: mdl::Vector3 {
+                        x: 0.0,
+                        y: 0.0,
+                        z: 0.0,
+                    },
+                    rotation: mdl::Vector3 {
+                        x: 0.0,
+                        y: 0.0,
+                        z: 0.0,
+                    },
+                },
+                model: self.container.export(textures),
+                props: Vec::new(),
+            }
+            .encode()
+            .unwrap(),
+        );
     }
 
     fn move_logic(&mut self, ctx: &SolidEditorContext, solids_copied: bool) {
@@ -146,19 +165,29 @@ pub struct SolidEditorContext<'a> {
     pub grid_length: f32,
 }
 
-enum EditState {
+enum EditorMode {
     Solid(SolidState),
     Face(FaceState),
     Point(PointState),
 }
 
-impl Default for EditState {
+impl Default for EditorMode {
     fn default() -> Self {
         Self::Solid(Default::default())
     }
 }
 
-impl EditState {
+impl EditorMode {
+    fn as_i32(&self) -> i32 {
+        match self {
+            EditorMode::Solid(_) => 0,
+            EditorMode::Face(_) => 1,
+            EditorMode::Point(_) => 2,
+        }
+    }
+}
+
+impl EditorMode {
     fn switch(&mut self) {
         *self = match self {
             Self::Solid(_) => Self::Face(Default::default()),
@@ -174,18 +203,18 @@ impl EditState {
         solids_copied: &mut bool,
     ) {
         match self {
-            EditState::Solid(state) => state.process(ctx, container, solids_copied),
-            EditState::Face(state) => state.process(ctx, container),
-            EditState::Point(state) => state.process(ctx, container),
+            EditorMode::Solid(state) => state.process(ctx, container, solids_copied),
+            EditorMode::Face(state) => state.process(ctx, container),
+            EditorMode::Point(state) => state.process(ctx, container),
         };
         container.rebuild(ctx.solid_factory, ctx.texture_bank);
     }
 
     fn render(&self, scene: &mut Scene, camera: &WorldCamera, container: &SolidContainer) {
         match self {
-            EditState::Solid(state) => state.render(scene),
-            EditState::Face(state) => state.render(scene),
-            EditState::Point(state) => state.render(scene, camera, container),
+            EditorMode::Solid(state) => state.render(scene),
+            EditorMode::Face(state) => state.render(scene),
+            EditorMode::Point(state) => state.render(scene, camera, container),
         }
     }
 }

@@ -20,7 +20,6 @@ import {
   VpnKey,
 } from "@mui/icons-material";
 import { styled } from "@mui/material/styles";
-import ColoredReCaptcha from "../ColoredReCaptcha";
 import { useApi } from "../../services/user/api";
 import { useHistory } from "react-router";
 
@@ -67,7 +66,7 @@ export default function LoginForm() {
         history.push("/dashboard")
       });
     }
-  }
+  };
 
   return (
     <MaxHeightContainer
@@ -92,7 +91,8 @@ export default function LoginForm() {
       >
         {/* Login title */}
         <Box
-          width='100%'
+          width='304px'
+          marginX='auto'
           display='flex'
           alignItems='center'
           justifyContent='center'
@@ -182,14 +182,13 @@ export default function LoginForm() {
               control={<Checkbox checked={stayLoggedIn} onChange={(ev)=>setStayLoggedIn(ev.target.checked)} />}
               label={<Typography variant='caption'>Stay signed in</Typography>}
               labelPlacement='end'
-              
             />
           </Box>
           <Button variant='outlined' sx={{ width: 304, marginY: 2 }} onClick={loginClick}>
             Sign in
           </Button>
           <Typography variant='caption'>Don't have an account?</Typography>
-          <Link variant='caption' href='#'>
+          <Link variant='caption' href='/register'>
             Sign up to Archytex
           </Link>
         </Box>

@@ -1,33 +1,21 @@
 import React, { useState } from "react";
 import {
-  AccountCircle,
   Close,
-  CreditCard,
-  Logout,
   MenuOutlined,
 } from "@mui/icons-material";
 import {
   AppBar,
-  Avatar,
   IconButton,
   Toolbar,
-  Typography,
   Box,
-  Tooltip,
   Button,
-  Menu,
-  MenuItem,
-  ListItemIcon,
-  Divider,
 } from "@mui/material";
-import ArchytexIcon from "./ArchytexIcon";
 import { styled } from "@mui/material/styles";
-import DarkModeSwitch from "./DarkModeSwitch";
-import { useApi } from "../services/user/api";
 import ArchytexLogoWithText from "./ArchytexLogoWithText";
 import UserIconButton from "./UserIconButton";
 import GeneralSwipeableDrawer from "./GeneralSwipeableDrawer";
 import { useHistory } from "react-router-dom";
+import { useApi } from "../services/user/api";
 
 const CustomAppBar = styled(AppBar)(({ theme }) => ({
   zIndex: theme.zIndex.drawer + 1,
@@ -48,17 +36,6 @@ function ArchytexAppBar({ content }: AppBarProps) {
   }
   const handleDrawerToggle = () => {
     handleOpenChange(!open);
-  };
-
-  const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
-  const avatarMenuOpen = Boolean(anchorEl);
-  const handleAvatarMenuClick = (
-    event: React.MouseEvent<HTMLButtonElement>
-  ) => {
-    setAnchorEl(event.currentTarget);
-  };
-  const handleAvatarMenuClose = () => {
-    setAnchorEl(null);
   };
 
   return (

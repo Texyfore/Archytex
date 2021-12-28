@@ -6,6 +6,7 @@ mod net;
 mod render;
 mod ring_vec;
 
+use crate::{editor::EditorMode, render::WorldPass};
 use cgmath::{Matrix4, SquareMatrix};
 use instant::Instant;
 use render::{Scene, SceneRenderer, SpritePass, TextureBank};
@@ -21,23 +22,11 @@ use winit::{
     window::{Window, WindowBuilder},
 };
 
-use crate::render::WorldPass;
-
 use self::{
     editor::Editor,
     input::{InputMapper, Trigger},
+    net::Message,
 };
-
-macro_rules! textures {
-    ($bank:ident $(,$id:literal => $path:literal)*) => {
-        $(
-            $bank.insert(
-                $id,
-                &image::load_from_memory(include_bytes!($path)).unwrap(),
-            );
-        )*
-    };
-}
 
 #[wasm_bindgen]
 pub fn main() {
@@ -66,9 +55,6 @@ pub fn main() {
         main_loop.window_resized(width, height);
         main_loop
     };
-
-    // Initialization done, make it known to the outside world
-    net::send_packet(vec![0]);
 
     event_loop.run(move |event, _, flow| {
         *flow = ControlFlow::Poll;
@@ -117,7 +103,7 @@ pub fn main() {
 }
 
 struct MainLoop {
-    _window: Window,
+    window: Window,
     before: Instant,
     renderer: SceneRenderer,
     texture_bank: TextureBank,
@@ -129,21 +115,15 @@ impl MainLoop {
     fn init(window: Window) -> Self {
         let gfx_init = render::init(&window);
         let renderer = gfx_init.create_scene_renderer();
-        let mut texture_bank = gfx_init.create_texture_bank();
+        let texture_bank = gfx_init.create_texture_bank();
         let solid_factory = gfx_init.create_solid_factory();
         let line_factory = gfx_init.create_line_factory();
-
-        textures!(
-            texture_bank,
-            0 => "editor/vertex.png",
-            10 => "editor/nodraw.png"
-        );
 
         let mut input_mapper = InputMapper::default();
         let editor = Editor::init(solid_factory, line_factory, &mut input_mapper);
 
         Self {
-            _window: window,
+            window,
             before: Instant::now(),
             renderer,
             texture_bank,
@@ -179,15 +159,43 @@ impl MainLoop {
         let elapsed = (after - self.before).as_secs_f32();
         self.before = after;
 
-        while let Some(packet) = net::query_packet() {
-            match packet[0] {
-                0 => {
-                    let width = u16::from_le_bytes(packet[1..3].try_into().unwrap()) as u32;
-                    let height = u16::from_le_bytes(packet[3..5].try_into().unwrap()) as u32;
-                    self._window.set_inner_size(PhysicalSize { width, height })
+        while let Some(message) = net::query_packet() {
+            match message {
+                Message::SetResolution { width, height } => {
+                    self.window.set_inner_size(PhysicalSize { width, height });
+                    info!("Resolution changed to [{}x{}]", width, height);
                 }
-                _ => {
-                    warn!("Received malformed packet");
+                Message::TextureData { id, data } => {
+                    self.texture_bank.insert_data(id, data);
+                    info!("Uploaded texture {}", id);
+                }
+                Message::LoadTextures => {
+                    self.texture_bank.finish();
+                    info!("All textures loaded");
+                }
+                Message::SetEditorMode(mode) => {
+                    match mode {
+                        0 => self.editor.mode = EditorMode::Solid,
+                        1 => self.editor.mode = EditorMode::Prop,
+                        _ => {}
+                    }
+                    info!("Editor mode changed to: {:?}", mode);
+                }
+                Message::SetSolidEditorMode(mode) => {
+                    self.editor.set_solid_editor_mode(mode);
+                }
+                Message::SetGizmo(gizmo) => {
+                    info!("Gizmo will be set to: {}", gizmo);
+                }
+                Message::SelectTexture(texture) => {
+                    info!("A texture was selected: {}", texture);
+                }
+                Message::SelectProp(prop) => {
+                    info!("A prop was selected: {}", prop);
+                }
+                Message::SaveScene => {
+                    self.editor.save_scene(&self.texture_bank);
+                    info!("Scene saved");
                 }
             }
         }
