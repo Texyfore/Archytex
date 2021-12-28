@@ -46,7 +46,7 @@ export default function EditorMenu() {
   ];
 
   return (
-    <Box width={400} display='flex' flexDirection='column'>
+    <Box width='400px' display='flex' flexDirection='column'>
       {/* Outliner */}
       <Box borderBottom='1px solid #1F1F1F' display='flex' alignItems='center'>
         <Category
