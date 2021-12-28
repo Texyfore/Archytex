@@ -48,6 +48,11 @@ impl SolidEditor {
 
             self.mode.switch();
             self.container.deselect();
+
+            net::send_packet(format!(
+                r#"{{ "message": "set-solid-editor-mode", "mode": {} }}"#,
+                self.mode.as_i32()
+            ));
         }
 
         let mut solids_copied = false;
@@ -173,21 +178,22 @@ impl Default for EditorMode {
 }
 
 impl EditorMode {
+    fn as_i32(&self) -> i32 {
+        match self {
+            EditorMode::Solid(_) => 0,
+            EditorMode::Face(_) => 1,
+            EditorMode::Point(_) => 2,
+        }
+    }
+}
+
+impl EditorMode {
     fn switch(&mut self) {
         *self = match self {
             Self::Solid(_) => Self::Face(Default::default()),
             Self::Face(_) => Self::Point(Default::default()),
             Self::Point(_) => Self::Solid(Default::default()),
         };
-
-        net::send_packet(format!(
-            r#"{{"message": "newMode", "mode": "{}"}}"#,
-            match self {
-                EditorMode::Solid(_) => "solid",
-                EditorMode::Face(_) => "face",
-                EditorMode::Point(_) => "point",
-            }
-        ))
     }
 
     fn process(

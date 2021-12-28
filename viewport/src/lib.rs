@@ -6,7 +6,7 @@ mod net;
 mod render;
 mod ring_vec;
 
-use crate::{editor::EditMode, render::WorldPass};
+use crate::{editor::EditorMode, render::WorldPass};
 use cgmath::{Matrix4, SquareMatrix};
 use instant::Instant;
 use render::{Scene, SceneRenderer, SpritePass, TextureBank};
@@ -175,8 +175,8 @@ impl MainLoop {
                 }
                 Message::SetEditorMode(mode) => {
                     match mode {
-                        0 => self.editor.mode = EditMode::Solid,
-                        1 => self.editor.mode = EditMode::Prop,
+                        0 => self.editor.mode = EditorMode::Solid,
+                        1 => self.editor.mode = EditorMode::Prop,
                         _ => {}
                     }
                     info!("Editor mode changed to: {:?}", mode);

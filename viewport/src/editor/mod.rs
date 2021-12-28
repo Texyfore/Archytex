@@ -8,6 +8,7 @@ use winit::event::{MouseButton, VirtualKeyCode};
 
 use crate::{
     input::{InputMapper, Trigger},
+    net,
     render::{LineBatch, LineFactory, LineVertex, Scene, SolidFactory, TextureBank},
 };
 
@@ -85,7 +86,7 @@ const GRID_MIN: i32 = -3;
 const GRID_MAX: i32 = 2;
 
 pub struct Editor {
-    pub mode: EditMode,
+    pub mode: EditorMode,
     solid_factory: SolidFactory,
     line_factory: LineFactory,
     world_camera: WorldCamera,
@@ -106,7 +107,7 @@ impl Editor {
         let grid = line_factory.create(&generate_grid(16, 1.0));
 
         Self {
-            mode: EditMode::Solid,
+            mode: EditorMode::Solid,
             solid_factory,
             line_factory,
             world_camera: Default::default(),
@@ -120,6 +121,10 @@ impl Editor {
     pub fn process(&mut self, dt: f32, input: &InputMapper, texture_bank: &TextureBank) {
         if input.is_active_once(SwitchMode) && input.is_active(Control) {
             self.mode.switch();
+            net::send_packet(format!(
+                r#"{{ "message": "set-editor-mode", "mode": {} }}"#,
+                self.mode.as_i32()
+            ));
         }
 
         if input.is_active_once(GridUp) && self.grid_subdiv < GRID_MAX {
@@ -145,7 +150,7 @@ impl Editor {
         self.world_camera.process(dt, input);
 
         match self.mode {
-            EditMode::Solid => {
+            EditorMode::Solid => {
                 self.solid_editor.process(SolidEditorContext {
                     input,
                     world_camera: &self.world_camera,
@@ -155,7 +160,7 @@ impl Editor {
                     grid_length: 2.0f32.powi(self.grid_subdiv),
                 });
             }
-            EditMode::Prop => {}
+            EditorMode::Prop => {}
         }
     }
 
@@ -181,17 +186,24 @@ impl Editor {
 }
 
 #[derive(Clone, Copy, PartialEq, Debug)]
-pub enum EditMode {
+pub enum EditorMode {
     Solid,
     Prop,
 }
 
-impl EditMode {
+impl EditorMode {
     fn switch(&mut self) {
         *self = match self {
             Self::Solid => Self::Prop,
             Self::Prop => Self::Solid,
         };
+    }
+
+    fn as_i32(&self) -> i32 {
+        match self {
+            EditorMode::Solid => 0,
+            EditorMode::Prop => 1,
+        }
     }
 }
 
