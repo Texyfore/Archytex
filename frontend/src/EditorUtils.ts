@@ -3,9 +3,7 @@ interface Callbacks {
   solidEditorModeChanged: (mode: number) => void;
 }
 
-export type {
-  Callbacks
-}
+export type { Callbacks };
 
 export default class EditorHandle {
   private callbacks: Callbacks;
@@ -107,11 +105,13 @@ export default class EditorHandle {
   }
 
   setResolution(width: number, height: number) {
-    this.actionQueue.unshift([{
-      type: "resolution",
-      width: width,
-      height: height,
-    }]);
+    this.actionQueue.unshift([
+      {
+        type: "resolution",
+        width: width,
+        height: height,
+      },
+    ]);
   }
 
   textureData(id: number, url: string) {
@@ -119,60 +119,60 @@ export default class EditorHandle {
       let image = await fetch(url);
       let arrayBuffer = await image.arrayBuffer();
       let data = new Uint8Array(arrayBuffer);
-      this.actionQueue.unshift([{
+      this.actionQueue.unshift({
         type: "texture-data",
         id: id,
         data: data,
-      }]);
+      });
     };
     get();
   }
 
   loadTextures() {
-    this.actionQueue.unshift([{
+    this.actionQueue.unshift({
       type: "load-textures",
-    }]);
+    });
   }
 
   setEditorMode(mode: number) {
-    this.actionQueue.unshift([{
+    this.actionQueue.unshift({
       type: "set-editor-mode",
       mode: mode,
-    }]);
+    });
   }
 
   setSolidEditorMode(mode: number) {
-    this.actionQueue.unshift([{
+    this.actionQueue.unshift({
       type: "set-solid-editor-mode",
       mode: mode,
-    }]);
+    });
   }
 
   setGizmo(gizmo: number) {
-    this.actionQueue.unshift([{
+    this.actionQueue.unshift({
       type: "set-gizmo",
       gizmo: gizmo,
-    }]);
+    });
   }
 
   saveScene() {
-    this.actionQueue.unshift([{
+    this.actionQueue.unshift({
       type: "save-scene",
-    }]);
+    });
   }
 
   selectTexture(id: number) {
-    this.actionQueue.unshift([{
+    this.actionQueue.unshift({
       type: "select-texture",
       id: id,
-    }]);
+    });
   }
 
   selectProp(id: number) {
-    this.actionQueue.unshift([{
+    this.actionQueue.unshift({
       type: "select-prop",
       id: id,
-    }]);
+    });
   }
 
   getSavedScene(): Uint8Array | undefined {

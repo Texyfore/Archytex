@@ -1,7 +1,5 @@
 import {
   Box,
-  ButtonGroup,
-  Button,
   Select,
   MenuItem,
   Tooltip,
@@ -10,7 +8,6 @@ import {
   Slider,
   List,
   ListItem,
-  Divider,
   ToggleButtonGroup,
   ToggleButton,
 } from "@mui/material";
