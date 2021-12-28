@@ -117,7 +117,7 @@ export default function Editor() {
     editorHandle.setGizmo(id);
   };
 
-  // Camera settings dropdown
+  // Camera settings
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
   const cameraMenuOpen = Boolean(anchorEl);
   const handleCameraMenuClick = (event: React.MouseEvent<HTMLElement>) => {
@@ -126,7 +126,19 @@ export default function Editor() {
   const handleCameraMenuClose = () => {
     setAnchorEl(null);
   };
-
+  const [cameraSpeed, setCameraSpeed] = useState<number>(50);
+  const handleCameraSpeedChange = (
+    event: Event,
+    value: number | number[],
+    activeThumb: number
+  ) => {
+    if (typeof value === "number") {
+      setCameraSpeed(value);
+      editorHandle.setCameraSpeed(value);
+    } else {
+      editorHandle.setCameraSpeed(value[0]);
+    }
+  };
   return (
     <React.Fragment>
       <EditorAppBar />
@@ -314,7 +326,10 @@ export default function Editor() {
                 <Box width={150}>
                   <Slider
                     size='small'
-                    defaultValue={50}
+                    defaultValue={cameraSpeed}
+                    min={0}
+                    max={100}
+                    onChange={handleCameraSpeedChange}
                     valueLabelDisplay='auto'
                   />
                 </Box>
