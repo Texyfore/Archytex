@@ -2,6 +2,7 @@ package logging
 
 import (
 	"encoding/json"
+	"github.com/gorilla/websocket"
 	"log"
 	"net/http"
 )
@@ -22,6 +23,21 @@ func Error(w http.ResponseWriter, r *http.Request, err error, message string, co
 	requestId := UseRequestId(r.Context())
 	log.Printf("[ERROR] %s %s", requestId, errLogged)
 	json.NewEncoder(w).Encode(errorMessage{
+		Message:   message,
+		RequestId: requestId,
+	})
+}
+
+func ErrorWs(r *http.Request, ws *websocket.Conn, err error, message string, code int) {
+	errLogged := ""
+	if err == nil {
+		errLogged = message
+	} else {
+		errLogged = err.Error()
+	}
+	requestId := UseRequestId(r.Context())
+	log.Printf("[ERROR] %s %s", requestId, errLogged)
+	ws.WriteJSON(errorMessage{
 		Message:   message,
 		RequestId: requestId,
 	})

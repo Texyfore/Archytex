@@ -3,6 +3,7 @@ package database
 import (
 	"context"
 	"errors"
+	"fmt"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"time"
 
@@ -19,6 +20,57 @@ type MongoDatabase struct {
 	Users     *mongo.Collection
 	Registers *mongo.Collection
 	Sessions  *mongo.Collection
+}
+
+func (m MongoDatabase) CreateProject(userId interface{}, name string) error {
+	//TODO implement me
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
+	defer cancel()
+	project := models.Project{
+		Id:      primitive.NewObjectID(),
+		Created: time.Now(),
+		Assets:  []interface{}{},
+		Renders: []models.Render{},
+		Path:    "TODO",
+		Title:   name,
+	}
+	_, err := m.Users.UpdateOne(ctx, bson.D{
+		{"_id", userId},
+	}, bson.D{
+		{"$push", bson.D{
+			{"projects", project},
+		}},
+	})
+	return err
+}
+
+func (m MongoDatabase) RenameProject(userId interface{}, projectId interface{}, name string) error {
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
+	defer cancel()
+	_, err := m.Users.UpdateOne(ctx, bson.D{
+		{"_id", userId},
+		{"projects._id", projectId},
+	}, bson.D{
+		{"$set", bson.D{
+			{"projects.$.title", name},
+		}},
+	})
+	return err
+}
+
+func (m MongoDatabase) DeleteProject(userId interface{}, projectId interface{}) error {
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
+	defer cancel()
+	_, err := m.Users.UpdateOne(ctx, bson.D{
+		{"_id", userId},
+	}, bson.D{
+		{"$pull", bson.D{
+			{"projects", bson.D{
+				{"_id", projectId},
+			}},
+		}},
+	})
+	return err
 }
 
 func (m MongoDatabase) GetSession(id interface{}) (*models.Session, error) {
@@ -220,4 +272,54 @@ func (m MongoDatabase) UserExists(username, email string) (bool, error) {
 		return false, err
 	}
 	return !(countUser == 0 && countRegister == 0), nil
+}
+
+func (m MongoDatabase) SubscribeProjects(userId interface{}) (chan Updates, error) {
+	idMatch := bson.D{
+		{"$match", bson.D{
+			{"fullDocument._id", userId},
+		}},
+	}
+	project := bson.D{
+		{"$project", bson.D{
+			{"fullDocument.projects._id", 1},
+			{"fullDocument.projects.title", 1},
+			{"fullDocument.projects.created", 1},
+			{"fullDocument.projects.renders._id", 1},
+			{"fullDocument.projects.renders.name", 1},
+			{"fullDocument.projects.renders.status", 1},
+			{"fullDocument.projects.renders.started", 1},
+			{"fullDocument.projects.renders.finished", 1},
+		}},
+	}
+	pipeline := mongo.Pipeline{idMatch, project}
+	opts := options.ChangeStream().SetFullDocument(options.UpdateLookup)
+	stream, err := m.Users.Watch(context.TODO(), pipeline, opts)
+	if err != nil {
+		return nil, err
+	}
+	c := make(chan Updates)
+	go func() {
+		defer stream.Close(context.TODO())
+		//Send first update
+		r := m.Users.FindOne(context.TODO(), bson.D{
+			{"_id", userId},
+		})
+		var data struct {
+			FullDocument Updates `json:"fullDocument" bson:"fullDocument"`
+		}
+		r.Decode(&data.FullDocument)
+		c <- data.FullDocument
+		//TODO: Close if user quit
+		for stream.Next(context.TODO()) {
+			err := stream.Decode(&data)
+			if err != nil {
+				fmt.Println(err)
+				break
+			}
+			c <- data.FullDocument
+		}
+		close(c)
+	}()
+	return c, nil
 }

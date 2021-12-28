@@ -47,7 +47,7 @@ export default function ProjectNewModal({
     if (name.trim() !== "") {
       //TODO: Handle errors
       projectsDispatch({
-        type: "create-project",
+        type: "create",
         name: name,
       });
       setName("");

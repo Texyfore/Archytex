@@ -12,6 +12,7 @@ import { ColorModeProvider } from "./services/colorMode";
 import { Box, CircularProgress, Typography } from "@mui/material";
 import { DummyProvider } from "./services/user/dummy";
 import Editor from "./pages/Editor";
+import { RestProvider } from "./services/user/rest";
 import PageNotFound from "./pages/PageNotFound";
 import SuccessfulRegistration from "./pages/SuccessfulRegistration";
 

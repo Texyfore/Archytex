@@ -43,7 +43,7 @@ export default function RenderCard({ render }: RenderCardProps) {
             sx={{
               height: { xs: "150px", sm: "200px", md: "250px" },
             }}
-            image={render.img}
+            image={render.icon}
             alt='green iguana'
           />
           {/* Image overlay for progress information */}
@@ -69,15 +69,15 @@ export default function RenderCard({ render }: RenderCardProps) {
                 <CircularProgressWithLabel
                   size={80}
                   thickness={1}
-                  value={render.status}
+                  value={render.status*100}
                 />
               </Box>
             </Box>
           </Box>
-          <Tooltip title={render.renderName} placement='top'>
+          <Tooltip title={render.name} placement='top'>
             <CardContent sx={{ maxHeight: "100px" }}>
               <Typography variant='h6' component='div' noWrap>
-                {render.renderName}
+                {render.name}
               </Typography>
             </CardContent>
           </Tooltip>
@@ -85,14 +85,14 @@ export default function RenderCard({ render }: RenderCardProps) {
         <CardActions>
           <Tooltip title='Download' arrow>
             <span>
-              <IconButton size='small' disabled={render.status < 100}>
+              <IconButton size='small' disabled={render.status*100 < 100}>
                 <Download />
               </IconButton>
             </span>
           </Tooltip>
           <Tooltip title='Share' arrow>
             <span>
-              <IconButton size='small' disabled={render.status < 100}>
+              <IconButton size='small' disabled={render.status*100 < 100}>
                 <Share />
               </IconButton>
             </span>
@@ -139,8 +139,8 @@ export default function RenderCard({ render }: RenderCardProps) {
                 width='100%'
                 height='undefined'
                 style={{ objectFit: "scale-down" }}
-                src={openEnlargeRenderModal?.img}
-                alt={openEnlargeRenderModal?.renderName}
+                src={openEnlargeRenderModal?.icon}
+                alt={openEnlargeRenderModal?.name}
               />
             </Box>
           </Grow>
