@@ -93,6 +93,11 @@ pub fn __select_prop(prop: u32) {
     push_from_js(Message::SelectProp(prop));
 }
 
+#[wasm_bindgen(js_name = "setCameraSpeed")]
+pub fn __set_camera_speed(speed: f32) {
+    push_from_js(Message::SetCameraSpeed(speed));
+}
+
 #[wasm_bindgen(js_name = "saveScene")]
 pub fn __save_scene() {
     push_from_js(Message::SaveScene);
@@ -113,5 +118,6 @@ pub enum Message {
     SetGizmo(i32),
     SelectTexture(u32),
     SelectProp(u32),
+    SetCameraSpeed(f32),
     SaveScene,
 }

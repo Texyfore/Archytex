@@ -86,6 +86,10 @@ export default class EditorHandle {
                 module.selectProp(action.id);
                 break;
               }
+              case "set-camera-speed": {
+                module.setCameraSpeed(action.speed);
+                break;
+              }
               case "save-scene": {
                 module.saveScene();
                 break;
@@ -172,6 +176,13 @@ export default class EditorHandle {
     this.actionQueue.push({
       type: "select-prop",
       id: id,
+    });
+  }
+
+  setCameraSpeed(speed: number) {
+    this.actionQueue.push({
+      type: "set-camera-speed",
+      speed: speed,
     });
   }
 

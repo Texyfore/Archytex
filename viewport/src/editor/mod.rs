@@ -65,6 +65,12 @@ actions! {
     GridDown             Key O        ,
     SwitchMode           Key Tab      ,
 
+    // Solid mode /////////////////////
+
+    SolidMode            Key Key1     ,
+    FaceMode             Key Key2     ,
+    VertexMode           Key Key3     ,
+
     // Solid manipulation /////////////
 
     AddSolid             Btn Left     ,
@@ -75,10 +81,6 @@ actions! {
 
     SetTexture           Key T        ,
 
-    // Modifiers //////////////////////
-
-    Control              Key LControl ,
-
     ///////////////////////////////////
 }
 
@@ -86,7 +88,7 @@ const GRID_MIN: i32 = -3;
 const GRID_MAX: i32 = 2;
 
 pub struct Editor {
-    pub mode: EditorMode,
+    mode: EditorMode,
     solid_factory: SolidFactory,
     line_factory: LineFactory,
     world_camera: WorldCamera,
@@ -119,7 +121,7 @@ impl Editor {
     }
 
     pub fn process(&mut self, dt: f32, input: &InputMapper, texture_bank: &TextureBank) {
-        if input.is_active_once(SwitchMode) && input.is_active(Control) {
+        if input.is_active_once(SwitchMode) {
             self.mode.switch();
             net::send_packet(format!(
                 r#"{{ "message": "set-editor-mode", "mode": {} }}"#,
@@ -176,12 +178,21 @@ impl Editor {
         self.sprite_camera.resize_viewport(width, height);
     }
 
+    pub fn set_mode(&mut self, mode: EditorMode) {
+        self.mode = mode;
+        self.solid_editor.deselect_all();
+    }
+
     pub fn set_solid_editor_mode(&mut self, mode: i32) {
         self.solid_editor.set_mode(mode);
     }
 
     pub fn save_scene(&self, texture_bank: &TextureBank) {
         self.solid_editor.save_scene(texture_bank);
+    }
+
+    pub fn set_camera_speed(&mut self, speed: f32) {
+        self.world_camera.set_speed(speed);
     }
 }
 

@@ -42,6 +42,10 @@ impl Default for WorldCamera {
 }
 
 impl WorldCamera {
+    pub fn set_speed(&mut self, speed: f32) {
+        self.speed = 8.0 * 1.1f32.powf(speed - 50.0);
+    }
+
     pub fn process(&mut self, dt: f32, input: &InputMapper) {
         if input.is_active(MoveCamera) {
             if input.is_active(Forward) {

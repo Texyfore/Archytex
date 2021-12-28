@@ -175,8 +175,8 @@ impl MainLoop {
                 }
                 Message::SetEditorMode(mode) => {
                     match mode {
-                        0 => self.editor.mode = EditorMode::Solid,
-                        1 => self.editor.mode = EditorMode::Prop,
+                        0 => self.editor.set_mode(EditorMode::Solid),
+                        1 => self.editor.set_mode(EditorMode::Prop),
                         _ => {}
                     }
                     info!("Editor mode changed to: {:?}", mode);
@@ -192,6 +192,10 @@ impl MainLoop {
                 }
                 Message::SelectProp(prop) => {
                     info!("A prop was selected: {}", prop);
+                }
+                Message::SetCameraSpeed(speed) => {
+                    self.editor.set_camera_speed(speed);
+                    info!("Camera speed was set to: {:.2}", speed);
                 }
                 Message::SaveScene => {
                     self.editor.save_scene(&self.texture_bank);
