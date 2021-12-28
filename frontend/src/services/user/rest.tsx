@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { ApiContext, User, UserController } from "./api";
 import Environment from "../../env";
 import { TypeOfTag } from "typescript";
+import { Subscription } from "../projects";
 
 const USER_URL = `${Environment.base_url}auth/user`;
 const LOGIN_URL = `${Environment.base_url}login`;
@@ -77,14 +78,19 @@ const RestProvider = ({ children, fallback }: JSX.ElementChildrenAttribute & { f
                 logIn: async (username, password, stayLoggedIn)=>{
                     const data = await LogIn(username, password, stayLoggedIn);
                     setInternal(data);
-                },
-                logOut: ()=>setInternal(null)
+                }
+                
             })
             return;
         }
         setValue({
             state: "logged-in",
-            user: internal.user
+            user: internal.user,
+            logOut: ()=>setInternal(null),
+            subscribe: ()=>{
+                //TODO: Do subscription
+                return null as unknown as Subscription;
+            }
         });
     }, [internal]);
     return value == null ? fallback : <ApiContext.Provider value={value}>

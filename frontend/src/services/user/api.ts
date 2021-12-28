@@ -1,5 +1,6 @@
 import React, { useContext, useEffect } from "react";
 import { useHistory } from "react-router-dom";
+import { Projects, ProjectsDispatch, Subscription } from "../projects";
 
 interface User {
     username: string,
@@ -9,12 +10,14 @@ interface User {
 
 interface UserLoggedIn {
     state: "logged-in"
+    logOut: ()=>void
     user: User
+    subscribe: ()=>Subscription
 }
 interface UserNotLoggedIn {
     state: "not-logged-in"
     logIn: (username: string, password: string, stayLoggedIn: boolean) => Promise<void>
-    logOut: ()=>void
+    
 }
 
 type UserController = UserLoggedIn | UserNotLoggedIn | null;

@@ -1,6 +1,9 @@
 package database
 
-import "github.com/Texyfore/Archytex/backend/database/models"
+import (
+	"github.com/Texyfore/Archytex/backend/database/models"
+	"time"
+)
 
 var CurrentDatabase Database
 
@@ -18,4 +21,22 @@ type Database interface {
 
 	GetSession(id interface{}) (*models.Session, error)
 	CreateSession(user *models.User) (string, error)
+	SubscribeProjects(userId interface{}) (chan Updates, error)
+}
+type Updates struct {
+	Projects []ProjectUpdate `json:"projects" bson:"projects"`
+}
+
+type ProjectUpdate struct {
+	Title   string         `json:"title" bson:"title"`
+	Created time.Time      `json:"created" bson:"created"`
+	Renders []RenderUpdate `json:"renders" bson:"renders"`
+}
+
+type RenderUpdate struct {
+	Name     string     `json:"name" bson:"name"`
+	Status   float64    `json:"status" bson:"status"`
+	Started  time.Time  `json:"started" bson:"started"`
+	Finished *time.Time `json:"finished, omitempty" bson:"finished, omitempty"`
+	Icon     string     `json:"icon" bson:"icon"`
 }

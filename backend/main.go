@@ -56,6 +56,7 @@ func main() {
 	auth.Use(session.UserMiddleware)
 	auth.HandleFunc("/hello", routes.Hello).Methods("GET")
 	auth.HandleFunc("/user", authenticated.User).Methods("POST")
+	auth.HandleFunc("/ws", authenticated.Ws)
 
 	http.Handle("/", r)
 	fmt.Printf("Listening on port %d\n", port)

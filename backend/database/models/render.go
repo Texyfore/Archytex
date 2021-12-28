@@ -7,6 +7,7 @@ type Render struct {
 	Name     string      `json:"name" bson:"name"`
 	Status   float64     `json:"status" bson:"status"`
 	Started  time.Time   `json:"started" bson:"started"`
-	Finished time.Time   `json:"finished" bson:"finished"`
+	Finished *time.Time  `json:"finished, omitempty" bson:"finished, omitempty"`
+	Icon     string      `json:"icon" bson:"icon"`
 	Path     string      `json:"path" bson:"path"`
 }

@@ -41,7 +41,7 @@ interface actionFeedbackSnackbarProps {
 
 export default function ProjectBrowser() {
   //Load projects
-  const { state: projects } = useProjects();
+  const { projects } = useProjects();
 
   //New project modal
   const [newProjectModalOpen, setNewProjectModalOpen] = useState(false);
@@ -115,7 +115,7 @@ export default function ProjectBrowser() {
             <Typography>Loading projects...</Typography>
           </Box>
         ) : (
-          projects.projects.map((project: Project) => (
+          projects.map((project: Project) => (
             <ProjectRow
               key={project.id}
               project={project}

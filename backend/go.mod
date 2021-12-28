@@ -15,6 +15,7 @@ require (
 	github.com/golang/snappy v0.0.1 // indirect
 	github.com/gorilla/handlers v1.5.1
 	github.com/gorilla/sessions v1.2.1 // indirect
+	github.com/gorilla/websocket v1.4.2
 	github.com/klauspost/compress v1.13.6 // indirect
 	github.com/matthewhartstonge/argon2 v0.1.5
 	github.com/pkg/errors v0.9.1 // indirect

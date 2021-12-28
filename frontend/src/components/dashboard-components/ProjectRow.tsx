@@ -75,7 +75,7 @@ export default function ProjectRow({
   //BUG: deleting the last project in the list doesn't make the "Successful deletion" snackbar appear
   const handleProjectDelete = () => {
     dispatchProjects({
-      type: "delete-project",
+      type: "delete",
       id: project.id,
     });
     handleDeleteProjectModalClose();
@@ -87,14 +87,14 @@ export default function ProjectRow({
   const [underEditText, setUnderEditText] = useState("");
   const handleUnderEditStart = () => {
     handleProjectActionsMenuClose();
-    setUnderEditText(project.name);
+    setUnderEditText(project.title);
     setUnderEdit(true);
   };
   const handleUnderEditEnd = () => setUnderEdit(false);
 
   const handleSaveEdit = () => {
     dispatchProjects({
-      type: "rename-project",
+      type: "rename",
       id: project.id,
       name: underEditText,
     });
@@ -128,7 +128,7 @@ export default function ProjectRow({
             variant='h6'
             width={{ xs: "200px", md: "50%", lg: "unset" }}
           >
-            {project.name}
+            {project.title}
           </Typography>
           <Typography
             variant='caption'

@@ -3,6 +3,7 @@ package database
 import (
 	"context"
 	"errors"
+	"fmt"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"time"
 
@@ -220,4 +221,52 @@ func (m MongoDatabase) UserExists(username, email string) (bool, error) {
 		return false, err
 	}
 	return !(countUser == 0 && countRegister == 0), nil
+}
+
+func (m MongoDatabase) SubscribeProjects(userId interface{}) (chan Updates, error) {
+	idMatch := bson.D{
+		{"$match", bson.D{
+			{"fullDocument._id", userId},
+		}},
+	}
+	project := bson.D{
+		{"$project", bson.D{
+			{"fullDocument.projects.title", 1},
+			{"fullDocument.projects.created", 1},
+			{"fullDocument.projects.renders.name", 1},
+			{"fullDocument.projects.renders.status", 1},
+			{"fullDocument.projects.renders.started", 1},
+			{"fullDocument.projects.renders.finished", 1},
+		}},
+	}
+	pipeline := mongo.Pipeline{idMatch, project}
+	opts := options.ChangeStream().SetFullDocument(options.UpdateLookup)
+	stream, err := m.Users.Watch(context.TODO(), pipeline, opts)
+	if err != nil {
+		return nil, err
+	}
+	c := make(chan Updates)
+	go func() {
+		defer stream.Close(context.TODO())
+		//Send first update
+		r := m.Users.FindOne(context.TODO(), bson.D{
+			{"_id", userId},
+		})
+		var data struct {
+			FullDocument Updates `json:"fullDocument" bson:"fullDocument"`
+		}
+		r.Decode(&data.FullDocument)
+		c <- data.FullDocument
+		//TODO: Close if user quit
+		for stream.Next(context.TODO()) {
+			err := stream.Decode(&data)
+			if err != nil {
+				fmt.Println(err)
+				break
+			}
+			c <- data.FullDocument
+		}
+		close(c)
+	}()
+	return c, nil
 }
