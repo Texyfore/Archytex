@@ -105,13 +105,13 @@ export default class EditorHandle {
   }
 
   setResolution(width: number, height: number) {
-    this.actionQueue.unshift([
+    this.actionQueue.push(
       {
         type: "resolution",
         width: width,
         height: height,
       },
-    ]);
+    );
   }
 
   textureData(id: number, url: string) {
@@ -119,7 +119,7 @@ export default class EditorHandle {
       let image = await fetch(url);
       let arrayBuffer = await image.arrayBuffer();
       let data = new Uint8Array(arrayBuffer);
-      this.actionQueue.unshift({
+      this.actionQueue.push({
         type: "texture-data",
         id: id,
         data: data,
@@ -129,47 +129,47 @@ export default class EditorHandle {
   }
 
   loadTextures() {
-    this.actionQueue.unshift({
+    this.actionQueue.push({
       type: "load-textures",
     });
   }
 
   setEditorMode(mode: number) {
-    this.actionQueue.unshift({
+    this.actionQueue.push({
       type: "set-editor-mode",
       mode: mode,
     });
   }
 
   setSolidEditorMode(mode: number) {
-    this.actionQueue.unshift({
+    this.actionQueue.push({
       type: "set-solid-editor-mode",
       mode: mode,
     });
   }
 
   setGizmo(gizmo: number) {
-    this.actionQueue.unshift({
+    this.actionQueue.push({
       type: "set-gizmo",
       gizmo: gizmo,
     });
   }
 
   saveScene() {
-    this.actionQueue.unshift({
+    this.actionQueue.push({
       type: "save-scene",
     });
   }
 
   selectTexture(id: number) {
-    this.actionQueue.unshift({
+    this.actionQueue.push({
       type: "select-texture",
       id: id,
     });
   }
 
   selectProp(id: number) {
-    this.actionQueue.unshift({
+    this.actionQueue.push({
       type: "select-prop",
       id: id,
     });
