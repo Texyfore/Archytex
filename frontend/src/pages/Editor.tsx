@@ -45,11 +45,60 @@ export default function Editor() {
   });
   useEffect(() => {
     editorHandle = new EditorHandle({
-      editorModeChanged: (mode) => {},
-      solidEditorModeChanged: (mode) => {},
-      gizmoChanged: (gizmo) => {},
-      cameraSpeedChanged: (speed) => {},
-      gridSizeChanged: (size) => {},
+      editorModeChanged: (mode) => {
+        let stringMode: viewportMode = "solid";
+
+        switch (mode) {
+          case 0:
+            stringMode = "solid";
+            break;
+          case 1:
+            stringMode = "prop";
+            break;
+        }
+        setViewportMode(stringMode);
+      },
+      solidEditorModeChanged: (mode) => {
+        let stringMode: selectionMode = "mesh";
+        switch (mode) {
+          case 0:
+            stringMode = "mesh";
+            break;
+          case 1:
+            stringMode = "face";
+            break;
+          case 2:
+            stringMode = "vertex";
+            break;
+        }
+        setSelectionMode(stringMode);
+      },
+      gizmoChanged: (gizmo) => {
+        let stringMode: translateMode = "select";
+
+        switch (gizmo) {
+          case 0:
+            stringMode = "select";
+            break;
+          case 1:
+            stringMode = "move";
+            break;
+          case 2:
+            stringMode = "rotate";
+            break;
+          case 3:
+            stringMode = "scale";
+            break;
+        }
+        setTranslateMode(stringMode);
+      },
+      cameraSpeedChanged: (speed) => {
+        const newSpeed = Math.round(10.4921 * Math.log(14.6738 * speed));
+        setCameraSpeed(newSpeed);
+      },
+      gridSizeChanged: (size) => {
+        setGridRes(3 - size);
+      },
     });
 
     editorHandle.textureData(0, `${Environment.asset_url}/vertex.png`);
@@ -70,7 +119,7 @@ export default function Editor() {
     React.useState<selectionMode>("mesh");
 
   const handleSelectionModeChange = (
-    event: React.MouseEvent<HTMLElement>,
+    event: React.MouseEvent<HTMLElement> | undefined,
     newSelectionMode: selectionMode | null
   ) => {
     if (newSelectionMode != null) {
@@ -98,7 +147,6 @@ export default function Editor() {
   // Translate mode change
   const [translateMode, setTranslateMode] =
     React.useState<translateMode>("select");
-
   const handleTranslateModeChange = (
     event: React.MouseEvent<HTMLElement>,
     newTranslateMode: translateMode | null
@@ -161,7 +209,7 @@ export default function Editor() {
   const handleGridMenuClose = () => {
     setGridAnchorEl(null);
   };
-  const [gridRes, setGridRes] = useState<number>(2);
+  const [gridRes, setGridRes] = useState<number>(3);
   const handleGridResChange = (
     event: Event,
     value: number | number[],
@@ -169,30 +217,31 @@ export default function Editor() {
   ) => {
     if (typeof value === "number") {
       setGridRes(value);
-      // editorHandle.setGridRes(value);
+      editorHandle.setGridSize((1 - (value - 1) * 0.2) * 5 - 3);
     } else {
-      // editorHandle.setGridRes(value[0]);
+      editorHandle.setGridSize((1 - (value[0] - 1) * 0.2) * 5 - 3);
     }
   };
+
   return (
     <React.Fragment>
       <EditorAppBar />
-      <AppBarOffset variant="dense" />
+      <AppBarOffset variant='dense' />
       <Box
-        display="flex"
+        display='flex'
         height={`calc(100vh - ${appBarHeight}px)`}
-        overflow="hidden"
+        overflow='hidden'
       >
         <Box
-          width="100%"
-          height="100%"
+          width='100%'
+          height='100%'
           ref={observe}
           sx={{ backgroundColor: "#0c0c0c" }}
         ></Box>
         <EditorMenu />
       </Box>
       <canvas
-        id="viewport-canvas"
+        id='viewport-canvas'
         style={{ position: "absolute", top: `${appBarHeight}px` }}
         onContextMenu={(e) => {
           e.preventDefault();
@@ -202,12 +251,12 @@ export default function Editor() {
       {/* viewport UI */}
       <>
         {/* Viewport mode */}
-        <Box position="absolute" top={appBarHeight + 10} left={10} width={180}>
+        <Box position='absolute' top={appBarHeight + 10} left={10} width={180}>
           <Select
-            id="mode-select"
+            id='mode-select'
             value={viewportMode}
             onChange={handleViewportModeChange}
-            size="small"
+            size='small'
             fullWidth
             sx={{
               color: "white",
@@ -220,14 +269,14 @@ export default function Editor() {
               },
             }}
           >
-            <MenuItem value="prop">
-              <Box display="flex" alignItems="center" gap={2}>
-                <Chair fontSize="small" /> Prop mode
+            <MenuItem value='prop'>
+              <Box display='flex' alignItems='center' gap={2}>
+                <Chair fontSize='small' /> Prop mode
               </Box>
             </MenuItem>
-            <MenuItem value="solid">
-              <Box display="flex" alignItems="center" gap={2}>
-                <ViewCompact fontSize="small" /> Solid mode
+            <MenuItem value='solid'>
+              <Box display='flex' alignItems='center' gap={2}>
+                <ViewCompact fontSize='small' /> Solid mode
               </Box>
             </MenuItem>
           </Select>
@@ -235,7 +284,7 @@ export default function Editor() {
 
         {/* Selection mode */}
         <Box
-          position="absolute"
+          position='absolute'
           top={appBarHeight + 10}
           left={220}
           display={viewportMode === "solid" ? "initial" : "none"}
@@ -244,26 +293,26 @@ export default function Editor() {
             value={selectionMode}
             exclusive
             onChange={handleSelectionModeChange}
-            color="primary"
-            size="small"
+            color='primary'
+            size='small'
             sx={{ height: 30.75 }}
           >
-            <ToggleButton value="mesh">
-              <Tooltip title="Mesh select mode">
+            <ToggleButton value='mesh'>
+              <Tooltip title='Mesh select mode'>
                 <Box marginTop={0.8}>
                   <MeshSelectIcon />
                 </Box>
               </Tooltip>
             </ToggleButton>
-            <ToggleButton value="face">
-              <Tooltip title="Face select mode">
+            <ToggleButton value='face'>
+              <Tooltip title='Face select mode'>
                 <Box marginTop={0.8}>
                   <FaceSelectIcon />
                 </Box>
               </Tooltip>
             </ToggleButton>
-            <ToggleButton value="vertex">
-              <Tooltip title="Vertex select mode">
+            <ToggleButton value='vertex'>
+              <Tooltip title='Vertex select mode'>
                 <Box marginTop={0.8}>
                   <VertexSelectIcon />
                 </Box>
@@ -273,38 +322,38 @@ export default function Editor() {
         </Box>
 
         {/* Translate mode */}
-        <Box position="absolute" top="40vh" left={10}>
+        <Box position='absolute' top='40vh' left={10}>
           <ToggleButtonGroup
             value={translateMode}
             exclusive
             onChange={handleTranslateModeChange}
-            color="primary"
-            size="small"
-            orientation="vertical"
+            color='primary'
+            size='small'
+            orientation='vertical'
           >
-            <ToggleButton value="select">
-              <Tooltip title="Select" placement="right">
+            <ToggleButton value='select'>
+              <Tooltip title='Select' placement='right'>
                 <Box marginTop={0.8} width={36} height={30}>
                   <VertexSelectIcon />
                 </Box>
               </Tooltip>
             </ToggleButton>
-            <ToggleButton value="move">
-              <Tooltip title="Move" placement="right">
+            <ToggleButton value='move'>
+              <Tooltip title='Move' placement='right'>
                 <Box marginTop={0.8} width={36} height={30}>
                   <VertexSelectIcon />
                 </Box>
               </Tooltip>
             </ToggleButton>
-            <ToggleButton value="rotate">
-              <Tooltip title="Rotate" placement="right">
+            <ToggleButton value='rotate'>
+              <Tooltip title='Rotate' placement='right'>
                 <Box marginTop={0.8} width={36} height={30}>
                   <VertexSelectIcon />
                 </Box>
               </Tooltip>
             </ToggleButton>
-            <ToggleButton value="scale">
-              <Tooltip title="Scale" placement="right">
+            <ToggleButton value='scale'>
+              <Tooltip title='Scale' placement='right'>
                 <Box marginTop={0.8} width={36} height={30}>
                   <VertexSelectIcon />
                 </Box>
@@ -315,11 +364,11 @@ export default function Editor() {
 
         {/* Camera settings */}
         <Box
-          position="absolute"
+          position='absolute'
           top={appBarHeight + 10}
-          left="calc(100% - 400px)"
+          left='calc(100% - 400px)'
         >
-          <Tooltip title="Camera settings">
+          <Tooltip title='Camera settings'>
             <IconButton onClick={handleCameraMenuClick}>
               <VideoCameraBack />
             </IconButton>
@@ -360,12 +409,13 @@ export default function Editor() {
                 <Typography gutterBottom>Camera speed</Typography>
                 <Box width={150}>
                   <Slider
-                    size="small"
+                    size='small'
                     defaultValue={cameraSpeed}
-                    min={0}
+                    step={1}
+                    min={1}
                     max={100}
                     onChange={handleCameraSpeedChange}
-                    valueLabelDisplay="auto"
+                    valueLabelDisplay='auto'
                   />
                 </Box>
               </Box>
