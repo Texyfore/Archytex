@@ -14,7 +14,7 @@ use crate::{
 
 use self::{
     camera::{SpriteCamera, WorldCamera},
-    config::GRID_MAX,
+    config::{GRID_MAX, GRID_MIN},
     solid::{SolidEditor, SolidEditorContext},
     ActionBinding::*,
 };
@@ -141,7 +141,7 @@ impl Editor {
                 r#"{{ "message": "set-grid-size", "size": {} }}"#,
                 self.grid_subdiv
             ));
-        } else if input.is_active_once(GridDown) && self.grid_subdiv > GRID_MAX {
+        } else if input.is_active_once(GridDown) && self.grid_subdiv > GRID_MIN {
             self.grid_subdiv -= 1;
 
             let grid_length = 2.0f32.powi(self.grid_subdiv);
