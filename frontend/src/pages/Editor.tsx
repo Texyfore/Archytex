@@ -71,53 +71,59 @@ export default function Editor() {
 
   const handleSelectionModeChange = (
     event: React.MouseEvent<HTMLElement>,
-    newSelectionMode: selectionMode
+    newSelectionMode: selectionMode | null
   ) => {
-    setSelectionMode(newSelectionMode);
-    let id = -1;
-    switch (newSelectionMode) {
-      case "mesh":
-        id = 0;
-        break;
-      case "face":
-        id = 1;
-        break;
-      case "vertex":
-        id = 2;
-        break;
+    if (newSelectionMode != null) {
+      setSelectionMode(newSelectionMode);
+      let id = -1;
+      switch (newSelectionMode) {
+        case "mesh":
+          id = 0;
+          break;
+        case "face":
+          id = 1;
+          break;
+        case "vertex":
+          id = 2;
+          break;
 
-      default:
-        break;
+        default:
+          break;
+      }
+
+      editorHandle.setSolidEditorMode(id);
     }
-    editorHandle.setSolidEditorMode(id);
   };
+
   // Translate mode change
   const [translateMode, setTranslateMode] =
     React.useState<translateMode>("select");
 
   const handleTranslateModeChange = (
     event: React.MouseEvent<HTMLElement>,
-    newTranslateMode: translateMode
+    newTranslateMode: translateMode | null
   ) => {
-    setTranslateMode(newTranslateMode);
-    let id = -1;
-    switch (newTranslateMode) {
-      case "select":
-        id = 0;
-        break;
-      case "move":
-        id = 1;
-        break;
-      case "rotate":
-        id = 2;
-        break;
-      case "scale":
-        id = 3;
-        break;
-      default:
-        break;
+    if (newTranslateMode != null) {
+      setTranslateMode(newTranslateMode);
+      let id = -1;
+      switch (newTranslateMode) {
+        case "select":
+          id = 0;
+          break;
+        case "move":
+          id = 1;
+          break;
+        case "rotate":
+          id = 2;
+          break;
+        case "scale":
+          id = 3;
+          break;
+        default:
+          break;
+      }
+      editorHandle.setGizmo(id);
     }
-    editorHandle.setGizmo(id);
   };
 
   // Camera settings
