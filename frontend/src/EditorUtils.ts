@@ -1,6 +1,9 @@
 interface Callbacks {
   editorModeChanged: (mode: number) => void;
   solidEditorModeChanged: (mode: number) => void;
+  gizmoChanged: (gizmo: number) => void;
+  cameraSpeedChanged: (speed: number) => void;
+  gridSizeChanged: (size: number) => void;
 }
 
 export type { Callbacks };
@@ -37,6 +40,14 @@ export default class EditorHandle {
                 }
                 case "set-solid-editor-mode": {
                   this.callbacks.solidEditorModeChanged(json.mode);
+                  break;
+                }
+                case "set-camera-speed": {
+                  this.callbacks.cameraSpeedChanged(json.speed);
+                  break;
+                }
+                case "set-grid-size": {
+                  this.callbacks.gridSizeChanged(json.size);
                   break;
                 }
               }
@@ -94,6 +105,10 @@ export default class EditorHandle {
                 module.saveScene();
                 break;
               }
+              case "set-grid-size": {
+                module.setGridSize(action.size);
+                break;
+              }
             }
           }
         }
@@ -109,13 +124,11 @@ export default class EditorHandle {
   }
 
   setResolution(width: number, height: number) {
-    this.actionQueue.push(
-      {
-        type: "resolution",
-        width: width,
-        height: height,
-      },
-    );
+    this.actionQueue.push({
+      type: "resolution",
+      width: width,
+      height: height,
+    });
   }
 
   textureData(id: number, url: string) {
@@ -188,6 +201,13 @@ export default class EditorHandle {
 
   getSavedScene(): Uint8Array | undefined {
     return this.savedScene;
+  }
+
+  setGridSize(size: number) {
+    this.actionQueue.push({
+      type: "set-grid-size",
+      size: size,
+    });
   }
 
   destroy() {
