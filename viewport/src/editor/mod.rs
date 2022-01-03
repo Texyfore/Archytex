@@ -14,6 +14,7 @@ use crate::{
 
 use self::{
     camera::{SpriteCamera, WorldCamera},
+    config::{GRID_MAX, GRID_MIN},
     solid::{SolidEditor, SolidEditorContext},
     ActionBinding::*,
 };
@@ -65,6 +66,12 @@ actions! {
     GridDown             Key O        ,
     SwitchMode           Key Tab      ,
 
+    // Solid mode /////////////////////
+
+    SolidMode            Key Key1     ,
+    FaceMode             Key Key2     ,
+    VertexMode           Key Key3     ,
+
     // Solid manipulation /////////////
 
     AddSolid             Btn Left     ,
@@ -75,18 +82,11 @@ actions! {
 
     SetTexture           Key T        ,
 
-    // Modifiers //////////////////////
-
-    Control              Key LControl ,
-
     ///////////////////////////////////
 }
 
-const GRID_MIN: i32 = -3;
-const GRID_MAX: i32 = 2;
-
 pub struct Editor {
-    pub mode: EditorMode,
+    mode: EditorMode,
     solid_factory: SolidFactory,
     line_factory: LineFactory,
     world_camera: WorldCamera,
@@ -119,7 +119,7 @@ impl Editor {
     }
 
     pub fn process(&mut self, dt: f32, input: &InputMapper, texture_bank: &TextureBank) {
-        if input.is_active_once(SwitchMode) && input.is_active(Control) {
+        if input.is_active_once(SwitchMode) {
             self.mode.switch();
             net::send_packet(format!(
                 r#"{{ "message": "set-editor-mode", "mode": {} }}"#,
@@ -136,6 +136,11 @@ impl Editor {
             self.grid = self
                 .line_factory
                 .create(&generate_grid(grid_cell_count, grid_length));
+
+            net::send_packet(format!(
+                r#"{{ "message": "set-grid-size", "size": {} }}"#,
+                self.grid_subdiv
+            ));
         } else if input.is_active_once(GridDown) && self.grid_subdiv > GRID_MIN {
             self.grid_subdiv -= 1;
 
@@ -145,6 +150,11 @@ impl Editor {
             self.grid = self
                 .line_factory
                 .create(&generate_grid(grid_cell_count, grid_length));
+
+            net::send_packet(format!(
+                r#"{{ "message": "set-grid-size", "size": {} }}"#,
+                self.grid_subdiv
+            ));
         }
 
         self.world_camera.process(dt, input);
@@ -176,12 +186,32 @@ impl Editor {
         self.sprite_camera.resize_viewport(width, height);
     }
 
+    pub fn set_mode(&mut self, mode: EditorMode) {
+        self.mode = mode;
+        self.solid_editor.deselect_all();
+    }
+
     pub fn set_solid_editor_mode(&mut self, mode: i32) {
         self.solid_editor.set_mode(mode);
     }
 
     pub fn save_scene(&self, texture_bank: &TextureBank) {
         self.solid_editor.save_scene(texture_bank);
+    }
+
+    pub fn set_camera_speed(&mut self, speed: f32) {
+        self.world_camera.set_speed(speed);
+    }
+
+    pub fn set_grid_size(&mut self, size: i32) {
+        self.grid_subdiv = size;
+
+        let grid_length = 2.0f32.powi(self.grid_subdiv);
+        let grid_cell_count = (16.0 / grid_length) as i32;
+
+        self.grid = self
+            .line_factory
+            .create(&generate_grid(grid_cell_count, grid_length));
     }
 }
 

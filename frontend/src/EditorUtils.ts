@@ -1,11 +1,12 @@
 interface Callbacks {
   editorModeChanged: (mode: number) => void;
   solidEditorModeChanged: (mode: number) => void;
+  gizmoChanged: (gizmo: number) => void;
+  cameraSpeedChanged: (speed: number) => void;
+  gridSizeChanged: (size: number) => void;
 }
 
-export type {
-  Callbacks
-}
+export type { Callbacks };
 
 export default class EditorHandle {
   private callbacks: Callbacks;
@@ -39,6 +40,14 @@ export default class EditorHandle {
                 }
                 case "set-solid-editor-mode": {
                   this.callbacks.solidEditorModeChanged(json.mode);
+                  break;
+                }
+                case "set-camera-speed": {
+                  this.callbacks.cameraSpeedChanged(json.speed);
+                  break;
+                }
+                case "set-grid-size": {
+                  this.callbacks.gridSizeChanged(json.size);
                   break;
                 }
               }
@@ -88,8 +97,16 @@ export default class EditorHandle {
                 module.selectProp(action.id);
                 break;
               }
+              case "set-camera-speed": {
+                module.setCameraSpeed(action.speed);
+                break;
+              }
               case "save-scene": {
                 module.saveScene();
+                break;
+              }
+              case "set-grid-size": {
+                module.setGridSize(action.size);
                 break;
               }
             }
@@ -107,11 +124,11 @@ export default class EditorHandle {
   }
 
   setResolution(width: number, height: number) {
-    this.actionQueue.unshift([{
+    this.actionQueue.push({
       type: "resolution",
       width: width,
       height: height,
-    }]);
+    });
   }
 
   textureData(id: number, url: string) {
@@ -119,64 +136,78 @@ export default class EditorHandle {
       let image = await fetch(url);
       let arrayBuffer = await image.arrayBuffer();
       let data = new Uint8Array(arrayBuffer);
-      this.actionQueue.unshift([{
+      this.actionQueue.push({
         type: "texture-data",
         id: id,
         data: data,
-      }]);
+      });
     };
     get();
   }
 
   loadTextures() {
-    this.actionQueue.unshift([{
+    this.actionQueue.push({
       type: "load-textures",
-    }]);
+    });
   }
 
   setEditorMode(mode: number) {
-    this.actionQueue.unshift([{
+    this.actionQueue.push({
       type: "set-editor-mode",
       mode: mode,
-    }]);
+    });
   }
 
   setSolidEditorMode(mode: number) {
-    this.actionQueue.unshift([{
+    this.actionQueue.push({
       type: "set-solid-editor-mode",
       mode: mode,
-    }]);
+    });
   }
 
   setGizmo(gizmo: number) {
-    this.actionQueue.unshift([{
+    this.actionQueue.push({
       type: "set-gizmo",
       gizmo: gizmo,
-    }]);
+    });
   }
 
   saveScene() {
-    this.actionQueue.unshift([{
+    this.actionQueue.push({
       type: "save-scene",
-    }]);
+    });
   }
 
   selectTexture(id: number) {
-    this.actionQueue.unshift([{
+    this.actionQueue.push({
       type: "select-texture",
       id: id,
-    }]);
+    });
   }
 
   selectProp(id: number) {
-    this.actionQueue.unshift([{
+    this.actionQueue.push({
       type: "select-prop",
       id: id,
-    }]);
+    });
+  }
+
+  setCameraSpeed(speed: number) {
+    this.actionQueue.push({
+      type: "set-camera-speed",
+      speed: speed,
+    });
   }
 
   getSavedScene(): Uint8Array | undefined {
     return this.savedScene;
+  }
+
+  setGridSize(size: number) {
+    this.actionQueue.push({
+      type: "set-grid-size",
+      size: size,
+    });
   }
 
   destroy() {

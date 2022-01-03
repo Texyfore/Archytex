@@ -1,45 +1,9 @@
 import { Category, Settings } from "@mui/icons-material";
-import { Box, List, ListItemButton, Typography } from "@mui/material";
+import { Box, List, ListItem, ListItemButton, Typography } from "@mui/material";
 import React from "react";
 
 export default function EditorMenu() {
   const objects = [
-    {
-      name: "Object",
-    },
-    {
-      name: "Object",
-    },
-    {
-      name: "Object",
-    },
-    {
-      name: "Object",
-    },
-    {
-      name: "Object",
-    },
-    {
-      name: "Object",
-    },
-    {
-      name: "Object",
-    },
-    {
-      name: "Object",
-    },
-    {
-      name: "Object",
-    },
-    {
-      name: "Object",
-    },
-    {
-      name: "Object",
-    },
-    {
-      name: "Object",
-    },
     {
       name: "Object",
     },
@@ -86,6 +50,11 @@ export default function EditorMenu() {
         <Typography marginY={1} marginLeft={1}>
           Settings
         </Typography>
+      </Box>
+      <Box sx={{ overflowY: "scroll" }}>
+        <List>
+          <ListItem>Texture</ListItem>
+        </List>
       </Box>
     </Box>
   );

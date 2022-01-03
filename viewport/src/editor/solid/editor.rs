@@ -40,13 +40,25 @@ impl Default for SolidEditor {
 
 impl SolidEditor {
     pub fn process(&mut self, ctx: SolidEditorContext) {
-        if ctx.input.is_active_once(SwitchMode) {
+        let mut changed_mode = false;
+
+        if ctx.input.is_active_once(SolidMode) {
+            self.mode = EditorMode::Solid(Default::default());
+            changed_mode = true;
+        } else if ctx.input.is_active_once(FaceMode) {
+            self.mode = EditorMode::Face(Default::default());
+            changed_mode = true;
+        } else if ctx.input.is_active_once(VertexMode) {
+            self.mode = EditorMode::Point(Default::default());
+            changed_mode = true;
+        }
+
+        if changed_mode {
             if self.move_op.is_some() {
                 self.move_op = None;
                 self.container.abort_move();
             }
 
-            self.mode.switch();
             self.container.deselect();
 
             net::send_packet(format!(
@@ -75,6 +87,11 @@ impl SolidEditor {
             2 => self.mode = EditorMode::Point(Default::default()),
             _ => {}
         }
+        self.container.deselect();
+    }
+
+    pub fn deselect_all(&mut self) {
+        self.container.deselect();
     }
 
     pub fn save_scene(&self, textures: &TextureBank) {
@@ -188,14 +205,6 @@ impl EditorMode {
 }
 
 impl EditorMode {
-    fn switch(&mut self) {
-        *self = match self {
-            Self::Solid(_) => Self::Face(Default::default()),
-            Self::Face(_) => Self::Point(Default::default()),
-            Self::Point(_) => Self::Solid(Default::default()),
-        };
-    }
-
     fn process(
         &mut self,
         ctx: &SolidEditorContext,
