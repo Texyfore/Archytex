@@ -201,6 +201,10 @@ impl MainLoop {
                     self.editor.save_scene(&self.texture_bank);
                     info!("Scene saved");
                 }
+                Message::SetGridSize(size) => {
+                    self.editor.set_grid_size(size);
+                    info!("Grid size is {}", size);
+                }
             }
         }
 

@@ -109,6 +109,11 @@ pub fn __get_saved_scene() -> Option<Vec<u8>> {
     result.take()
 }
 
+#[wasm_bindgen(js_name = "setGridSize")]
+pub fn __set_grid_size(size: i32) {
+    push_from_js(Message::SetGridSize(size));
+}
+
 pub enum Message {
     SetResolution { width: u32, height: u32 },
     TextureData { id: u32, data: Vec<u8> },
@@ -120,4 +125,5 @@ pub enum Message {
     SelectProp(u32),
     SetCameraSpeed(f32),
     SaveScene,
+    SetGridSize(i32),
 }

@@ -3,7 +3,7 @@ use cgmath::{
     Vector3, Vector4, Zero,
 };
 
-use crate::{input::InputMapper, math::Ray, render::Scene};
+use crate::{input::InputMapper, math::Ray, net, render::Scene};
 
 use super::ActionBinding::*;
 
@@ -79,10 +79,18 @@ impl WorldCamera {
 
             if input.scroll_wheel() > 0.5 {
                 self.speed *= 1.1;
+                net::send_packet(format!(
+                    r#"{{ "message": "set-camera-speed", "speed": {} }}"#,
+                    self.speed
+                ));
             }
 
             if input.scroll_wheel() < -0.5 {
                 self.speed /= 1.1;
+                net::send_packet(format!(
+                    r#"{{ "message": "set-camera-speed", "speed": {} }}"#,
+                    self.speed
+                ));
             }
         }
 

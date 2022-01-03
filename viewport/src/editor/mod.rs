@@ -14,6 +14,7 @@ use crate::{
 
 use self::{
     camera::{SpriteCamera, WorldCamera},
+    config::GRID_MAX,
     solid::{SolidEditor, SolidEditorContext},
     ActionBinding::*,
 };
@@ -84,9 +85,6 @@ actions! {
     ///////////////////////////////////
 }
 
-const GRID_MIN: i32 = -3;
-const GRID_MAX: i32 = 2;
-
 pub struct Editor {
     mode: EditorMode,
     solid_factory: SolidFactory,
@@ -138,7 +136,12 @@ impl Editor {
             self.grid = self
                 .line_factory
                 .create(&generate_grid(grid_cell_count, grid_length));
-        } else if input.is_active_once(GridDown) && self.grid_subdiv > GRID_MIN {
+
+            net::send_packet(format!(
+                r#"{{ "message": "set-grid-size", "size": {} }}"#,
+                self.grid_subdiv
+            ));
+        } else if input.is_active_once(GridDown) && self.grid_subdiv > GRID_MAX {
             self.grid_subdiv -= 1;
 
             let grid_length = 2.0f32.powi(self.grid_subdiv);
@@ -147,6 +150,11 @@ impl Editor {
             self.grid = self
                 .line_factory
                 .create(&generate_grid(grid_cell_count, grid_length));
+
+            net::send_packet(format!(
+                r#"{{ "message": "set-grid-size", "size": {} }}"#,
+                self.grid_subdiv
+            ));
         }
 
         self.world_camera.process(dt, input);
@@ -193,6 +201,17 @@ impl Editor {
 
     pub fn set_camera_speed(&mut self, speed: f32) {
         self.world_camera.set_speed(speed);
+    }
+
+    pub fn set_grid_size(&mut self, size: i32) {
+        self.grid_subdiv = size;
+
+        let grid_length = 2.0f32.powi(self.grid_subdiv);
+        let grid_cell_count = (16.0 / grid_length) as i32;
+
+        self.grid = self
+            .line_factory
+            .create(&generate_grid(grid_cell_count, grid_length));
     }
 }
 
