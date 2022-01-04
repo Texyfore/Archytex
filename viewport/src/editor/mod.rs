@@ -121,6 +121,7 @@ impl Editor {
     pub fn process(&mut self, dt: f32, input: &InputMapper, texture_bank: &TextureBank) {
         if input.is_active_once(SwitchMode) {
             self.mode.switch();
+            self.solid_editor.deselect_all();
             net::send_packet(format!(
                 r#"{{ "message": "set-editor-mode", "mode": {} }}"#,
                 self.mode.as_i32()
@@ -158,20 +159,17 @@ impl Editor {
         }
 
         self.world_camera.process(dt, input);
-
-        match self.mode {
-            EditorMode::Solid => {
-                self.solid_editor.process(SolidEditorContext {
-                    input,
-                    world_camera: &self.world_camera,
-                    solid_factory: &self.solid_factory,
-                    line_factory: &self.line_factory,
-                    texture_bank,
-                    grid_length: 2.0f32.powi(self.grid_subdiv),
-                });
-            }
-            EditorMode::Prop => {}
-        }
+        self.solid_editor.process(
+            self.mode == EditorMode::Solid,
+            SolidEditorContext {
+                input,
+                world_camera: &self.world_camera,
+                solid_factory: &self.solid_factory,
+                line_factory: &self.line_factory,
+                texture_bank,
+                grid_length: 2.0f32.powi(self.grid_subdiv),
+            },
+        );
     }
 
     pub fn render(&self, scene: &mut Scene) {

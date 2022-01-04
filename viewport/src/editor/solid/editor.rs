@@ -39,7 +39,12 @@ impl Default for SolidEditor {
 }
 
 impl SolidEditor {
-    pub fn process(&mut self, ctx: SolidEditorContext) {
+    pub fn process(&mut self, behave: bool, ctx: SolidEditorContext) {
+        if !behave {
+            self.container.rebuild(ctx.solid_factory, ctx.texture_bank);
+            return;
+        }
+
         let mut changed_mode = false;
 
         if ctx.input.is_active_once(SolidMode) {
