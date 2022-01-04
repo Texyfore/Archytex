@@ -71,7 +71,7 @@ impl SolidContainer {
             let q = q.map(|p| points[p]);
             self.faces.push(Face {
                 quad: q,
-                texture: 10,
+                texture: 1,
             })
         });
 
@@ -460,7 +460,7 @@ impl SolidContainer {
                     let texture = if textures.exists(face.texture) {
                         face.texture
                     } else {
-                        10
+                        1
                     };
 
                     batches
@@ -562,7 +562,7 @@ impl SolidContainer {
                 let texture = if textures.exists(face.texture) {
                     face.texture
                 } else {
-                    10
+                    1
                 };
 
                 if let Some(texture_size) = textures.size_of(texture) {
