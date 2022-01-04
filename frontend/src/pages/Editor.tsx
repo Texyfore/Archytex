@@ -236,8 +236,7 @@ export default function Editor() {
           width='100%'
           height='100%'
           ref={observe}
-          // sx={{ backgroundColor: "#0c0c0c" }}
-          sx={{ backgroundColor: "red" }}
+          sx={{ backgroundColor: "#0c0c0c" }}
         ></Box>
         <EditorMenu />
       </Box>
