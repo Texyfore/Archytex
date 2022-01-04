@@ -9,9 +9,9 @@ mod ring_vec;
 use std::rc::Rc;
 
 use crate::{editor::EditorMode, render::WorldPass};
-use cgmath::{Matrix4, SquareMatrix};
+use cgmath::{vec3, Matrix4, SquareMatrix};
 use instant::Instant;
-use render::{Scene, SceneRenderer, SolidBatch, SpritePass, TextureBank};
+use render::{PropBatch, Scene, SceneRenderer, SpritePass, TextureBank, Transform};
 use wasm_bindgen::{prelude::*, JsCast};
 use winit::platform::web::WindowBuilderExtWebSys;
 use winit::{
@@ -111,7 +111,8 @@ struct MainLoop {
     texture_bank: TextureBank,
     input_mapper: InputMapper,
     editor: Editor,
-    sphere: Rc<SolidBatch>,
+    sphere: Rc<PropBatch>,
+    sphere_transform: Transform,
 }
 
 impl MainLoop {
@@ -122,8 +123,13 @@ impl MainLoop {
         let solid_factory = gfx_init.create_solid_factory();
         let line_factory = gfx_init.create_line_factory();
 
-        let sphere =
-            solid_factory.from_mdl(&mdl::Mesh::decode(include_bytes!("sphere.amdl")).unwrap());
+        let sphere = solid_factory.create_prop(
+            1,
+            &mdl::Mesh::decode(include_bytes!("sphere.amdl")).unwrap(),
+        );
+
+        let mut sphere_transform = solid_factory.create_transform();
+        sphere_transform.set(Matrix4::from_translation(vec3(0.0, 5.0, 0.0)));
 
         let mut input_mapper = InputMapper::default();
         let editor = Editor::init(solid_factory, line_factory, &mut input_mapper);
@@ -136,6 +142,7 @@ impl MainLoop {
             input_mapper,
             editor,
             sphere,
+            sphere_transform,
         }
     }
 
@@ -220,6 +227,7 @@ impl MainLoop {
             world_pass: WorldPass {
                 camera_matrix: Matrix4::identity(),
                 solid_batches: Default::default(),
+                prop_batches: Default::default(),
                 line_batches: Default::default(),
             },
             sprite_pass: SpritePass {
@@ -233,11 +241,11 @@ impl MainLoop {
 
         self.input_mapper.tick();
         self.editor.render(&mut scene);
-        
+
         scene
             .world_pass
-            .solid_batches
-            .push((1, self.sphere.clone()));
+            .prop_batches
+            .push((self.sphere.clone(), vec![self.sphere_transform.clone()]));
 
         self.renderer.render(scene);
     }

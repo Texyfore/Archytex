@@ -3,7 +3,7 @@ mod gpu;
 use std::{collections::HashMap, rc::Rc};
 
 use bytemuck::{Pod, Zeroable};
-use cgmath::{Matrix4, Vector2, Vector3};
+use cgmath::{Matrix4, SquareMatrix, Vector2, Vector3};
 use image::{DynamicImage, GenericImageView};
 use wgpu::{BufferUsages, Sampler};
 use winit::window::Window;
@@ -11,8 +11,9 @@ use winit::window::Window;
 use crate::ring_vec::RingVec;
 
 use self::gpu::{
-    Context, DepthBuffer, LinePipeline, MsaaFramebuffer, SolidPipeline, SpritePipeline,
-    TextureGroup, TextureLayout, TypedBuffer, UniformBufferGroup, UniformBufferLayout,
+    Context, DepthBuffer, LinePipeline, MsaaFramebuffer, PropPipeline, SolidPipeline,
+    SpritePipeline, TextureGroup, TextureLayout, TypedBuffer, UniformBufferGroup,
+    UniformBufferLayout,
 };
 
 pub type Position = [f32; 3];
@@ -94,6 +95,7 @@ impl Init {
     pub fn create_solid_factory(&self) -> SolidFactory {
         SolidFactory {
             ctx: self.ctx.clone(),
+            layout: self.uniform_buffer_layout.clone(),
         }
     }
 
@@ -105,6 +107,9 @@ impl Init {
             solid_pipeline: self
                 .ctx
                 .create_solid_pipeline(&self.uniform_buffer_layout, &self.texture_layout),
+            prop_pipeline: self
+                .ctx
+                .create_prop_pipeline(&self.uniform_buffer_layout, &self.texture_layout),
             line_pipeline: self.ctx.create_line_pipeline(&self.uniform_buffer_layout),
             sprite_pipeline: self
                 .ctx
@@ -183,6 +188,7 @@ pub struct LineBatch {
 
 pub struct SolidFactory {
     ctx: Rc<Context>,
+    layout: Rc<UniformBufferLayout>,
 }
 
 impl SolidFactory {
@@ -193,7 +199,14 @@ impl SolidFactory {
         })
     }
 
-    pub fn from_mdl(&self, mdl: &mdl::Mesh) -> Rc<SolidBatch> {
+    pub fn create_prop(&self, texture_id: TextureID, mesh: &mdl::Mesh) -> Rc<PropBatch> {
+        Rc::new(PropBatch {
+            texture_id,
+            solid_batch: self.from_mesh(mesh),
+        })
+    }
+
+    pub fn from_mesh(&self, mdl: &mdl::Mesh) -> Rc<SolidBatch> {
         let vertices = mdl
             .vertices
             .iter()
@@ -212,11 +225,33 @@ impl SolidFactory {
             triangles: self.ctx.create_buffer(&triangles, BufferUsages::INDEX),
         })
     }
+
+    pub fn create_transform(&self) -> Transform {
+        Transform {
+            matrix: Matrix4::identity(),
+            group: Rc::new(
+                self.ctx
+                    .create_uniform_buffer_group(&self.layout, Matrix4::identity().into()),
+            ),
+        }
+    }
 }
 
 pub struct SolidBatch {
     vertices: TypedBuffer<SolidVertex>,
     triangles: TypedBuffer<Triangle>,
+}
+
+#[derive(Clone)]
+pub struct Transform {
+    matrix: Matrix4<f32>,
+    group: Rc<UniformBufferGroup<[[f32; 4]; 4]>>,
+}
+
+impl Transform {
+    pub fn set(&mut self, matrix: Matrix4<f32>) {
+        self.matrix = matrix;
+    }
 }
 
 pub struct Scene<'a> {
@@ -228,6 +263,7 @@ pub struct Scene<'a> {
 pub struct WorldPass {
     pub camera_matrix: Matrix4<f32>,
     pub solid_batches: Vec<(TextureID, Rc<SolidBatch>)>,
+    pub prop_batches: Vec<(Rc<PropBatch>, Vec<Transform>)>,
     pub line_batches: Vec<Rc<LineBatch>>,
 }
 
@@ -242,11 +278,17 @@ pub struct Sprite {
     pub color: Color,
 }
 
+pub struct PropBatch {
+    pub texture_id: TextureID,
+    pub solid_batch: Rc<SolidBatch>,
+}
+
 pub struct SceneRenderer {
     ctx: Rc<Context>,
     depth_buffer: DepthBuffer,
     msaa_buffer: MsaaFramebuffer,
     solid_pipeline: SolidPipeline,
+    prop_pipeline: PropPipeline,
     line_pipeline: LinePipeline,
     sprite_pipeline: SpritePipeline,
     world_camera_group: UniformBufferGroup<[[f32; 4]; 4]>,
@@ -296,6 +338,20 @@ impl SceneRenderer {
                     if let Some(texture) = scene.texture_bank.textures.get(*texture as usize) {
                         pass.set_texture(&texture.group);
                         pass.draw_mesh(&batch.vertices, &batch.triangles);
+                    }
+                }
+
+                pass.begin_props(&self.prop_pipeline);
+                for (prop, transforms) in &world_pass.prop_batches {
+                    if let Some(texture) = scene.texture_bank.textures.get(prop.texture_id as usize)
+                    {
+                        pass.set_texture(&texture.group);
+                        for transform in transforms {
+                            self.ctx
+                                .upload_uniform(&transform.group, transform.matrix.into());
+                            pass.set_ubg(2, &transform.group);
+                            pass.draw_mesh(&prop.solid_batch.vertices, &prop.solid_batch.triangles);
+                        }
                     }
                 }
 
