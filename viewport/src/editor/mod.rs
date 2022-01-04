@@ -57,8 +57,6 @@ actions! {
 
     EnableMultiSelect    Key LShift   ,
     Select               Btn Left     ,
-    Deselect             Key X        ,
-    SelectAll            Key A        ,
     Move                 Key G        ,
     ConfirmMove          Btn Left     ,
     AbortMove            Btn Right    ,
