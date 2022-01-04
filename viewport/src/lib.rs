@@ -198,7 +198,7 @@ impl MainLoop {
                     info!("Camera speed was set to: {:.2}", speed);
                 }
                 Message::SaveScene => {
-                    self.editor.save_scene(&self.texture_bank);
+                    self.editor.save_scene();
                     info!("Scene saved");
                 }
                 Message::SetGridSize(size) => {

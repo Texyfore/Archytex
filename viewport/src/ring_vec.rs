@@ -11,6 +11,14 @@ impl<T> RingVec<T> {
         }
     }
 
+    pub fn from_dump<U>(capacity: usize, dump: Vec<(u32, U)>, mapper: impl Fn(U) -> T) -> Self {
+        let mut items = (0..capacity).map(|_| None).collect::<Vec<_>>();
+        for (i, u) in dump {
+            items[i as usize] = Some(mapper(u));
+        }
+        Self { items }
+    }
+
     pub fn push(&mut self, item: T) -> usize {
         let mut i = 0;
         while self.items[i].is_some() {
@@ -40,6 +48,16 @@ impl<T> RingVec<T> {
 
     pub fn get_mut(&mut self, index: usize) -> Option<&mut T> {
         self.items[index].as_mut()
+    }
+
+    pub fn dump<U>(&self, mapper: impl Fn(&T) -> U) -> Vec<(u32, U)> {
+        let mut result = Vec::new();
+        for (i, t) in self.items.iter().enumerate() {
+            if let Some(t) = t {
+                result.push((i as u32, mapper(t)))
+            }
+        }
+        result
     }
 
     pub fn iter(&self) -> Iter<T> {

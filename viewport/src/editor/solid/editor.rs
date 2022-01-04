@@ -94,7 +94,7 @@ impl SolidEditor {
         self.container.deselect();
     }
 
-    pub fn save_scene(&self, textures: &TextureBank) {
+    pub fn save_scene(&self) {
         net::set_saved_scene(
             mdl::Scene {
                 camera: mdl::Camera {
@@ -109,7 +109,7 @@ impl SolidEditor {
                         z: 0.0,
                     },
                 },
-                model: self.container.export(textures),
+                model: self.container.export(),
                 props: Vec::new(),
             }
             .encode()

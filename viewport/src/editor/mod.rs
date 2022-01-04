@@ -195,8 +195,8 @@ impl Editor {
         self.solid_editor.set_mode(mode);
     }
 
-    pub fn save_scene(&self, texture_bank: &TextureBank) {
-        self.solid_editor.save_scene(texture_bank);
+    pub fn save_scene(&self) {
+        self.solid_editor.save_scene();
     }
 
     pub fn set_camera_speed(&mut self, speed: f32) {
