@@ -4,6 +4,7 @@ interface Callbacks {
   gizmoChanged: (gizmo: number) => void;
   cameraSpeedChanged: (speed: number) => void;
   gridSizeChanged: (size: number) => void;
+  sceneSaved: (scene: Uint8Array) => void;
 }
 
 export type { Callbacks };
@@ -12,13 +13,11 @@ export default class EditorHandle {
   private callbacks: Callbacks;
   private loopTimeout: NodeJS.Timeout | undefined;
   private actionQueue: any[];
-  private savedScene: Uint8Array | undefined;
 
   constructor(callbacks: Callbacks) {
     this.callbacks = callbacks;
     this.loopTimeout = undefined;
     this.actionQueue = [];
-    this.savedScene = undefined;
 
     let initialized = false;
 
@@ -115,7 +114,7 @@ export default class EditorHandle {
 
         const savedScene = module.getSavedScene();
         if (savedScene !== undefined) {
-          this.savedScene = savedScene;
+          callbacks.sceneSaved(savedScene);
         }
       }, 16);
 
@@ -197,10 +196,6 @@ export default class EditorHandle {
       type: "set-camera-speed",
       speed: speed,
     });
-  }
-
-  getSavedScene(): Uint8Array | undefined {
-    return this.savedScene;
   }
 
   setGridSize(size: number) {
