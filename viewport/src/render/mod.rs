@@ -192,6 +192,26 @@ impl SolidFactory {
             triangles: self.ctx.create_buffer(triangles, BufferUsages::INDEX),
         })
     }
+
+    pub fn from_mdl(&self, mdl: &mdl::Mesh) -> Rc<SolidBatch> {
+        let vertices = mdl
+            .vertices
+            .iter()
+            .map(|v| SolidVertex {
+                position: [v.position.x, v.position.y, v.position.z],
+                normal: [v.normal.x, v.normal.y, v.normal.z],
+                texcoord: [v.texcoord.x, v.texcoord.y],
+                color: [1.0; 4],
+            })
+            .collect::<Vec<_>>();
+
+        let triangles = mdl.triangles.iter().map(|t| t.indices).collect::<Vec<_>>();
+
+        Rc::new(SolidBatch {
+            vertices: self.ctx.create_buffer(&vertices, BufferUsages::VERTEX),
+            triangles: self.ctx.create_buffer(&triangles, BufferUsages::INDEX),
+        })
+    }
 }
 
 pub struct SolidBatch {

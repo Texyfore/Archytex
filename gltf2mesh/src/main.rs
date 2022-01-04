@@ -1,4 +1,7 @@
-use gltf::mesh::{util::ReadIndices, Mode};
+use gltf::mesh::{
+    util::{ReadIndices, ReadTexCoords},
+    Mode,
+};
 
 fn main() {
     if let Some(path) = std::env::args().nth(1) {
@@ -29,11 +32,15 @@ fn main() {
             })
             .collect::<Vec<_>>();
 
-        let texcoords = reader
-            .read_positions()
-            .expect("No texcoords")
-            .map(|t| mdl::Vector2 { x: t[0], y: t[1] })
-            .collect::<Vec<_>>();
+        let texcoords = if let ReadTexCoords::F32(texcoords) =
+            reader.read_tex_coords(0).expect("No texcoords")
+        {
+            texcoords
+        } else {
+            panic!("Bad texcoords")
+        }
+        .map(|t| mdl::Vector2 { x: t[0], y: t[1] })
+        .collect::<Vec<_>>();
 
         assert_eq!(positions.len(), normals.len());
         assert_eq!(normals.len(), texcoords.len());
@@ -58,7 +65,7 @@ fn main() {
         .collect::<Vec<_>>();
 
         let triangles = indices
-            .windows(3)
+            .chunks_exact(3)
             .map(|w| mdl::Triangle {
                 indices: w.try_into().expect("Not a triangle"),
             })
