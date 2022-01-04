@@ -71,3 +71,31 @@ impl Scene {
         bincode::deserialize(buf).ok()
     }
 }
+
+#[derive(Serialize, Deserialize)]
+pub struct Mesh {
+    pub vertices: Vec<Vertex>,
+    pub triangles: Vec<Triangle>,
+}
+
+#[derive(Serialize, Deserialize)]
+pub struct Vertex {
+    pub position: Vector3,
+    pub normal: Vector3,
+    pub texcoord: Vector2,
+}
+
+#[derive(Serialize, Deserialize)]
+pub struct Triangle {
+    pub indices: [u16; 3],
+}
+
+impl Mesh {
+    pub fn encode(self) -> Option<Vec<u8>> {
+        bincode::serialize(&self).ok()
+    }
+
+    pub fn decode(buf: &[u8]) -> Option<Self> {
+        bincode::deserialize(buf).ok()
+    }
+}
