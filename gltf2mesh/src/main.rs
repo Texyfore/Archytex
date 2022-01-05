@@ -2,9 +2,12 @@ use gltf::mesh::{
     util::{ReadIndices, ReadTexCoords},
     Mode,
 };
+use mdl::TextureID;
 
 fn main() {
-    if let Some(path) = std::env::args().nth(1) {
+    let mut args = std::env::args();
+    if let Some(path) = args.nth(1) {
+        let texture = args.next().unwrap().parse().unwrap();
         let (document, buffers, _) = gltf::import(&path).expect("Not a gltf file");
         let mesh = document.meshes().next().expect("No mesh");
         let primitive = mesh.primitives().next().expect("No primitive");
@@ -72,6 +75,7 @@ fn main() {
             .collect();
 
         let mesh = mdl::Mesh {
+            texture: TextureID(texture),
             vertices,
             triangles,
         };

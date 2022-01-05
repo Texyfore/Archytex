@@ -107,6 +107,8 @@ export default function Editor() {
     editorHandle.textureData(0, `${Environment.asset_url}/vertex.png`);
     editorHandle.textureData(1, `${Environment.asset_url}/nodraw.png`);
     editorHandle.loadTextures();
+    editorHandle.propData(0, `${Environment.asset_url}/amongus.amdl`);
+    editorHandle.loadProps();
     return editorHandle.destroy;
   }, []);
 

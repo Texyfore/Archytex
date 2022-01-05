@@ -85,7 +85,7 @@ actions! {
 
 pub struct Editor {
     mode: EditorMode,
-    solid_factory: SolidFactory,
+    solid_factory: Rc<SolidFactory>,
     line_factory: LineFactory,
     world_camera: WorldCamera,
     sprite_camera: SpriteCamera,
@@ -96,7 +96,7 @@ pub struct Editor {
 
 impl Editor {
     pub fn init(
-        solid_factory: SolidFactory,
+        solid_factory: Rc<SolidFactory>,
         line_factory: LineFactory,
         input: &mut InputMapper,
     ) -> Self {

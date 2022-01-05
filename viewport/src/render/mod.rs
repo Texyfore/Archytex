@@ -22,6 +22,7 @@ pub type TexCoord = [f32; 2];
 pub type Color = [f32; 4];
 pub type Triangle = [u16; 3];
 pub type TextureID = u32;
+pub type PropID = u32;
 
 const MSAA_SAMPLE_COUNT: u32 = 4;
 
@@ -82,6 +83,14 @@ impl Init {
             layout: self.texture_layout.clone(),
             sampler: self.sampler.clone(),
             textures: RingVec::new(64),
+            partial: Some(Vec::new()),
+        }
+    }
+
+    pub fn create_prop_bank(&self) -> PropBank {
+        PropBank {
+            ctx: self.ctx.clone(),
+            props: RingVec::new(64),
             partial: Some(Vec::new()),
         }
     }
@@ -170,6 +179,36 @@ impl TextureBank {
     }
 }
 
+pub struct PropBank {
+    ctx: Rc<Context>,
+    props: RingVec<Prop>,
+    partial: Option<Vec<(PropID, Vec<u8>)>>,
+}
+
+pub struct Prop {
+    pub texture_id: TextureID,
+    pub solid_batch: Rc<SolidBatch>,
+}
+
+impl PropBank {
+    pub fn insert_data(&mut self, id: PropID, data: Vec<u8>) {
+        self.partial.as_mut().unwrap().push((id, data));
+    }
+
+    pub fn finish(&mut self, solid_factory: &SolidFactory) {
+        for (id, data) in self.partial.take().unwrap() {
+            let mesh = mdl::Mesh::decode(&data).unwrap();
+            self.props.insert(
+                id as usize,
+                Prop {
+                    texture_id: mesh.texture.0,
+                    solid_batch: solid_factory.from_mesh(&mesh),
+                },
+            );
+        }
+    }
+}
+
 pub struct LineFactory {
     ctx: Rc<Context>,
 }
@@ -199,8 +238,8 @@ impl SolidFactory {
         })
     }
 
-    pub fn create_prop(&self, texture_id: TextureID, mesh: &mdl::Mesh) -> Rc<PropBatch> {
-        Rc::new(PropBatch {
+    pub fn create_prop(&self, texture_id: TextureID, mesh: &mdl::Mesh) -> Rc<Prop> {
+        Rc::new(Prop {
             texture_id,
             solid_batch: self.from_mesh(mesh),
         })
@@ -256,6 +295,7 @@ impl Transform {
 
 pub struct Scene<'a> {
     pub texture_bank: &'a TextureBank,
+    pub prop_bank: &'a PropBank,
     pub world_pass: WorldPass,
     pub sprite_pass: SpritePass,
 }
@@ -263,7 +303,7 @@ pub struct Scene<'a> {
 pub struct WorldPass {
     pub camera_matrix: Matrix4<f32>,
     pub solid_batches: Vec<(TextureID, Rc<SolidBatch>)>,
-    pub prop_batches: Vec<(Rc<PropBatch>, Vec<Transform>)>,
+    pub props: Vec<(PropID, Vec<Transform>)>,
     pub line_batches: Vec<Rc<LineBatch>>,
 }
 
@@ -276,11 +316,6 @@ pub struct Sprite {
     pub origin: Vector3<f32>,
     pub extent: Vector2<f32>,
     pub color: Color,
-}
-
-pub struct PropBatch {
-    pub texture_id: TextureID,
-    pub solid_batch: Rc<SolidBatch>,
 }
 
 pub struct SceneRenderer {
@@ -342,15 +377,21 @@ impl SceneRenderer {
                 }
 
                 pass.begin_props(&self.prop_pipeline);
-                for (prop, transforms) in &world_pass.prop_batches {
-                    if let Some(texture) = scene.texture_bank.textures.get(prop.texture_id as usize)
-                    {
-                        pass.set_texture(&texture.group);
-                        for transform in transforms {
-                            self.ctx
-                                .upload_uniform(&transform.group, transform.matrix.into());
-                            pass.set_ubg(2, &transform.group);
-                            pass.draw_mesh(&prop.solid_batch.vertices, &prop.solid_batch.triangles);
+                for (prop, transforms) in &world_pass.props {
+                    if let Some(prop) = scene.prop_bank.props.get(*prop as usize) {
+                        if let Some(texture) =
+                            scene.texture_bank.textures.get(prop.texture_id as usize)
+                        {
+                            pass.set_texture(&texture.group);
+                            for transform in transforms {
+                                self.ctx
+                                    .upload_uniform(&transform.group, transform.matrix.into());
+                                pass.set_ubg(2, &transform.group);
+                                pass.draw_mesh(
+                                    &prop.solid_batch.vertices,
+                                    &prop.solid_batch.triangles,
+                                );
+                            }
                         }
                     }
                 }

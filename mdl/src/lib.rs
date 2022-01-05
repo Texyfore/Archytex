@@ -74,6 +74,7 @@ impl Scene {
 
 #[derive(Serialize, Deserialize)]
 pub struct Mesh {
+    pub texture: TextureID,
     pub vertices: Vec<Vertex>,
     pub triangles: Vec<Triangle>,
 }

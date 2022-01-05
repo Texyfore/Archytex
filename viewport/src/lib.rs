@@ -9,9 +9,9 @@ mod ring_vec;
 use std::rc::Rc;
 
 use crate::{editor::EditorMode, render::WorldPass};
-use cgmath::{vec3, Matrix4, SquareMatrix};
+use cgmath::{Matrix4, SquareMatrix};
 use instant::Instant;
-use render::{PropBatch, Scene, SceneRenderer, SpritePass, TextureBank, Transform};
+use render::{PropBank, Scene, SceneRenderer, SolidFactory, SpritePass, TextureBank, Transform};
 use wasm_bindgen::{prelude::*, JsCast};
 use winit::platform::web::WindowBuilderExtWebSys;
 use winit::{
@@ -109,10 +109,11 @@ struct MainLoop {
     before: Instant,
     renderer: SceneRenderer,
     texture_bank: TextureBank,
+    prop_bank: PropBank,
+    solid_factory: Rc<SolidFactory>,
     input_mapper: InputMapper,
     editor: Editor,
-    sphere: Rc<PropBatch>,
-    sphere_transform: Transform,
+    transform: Transform,
 }
 
 impl MainLoop {
@@ -120,29 +121,25 @@ impl MainLoop {
         let gfx_init = render::init(&window);
         let renderer = gfx_init.create_scene_renderer();
         let texture_bank = gfx_init.create_texture_bank();
-        let solid_factory = gfx_init.create_solid_factory();
+        let prop_bank = gfx_init.create_prop_bank();
+        let solid_factory = Rc::new(gfx_init.create_solid_factory());
         let line_factory = gfx_init.create_line_factory();
 
-        let sphere = solid_factory.create_prop(
-            1,
-            &mdl::Mesh::decode(include_bytes!("sphere.amdl")).unwrap(),
-        );
-
-        let mut sphere_transform = solid_factory.create_transform();
-        sphere_transform.set(Matrix4::from_translation(vec3(0.0, 5.0, 0.0)));
-
         let mut input_mapper = InputMapper::default();
-        let editor = Editor::init(solid_factory, line_factory, &mut input_mapper);
+        let editor = Editor::init(solid_factory.clone(), line_factory, &mut input_mapper);
+
+        let transform = solid_factory.create_transform();
 
         Self {
             window,
             before: Instant::now(),
             renderer,
             texture_bank,
+            prop_bank,
+            solid_factory,
             input_mapper,
             editor,
-            sphere,
-            sphere_transform,
+            transform,
         }
     }
 
@@ -187,6 +184,14 @@ impl MainLoop {
                     self.texture_bank.finish();
                     info!("All textures loaded");
                 }
+                Message::PropData { id, data } => {
+                    self.prop_bank.insert_data(id, data);
+                    info!("Uploaded prop {}", id);
+                }
+                Message::LoadProps => {
+                    self.prop_bank.finish(&self.solid_factory);
+                    info!("All props loaded");
+                }
                 Message::SetEditorMode(mode) => {
                     match mode {
                         0 => self.editor.set_mode(EditorMode::Solid),
@@ -224,10 +229,11 @@ impl MainLoop {
 
         let mut scene = Scene {
             texture_bank: &self.texture_bank,
+            prop_bank: &self.prop_bank,
             world_pass: WorldPass {
                 camera_matrix: Matrix4::identity(),
                 solid_batches: Default::default(),
-                prop_batches: Default::default(),
+                props: Default::default(),
                 line_batches: Default::default(),
             },
             sprite_pass: SpritePass {
@@ -239,13 +245,13 @@ impl MainLoop {
         self.editor
             .process(elapsed, &self.input_mapper, &self.texture_bank);
 
-        self.input_mapper.tick();
-        self.editor.render(&mut scene);
-
         scene
             .world_pass
-            .prop_batches
-            .push((self.sphere.clone(), vec![self.sphere_transform.clone()]));
+            .props
+            .push((0, vec![self.transform.clone()]));
+
+        self.input_mapper.tick();
+        self.editor.render(&mut scene);
 
         self.renderer.render(scene);
     }
