@@ -41,7 +41,7 @@ func loadProject(r *http.Request, _projectId string) (*models.Project, error) {
 func SaveProject(w http.ResponseWriter, r *http.Request, _projectId string) {
 	project, err := loadProject(r, _projectId)
 	if err == database.ErrProjectNotFound {
-		logging.Error(w, r, err, "Project not found", http.StatusBadRequest)
+		logging.Error(w, r, err, "Project not found", http.StatusNotFound)
 		return
 	}
 	if err != nil {
@@ -59,7 +59,7 @@ func SaveProject(w http.ResponseWriter, r *http.Request, _projectId string) {
 func GetProject(w http.ResponseWriter, r *http.Request, _projectId string) {
 	project, err := loadProject(r, _projectId)
 	if err == database.ErrProjectNotFound {
-		logging.Error(w, r, err, "Project not found", http.StatusBadRequest)
+		logging.Error(w, r, err, "Project not found", http.StatusNotFound)
 		return
 	}
 	if err != nil {
