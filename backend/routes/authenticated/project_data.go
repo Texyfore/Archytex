@@ -42,6 +42,7 @@ func SaveProject(w http.ResponseWriter, r *http.Request, _projectId string) {
 	project, err := loadProject(r, _projectId)
 	if err == database.ErrProjectNotFound {
 		logging.Error(w, r, err, "Project not found", http.StatusBadRequest)
+		return
 	}
 	if err != nil {
 		logging.Error(w, r, err, "Project Unavailable", http.StatusInternalServerError)
