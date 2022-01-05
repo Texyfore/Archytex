@@ -11,7 +11,7 @@ use std::rc::Rc;
 use crate::{editor::EditorMode, render::WorldPass};
 use cgmath::{Matrix4, SquareMatrix};
 use instant::Instant;
-use render::{PropBank, Scene, SceneRenderer, SolidFactory, SpritePass, TextureBank, Transform};
+use render::{PropBank, Scene, SceneRenderer, SolidFactory, SpritePass, TextureBank};
 use wasm_bindgen::{prelude::*, JsCast};
 use winit::platform::web::WindowBuilderExtWebSys;
 use winit::{
@@ -113,7 +113,6 @@ struct MainLoop {
     solid_factory: Rc<SolidFactory>,
     input_mapper: InputMapper,
     editor: Editor,
-    transform: Transform,
 }
 
 impl MainLoop {
@@ -128,8 +127,6 @@ impl MainLoop {
         let mut input_mapper = InputMapper::default();
         let editor = Editor::init(solid_factory.clone(), line_factory, &mut input_mapper);
 
-        let transform = solid_factory.create_transform();
-
         Self {
             window,
             before: Instant::now(),
@@ -139,7 +136,6 @@ impl MainLoop {
             solid_factory,
             input_mapper,
             editor,
-            transform,
         }
     }
 
@@ -244,11 +240,6 @@ impl MainLoop {
 
         self.editor
             .process(elapsed, &self.input_mapper, &self.texture_bank);
-
-        scene
-            .world_pass
-            .props
-            .push((0, vec![self.transform.clone()]));
 
         self.input_mapper.tick();
         self.editor.render(&mut scene);

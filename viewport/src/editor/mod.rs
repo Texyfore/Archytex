@@ -1,5 +1,6 @@
 mod camera;
 mod config;
+mod prop;
 mod solid;
 
 use std::rc::Rc;
@@ -15,6 +16,7 @@ use crate::{
 use self::{
     camera::{SpriteCamera, WorldCamera},
     config::{GRID_MAX, GRID_MIN},
+    prop::{PropEditor, PropEditorState},
     solid::{SolidEditor, SolidEditorContext},
     ActionBinding::*,
 };
@@ -90,6 +92,7 @@ pub struct Editor {
     world_camera: WorldCamera,
     sprite_camera: SpriteCamera,
     solid_editor: SolidEditor,
+    prop_editor: PropEditor,
     grid_subdiv: i32,
     grid: Rc<LineBatch>,
 }
@@ -111,6 +114,7 @@ impl Editor {
             world_camera: Default::default(),
             sprite_camera: Default::default(),
             solid_editor: Default::default(),
+            prop_editor: Default::default(),
             grid_subdiv: 0,
             grid,
         }
@@ -168,12 +172,20 @@ impl Editor {
                 grid_length: 2.0f32.powi(self.grid_subdiv),
             },
         );
+
+        if self.mode == EditorMode::Prop {
+            self.prop_editor.process(PropEditorState {
+                input,
+                solid_factory: &self.solid_factory,
+            });
+        }
     }
 
     pub fn render(&self, scene: &mut Scene) {
         self.world_camera.render(scene);
         self.sprite_camera.render(scene);
         self.solid_editor.render(scene, &self.world_camera);
+        self.prop_editor.render(scene);
         scene.world_pass.line_batches.push(self.grid.clone());
     }
 

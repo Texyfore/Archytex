@@ -89,7 +89,6 @@ impl Init {
 
     pub fn create_prop_bank(&self) -> PropBank {
         PropBank {
-            ctx: self.ctx.clone(),
             props: RingVec::new(64),
             partial: Some(Vec::new()),
         }
@@ -180,12 +179,11 @@ impl TextureBank {
 }
 
 pub struct PropBank {
-    ctx: Rc<Context>,
     props: RingVec<Prop>,
     partial: Option<Vec<(PropID, Vec<u8>)>>,
 }
 
-pub struct Prop {
+struct Prop {
     pub texture_id: TextureID,
     pub solid_batch: Rc<SolidBatch>,
 }
@@ -235,13 +233,6 @@ impl SolidFactory {
         Rc::new(SolidBatch {
             vertices: self.ctx.create_buffer(vertices, BufferUsages::VERTEX),
             triangles: self.ctx.create_buffer(triangles, BufferUsages::INDEX),
-        })
-    }
-
-    pub fn create_prop(&self, texture_id: TextureID, mesh: &mdl::Mesh) -> Rc<Prop> {
-        Rc::new(Prop {
-            texture_id,
-            solid_batch: self.from_mesh(mesh),
         })
     }
 

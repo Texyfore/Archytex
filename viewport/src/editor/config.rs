@@ -9,6 +9,7 @@ pub const VERTEX_HIGHLIGHT_COLOR: [f32; 4] = [0.04, 0.36, 0.85, 1.0];
 pub const MAX_POINTS: usize = 16384;
 pub const MAX_FACES: usize = 16384;
 pub const MAX_SOLIDS: usize = 16384;
+pub const MAX_PROPS: usize = 1024;
 
 pub const GRID_MIN: i32 = -3;
 pub const GRID_MAX: i32 = 2;
