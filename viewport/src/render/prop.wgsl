@@ -48,11 +48,12 @@ var<uniform> transform: CameraBlock;
 [[stage(vertex)]]
 fn main(in: VertexIn) -> VertexOut {
     var world_position = transform.matrix * vec4<f32>(in.position, 1.0);
+    var world_normal = transform.matrix * vec4<f32>(in.position + in.normal, 1.0);
 
     var out: VertexOut;
     out.clip_position = camera.matrix * world_position;
     out.world_position = world_position.xyz;
-    out.normal = in.normal;
+    out.normal = normalize((world_normal - world_position).xyz);
     out.texcoord = in.texcoord;
     out.color = in.color;
 
