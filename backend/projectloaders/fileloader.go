@@ -46,3 +46,16 @@ func (f FileProjectLoader) GetProject(w http.ResponseWriter, r *http.Request, p 
 	}
 	return nil
 }
+
+func (f FileProjectLoader) SaveProject(r io.Reader, p string) error {
+	p = f.projectPath(p)
+	file, err := os.Create(p)
+	if err != nil {
+		return err
+	}
+	_, err = io.Copy(file, r)
+	if err != nil {
+		return err
+	}
+	return nil
+}

@@ -61,7 +61,7 @@ func main() {
 	auth.HandleFunc("/user", authenticated.User).Methods("POST")
 	auth.HandleFunc("/project", authenticated.Project).Methods("POST")
 	auth.HandleFunc("/project/{id}", authenticated.Project).Methods("DELETE", "PATCH")
-	auth.HandleFunc("/project/{id}/data", authenticated.ProjectData).Methods("GET")
+	auth.HandleFunc("/project/{id}/data", authenticated.ProjectData).Methods("GET", "POST")
 
 	http.Handle("/", r)
 	fmt.Printf("Listening on port %d\n", port)

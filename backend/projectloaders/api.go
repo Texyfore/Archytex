@@ -1,9 +1,13 @@
 package projectloaders
 
-import "net/http"
+import (
+	"io"
+	"net/http"
+)
 
 type ProjectLoader interface {
 	GetProject(w http.ResponseWriter, r *http.Request, path string) error
+	SaveProject(r io.Reader, path string) error
 	NewPath() string
 }
 
