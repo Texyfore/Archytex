@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/Texyfore/Archytex/backend/projectloaders"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"time"
 
@@ -22,6 +23,29 @@ type MongoDatabase struct {
 	Sessions  *mongo.Collection
 }
 
+func (m MongoDatabase) GetProject(userId interface{}, projectId interface{}) (*models.Project, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*2)
+	defer cancel()
+	_result := m.Users.FindOne(ctx, bson.D{
+		{"_id", userId},
+		{"projects._id", projectId},
+	}, options.FindOne().SetProjection(bson.D{{"projects.$", 1}}))
+	if _result.Err() == mongo.ErrNoDocuments {
+		return nil, ErrProjectNotFound
+	}
+	if _result.Err() != nil {
+		return nil, _result.Err()
+	}
+	var result struct {
+		Projects []models.Project `json:"projects"`
+	}
+	err := _result.Decode(&result)
+	if err != nil {
+		return nil, err
+	}
+	return &result.Projects[0], nil
+}
+
 func (m MongoDatabase) CreateProject(userId interface{}, name string) error {
 	//TODO implement me
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
@@ -31,7 +55,7 @@ func (m MongoDatabase) CreateProject(userId interface{}, name string) error {
 		Created: time.Now(),
 		Assets:  []interface{}{},
 		Renders: []models.Render{},
-		Path:    "TODO",
+		Path:    projectloaders.CurrentProjectLoader.NewPath(),
 		Title:   name,
 	}
 	_, err := m.Users.UpdateOne(ctx, bson.D{
