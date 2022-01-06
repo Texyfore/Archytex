@@ -53,6 +53,7 @@ func main() {
 	api.HandleFunc("/register", routes.Register).Methods("POST")
 	api.HandleFunc("/login", routes.Login).Methods("POST")
 	api.HandleFunc("/verify", routes.Verify).Methods("GET")
+	api.HandleFunc("/assets", routes.Assets).Methods("GET")
 	api.HandleFunc("/ws", routes.Ws)
 
 	auth := api.PathPrefix("/auth").Subrouter()
