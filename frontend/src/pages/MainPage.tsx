@@ -26,26 +26,26 @@ export default function MainPage() {
 
       {/* Header */}
       <MainPageParallax
-        backgroundOffset='-200px'
+        backgroundOffset="-200px"
         backgroundOpacity={0.7}
-        height='98vh'
+        height="98vh"
         imgPath={houseImage9}
       >
         <React.Fragment>
           <Typography
-            variant='h1'
+            variant="h1"
             fontWeight={100}
-            textAlign='center'
+            textAlign="center"
             marginBottom={2}
           >
             {t("archytex")}
           </Typography>
-          <Typography variant='subtitle1' textAlign='center' marginBottom={2}>
+          <Typography variant="subtitle1" textAlign="center" marginBottom={2}>
             {t("motto")}
           </Typography>
           <Button
-            variant='outlined'
-            size='large'
+            variant="outlined"
+            size="large"
             sx={{
               marginX: "auto",
             }}
@@ -59,10 +59,10 @@ export default function MainPage() {
       {/* Description */}
       <MainPageContainer>
         <MainPageContentCard
-          title={t("what_is_archytex")}
+          title={t("p1_title")}
           text={t("p1")}
           imgPath={houseImage4}
-        ></MainPageContentCard>
+        />
       </MainPageContainer>
 
       {/* Community Spotlight */}
@@ -70,35 +70,35 @@ export default function MainPage() {
       {/* In-browser archviz */}
       <MainPageParallax
         imgPath={planningBoardImage}
-        height='75vh'
+        height="75vh"
         backgroundOpacity={0.7}
       >
         <React.Fragment>
           <Typography
-            variant='h3'
+            variant="h3"
             fontWeight={200}
-            textAlign='center'
+            textAlign="center"
             marginBottom={2}
           >
-            {t("archviz_in_your_browser")}
+            {t("lbl1_title")}
           </Typography>
           <Button
-            variant='text'
-            size='large'
-            color='inherit'
+            variant="text"
+            size="large"
+            color="inherit"
             sx={{
               marginX: "auto",
             }}
           >
-            {t("start_creating_now")}
+            {t("lbl1")}
           </Button>
         </React.Fragment>
       </MainPageParallax>
 
       <MainPageContainer>
         <MainPageContentCard
-          title='Lorem Ipsum'
-          text='Lorem ipsum dolor sit amet consectetur adipisicing elit. Voluptas obcaecati debitis voluptatem illum sapiente, similique ipsam in ex. Eos at molestiae ratione saepe odio aut maxime accusantium deleniti accusamus architecto?'
+          title={t("p2_title")}
+          text={t("p2")}
           imgPath={houseImage6}
           flipped
         ></MainPageContentCard>
@@ -107,37 +107,37 @@ export default function MainPage() {
       {/* Subscription tiers */}
       <MainPageParallax
         imgPath={houseImage14}
-        height='75vh'
+        height="75vh"
         backgroundOpacity={0.7}
       >
         <React.Fragment>
           <Typography
-            variant='h3'
+            variant="h3"
             fontWeight={200}
-            textAlign='center'
+            textAlign="center"
             marginBottom={2}
           >
-            {t("blazing_fast_rendering")}
+            {t("lbl2_title")}
           </Typography>
-          <Typography variant='subtitle1' textAlign='center' marginBottom={2}>
-            {t("try_it_out")}
+          <Typography variant="subtitle1" textAlign="center" marginBottom={2}>
+            {t("lbl2_subtitle")}
           </Typography>
           <Button
-            variant='outlined'
-            size='large'
+            variant="outlined"
+            size="large"
             sx={{
               marginX: "auto",
             }}
           >
-            {t("subscribe_now")}
+            {t("lbl2_button")}
           </Button>
         </React.Fragment>
       </MainPageParallax>
 
       <MainPageContainer>
         <MainPageContentCard
-          title='Lorem Ipsum'
-          text='Lorem ipsum dolor sit amet consectetur adipisicing elit. Voluptas obcaecati debitis voluptatem illum sapiente, similique ipsam in ex. Eos at molestiae ratione saepe odio aut maxime accusantium deleniti accusamus architecto?'
+          title={t("p3_title")}
+          text={t("p3")}
           imgPath={houseImage11}
         ></MainPageContentCard>
       </MainPageContainer>

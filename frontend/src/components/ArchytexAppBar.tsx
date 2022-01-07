@@ -1,21 +1,13 @@
 import React, { useState } from "react";
-import {
-  Close,
-  MenuOutlined,
-} from "@mui/icons-material";
-import {
-  AppBar,
-  IconButton,
-  Toolbar,
-  Box,
-  Button,
-} from "@mui/material";
+import { Close, MenuOutlined } from "@mui/icons-material";
+import { AppBar, IconButton, Toolbar, Box, Button } from "@mui/material";
 import { styled } from "@mui/material/styles";
 import ArchytexLogoWithText from "./ArchytexLogoWithText";
 import UserIconButton from "./UserIconButton";
 import GeneralSwipeableDrawer from "./GeneralSwipeableDrawer";
 import { useHistory } from "react-router-dom";
 import { useApi } from "../services/user/api";
+import { useTranslation } from "react-i18next";
 
 const CustomAppBar = styled(AppBar)(({ theme }) => ({
   zIndex: theme.zIndex.drawer + 1,
@@ -23,24 +15,26 @@ const CustomAppBar = styled(AppBar)(({ theme }) => ({
 }));
 
 interface AppBarProps {
-  content: "general" | "dashboard"
+  content: "general" | "dashboard";
 }
 
 function ArchytexAppBar({ content }: AppBarProps) {
   const api = useApi();
   const history = useHistory();
 
+  const { t } = useTranslation();
+
   const [open, setOpen] = useState(false);
   const handleOpenChange = (value: boolean) => {
-    setOpen(value)
-  }
+    setOpen(value);
+  };
   const handleDrawerToggle = () => {
     handleOpenChange(!open);
   };
 
   return (
     <>
-      <CustomAppBar position='fixed' elevation={0}>
+      <CustomAppBar position="fixed" elevation={0}>
         <Toolbar
           sx={{
             justifyContent: "space-between",
@@ -52,35 +46,49 @@ function ArchytexAppBar({ content }: AppBarProps) {
               {open ? <Close /> : <MenuOutlined />}
             </IconButton>
           </Box>
-          <Box width='100%' height='100%'>
+          <Box width="100%" height="100%">
             <ArchytexLogoWithText />
           </Box>
           <Box
             marginX={2}
-            height='100%'
+            height="100%"
             display={{ xs: "none", md: "flex" }}
-            justifyContent='space-between'
+            justifyContent="space-between"
             gap={2}
           >
-            <Button color='inherit' variant='text' onClick={()=>history.push("/")}>
-              Home
+            <Button
+              color="inherit"
+              variant="text"
+              onClick={() => history.push("/")}
+            >
+              {t("home")}
             </Button>
-            {api?.state === "logged-in" ?
-            <Button color='inherit' variant='text' onClick={()=>history.push("/dashboard")}>
-              Dashboard
-            </Button> : null}
+            {api?.state === "logged-in" ? (
+              <Button
+                color="inherit"
+                variant="text"
+                onClick={() => history.push("/dashboard")}
+              >
+                {t("dashboard")}
+              </Button>
+            ) : null}
           </Box>
-          <Box width='100%' height='100%' display='flex' justifyContent='end'>
-            {api?.state === "not-logged-in" ?
-              <Button variant='outlined' onClick={() => history.push("/login")}>
+          <Box width="100%" height="100%" display="flex" justifyContent="end">
+            {api?.state === "not-logged-in" ? (
+              <Button variant="outlined" onClick={() => history.push("/login")}>
                 Login
-              </Button> :
+              </Button>
+            ) : (
               <UserIconButton />
-            }
+            )}
           </Box>
         </Toolbar>
       </CustomAppBar>
-      <GeneralSwipeableDrawer content={content} open={open} handleOpenChange={handleOpenChange} />
+      <GeneralSwipeableDrawer
+        content={content}
+        open={open}
+        handleOpenChange={handleOpenChange}
+      />
     </>
   );
 }

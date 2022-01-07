@@ -15,6 +15,7 @@ import DarkModeSwitch from "./DarkModeSwitch";
 import { ColorMode, useColorMode } from "../services/colorMode";
 import { useHistory } from "react-router-dom";
 import { useApi } from "../services/user/api";
+import { useTranslation } from "react-i18next";
 
 const DrawerHeader = styled("div")(({ theme }) => ({
   display: "flex",
@@ -32,28 +33,29 @@ interface navButton {
 
 export default function GeneralSwipeableDrawerContent() {
   const api = useApi();
+  const { t } = useTranslation();
   const buttonList: navButton[] =
     api?.state === "logged-in"
       ? [
           {
-            text: "Home",
+            text: t("home"),
             icon: <Home />,
             route: "/",
           },
           {
-            text: "Dashboard",
+            text: t("dashboard"),
             icon: <DashboardRounded />,
             route: "/dashboard",
           },
         ]
       : [
           {
-            text: "Home",
+            text: t("home"),
             icon: <Home />,
             route: "/",
           },
           {
-            text: "Login",
+            text: t("login"),
             icon: <Login />,
             route: "/login",
           },
@@ -90,7 +92,7 @@ export default function GeneralSwipeableDrawerContent() {
         }}
       >
         <ArchytexIcon />
-        <Typography variant='h6'>Archytex</Typography>
+        <Typography variant="h6">{t("archytex")}</Typography>
       </DrawerHeader>
       <List>
         {buttonList.map((props, index) => (
@@ -107,11 +109,11 @@ export default function GeneralSwipeableDrawerContent() {
         ))}
       </List>
       <Box
-        marginTop='auto'
+        marginTop="auto"
         marginBottom={2}
-        display='flex'
-        alignItems='end'
-        justifyContent='space-evenly'
+        display="flex"
+        alignItems="end"
+        justifyContent="space-evenly"
       >
         <DarkModeSwitch />
         <LanguageSelectDropdown
