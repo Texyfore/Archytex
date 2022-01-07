@@ -20,12 +20,10 @@ import translationEn from "./languages/en_us.json";
 import translationHu from "./languages/hu_hu.json";
 import translationJp from "./languages/jp_jp.json";
 
-const translationEnTest = {
-  archytex: "Archytex",
-};
+
 i18n.use(initReactI18next).init({
   resources: {
-    en: { translation: translationEnTest },
+    en: { translation: translationEn },
     hu: { translation: translationHu },
     jp: { translation: translationJp },
   },
