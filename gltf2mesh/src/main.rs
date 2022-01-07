@@ -2,7 +2,6 @@ use gltf::mesh::{
     util::{ReadIndices, ReadTexCoords},
     Mode,
 };
-use mdl::TextureID;
 
 fn main() {
     let mut args = std::env::args();
@@ -15,13 +14,28 @@ fn main() {
 
         let reader = primitive.reader(|buf| Some(&buffers[buf.index()]));
 
+        let mut box_min = [1000000.0; 3];
+        let mut box_max = [-1000000.0; 3];
+
         let positions = reader
             .read_positions()
             .expect("No positions")
-            .map(|p| mdl::Vector3 {
-                x: p[0],
-                y: p[1],
-                z: p[2],
+            .map(|p| {
+                for i in 0..3 {
+                    if p[i] < box_min[i] {
+                        box_min[i] = p[i];
+                    }
+
+                    if p[i] > box_max[i] {
+                        box_max[i] = p[i];
+                    }
+                }
+
+                mdl::Vector3 {
+                    x: p[0],
+                    y: p[1],
+                    z: p[2],
+                }
             })
             .collect::<Vec<_>>();
 
@@ -75,9 +89,21 @@ fn main() {
             .collect();
 
         let mesh = mdl::Mesh {
-            texture: TextureID(texture),
+            texture: mdl::TextureID(texture),
             vertices,
             triangles,
+            bounds: mdl::BoundingBox {
+                min: mdl::Vector3 {
+                    x: box_min[0],
+                    y: box_min[1],
+                    z: box_min[2],
+                },
+                max: mdl::Vector3 {
+                    x: box_max[0],
+                    y: box_max[1],
+                    z: box_max[2],
+                },
+            },
         };
 
         std::fs::write(path.replace("gltf", "amdl"), mesh.encode().unwrap())

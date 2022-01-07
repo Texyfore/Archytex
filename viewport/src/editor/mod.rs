@@ -2,6 +2,7 @@ mod camera;
 mod config;
 mod prop;
 mod solid;
+mod util;
 
 use std::rc::Rc;
 
@@ -10,7 +11,7 @@ use winit::event::{MouseButton, VirtualKeyCode};
 use crate::{
     input::{InputMapper, Trigger},
     net,
-    render::{LineBatch, LineFactory, LineVertex, Scene, SolidFactory, TextureBank},
+    render::{LineBatch, LineFactory, LineVertex, PropBank, Scene, SolidFactory, TextureBank},
 };
 
 use self::{
@@ -82,6 +83,14 @@ actions! {
 
     SetTexture           Key T        ,
 
+    // Prop manipulation //////////////
+
+    AddProp              Btn Left     ,
+
+    // Miscellaneous //////////////////
+
+    Modifier              Key LControl ,
+
     ///////////////////////////////////
 }
 
@@ -106,6 +115,7 @@ impl Editor {
         input.define_actions(ACTION_DEFINITIONS);
 
         let grid = line_factory.create(&generate_grid(16, 1.0));
+        let prop_editor = PropEditor::new(&line_factory);
 
         Self {
             mode: EditorMode::Solid,
@@ -114,13 +124,19 @@ impl Editor {
             world_camera: Default::default(),
             sprite_camera: Default::default(),
             solid_editor: Default::default(),
-            prop_editor: Default::default(),
+            prop_editor,
             grid_subdiv: 0,
             grid,
         }
     }
 
-    pub fn process(&mut self, dt: f32, input: &InputMapper, texture_bank: &TextureBank) {
+    pub fn process(
+        &mut self,
+        dt: f32,
+        input: &InputMapper,
+        texture_bank: &TextureBank,
+        prop_bank: &PropBank,
+    ) {
         if input.is_active_once(SwitchMode) {
             self.mode.switch();
             self.solid_editor.deselect_all();
@@ -176,7 +192,12 @@ impl Editor {
         if self.mode == EditorMode::Prop {
             self.prop_editor.process(PropEditorState {
                 input,
+                camera: &self.world_camera,
                 solid_factory: &self.solid_factory,
+                line_factory: &self.line_factory,
+                prop_bank,
+                solid_container: self.solid_editor.container(),
+                grid_length: 2.0f32.powi(self.grid_subdiv),
             });
         }
     }

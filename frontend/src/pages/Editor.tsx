@@ -104,12 +104,28 @@ export default function Editor() {
       },
     });
 
-    editorHandle.textureData(0, `${Environment.asset_url}/vertex.png`);
-    editorHandle.textureData(1, `${Environment.asset_url}/nodraw.png`);
-    editorHandle.textureData(2, `${Environment.asset_url}/amogus.png`);
-    editorHandle.loadTextures();
-    editorHandle.propData(0, `${Environment.asset_url}/amongus.amdl`);
-    editorHandle.loadProps();
+    editorHandle.loadTextures([
+      {
+        id: 0,
+        file: "vertex.png",
+      },
+      {
+        id: 1,
+        file: "nodraw.png",
+      },
+      {
+        id: 2,
+        file: "amogus.png",
+      },
+    ]);
+
+    editorHandle.loadProps([
+      {
+        id: 0,
+        file: "amongus.amdl",
+      },
+    ]);
+
     return editorHandle.destroy;
   }, []);
 

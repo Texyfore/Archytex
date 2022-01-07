@@ -3,7 +3,7 @@ mod gpu;
 use std::{collections::HashMap, rc::Rc};
 
 use bytemuck::{Pod, Zeroable};
-use cgmath::{Matrix4, SquareMatrix, Vector2, Vector3};
+use cgmath::{vec3, Matrix4, SquareMatrix, Vector2, Vector3};
 use image::{DynamicImage, GenericImageView};
 use wgpu::{BufferUsages, Sampler};
 use winit::window::Window;
@@ -184,8 +184,9 @@ pub struct PropBank {
 }
 
 struct Prop {
-    pub texture_id: TextureID,
-    pub solid_batch: Rc<SolidBatch>,
+    texture_id: TextureID,
+    solid_batch: Rc<SolidBatch>,
+    bounds: (Vector3<f32>, Vector3<f32>),
 }
 
 impl PropBank {
@@ -201,9 +202,17 @@ impl PropBank {
                 Prop {
                     texture_id: mesh.texture.0,
                     solid_batch: solid_factory.from_mesh(&mesh),
+                    bounds: (
+                        vec3(mesh.bounds.min.x, mesh.bounds.min.y, mesh.bounds.min.z),
+                        vec3(mesh.bounds.max.x, mesh.bounds.max.y, mesh.bounds.max.z),
+                    ),
                 },
             );
         }
+    }
+
+    pub fn bounds(&self, id: PropID) -> Option<(Vector3<f32>, Vector3<f32>)> {
+        self.props.get(id as usize).map(|prop| prop.bounds)
     }
 }
 
