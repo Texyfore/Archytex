@@ -77,6 +77,7 @@ pub struct Mesh {
     pub texture: TextureID,
     pub vertices: Vec<Vertex>,
     pub triangles: Vec<Triangle>,
+    pub bounds: BoundingBox,
 }
 
 #[derive(Serialize, Deserialize)]
@@ -89,6 +90,12 @@ pub struct Vertex {
 #[derive(Serialize, Deserialize)]
 pub struct Triangle {
     pub indices: [u16; 3],
+}
+
+#[derive(Serialize, Deserialize)]
+pub struct BoundingBox {
+    pub min: Vector3,
+    pub max: Vector3,
 }
 
 impl Mesh {
