@@ -1,9 +1,20 @@
-import { AccountCircle, CreditCard, Logout } from '@mui/icons-material';
-import { Button, Typography, IconButton, Menu, MenuItem, ListItemIcon, Avatar, Divider } from '@mui/material';
-import React from 'react';
-import { useApi } from '../services/user/api';
+import { AccountCircle, CreditCard, Logout } from "@mui/icons-material";
+import {
+  Button,
+  Typography,
+  IconButton,
+  Menu,
+  MenuItem,
+  ListItemIcon,
+  Avatar,
+  Divider,
+} from "@mui/material";
+import React from "react";
+import { useTranslation } from "react-i18next";
+import { useApi } from "../services/user/api";
 
 const UserIconButton = () => {
+  const { t } = useTranslation();
 
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
   const avatarMenuOpen = Boolean(anchorEl);
@@ -21,7 +32,7 @@ const UserIconButton = () => {
   return (
     <>
       <Button
-        variant='text'
+        variant="text"
         disableRipple
         disableFocusRipple
         disabled
@@ -33,13 +44,13 @@ const UserIconButton = () => {
             color: "inherit",
           },
         }}
-        color='inherit'
+        color="inherit"
       >
         <Typography
-          fontSize='1.2em'
+          fontSize="1.2em"
           noWrap
           width={{ md: "280px", lg: "400px", xl: "500px" }}
-          textAlign='end'
+          textAlign="end"
         >
           {username}
         </Typography>
@@ -77,26 +88,26 @@ const UserIconButton = () => {
       >
         <MenuItem>
           <ListItemIcon>
-            <AccountCircle fontSize='small' />
+            <AccountCircle fontSize="small" />
           </ListItemIcon>
-          Account
+          {t("account")}
         </MenuItem>
         <MenuItem>
           <ListItemIcon>
-            <CreditCard fontSize='small' />
+            <CreditCard fontSize="small" />
           </ListItemIcon>
-          Subscription
+          {t("subscription")}
         </MenuItem>
         <Divider />
         <MenuItem>
           <ListItemIcon>
-            <Logout fontSize='small'  />
+            <Logout fontSize="small" />
           </ListItemIcon>
-          Logout
+          {t("log_out")}
         </MenuItem>
       </Menu>
     </>
-  )
-}
+  );
+};
 
 export default UserIconButton;

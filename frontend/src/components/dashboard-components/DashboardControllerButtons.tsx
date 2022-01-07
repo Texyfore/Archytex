@@ -1,13 +1,25 @@
-import { Home, PlayCircleOutlined, Settings, Source } from "@mui/icons-material";
-import { List, ListItemButton, ListItemIcon, ListItemText } from "@mui/material";
+import {
+  Home,
+  PlayCircleOutlined,
+  Settings,
+  Source,
+} from "@mui/icons-material";
+import {
+  List,
+  ListItemButton,
+  ListItemIcon,
+  ListItemText,
+} from "@mui/material";
 import React from "react";
+import { useTranslation } from "react-i18next";
 import { useHistory } from "react-router-dom";
 import { SubPage, useSubPage } from "../../services/selectedDashboardSubPage";
 
 export default function DashboardControllerButtons() {
+  const { t } = useTranslation();
   const buttonList: { text: string; icon: JSX.Element; id: SubPage }[] = [
     {
-      text: "Projects",
+      text: t("projects"),
       icon: <Source sx={{ fontSize: { lg: 30, xl: 32 } }} />,
       id: "projects" as SubPage,
     },
@@ -16,7 +28,7 @@ export default function DashboardControllerButtons() {
     //   icon: <ColorLens sx={{ fontSize: { lg: 30, xl: 32 } }} />,
     // },
     {
-      text: "Settings",
+      text: t("settings"),
       icon: <Settings sx={{ fontSize: { lg: 30, xl: 32 } }} />,
       id: "settings" as SubPage,
     },
@@ -49,7 +61,7 @@ export default function DashboardControllerButtons() {
         </ListItemIcon>
         <ListItemText
           sx={{ marginLeft: { lg: 0, xl: 8 } }}
-          primary='Launch Archytex'
+          primary={t("launch_archytex")}
           primaryTypographyProps={{
             fontSize: { lg: "12pt", xl: "15pt" },
           }}
@@ -81,27 +93,27 @@ export default function DashboardControllerButtons() {
         </ListItemButton>
       ))}
       <ListItemButton
-          sx={{
-            display: {xs: 'flex', md: 'none'},
-            paddingX: { lg: 3 },
-            paddingY: { lg: 2 },
-            marginY: { lg: 1 },
-            borderRadius: "2px",
+        sx={{
+          display: { xs: "flex", md: "none" },
+          paddingX: { lg: 3 },
+          paddingY: { lg: 2 },
+          marginY: { lg: 1 },
+          borderRadius: "2px",
+        }}
+        key={99}
+        onClick={() => history.push("/")}
+      >
+        <ListItemIcon sx={{ paddingLeft: { lg: 0, xl: 2 } }}>
+          <Home />
+        </ListItemIcon>
+        <ListItemText
+          sx={{ marginLeft: { lg: 0, xl: 8 } }}
+          primary={t("home")}
+          primaryTypographyProps={{
+            fontSize: { lg: "12pt", xl: "15pt" },
           }}
-          key={99}
-          onClick={() => history.push("/")}
-        >
-          <ListItemIcon sx={{ paddingLeft: { lg: 0, xl: 2 } }}>
-            <Home />
-          </ListItemIcon>
-          <ListItemText
-            sx={{ marginLeft: { lg: 0, xl: 8 } }}
-            primary="Home page"
-            primaryTypographyProps={{
-              fontSize: { lg: "12pt", xl: "15pt" },
-            }}
-          />
-        </ListItemButton>
+        />
+      </ListItemButton>
     </List>
   );
 }
