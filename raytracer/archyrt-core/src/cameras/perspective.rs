@@ -7,6 +7,7 @@ use crate::{
     },
     vector,
 };
+use crate::utilities::math::Matrix3x3;
 
 #[derive(Debug)]
 pub struct PerspectiveCamera {
@@ -28,6 +29,14 @@ impl PerspectiveCamera {
         let left = Vec3::new(0.0, 1.0, 0.0).cross(forward).normalized();
         let up = forward.cross(left);
         matrix!(left, up, forward)
+    }
+
+    pub fn from_euler(position: Vec3, euler_direction: Vec3, focal_distance: f64) -> Self {
+        Self {
+            position,
+            focal_distance,
+            matrix: Matrix3x3::identity().rotate_z(euler_direction.z()).rotate_y(euler_direction.y()).rotate_x(euler_direction.x()),
+        }
     }
 }
 

@@ -4,6 +4,7 @@ use std::{
 };
 
 use cgmath::Vector3;
+use mdl::Vector2;
 
 #[derive(Clone, Copy, PartialEq)]
 pub struct Vector<const N: usize> {
@@ -310,6 +311,18 @@ impl Vec3 {
     }
 }
 
+impl From<mdl::Vector3> for Vec3{
+    fn from(vec: mdl::Vector3) -> Self {
+        (&vec).into()
+    }
+}
+
+impl From<&mdl::Vector3> for Vec3{
+    fn from(vec: &mdl::Vector3) -> Self {
+        vector![vec.x as f64, vec.y as f64, vec.z as f64]
+    }
+}
+
 impl From<Vector3<f32>> for Vec3 {
     fn from(a: Vector3<f32>) -> Self {
         Self::new(a.x as f64, a.y as f64, a.z as f64)
@@ -327,6 +340,18 @@ impl Vec2 {
     }
     pub fn y(self) -> f64 {
         self[1]
+    }
+}
+
+impl From<mdl::Vector2> for Vec2{
+    fn from(vec: mdl::Vector2) -> Self {
+        (&vec).into()
+    }
+}
+
+impl From<&mdl::Vector2> for Vec2{
+    fn from(vec: &Vector2) -> Self {
+        vector![vec.x as f64, vec.y as f64]
     }
 }
 
@@ -353,6 +378,36 @@ impl Matrix3x3 {
             *v = m.det() / det;
         }
         Some(o)
+    }
+    pub fn rotate_x(self, angle: f64) -> Self{
+        let sin = angle.sin();
+        let cos = angle.cos();
+        let matrix: Matrix3x3 = matrix!(
+          vector![1.0, 0.0, 0.0],
+          vector![0.0, cos, sin],
+          vector![0.0, -sin, cos]
+        );
+        self*matrix
+    }
+    pub fn rotate_y(self, angle: f64) -> Self{
+        let sin = angle.sin();
+        let cos = angle.cos();
+        let matrix: Matrix3x3 = matrix!(
+          vector![cos, 0.0, -sin],
+          vector![0.0, 1.0, 0.0],
+          vector![sin, 0.0, cos]
+        );
+        self*matrix
+    }
+    pub fn rotate_z(self, angle: f64) -> Self{
+        let sin = angle.sin();
+        let cos = angle.cos();
+        let matrix: Matrix3x3 = matrix!(
+          vector![cos, sin, 0.0],
+          vector![-sin, cos, 0.0],
+          vector![0.0, 0.0, 1.0]
+        );
+        self*matrix
     }
 }
 
