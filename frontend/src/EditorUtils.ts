@@ -76,6 +76,14 @@ export default class EditorHandle {
                 module.loadTextures();
                 break;
               }
+              case "prop-data": {
+                module.propData(action.id, action.data);
+                break;
+              }
+              case "load-props": {
+                module.loadProps();
+                break;
+              }
               case "set-editor-mode": {
                 module.setEditorMode(action.mode);
                 break;
@@ -131,14 +139,13 @@ export default class EditorHandle {
   }
 
   textureData(id: number, url: string) {
-    let get = async () => {
-      let image = await fetch(url);
-      let arrayBuffer = await image.arrayBuffer();
-      let data = new Uint8Array(arrayBuffer);
+    const get = async () => {
+      const res = await fetch(url);
+      const arrayBuffer = await res.arrayBuffer();
       this.actionQueue.push({
         type: "texture-data",
         id: id,
-        data: data,
+        data: new Uint8Array(arrayBuffer),
       });
     };
     get();
@@ -147,6 +154,25 @@ export default class EditorHandle {
   loadTextures() {
     this.actionQueue.push({
       type: "load-textures",
+    });
+  }
+
+  propData(id: number, url: string) {
+    const get = async () => {
+      const res = await fetch(url);
+      const arrayBuffer = await res.arrayBuffer();
+      this.actionQueue.push({
+        type: "prop-data",
+        id: id,
+        data: new Uint8Array(arrayBuffer),
+      });
+    };
+    get();
+  }
+
+  loadProps() {
+    this.actionQueue.push({
+      type: "load-props",
     });
   }
 

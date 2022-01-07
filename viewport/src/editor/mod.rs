@@ -1,5 +1,6 @@
 mod camera;
 mod config;
+mod prop;
 mod solid;
 
 use std::rc::Rc;
@@ -15,6 +16,7 @@ use crate::{
 use self::{
     camera::{SpriteCamera, WorldCamera},
     config::{GRID_MAX, GRID_MIN},
+    prop::{PropEditor, PropEditorState},
     solid::{SolidEditor, SolidEditorContext},
     ActionBinding::*,
 };
@@ -57,8 +59,6 @@ actions! {
 
     EnableMultiSelect    Key LShift   ,
     Select               Btn Left     ,
-    Deselect             Key X        ,
-    SelectAll            Key A        ,
     Move                 Key G        ,
     ConfirmMove          Btn Left     ,
     AbortMove            Btn Right    ,
@@ -87,18 +87,19 @@ actions! {
 
 pub struct Editor {
     mode: EditorMode,
-    solid_factory: SolidFactory,
+    solid_factory: Rc<SolidFactory>,
     line_factory: LineFactory,
     world_camera: WorldCamera,
     sprite_camera: SpriteCamera,
     solid_editor: SolidEditor,
+    prop_editor: PropEditor,
     grid_subdiv: i32,
     grid: Rc<LineBatch>,
 }
 
 impl Editor {
     pub fn init(
-        solid_factory: SolidFactory,
+        solid_factory: Rc<SolidFactory>,
         line_factory: LineFactory,
         input: &mut InputMapper,
     ) -> Self {
@@ -113,6 +114,7 @@ impl Editor {
             world_camera: Default::default(),
             sprite_camera: Default::default(),
             solid_editor: Default::default(),
+            prop_editor: Default::default(),
             grid_subdiv: 0,
             grid,
         }
@@ -121,6 +123,7 @@ impl Editor {
     pub fn process(&mut self, dt: f32, input: &InputMapper, texture_bank: &TextureBank) {
         if input.is_active_once(SwitchMode) {
             self.mode.switch();
+            self.solid_editor.deselect_all();
             net::send_packet(format!(
                 r#"{{ "message": "set-editor-mode", "mode": {} }}"#,
                 self.mode.as_i32()
@@ -158,19 +161,23 @@ impl Editor {
         }
 
         self.world_camera.process(dt, input);
+        self.solid_editor.process(
+            self.mode == EditorMode::Solid,
+            SolidEditorContext {
+                input,
+                world_camera: &self.world_camera,
+                solid_factory: &self.solid_factory,
+                line_factory: &self.line_factory,
+                texture_bank,
+                grid_length: 2.0f32.powi(self.grid_subdiv),
+            },
+        );
 
-        match self.mode {
-            EditorMode::Solid => {
-                self.solid_editor.process(SolidEditorContext {
-                    input,
-                    world_camera: &self.world_camera,
-                    solid_factory: &self.solid_factory,
-                    line_factory: &self.line_factory,
-                    texture_bank,
-                    grid_length: 2.0f32.powi(self.grid_subdiv),
-                });
-            }
-            EditorMode::Prop => {}
+        if self.mode == EditorMode::Prop {
+            self.prop_editor.process(PropEditorState {
+                input,
+                solid_factory: &self.solid_factory,
+            });
         }
     }
 
@@ -178,6 +185,7 @@ impl Editor {
         self.world_camera.render(scene);
         self.sprite_camera.render(scene);
         self.solid_editor.render(scene, &self.world_camera);
+        self.prop_editor.render(scene);
         scene.world_pass.line_batches.push(self.grid.clone());
     }
 
@@ -195,8 +203,8 @@ impl Editor {
         self.solid_editor.set_mode(mode);
     }
 
-    pub fn save_scene(&self, texture_bank: &TextureBank) {
-        self.solid_editor.save_scene(texture_bank);
+    pub fn save_scene(&self) {
+        self.solid_editor.save_scene();
     }
 
     pub fn set_camera_speed(&mut self, speed: f32) {

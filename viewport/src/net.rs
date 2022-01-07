@@ -60,12 +60,22 @@ pub fn __set_resolution(width: u32, height: u32) {
 
 #[wasm_bindgen(js_name = "textureData")]
 pub fn __texture_data(id: u32, data: Vec<u8>) {
-    push_from_js(Message::TextureData { id, data })
+    push_from_js(Message::TextureData { id, data });
 }
 
 #[wasm_bindgen(js_name = "loadTextures")]
 pub fn __load_textures() {
-    push_from_js(Message::LoadTextures)
+    push_from_js(Message::LoadTextures);
+}
+
+#[wasm_bindgen(js_name = "propData")]
+pub fn __prop_data(id: u32, data: Vec<u8>) {
+    push_from_js(Message::PropData { id, data });
+}
+
+#[wasm_bindgen(js_name = "loadProps")]
+pub fn __load_props() {
+    push_from_js(Message::LoadProps);
 }
 
 #[wasm_bindgen(js_name = "setEditorMode")]
@@ -117,7 +127,9 @@ pub fn __set_grid_size(size: i32) {
 pub enum Message {
     SetResolution { width: u32, height: u32 },
     TextureData { id: u32, data: Vec<u8> },
+    PropData { id: u32, data: Vec<u8> },
     LoadTextures,
+    LoadProps,
     SetEditorMode(i32),
     SetSolidEditorMode(i32),
     SetGizmo(i32),

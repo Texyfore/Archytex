@@ -39,7 +39,12 @@ impl Default for SolidEditor {
 }
 
 impl SolidEditor {
-    pub fn process(&mut self, ctx: SolidEditorContext) {
+    pub fn process(&mut self, behave: bool, ctx: SolidEditorContext) {
+        if !behave {
+            self.container.rebuild(ctx.solid_factory, ctx.texture_bank);
+            return;
+        }
+
         let mut changed_mode = false;
 
         if ctx.input.is_active_once(SolidMode) {
@@ -94,7 +99,7 @@ impl SolidEditor {
         self.container.deselect();
     }
 
-    pub fn save_scene(&self, textures: &TextureBank) {
+    pub fn save_scene(&self) {
         net::set_saved_scene(
             mdl::Scene {
                 camera: mdl::Camera {
@@ -109,7 +114,7 @@ impl SolidEditor {
                         z: 0.0,
                     },
                 },
-                model: self.container.export(textures),
+                model: self.container.export(),
                 props: Vec::new(),
             }
             .encode()
