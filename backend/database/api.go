@@ -28,6 +28,11 @@ type Database interface {
 	DeleteProject(userId interface{}, projectId interface{}) error
 	GetProject(userId interface{}, projectId interface{}) (*models.Project, error)
 	SubscribeProjects(userId interface{}) (chan Updates, error)
+
+	GetTextures() ([]models.Asset, error)
+	GetTexture(id interface{}) (*models.Asset, error)
+	GetProps() ([]models.Asset, error)
+	GetProp(id interface{}) (*models.Asset, error)
 }
 
 var ErrProjectNotFound = errors.New("project not found")
