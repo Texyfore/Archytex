@@ -2,9 +2,15 @@ use std::{
     fmt::Debug,
     ops::{Add, AddAssign, Div, DivAssign, Index, IndexMut, Mul, MulAssign, Neg, Sub, SubAssign},
 };
+use std::cmp::Ordering;
 
 use cgmath::Vector3;
 use mdl::Vector2;
+
+#[derive(Copy, Clone)]
+pub enum Axis3{
+    X, Y, Z
+}
 
 #[derive(Clone, Copy, PartialEq)]
 pub struct Vector<const N: usize> {
@@ -308,6 +314,18 @@ impl Vec3 {
             self.z() * rhs.x() - self.x() * rhs.z(),
             self.x() * rhs.y() - self.y() * rhs.x()
         )
+    }
+
+    pub fn get(self, axis: Axis3) -> f64{
+        match axis{
+            Axis3::X => self.x(),
+            Axis3::Y => self.y(),
+            Axis3::Z => self.z()
+        }
+    }
+
+    pub fn max_axis(self) -> Axis3{
+        [Axis3::X, Axis3::Y, Axis3::Z].into_iter().max_by(|a, b|self.get(*a).partial_cmp(&self.get(*b)).unwrap_or(Ordering::Equal)).unwrap()
     }
 }
 

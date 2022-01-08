@@ -1,3 +1,4 @@
+use std::cmp::Ordering;
 use crate::{
     matrix,
     utilities::{
@@ -5,10 +6,11 @@ use crate::{
         ray::{Intersectable, Intersection, IntersectionBuilder, Ray},
     },
 };
+use crate::utilities::math::Axis3;
 
 use super::aabb::AABB;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Triangle {
     pub a: Vec3,
     pub b: Vec3,
@@ -33,6 +35,24 @@ impl Triangle {
         let min = self.a.min(self.b).min(self.c);
         let max = self.a.max(self.b).max(self.c);
         AABB { min, max }
+    }
+
+    pub fn centroid(&self) -> Vec3{
+        (self.a+self.b+self.c)/3.0
+    }
+
+    pub fn side(&self, a: Axis3, divider: f64) -> Ordering{
+        let o = self.a.get(a) >= divider;
+        for p in [self.b, self.c].iter(){
+            if (p.get(a) >= divider) != o {
+                return Ordering::Equal;
+            }
+        }
+        if o {
+            Ordering::Greater
+        } else {
+            Ordering::Less
+        }
     }
 }
 
