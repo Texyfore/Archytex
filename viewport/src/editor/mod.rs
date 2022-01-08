@@ -63,6 +63,7 @@ actions! {
     Move                 Key G        ,
     ConfirmMove          Btn Left     ,
     AbortMove            Btn Right    ,
+    AbortMoveAlt         Key Escape   ,
     GridUp               Key P        ,
     GridDown             Key O        ,
     SwitchMode           Key Tab      ,

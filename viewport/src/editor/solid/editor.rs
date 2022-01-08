@@ -175,7 +175,7 @@ impl SolidEditor {
                 self.move_op = None;
             }
 
-            if ctx.input.is_active_once(AbortMove) {
+            if ctx.input.is_active_once(AbortMove) | ctx.input.is_active_once(AbortMoveAlt) {
                 self.move_op = None;
                 self.container.abort_move();
             }

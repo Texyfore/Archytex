@@ -4,7 +4,7 @@ use cgmath::{Deg, ElementWise, InnerSpace, Matrix3, Matrix4, Transform, Vector3,
 
 use crate::{
     input::InputMapper,
-    math::{MinMax, Ray, SolidUtil},
+    math::{IntersectionPoint, MinMax, Plane, Ray, SolidUtil},
     render::{
         LineBatch, LineFactory, PropBank, PropID, Scene, SolidFactory, Transform as RTransform,
     },
@@ -23,12 +23,14 @@ pub struct PropEditor {
     props: RingVec<Prop>,
     selection_lines: Rc<LineBatch>,
     rebuild: bool,
+    move_op: Option<MoveOp>,
 }
 
 struct Prop {
     id: PropID,
     transform: RTransform,
     location: Location,
+    previous_location: Location,
     selected: bool,
 }
 
@@ -58,6 +60,13 @@ impl Prop {
     }
 }
 
+struct MoveOp {
+    plane: Plane,
+    start: Vector3<f32>,
+    end: Vector3<f32>,
+}
+
+#[derive(Clone, Copy)]
 struct Location {
     position: Vector3<f32>,
     rotation: Vector3<f32>,
@@ -93,6 +102,7 @@ impl PropEditor {
             props: RingVec::new(MAX_PROPS),
             selection_lines: line_factory.create(&[]),
             rebuild: false,
+            move_op: None,
         }
     }
 
@@ -111,6 +121,7 @@ impl PropEditor {
                     id: 0,
                     transform: state.solid_factory.create_transform(),
                     location,
+                    previous_location: location,
                     selected: false,
                 });
 
@@ -118,7 +129,7 @@ impl PropEditor {
             }
         }
 
-        if state.input.is_active_once(Select) {
+        if state.input.is_active_once(Select) && self.move_op.is_none() {
             if !state.input.is_active(EnableMultiSelect) {
                 for (_, prop) in &mut self.props {
                     prop.selected = false;
@@ -134,6 +145,79 @@ impl PropEditor {
                 self.props.get_mut(prop).unwrap().selected = true;
                 self.rebuild = true;
             }
+        }
+
+        let mut abort_move = false;
+        if state.input.is_active_once(Move) {
+            if self.move_op.is_some() {
+                abort_move = true;
+            } else {
+                self.props
+                    .iter_mut()
+                    .filter(|(_, prop)| prop.selected)
+                    .for_each(|(_, prop)| prop.previous_location = prop.location);
+
+                let ray = state.camera.screen_ray(state.input.mouse_pos());
+                let plane = self.move_plane(ray);
+                if let Some(point) = ray.intersection_point(&plane) {
+                    self.move_op = Some(MoveOp {
+                        plane,
+                        start: point.snap(state.grid_length),
+                        end: point.snap(state.grid_length),
+                    });
+                }
+            }
+        }
+
+        if self.move_op.is_some()
+            && (state.input.is_active_once(AbortMove) || state.input.is_active_once(AbortMoveAlt))
+        {
+            abort_move = true;
+        }
+
+        if abort_move {
+            self.props
+                .iter_mut()
+                .filter(|(_, prop)| prop.selected)
+                .for_each(|(_, prop)| prop.location = prop.previous_location);
+            self.move_op.take();
+            self.rebuild = true;
+        }
+
+        if let Some(move_op) = self.move_op.as_mut() {
+            let ray = state.camera.screen_ray(state.input.mouse_pos());
+            if let Some(point) = ray.intersection_point(&move_op.plane) {
+                move_op.end = (point + move_op.plane.normal * 0.01).snap(state.grid_length);
+                let delta = move_op.end - move_op.start;
+                self.props
+                    .iter_mut()
+                    .filter(|(_, prop)| prop.selected)
+                    .for_each(|(_, prop)| {
+                        prop.location.position = prop.previous_location.position + delta
+                    });
+                self.rebuild = true;
+            }
+
+            if state.input.is_active_once(ConfirmMove) {
+                self.props.iter_mut().for_each(|(_, prop)| {
+                    prop.selected = false;
+                });
+                self.move_op.take();
+                self.rebuild = true;
+            }
+        }
+
+        if state.input.is_active_once(DeleteSolid) {
+            let selected: Vec<usize> = self
+                .props
+                .iter()
+                .filter(|(_, prop)| prop.selected)
+                .map(|(i, _)| i)
+                .collect();
+            for selected in selected {
+                self.props.remove(selected);
+            }
+            self.rebuild = true;
         }
 
         if self.rebuild {
@@ -208,6 +292,23 @@ impl PropEditor {
         });
 
         candidates.first().map(|(i, _)| *i)
+    }
+
+    fn move_plane(&self, ray: Ray) -> Plane {
+        let mut center = Vector3::zero();
+        let mut div = 0.0;
+
+        for (_, prop) in &self.props {
+            center += prop.location.position;
+            div += 1.0;
+        }
+
+        center /= div;
+
+        Plane {
+            origin: center,
+            normal: -(ray.vec().normalize()).cardinal(),
+        }
     }
 }
 
