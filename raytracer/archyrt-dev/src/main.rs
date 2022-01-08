@@ -7,6 +7,7 @@ use archyrt_core::{
     renderers::basic_renderer::BasicRenderer,
     utilities::math::Vec3,
 };
+use archyrt_core::intersectables::bvh::BVH;
 use archyrt_core::loaders::amdl::AMDLLoader;
 
 fn main() {
@@ -17,13 +18,16 @@ fn main() {
     let camera = PerspectiveCamera::new(
         pos,
         (target-pos).normalized(), 0.595877);
+    let object = loader.get_triangles();
+    let object = BVH::from_triangles(object).unwrap();
+    //let camera = loader.get_camera()
     println!("Render");
     let renderer = BasicRenderer {
-        object: loader.get_triangles(),
-        camera: camera,
+        object,
+        camera,
         lamp: pos,
     };
     let collector = ImageCollector {};
-    let image = collector.collect(renderer, 128, 128).unwrap();
+    let image = collector.collect(renderer, 1920, 1080).unwrap();
     image.save("image.png").unwrap();
 }
