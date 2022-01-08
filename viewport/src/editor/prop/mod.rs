@@ -8,7 +8,7 @@ use crate::{
     render::{
         LineBatch, LineFactory, PropBank, PropID, Scene, SolidFactory, Transform as RTransform,
     },
-    ring_vec::RingVec,
+    ring_vec::RingVec, net,
 };
 
 use super::{
@@ -124,6 +124,7 @@ impl PropEditor {
                     previous_location: location,
                     selected: false,
                 });
+                net::send_packet(r#"{"message": "play-sound", "name": "amogus"}"#.to_string());
 
                 self.rebuild = true;
             }
@@ -214,6 +215,7 @@ impl PropEditor {
                 .filter(|(_, prop)| prop.selected)
                 .map(|(i, _)| i)
                 .collect();
+            net::send_packet(format!(r#"{{"message": "play-sound-repeated", "name": "cry", "count": {}}}"#, selected.len()));
             for selected in selected {
                 self.props.remove(selected);
             }

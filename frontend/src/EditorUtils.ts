@@ -16,6 +16,12 @@ interface AssetLoader {
 
 export type { Callbacks };
 
+function play_sound(name: string){
+  const filename = `assets/${name}.ogg`;
+  const audio = new Audio(filename);
+  audio.play();
+}
+
 export default class EditorHandle {
   private callbacks: Callbacks;
   private loopTimeout: NodeJS.Timeout | undefined;
@@ -54,6 +60,22 @@ export default class EditorHandle {
                 }
                 case "set-grid-size": {
                   this.callbacks.gridSizeChanged(json.size);
+                  break;
+                }
+                case "play-sound": {
+                  play_sound(json.name);
+                  break;
+                }
+                case "play-sound-repeated": {
+                  let count: number = json.count;
+                  const inner = ()=>{
+                    play_sound(json.name);
+                    count -= 1;
+                    if (count > 0) {
+                      setTimeout(inner, 100);
+                    }
+                  };
+                  inner();
                   break;
                 }
               }
