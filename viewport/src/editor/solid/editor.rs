@@ -252,7 +252,7 @@ impl SolidState {
     ) {
         if ctx.input.is_active_once(AddSolid) {
             if let Some(raycast) =
-                container.raycast(ctx.world_camera.screen_ray(ctx.input.mouse_pos()))
+                container.raycast(ctx.world_camera.screen_ray(ctx.input.mouse_pos()), true)
             {
                 let world = (raycast.point + raycast.normal * 0.01).grid(ctx.grid_length);
                 let screen = ctx.input.mouse_pos();
@@ -268,7 +268,7 @@ impl SolidState {
         if let (true, Some(new_solid), Some(raycast)) = (
             ctx.input.is_active(AddSolid),
             self.new_solid.as_mut(),
-            container.raycast(ctx.world_camera.screen_ray(ctx.input.mouse_pos())),
+            container.raycast(ctx.world_camera.screen_ray(ctx.input.mouse_pos()), true),
         ) {
             new_solid.end = NewSolidPoint {
                 world: (raycast.point + raycast.normal * 0.01).grid(ctx.grid_length),

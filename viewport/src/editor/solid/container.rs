@@ -274,7 +274,7 @@ impl SolidContainer {
 
                 let can_select = if let Some(Raycast {
                     point: hit_point, ..
-                }) = self.raycast(ray)
+                }) = self.raycast(ray, true)
                 {
                     let a = (point.position - ray.origin).magnitude2();
                     let b = (hit_point - ray.origin).magnitude2();
@@ -305,7 +305,7 @@ impl SolidContainer {
             self.selected = Some(Selection::Faces(Vec::new()));
         }
 
-        let raycast = self.raycast(camera.screen_ray(position));
+        let raycast = self.raycast(camera.screen_ray(position), true);
         if let (
             Some(Selection::Faces(faces)),
             Some(Raycast {
@@ -328,7 +328,7 @@ impl SolidContainer {
             self.selected = Some(Selection::Solids(Vec::new()));
         }
 
-        let raycast = self.raycast(camera.screen_ray(position));
+        let raycast = self.raycast(camera.screen_ray(position), true);
         if let (
             Some(Selection::Solids(solids)),
             Some(Raycast {
@@ -389,7 +389,7 @@ impl SolidContainer {
         }
     }
 
-    pub fn raycast(&self, ray: Ray) -> Option<Raycast> {
+    pub fn raycast(&self, ray: Ray, plane_fallback: bool) -> Option<Raycast> {
         let mut hits = Vec::new();
 
         for (i, solid) in self.solids.iter() {
@@ -426,7 +426,7 @@ impl SolidContainer {
                 normal,
                 solid: Some(RaycastSolid { solid, face }),
             })
-        } else {
+        } else if plane_fallback {
             let plane = Plane {
                 origin: Vector3::zero(),
                 normal: Vector3::unit_y(),
@@ -437,6 +437,8 @@ impl SolidContainer {
                 normal: plane.normal,
                 solid: None,
             })
+        }else {
+            None
         }
     }
 

@@ -1,11 +1,13 @@
-use std::{collections::HashMap, rc::Rc};
+use std::{cmp::Ordering, collections::HashMap, rc::Rc};
 
-use cgmath::{Deg, Matrix3, Matrix4, Vector3, Zero};
+use cgmath::{Deg, ElementWise, InnerSpace, Matrix3, Matrix4, Transform, Vector3, Zero};
 
 use crate::{
     input::InputMapper,
-    math::{Ray, SolidUtil},
-    render::{LineBatch, LineFactory, PropBank, PropID, Scene, SolidFactory, Transform},
+    math::{MinMax, Ray, SolidUtil},
+    render::{
+        LineBatch, LineFactory, PropBank, PropID, Scene, SolidFactory, Transform as RTransform,
+    },
     ring_vec::RingVec,
 };
 
@@ -25,9 +27,35 @@ pub struct PropEditor {
 
 struct Prop {
     id: PropID,
-    transform: Transform,
+    transform: RTransform,
     location: Location,
     selected: bool,
+}
+
+impl Prop {
+    fn intersection_point(&self, prop_bank: &PropBank, ray: Ray) -> Option<Vector3<f32>> {
+        if let Some((min, max)) = prop_bank.bounds(self.id) {
+            let untransform = self.location.mat4().inverse_transform().unwrap();
+
+            let ray_origin = (untransform * ray.origin.extend(1.0)).truncate();
+            let ray_end = (untransform * ray.end.extend(1.0)).truncate();
+
+            let ray_dir = ray_end - ray_origin;
+
+            let t_min = (min - ray_origin).div_element_wise(ray_dir);
+            let t_max = (max - ray_origin).div_element_wise(ray_dir);
+            let t1 = t_min.min(t_max);
+            let t2 = t_min.max(t_max);
+            let near = t1.x.max(t1.y).max(t1.z);
+            let far = t2.x.min(t2.y).min(t2.z);
+
+            if near < far {
+                return Some(ray.origin + (ray.end - ray.origin) * near);
+            }
+        }
+
+        None
+    }
 }
 
 struct Location {
@@ -72,7 +100,7 @@ impl PropEditor {
         if state.input.is_active(Modifier) && state.input.is_active_once(AddProp) {
             if let Some(raycast) = state
                 .solid_container
-                .raycast(state.camera.screen_ray(state.input.mouse_pos()))
+                .raycast(state.camera.screen_ray(state.input.mouse_pos()), true)
             {
                 let location = Location {
                     position: raycast.point.snap(state.grid_length),
@@ -90,14 +118,23 @@ impl PropEditor {
             }
         }
 
-        // if state.input.is_active_once(Select) {
-        //     if !state.input.is_active(EnableMultiSelect) {
-        //         for (_, prop) in &mut self.props {
-        //             prop.selected = false;
-        //             self.rebuild = true;
-        //         }
-        //     }
-        // }
+        if state.input.is_active_once(Select) {
+            if !state.input.is_active(EnableMultiSelect) {
+                for (_, prop) in &mut self.props {
+                    prop.selected = false;
+                    self.rebuild = true;
+                }
+            }
+
+            if let Some(prop) = self.raycast(
+                state.solid_container,
+                state.prop_bank,
+                state.camera.screen_ray(state.input.mouse_pos()),
+            ) {
+                self.props.get_mut(prop).unwrap().selected = true;
+                self.rebuild = true;
+            }
+        }
 
         if self.rebuild {
             let mut vertices = Vec::new();
@@ -111,7 +148,7 @@ impl PropEditor {
                             center,
                             half_extent,
                             rot3,
-                            -0.1,
+                            0.0,
                             PRIMARY_COLOR,
                         ));
                     }
@@ -123,7 +160,7 @@ impl PropEditor {
     }
 
     pub fn render(&self, scene: &mut Scene) {
-        let mut batches: HashMap<PropID, Vec<Transform>> = HashMap::new();
+        let mut batches: HashMap<PropID, Vec<RTransform>> = HashMap::new();
 
         for (_, prop) in &self.props {
             batches
@@ -139,13 +176,38 @@ impl PropEditor {
             .push(self.selection_lines.clone());
     }
 
-    fn _raycast(
+    fn raycast(
         &self,
-        _solid_container: &SolidContainer,
-        _prop_bank: &PropBank,
-        _ray: Ray,
+        solid_container: &SolidContainer,
+        prop_bank: &PropBank,
+        ray: Ray,
     ) -> Option<usize> {
-        todo!()
+        let solid_point = solid_container
+            .raycast(ray, false)
+            .map(|raycast| raycast.point);
+
+        let mut candidates = Vec::new();
+
+        for (i, prop) in &self.props {
+            if let Some(point) = prop.intersection_point(prop_bank, ray) {
+                if let Some(solid_point) = solid_point {
+                    if (solid_point - ray.origin).magnitude2() < (point - ray.origin).magnitude2() {
+                        continue;
+                    }
+                }
+
+                candidates.push((i, point));
+            }
+        }
+
+        candidates.sort_unstable_by(|(_, a), (_, b)| {
+            (a - ray.origin)
+                .magnitude2()
+                .partial_cmp(&(b - ray.origin).magnitude2())
+                .unwrap_or(Ordering::Equal)
+        });
+
+        candidates.first().map(|(i, _)| *i)
     }
 }
 
