@@ -1,3 +1,5 @@
+import Environment from "./env";
+
 interface Callbacks {
   editorModeChanged: (mode: number) => void;
   solidEditorModeChanged: (mode: number) => void;
@@ -5,6 +7,11 @@ interface Callbacks {
   cameraSpeedChanged: (speed: number) => void;
   gridSizeChanged: (size: number) => void;
   sceneSaved: (scene: Uint8Array) => void;
+}
+
+interface AssetLoader {
+  id: number;
+  file: string;
 }
 
 export type { Callbacks };
@@ -70,10 +77,12 @@ export default class EditorHandle {
               }
               case "texture-data": {
                 module.textureData(action.id, action.data);
+                console.log("texture-data");
                 break;
               }
               case "load-textures": {
                 module.loadTextures();
+                console.log("load-textures");
                 break;
               }
               case "prop-data": {
@@ -131,101 +140,103 @@ export default class EditorHandle {
   }
 
   setResolution(width: number, height: number) {
-    this.actionQueue.push({
+    this.actionQueue.unshift({
       type: "resolution",
       width: width,
       height: height,
     });
   }
 
-  textureData(id: number, url: string) {
-    const get = async () => {
-      const res = await fetch(url);
-      const arrayBuffer = await res.arrayBuffer();
-      this.actionQueue.push({
-        type: "texture-data",
-        id: id,
-        data: new Uint8Array(arrayBuffer),
+  loadTextures(loaders: AssetLoader[]) {
+    Promise.all(
+      loaders.map((loader) =>
+        (async () => {
+          const res = await fetch(`${Environment.asset_url}/${loader.file}`);
+          const arrayBuffer = await res.arrayBuffer();
+          this.actionQueue.unshift({
+            type: "texture-data",
+            id: loader.id,
+            data: new Uint8Array(arrayBuffer),
+          });
+        })()
+      )
+    ).then(() => {
+      this.actionQueue.unshift({
+        type: "load-textures",
       });
-    };
-    get();
-  }
-
-  loadTextures() {
-    this.actionQueue.push({
-      type: "load-textures",
     });
   }
 
-  propData(id: number, url: string) {
-    const get = async () => {
-      const res = await fetch(url);
-      const arrayBuffer = await res.arrayBuffer();
-      this.actionQueue.push({
-        type: "prop-data",
-        id: id,
-        data: new Uint8Array(arrayBuffer),
+  loadProps(loaders: AssetLoader[]) {
+    Promise.all(
+      loaders.map((loader) =>
+        (async () => {
+          const res = await fetch(`${Environment.asset_url}/${loader.file}`);
+          const arrayBuffer = await res.arrayBuffer();
+          this.actionQueue.unshift({
+            type: "prop-data",
+            id: loader.id,
+            data: new Uint8Array(arrayBuffer),
+          });
+        })()
+      )
+    ).then(() => {
+      this.actionQueue.unshift({
+        type: "load-props",
       });
-    };
-    get();
-  }
-
-  loadProps() {
-    this.actionQueue.push({
-      type: "load-props",
     });
   }
 
   setEditorMode(mode: number) {
-    this.actionQueue.push({
+    this.actionQueue.unshift({
       type: "set-editor-mode",
       mode: mode,
     });
   }
 
   setSolidEditorMode(mode: number) {
-    this.actionQueue.push({
+    this.actionQueue.unshift({
       type: "set-solid-editor-mode",
       mode: mode,
     });
   }
 
   setGizmo(gizmo: number) {
-    this.actionQueue.push({
+    this.actionQueue.unshift({
       type: "set-gizmo",
       gizmo: gizmo,
     });
   }
 
   saveScene() {
-    this.actionQueue.push({
+    this.actionQueue.unshift({
       type: "save-scene",
     });
   }
 
   selectTexture(id: number) {
-    this.actionQueue.push({
+    this.actionQueue.unshift({
       type: "select-texture",
       id: id,
     });
   }
 
   selectProp(id: number) {
-    this.actionQueue.push({
+    this.actionQueue.unshift({
       type: "select-prop",
       id: id,
     });
   }
 
   setCameraSpeed(speed: number) {
-    this.actionQueue.push({
+    this.actionQueue.unshift({
       type: "set-camera-speed",
       speed: speed,
     });
   }
 
   setGridSize(size: number) {
-    this.actionQueue.push({
+    this.actionQueue.unshift({
       type: "set-grid-size",
       size: size,
     });

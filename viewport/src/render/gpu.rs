@@ -498,7 +498,7 @@ impl Context {
                             binding: 1,
                             visibility: ShaderStages::FRAGMENT,
                             ty: BindingType::Sampler {
-                                filtering: true,
+                                filtering: false,
                                 comparison: false,
                             },
                             count: None,
@@ -620,9 +620,9 @@ impl Context {
             address_mode_u: AddressMode::Repeat,
             address_mode_v: AddressMode::Repeat,
             address_mode_w: AddressMode::Repeat,
-            mag_filter: FilterMode::Linear,
-            min_filter: FilterMode::Linear,
-            mipmap_filter: FilterMode::Linear,
+            mag_filter: FilterMode::Nearest,
+            min_filter: FilterMode::Nearest,
+            mipmap_filter: FilterMode::Nearest,
             ..Default::default()
         }))
     }

@@ -238,8 +238,12 @@ impl MainLoop {
             },
         };
 
-        self.editor
-            .process(elapsed, &self.input_mapper, &self.texture_bank);
+        self.editor.process(
+            elapsed,
+            &self.input_mapper,
+            &self.texture_bank,
+            &self.prop_bank,
+        );
 
         self.input_mapper.tick();
         self.editor.render(&mut scene);
