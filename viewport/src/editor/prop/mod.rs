@@ -26,6 +26,7 @@ pub struct PropEditor {
     move_op: Option<MoveOp>,
 }
 
+#[derive(Clone)]
 struct Prop {
     id: PropID,
     transform: RTransform,
@@ -57,6 +58,16 @@ impl Prop {
         }
 
         None
+    }
+
+    fn copy(&self, solid_factory: &SolidFactory) -> Self {
+        Self {
+            id: self.id,
+            transform: solid_factory.create_transform(),
+            location: self.location,
+            previous_location: self.location,
+            selected: false,
+        }
     }
 }
 
@@ -107,7 +118,7 @@ impl PropEditor {
     }
 
     pub fn process(&mut self, state: PropEditorState) {
-        if state.input.is_active(Modifier) && state.input.is_active_once(AddProp) {
+        if state.input.is_active(Modifier) && state.input.is_active_once(EditorAdd) {
             if let Some(raycast) = state
                 .solid_container
                 .raycast(state.camera.screen_ray(state.input.mouse_pos()), true)
@@ -129,7 +140,7 @@ impl PropEditor {
             }
         }
 
-        if state.input.is_active_once(Select) && self.move_op.is_none() {
+        if state.input.was_active_once(Select) && self.move_op.is_none() {
             if !state.input.is_active(EnableMultiSelect) {
                 for (_, prop) in &mut self.props {
                     prop.selected = false;
@@ -147,8 +158,35 @@ impl PropEditor {
             }
         }
 
+        if !state.input.is_active(MoveCamera) && state.input.is_active_once(SelectAll) {
+            let new_selected = !self.props.iter().any(|(_, prop)| prop.selected);
+            self.props
+                .iter_mut()
+                .for_each(|(_, prop)| prop.selected = new_selected);
+            self.rebuild = true;
+        }
+
+        let mut should_move = state.input.is_active_once(Move);
+
+        if state.input.is_active_once(EditorCopy) {
+            #[allow(clippy::needless_collect)]
+            let new_props = self
+                .props
+                .iter()
+                .filter(|(_, prop)| prop.selected)
+                .map(|(_, prop)| prop.copy(state.solid_factory))
+                .collect::<Vec<_>>();
+
+            new_props.into_iter().for_each(|prop| {
+                self.props.push(prop);
+            });
+
+            should_move = true;
+            self.rebuild = true;
+        }
+
         let mut abort_move = false;
-        if state.input.is_active_once(Move) {
+        if should_move {
             if self.move_op.is_some() {
                 abort_move = true;
             } else {
@@ -207,7 +245,7 @@ impl PropEditor {
             }
         }
 
-        if state.input.is_active_once(DeleteSolid) {
+        if state.input.is_active_once(EditorDel) {
             let selected: Vec<usize> = self
                 .props
                 .iter()
