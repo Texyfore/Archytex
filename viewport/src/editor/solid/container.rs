@@ -39,6 +39,28 @@ impl Default for SolidContainer {
 }
 
 impl SolidContainer {
+    pub fn load(model: mdl::Model) -> Self {
+        Self {
+            points: RingVec::from_dump(MAX_POINTS, model.points, |point| {
+                let position = vec3(point.position.x, point.position.y, point.position.z);
+                Point {
+                    position,
+                    previous: position,
+                }
+            }),
+            faces: RingVec::from_dump(MAX_FACES, model.faces, |face| Face {
+                quad: face.points.map(|i| i as usize),
+                texture: face.texture_id.0,
+            }),
+            solids: RingVec::from_dump(MAX_SOLIDS, model.solids, |solid| Solid {
+                faces: solid.faces.map(|i| i as usize),
+            }),
+            selected: None,
+            needs_rebuild: true,
+            mesh_cache: Vec::new(),
+        }
+    }
+
     pub fn add(&mut self, position: Vector3<f32>, extent: Vector3<f32>) {
         let points = [
             vec3(0.0, 0.0, 0.0),

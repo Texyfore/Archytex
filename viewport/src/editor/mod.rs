@@ -184,8 +184,9 @@ impl Editor {
             },
         );
 
-        if self.mode == EditorMode::Prop {
-            self.prop_editor.process(PropEditorState {
+        self.prop_editor.process(
+            self.mode == EditorMode::Prop,
+            PropEditorState {
                 input,
                 camera: &self.world_camera,
                 solid_factory: &self.solid_factory,
@@ -193,8 +194,8 @@ impl Editor {
                 prop_bank,
                 solid_container: self.solid_editor.container(),
                 grid_length: 2.0f32.powi(self.grid_subdiv),
-            });
-        }
+            },
+        );
     }
 
     pub fn render(&self, scene: &mut Scene) {
@@ -220,7 +221,29 @@ impl Editor {
     }
 
     pub fn save_scene(&self) {
-        self.solid_editor.save_scene();
+        let model = self.solid_editor.save();
+        let props = self.prop_editor.save();
+
+        net::set_saved_scene(
+            mdl::Scene {
+                camera: mdl::Camera {
+                    position: mdl::Vector3 {
+                        x: 0.0,
+                        y: 0.0,
+                        z: 0.0,
+                    },
+                    rotation: mdl::Vector3 {
+                        x: 0.0,
+                        y: 0.0,
+                        z: 0.0,
+                    },
+                },
+                model,
+                props,
+            }
+            .encode()
+            .unwrap(),
+        );
     }
 
     pub fn set_camera_speed(&mut self, speed: f32) {
@@ -236,6 +259,12 @@ impl Editor {
         self.grid = self
             .line_factory
             .create(&generate_grid(grid_cell_count, grid_length));
+    }
+
+    pub fn load_scene(&mut self, scene: mdl::Scene) {
+        self.mode = EditorMode::Solid;
+        self.prop_editor.load(&self.solid_factory, scene.props);
+        self.solid_editor.load(scene.model);
     }
 }
 

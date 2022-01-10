@@ -119,6 +119,13 @@ pub fn __get_saved_scene() -> Option<Vec<u8>> {
     result.take()
 }
 
+#[wasm_bindgen(js_name = "loadScene")]
+pub fn __load_scene(scene: Vec<u8>) {
+    if let Some(scene) = mdl::Scene::decode(&scene) {
+        push_from_js(Message::LoadScene(scene));
+    }
+}
+
 #[wasm_bindgen(js_name = "setGridSize")]
 pub fn __set_grid_size(size: i32) {
     push_from_js(Message::SetGridSize(size));
@@ -137,5 +144,6 @@ pub enum Message {
     SelectProp(u32),
     SetCameraSpeed(f32),
     SaveScene,
+    LoadScene(mdl::Scene),
     SetGridSize(i32),
 }

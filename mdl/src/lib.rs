@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 pub struct Scene {
     pub camera: Camera,
     pub model: Model,
-    pub props: Vec<Prop>,
+    pub props: Vec<(u32, Prop)>,
 }
 
 #[derive(Serialize, Deserialize)]

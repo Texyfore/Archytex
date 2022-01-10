@@ -220,6 +220,10 @@ impl MainLoop {
                     self.editor.set_grid_size(size);
                     info!("Grid size is {}", size);
                 }
+                Message::LoadScene(scene) => {
+                    self.editor.load_scene(scene);
+                    info!("New scene was loaded");
+                }
             }
         }
 
