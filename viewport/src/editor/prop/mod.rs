@@ -1,6 +1,6 @@
 use std::{cmp::Ordering, collections::HashMap, rc::Rc};
 
-use cgmath::{Deg, ElementWise, InnerSpace, Matrix3, Matrix4, Transform, Vector3, Zero};
+use cgmath::{vec3, Deg, ElementWise, InnerSpace, Matrix3, Matrix4, Transform, Vector3, Zero};
 
 use crate::{
     input::InputMapper,
@@ -117,145 +117,148 @@ impl PropEditor {
         }
     }
 
-    pub fn process(&mut self, state: PropEditorState) {
-        if state.input.is_active(Modifier) && state.input.is_active_once(EditorAdd) {
-            if let Some(raycast) = state
-                .solid_container
-                .raycast(state.camera.screen_ray(state.input.mouse_pos()), true)
-            {
-                let location = Location {
-                    position: raycast.point.snap(state.grid_length),
-                    rotation: Vector3::zero(),
-                };
+    pub fn process(&mut self, behave: bool, state: PropEditorState) {
+        if behave {
+            if state.input.is_active(Modifier) && state.input.is_active_once(EditorAdd) {
+                if let Some(raycast) = state
+                    .solid_container
+                    .raycast(state.camera.screen_ray(state.input.mouse_pos()), true)
+                {
+                    let location = Location {
+                        position: raycast.point.snap(state.grid_length),
+                        rotation: Vector3::zero(),
+                    };
 
-                self.props.push(Prop {
-                    id: 0,
-                    transform: state.solid_factory.create_transform(),
-                    location,
-                    previous_location: location,
-                    selected: false,
-                });
+                    self.props.push(Prop {
+                        id: 0,
+                        transform: state.solid_factory.create_transform(),
+                        location,
+                        previous_location: location,
+                        selected: false,
+                    });
 
-                self.rebuild = true;
-            }
-        }
-
-        if state.input.was_active_once(Select) && self.move_op.is_none() {
-            if !state.input.is_active(EnableMultiSelect) {
-                for (_, prop) in &mut self.props {
-                    prop.selected = false;
                     self.rebuild = true;
                 }
             }
 
-            if let Some(prop) = self.raycast(
-                state.solid_container,
-                state.prop_bank,
-                state.camera.screen_ray(state.input.mouse_pos()),
-            ) {
-                self.props.get_mut(prop).unwrap().selected = true;
-                self.rebuild = true;
-            }
-        }
+            if state.input.was_active_once(Select) && self.move_op.is_none() {
+                if !state.input.is_active(EnableMultiSelect) {
+                    for (_, prop) in &mut self.props {
+                        prop.selected = false;
+                        self.rebuild = true;
+                    }
+                }
 
-        if !state.input.is_active(MoveCamera) && state.input.is_active_once(SelectAll) {
-            let new_selected = !self.props.iter().any(|(_, prop)| prop.selected);
-            self.props
-                .iter_mut()
-                .for_each(|(_, prop)| prop.selected = new_selected);
-            self.rebuild = true;
-        }
-
-        let mut should_move = state.input.is_active_once(Move);
-
-        if state.input.is_active_once(EditorCopy) {
-            #[allow(clippy::needless_collect)]
-            let new_props = self
-                .props
-                .iter()
-                .filter(|(_, prop)| prop.selected)
-                .map(|(_, prop)| prop.copy(state.solid_factory))
-                .collect::<Vec<_>>();
-
-            new_props.into_iter().for_each(|prop| {
-                self.props.push(prop);
-            });
-
-            should_move = true;
-            self.rebuild = true;
-        }
-
-        let mut abort_move = false;
-        if should_move {
-            if self.move_op.is_some() {
-                abort_move = true;
-            } else {
-                self.props
-                    .iter_mut()
-                    .filter(|(_, prop)| prop.selected)
-                    .for_each(|(_, prop)| prop.previous_location = prop.location);
-
-                let ray = state.camera.screen_ray(state.input.mouse_pos());
-                let plane = self.move_plane(ray);
-                if let Some(point) = ray.intersection_point(&plane) {
-                    self.move_op = Some(MoveOp {
-                        plane,
-                        start: point.snap(state.grid_length),
-                        end: point.snap(state.grid_length),
-                    });
+                if let Some(prop) = self.raycast(
+                    state.solid_container,
+                    state.prop_bank,
+                    state.camera.screen_ray(state.input.mouse_pos()),
+                ) {
+                    self.props.get_mut(prop).unwrap().selected = true;
+                    self.rebuild = true;
                 }
             }
-        }
 
-        if self.move_op.is_some()
-            && (state.input.is_active_once(AbortMove) || state.input.is_active_once(AbortMoveAlt))
-        {
-            abort_move = true;
-        }
-
-        if abort_move {
-            self.props
-                .iter_mut()
-                .filter(|(_, prop)| prop.selected)
-                .for_each(|(_, prop)| prop.location = prop.previous_location);
-            self.move_op.take();
-            self.rebuild = true;
-        }
-
-        if let Some(move_op) = self.move_op.as_mut() {
-            let ray = state.camera.screen_ray(state.input.mouse_pos());
-            if let Some(point) = ray.intersection_point(&move_op.plane) {
-                move_op.end = (point + move_op.plane.normal * 0.01).snap(state.grid_length);
-                let delta = move_op.end - move_op.start;
+            if !state.input.is_active(MoveCamera) && state.input.is_active_once(SelectAll) {
+                let new_selected = !self.props.iter().any(|(_, prop)| prop.selected);
                 self.props
                     .iter_mut()
-                    .filter(|(_, prop)| prop.selected)
-                    .for_each(|(_, prop)| {
-                        prop.location.position = prop.previous_location.position + delta
-                    });
+                    .for_each(|(_, prop)| prop.selected = new_selected);
                 self.rebuild = true;
             }
 
-            if state.input.is_active_once(ConfirmMove) {
-                self.props.iter_mut().for_each(|(_, prop)| {
-                    prop.selected = false;
+            let mut should_move = state.input.is_active_once(Move);
+
+            if state.input.is_active_once(EditorCopy) {
+                #[allow(clippy::needless_collect)]
+                let new_props = self
+                    .props
+                    .iter()
+                    .filter(|(_, prop)| prop.selected)
+                    .map(|(_, prop)| prop.copy(state.solid_factory))
+                    .collect::<Vec<_>>();
+
+                new_props.into_iter().for_each(|prop| {
+                    self.props.push(prop);
                 });
+
+                should_move = true;
+                self.rebuild = true;
+            }
+
+            let mut abort_move = false;
+            if should_move {
+                if self.move_op.is_some() {
+                    abort_move = true;
+                } else {
+                    self.props
+                        .iter_mut()
+                        .filter(|(_, prop)| prop.selected)
+                        .for_each(|(_, prop)| prop.previous_location = prop.location);
+
+                    let ray = state.camera.screen_ray(state.input.mouse_pos());
+                    let plane = self.move_plane(ray);
+                    if let Some(point) = ray.intersection_point(&plane) {
+                        self.move_op = Some(MoveOp {
+                            plane,
+                            start: point.snap(state.grid_length),
+                            end: point.snap(state.grid_length),
+                        });
+                    }
+                }
+            }
+
+            if self.move_op.is_some()
+                && (state.input.is_active_once(AbortMove)
+                    || state.input.is_active_once(AbortMoveAlt))
+            {
+                abort_move = true;
+            }
+
+            if abort_move {
+                self.props
+                    .iter_mut()
+                    .filter(|(_, prop)| prop.selected)
+                    .for_each(|(_, prop)| prop.location = prop.previous_location);
                 self.move_op.take();
                 self.rebuild = true;
             }
-        }
 
-        if state.input.is_active_once(EditorDel) {
-            let selected: Vec<usize> = self
-                .props
-                .iter()
-                .filter(|(_, prop)| prop.selected)
-                .map(|(i, _)| i)
-                .collect();
-            for selected in selected {
-                self.props.remove(selected);
+            if let Some(move_op) = self.move_op.as_mut() {
+                let ray = state.camera.screen_ray(state.input.mouse_pos());
+                if let Some(point) = ray.intersection_point(&move_op.plane) {
+                    move_op.end = (point + move_op.plane.normal * 0.01).snap(state.grid_length);
+                    let delta = move_op.end - move_op.start;
+                    self.props
+                        .iter_mut()
+                        .filter(|(_, prop)| prop.selected)
+                        .for_each(|(_, prop)| {
+                            prop.location.position = prop.previous_location.position + delta
+                        });
+                    self.rebuild = true;
+                }
+
+                if state.input.is_active_once(ConfirmMove) {
+                    self.props.iter_mut().for_each(|(_, prop)| {
+                        prop.selected = false;
+                    });
+                    self.move_op.take();
+                    self.rebuild = true;
+                }
             }
-            self.rebuild = true;
+
+            if state.input.is_active_once(EditorDel) {
+                let selected: Vec<usize> = self
+                    .props
+                    .iter()
+                    .filter(|(_, prop)| prop.selected)
+                    .map(|(i, _)| i)
+                    .collect();
+                for selected in selected {
+                    self.props.remove(selected);
+                }
+                self.rebuild = true;
+            }
         }
 
         if self.rebuild {
@@ -296,6 +299,36 @@ impl PropEditor {
             .world_pass
             .line_batches
             .push(self.selection_lines.clone());
+    }
+
+    pub fn save(&self) -> Vec<(u32, mdl::Prop)> {
+        self.props.dump(|prop| mdl::Prop {
+            id: mdl::PropID(prop.id),
+            position: mdl::Vector3 {
+                x: prop.location.position.x,
+                y: prop.location.position.y,
+                z: prop.location.position.z,
+            },
+            rotation: mdl::Vector3 {
+                x: prop.location.rotation.x,
+                y: prop.location.rotation.y,
+                z: prop.location.rotation.z,
+            },
+        })
+    }
+
+    pub fn load(&mut self, solid_factory: &SolidFactory, props: Vec<(u32, mdl::Prop)>) {
+        self.props = RingVec::from_dump(MAX_PROPS, props, |prop| Prop {
+            id: prop.id.0,
+            transform: solid_factory.create_transform(),
+            location: Location {
+                position: vec3(prop.position.x, prop.position.y, prop.position.z),
+                rotation: vec3(prop.rotation.x, prop.rotation.y, prop.rotation.z),
+            },
+            previous_location: Location::default(),
+            selected: false,
+        });
+        self.rebuild = true;
     }
 
     fn raycast(

@@ -125,6 +125,10 @@ export default class EditorHandle {
                 module.setGridSize(action.size);
                 break;
               }
+              case "load-scene": {
+                module.loadScene(action.scene);
+                break;
+              }
             }
           }
         }
@@ -239,6 +243,19 @@ export default class EditorHandle {
     this.actionQueue.unshift({
       type: "set-grid-size",
       size: size,
+    });
+  }
+
+  loadScene(url: string) {
+    (async () => {
+      const res = await fetch(url);
+      const arrayBuffer = await res.arrayBuffer();
+      return new Uint8Array(arrayBuffer);
+    })().then((scene) => {
+      this.actionQueue.unshift({
+        type: "load-scene",
+        scene: scene,
+      });
     });
   }
 

@@ -94,27 +94,12 @@ impl SolidEditor {
         self.container.deselect();
     }
 
-    pub fn save_scene(&self) {
-        net::set_saved_scene(
-            mdl::Scene {
-                camera: mdl::Camera {
-                    position: mdl::Vector3 {
-                        x: 0.0,
-                        y: 0.0,
-                        z: 0.0,
-                    },
-                    rotation: mdl::Vector3 {
-                        x: 0.0,
-                        y: 0.0,
-                        z: 0.0,
-                    },
-                },
-                model: self.container.export(),
-                props: Vec::new(),
-            }
-            .encode()
-            .unwrap(),
-        );
+    pub fn save(&self) -> mdl::Model {
+        self.container.export()
+    }
+
+    pub fn load(&mut self, model: mdl::Model) {
+        self.container = SolidContainer::load(model);
     }
 
     fn move_logic(&mut self, ctx: &SolidEditorContext, solids_copied: bool) {
