@@ -12,16 +12,27 @@ use crate::{
     input::InputMapper,
     math::{IntersectionPoint, MinMax, Plane, SolidUtil},
     net,
-    render::{LineBatch, LineFactory, Scene, SolidFactory, Sprite, TextureBank},
+    render::{LineBatch, LineFactory, Scene, SolidFactory, Sprite, TextureBank, TextureID},
 };
 
 use super::container::{AsSelectAllKind, SelectAllKind, SolidContainer};
 
-#[derive(Default)]
 pub struct SolidEditor {
     container: SolidContainer,
     mode: EditorMode,
     move_op: Option<Move>,
+    current_texture_id: TextureID,
+}
+
+impl Default for SolidEditor {
+    fn default() -> Self {
+        Self {
+            container: Default::default(),
+            mode: Default::default(),
+            move_op: Default::default(),
+            current_texture_id: 1,
+        }
+    }
 }
 
 impl SolidEditor {
@@ -65,8 +76,12 @@ impl SolidEditor {
 
         let mut solids_copied = false;
 
-        self.mode
-            .process(&state, &mut self.container, &mut solids_copied);
+        self.mode.process(
+            &state,
+            &mut self.container,
+            &mut solids_copied,
+            self.current_texture_id,
+        );
 
         if !state.input.is_active(MoveCamera) && state.input.is_active_once(SelectAll) {
             self.container.select_all(&self.mode)
@@ -100,6 +115,10 @@ impl SolidEditor {
 
     pub fn load(&mut self, model: mdl::Model) {
         self.container = SolidContainer::load(model);
+    }
+
+    pub fn set_texture(&mut self, texture_id: TextureID) {
+        self.current_texture_id = texture_id;
     }
 
     fn move_logic(&mut self, ctx: &SolidEditorContext, solids_copied: bool) {
@@ -195,10 +214,11 @@ impl EditorMode {
         ctx: &SolidEditorContext,
         container: &mut SolidContainer,
         solids_copied: &mut bool,
+        current_texture_id: TextureID,
     ) {
         match self {
             EditorMode::Solid(state) => state.process(ctx, container, solids_copied),
-            EditorMode::Face(state) => state.process(ctx, container),
+            EditorMode::Face(state) => state.process(ctx, container, current_texture_id),
             EditorMode::Point(state) => state.process(ctx, container),
         };
         container.rebuild(ctx.solid_factory, ctx.texture_bank);
@@ -298,12 +318,21 @@ impl SolidState {
 struct FaceState;
 
 impl FaceState {
-    fn process(&mut self, ctx: &SolidEditorContext, container: &mut SolidContainer) {
-        if ctx.input.was_active_once(Select) {
-            if !ctx.input.is_active(EnableMultiSelect) {
+    fn process(
+        &mut self,
+        state: &SolidEditorContext,
+        container: &mut SolidContainer,
+        current_texture_id: TextureID,
+    ) {
+        if state.input.was_active_once(Select) {
+            if !state.input.is_active(EnableMultiSelect) {
                 container.deselect();
             }
-            container.select_face(ctx.world_camera, ctx.input.mouse_pos());
+            container.select_face(state.world_camera, state.input.mouse_pos());
+        }
+
+        if state.input.is_active_once(SetTexture) {
+            container.set_texture(current_texture_id);
         }
     }
 
@@ -314,12 +343,12 @@ impl FaceState {
 struct PointState;
 
 impl PointState {
-    fn process(&mut self, ctx: &SolidEditorContext, container: &mut SolidContainer) {
-        if ctx.input.was_active_once(Select) {
-            if !ctx.input.is_active(EnableMultiSelect) {
+    fn process(&mut self, state: &SolidEditorContext, container: &mut SolidContainer) {
+        if state.input.was_active_once(Select) {
+            if !state.input.is_active(EnableMultiSelect) {
                 container.deselect();
             }
-            container.select_point(ctx.world_camera, ctx.input.mouse_pos());
+            container.select_point(state.world_camera, state.input.mouse_pos());
         }
     }
 

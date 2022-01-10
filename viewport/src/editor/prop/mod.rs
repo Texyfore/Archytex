@@ -24,6 +24,7 @@ pub struct PropEditor {
     selection_lines: Rc<LineBatch>,
     rebuild: bool,
     move_op: Option<MoveOp>,
+    current_prop_id: Option<PropID>,
 }
 
 #[derive(Clone)]
@@ -114,23 +115,26 @@ impl PropEditor {
             selection_lines: line_factory.create(&[]),
             rebuild: false,
             move_op: None,
+            current_prop_id: None,
         }
     }
 
     pub fn process(&mut self, behave: bool, state: PropEditorState) {
         if behave {
             if state.input.is_active(Modifier) && state.input.is_active_once(EditorAdd) {
-                if let Some(raycast) = state
-                    .solid_container
-                    .raycast(state.camera.screen_ray(state.input.mouse_pos()), true)
-                {
+                if let (Some(id), Some(raycast)) = (
+                    self.current_prop_id,
+                    state
+                        .solid_container
+                        .raycast(state.camera.screen_ray(state.input.mouse_pos()), true),
+                ) {
                     let location = Location {
                         position: raycast.point.snap(state.grid_length),
                         rotation: Vector3::zero(),
                     };
 
                     self.props.push(Prop {
-                        id: 0,
+                        id,
                         transform: state.solid_factory.create_transform(),
                         location,
                         previous_location: location,
@@ -329,6 +333,10 @@ impl PropEditor {
             selected: false,
         });
         self.rebuild = true;
+    }
+
+    pub fn set_prop(&mut self, prop_id: PropID) {
+        self.current_prop_id = Some(prop_id);
     }
 
     fn raycast(

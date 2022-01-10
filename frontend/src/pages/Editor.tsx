@@ -115,10 +115,6 @@ export default function Editor() {
         id: 1,
         file: "nodraw.png",
       },
-      {
-        id: 2,
-        file: "amogus.png",
-      },
     ]);
 
     editorHandle.loadProps([
@@ -127,8 +123,6 @@ export default function Editor() {
         file: "amongus.amdl",
       },
     ]);
-
-    editorHandle.loadScene(`${Environment.asset_url}/test.ascn`);
 
     return editorHandle.destroy;
   }, []);

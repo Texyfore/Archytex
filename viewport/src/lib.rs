@@ -203,9 +203,11 @@ impl MainLoop {
                     info!("Gizmo will be set to: {}", gizmo);
                 }
                 Message::SelectTexture(texture) => {
+                    self.editor.set_texture(texture);
                     info!("A texture was selected: {}", texture);
                 }
                 Message::SelectProp(prop) => {
+                    self.editor.set_prop(prop);
                     info!("A prop was selected: {}", prop);
                 }
                 Message::SetCameraSpeed(speed) => {

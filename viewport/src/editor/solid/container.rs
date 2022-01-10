@@ -458,6 +458,16 @@ impl SolidContainer {
         }
     }
 
+    pub fn set_texture(&mut self, texture_id: TextureID) {
+        if let Some(Selection::Faces(faces)) = self.selected.as_ref() {
+            for face in faces {
+                let face = self.faces.get_mut(*face).unwrap();
+                face.texture = texture_id;
+                self.needs_rebuild = true;
+            }
+        }
+    }
+
     pub fn raycast(&self, ray: Ray, plane_fallback: bool) -> Option<Raycast> {
         let mut hits = Vec::new();
 
