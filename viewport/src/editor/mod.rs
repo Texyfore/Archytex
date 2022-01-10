@@ -68,25 +68,19 @@ actions! {
     GridDown             Key O        ,
     SwitchMode           Key Tab      ,
 
+    // Editor operations //////////////
+
+    EditorAdd            Btn Left     ,
+    EditorDel            Key Delete   ,
+    EditorCopy           Key C        ,
+    SelectAll            Key A        ,
+
     // Solid mode /////////////////////
 
     SolidMode            Key Key1     ,
     FaceMode             Key Key2     ,
     VertexMode           Key Key3     ,
-
-    // Solid manipulation /////////////
-
-    AddSolid             Btn Left     ,
-    DeleteSolid          Key Delete   ,
-    CopySolid            Key C        ,
-
-    // Face manipulation //////////////
-
     SetTexture           Key T        ,
-
-    // Prop manipulation //////////////
-
-    AddProp              Btn Left     ,
 
     // Miscellaneous //////////////////
 

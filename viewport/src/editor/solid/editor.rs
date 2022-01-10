@@ -15,28 +15,13 @@ use crate::{
     render::{LineBatch, LineFactory, Scene, SolidFactory, Sprite, TextureBank},
 };
 
-use super::container::SolidContainer;
+use super::container::{AsSelectAllKind, SelectAllKind, SolidContainer};
 
+#[derive(Default)]
 pub struct SolidEditor {
     container: SolidContainer,
     mode: EditorMode,
     move_op: Option<Move>,
-}
-
-impl Default for SolidEditor {
-    fn default() -> Self {
-        let mut container = SolidContainer::default();
-        container.add(
-            vec3(1000000.0, 1000000.0, 1000000.0),
-            vec3(0.0001, 0.0001, 0.0001),
-        );
-
-        Self {
-            container,
-            mode: Default::default(),
-            move_op: None,
-        }
-    }
 }
 
 impl SolidEditor {
@@ -44,21 +29,22 @@ impl SolidEditor {
         &self.container
     }
 
-    pub fn process(&mut self, behave: bool, ctx: SolidEditorContext) {
+    pub fn process(&mut self, behave: bool, state: SolidEditorContext) {
         if !behave {
-            self.container.rebuild(ctx.solid_factory, ctx.texture_bank);
+            self.container
+                .rebuild(state.solid_factory, state.texture_bank);
             return;
         }
 
         let mut changed_mode = false;
 
-        if ctx.input.is_active_once(SolidMode) {
+        if state.input.is_active_once(SolidMode) {
             self.mode = EditorMode::Solid(Default::default());
             changed_mode = true;
-        } else if ctx.input.is_active_once(FaceMode) {
+        } else if state.input.is_active_once(FaceMode) {
             self.mode = EditorMode::Face(Default::default());
             changed_mode = true;
-        } else if ctx.input.is_active_once(VertexMode) {
+        } else if state.input.is_active_once(VertexMode) {
             self.mode = EditorMode::Point(Default::default());
             changed_mode = true;
         }
@@ -80,9 +66,13 @@ impl SolidEditor {
         let mut solids_copied = false;
 
         self.mode
-            .process(&ctx, &mut self.container, &mut solids_copied);
+            .process(&state, &mut self.container, &mut solids_copied);
 
-        self.move_logic(&ctx, solids_copied);
+        if !state.input.is_active(MoveCamera) && state.input.is_active_once(SelectAll) {
+            self.container.select_all(&self.mode)
+        }
+
+        self.move_logic(&state, solids_copied);
     }
 
     pub fn render(&self, scene: &mut Scene, camera: &WorldCamera) {
@@ -246,64 +236,65 @@ struct SolidState {
 impl SolidState {
     fn process(
         &mut self,
-        ctx: &SolidEditorContext,
+        state: &SolidEditorContext,
         container: &mut SolidContainer,
         solids_copied: &mut bool,
     ) {
-        if ctx.input.is_active_once(AddSolid) {
+        if state.input.is_active_once(EditorAdd) {
             if let Some(raycast) =
-                container.raycast(ctx.world_camera.screen_ray(ctx.input.mouse_pos()), true)
+                container.raycast(state.world_camera.screen_ray(state.input.mouse_pos()), true)
             {
-                let world = (raycast.point + raycast.normal * 0.01).grid(ctx.grid_length);
-                let screen = ctx.input.mouse_pos();
+                let world = (raycast.point + raycast.normal * 0.01).grid(state.grid_length);
+                let screen = state.input.mouse_pos();
 
                 self.new_solid = Some(NewSolid {
                     start: NewSolidPoint { world, screen },
                     end: NewSolidPoint { world, screen },
-                    mesh: ctx.line_factory.create(&[]),
+                    mesh: state.line_factory.create(&[]),
                 });
             }
         }
 
         if let (true, Some(new_solid), Some(raycast)) = (
-            ctx.input.is_active(AddSolid),
+            state.input.is_active(EditorAdd),
             self.new_solid.as_mut(),
-            container.raycast(ctx.world_camera.screen_ray(ctx.input.mouse_pos()), true),
+            container.raycast(state.world_camera.screen_ray(state.input.mouse_pos()), true),
         ) {
             new_solid.end = NewSolidPoint {
-                world: (raycast.point + raycast.normal * 0.01).grid(ctx.grid_length),
-                screen: ctx.input.mouse_pos(),
+                world: (raycast.point + raycast.normal * 0.01).grid(state.grid_length),
+                screen: state.input.mouse_pos(),
             };
             if new_solid.enough_mouse_distance() {
-                new_solid.build_mesh(ctx.grid_length, ctx.line_factory);
+                new_solid.build_mesh(state.grid_length, state.line_factory);
             }
         }
 
         let mut can_select = true;
 
-        if let (true, Some(new_solid)) =
-            (ctx.input.was_active_once(AddSolid), self.new_solid.as_ref())
-        {
+        if let (true, Some(new_solid)) = (
+            state.input.was_active_once(EditorAdd),
+            self.new_solid.as_ref(),
+        ) {
             if new_solid.enough_mouse_distance() {
-                let (origin, extent) = new_solid.origin_extent(ctx.grid_length);
+                let (origin, extent) = new_solid.origin_extent(state.grid_length);
                 container.add(origin, extent);
                 can_select = false;
             }
             self.new_solid = None;
         }
 
-        if ctx.input.was_active_once(Select) && can_select {
-            if !ctx.input.is_active(EnableMultiSelect) {
+        if state.input.was_active_once(Select) && can_select {
+            if !state.input.is_active(EnableMultiSelect) {
                 container.deselect();
             }
-            container.select_solid(ctx.world_camera, ctx.input.mouse_pos());
+            container.select_solid(state.world_camera, state.input.mouse_pos());
         }
 
-        if ctx.input.is_active_once(DeleteSolid) {
+        if state.input.is_active_once(EditorDel) {
             container.delete_selected();
         }
 
-        if ctx.input.is_active_once(CopySolid) {
+        if state.input.is_active_once(EditorCopy) {
             container.copy_solids();
             *solids_copied = true;
         }
@@ -427,4 +418,14 @@ struct Move {
     plane: Plane,
     start: Vector3<f32>,
     end: Vector3<f32>,
+}
+
+impl AsSelectAllKind for EditorMode {
+    fn as_select_all_kind(&self) -> SelectAllKind {
+        match self {
+            EditorMode::Solid(_) => SelectAllKind::Solids,
+            EditorMode::Face(_) => SelectAllKind::Faces,
+            EditorMode::Point(_) => SelectAllKind::Points,
+        }
+    }
 }
