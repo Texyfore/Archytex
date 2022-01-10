@@ -34,6 +34,10 @@ pub(super) struct SolidPipeline {
     inner: RenderPipeline,
 }
 
+pub(super) struct PropPipeline {
+    inner: RenderPipeline,
+}
+
 pub(super) struct SpritePipeline {
     inner: RenderPipeline,
 }
@@ -269,6 +273,73 @@ impl Context {
         SolidPipeline { inner }
     }
 
+    pub fn create_prop_pipeline(
+        &self,
+        uniform_buffer_layout: &UniformBufferLayout,
+        texture_layout: &TextureLayout,
+    ) -> PropPipeline {
+        let module = self.device.create_shader_module(&ShaderModuleDescriptor {
+            label: None,
+            source: ShaderSource::Wgsl(include_str!("prop.wgsl").into()),
+        });
+
+        let inner = self
+            .device
+            .create_render_pipeline(&RenderPipelineDescriptor {
+                label: None,
+                layout: Some(
+                    &self
+                        .device
+                        .create_pipeline_layout(&PipelineLayoutDescriptor {
+                            label: None,
+                            bind_group_layouts: &[
+                                &uniform_buffer_layout.inner, // Camera
+                                &texture_layout.inner,        // Texture
+                                &uniform_buffer_layout.inner, // Transform
+                            ],
+                            push_constant_ranges: &[],
+                        }),
+                ),
+                vertex: VertexState {
+                    module: &module,
+                    entry_point: "main",
+                    buffers: &[VertexBufferLayout {
+                        array_stride: size_of::<SolidVertex>() as u64,
+                        step_mode: VertexStepMode::Vertex,
+                        attributes: &vertex_attr_array![
+                            0 => Float32x3,
+                            1 => Float32x3,
+                            2 => Float32x2,
+                            3 => Float32x4,
+                        ],
+                    }],
+                },
+                primitive: PrimitiveState {
+                    cull_mode: Some(Face::Back),
+                    ..Default::default()
+                },
+                depth_stencil: Some(DepthStencilState {
+                    format: TextureFormat::Depth32Float,
+                    depth_write_enabled: true,
+                    depth_compare: CompareFunction::Less,
+                    stencil: Default::default(),
+                    bias: Default::default(),
+                }),
+                multisample: MultisampleState {
+                    count: MSAA_SAMPLE_COUNT,
+                    mask: !0,
+                    alpha_to_coverage_enabled: false,
+                },
+                fragment: Some(FragmentState {
+                    module: &module,
+                    entry_point: "main",
+                    targets: &[self.surface_format.into()],
+                }),
+            });
+
+        PropPipeline { inner }
+    }
+
     pub fn create_sprite_pipeline(
         &self,
         uniform_buffer_layout: &UniformBufferLayout,
@@ -427,7 +498,7 @@ impl Context {
                             binding: 1,
                             visibility: ShaderStages::FRAGMENT,
                             ty: BindingType::Sampler {
-                                filtering: true,
+                                filtering: false,
                                 comparison: false,
                             },
                             count: None,
@@ -549,9 +620,9 @@ impl Context {
             address_mode_u: AddressMode::Repeat,
             address_mode_v: AddressMode::Repeat,
             address_mode_w: AddressMode::Repeat,
-            mag_filter: FilterMode::Linear,
-            min_filter: FilterMode::Linear,
-            mipmap_filter: FilterMode::Linear,
+            mag_filter: FilterMode::Nearest,
+            min_filter: FilterMode::Nearest,
+            mipmap_filter: FilterMode::Nearest,
             ..Default::default()
         }))
     }
@@ -607,6 +678,10 @@ impl<'a> Pass<'a> {
     }
 
     pub fn begin_solids(&mut self, pipeline: &'a SolidPipeline) {
+        self.inner.set_pipeline(&pipeline.inner);
+    }
+
+    pub fn begin_props(&mut self, pipeline: &'a PropPipeline) {
         self.inner.set_pipeline(&pipeline.inner);
     }
 

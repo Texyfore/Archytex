@@ -1,6 +1,7 @@
 package database
 
 import (
+	"errors"
 	"github.com/Texyfore/Archytex/backend/database/models"
 	"time"
 )
@@ -25,8 +26,17 @@ type Database interface {
 	CreateProject(userId interface{}, name string) error
 	RenameProject(userId interface{}, projectId interface{}, name string) error
 	DeleteProject(userId interface{}, projectId interface{}) error
+	GetProject(userId interface{}, projectId interface{}) (*models.Project, error)
 	SubscribeProjects(userId interface{}) (chan Updates, error)
+
+	GetTextures() ([]models.Asset, error)
+	GetTexture(id interface{}) (*models.Asset, error)
+	GetProps() ([]models.Asset, error)
+	GetProp(id interface{}) (*models.Asset, error)
 }
+
+var ErrProjectNotFound = errors.New("project not found")
+
 type Updates struct {
 	Projects []ProjectUpdate `json:"projects" bson:"projects"`
 }

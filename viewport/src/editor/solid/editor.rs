@@ -1,17 +1,18 @@
 use std::rc::Rc;
 
-use cgmath::{vec2, vec3, ElementWise, InnerSpace, Vector2, Vector3};
+use cgmath::{vec2, vec3, InnerSpace, Matrix3, SquareMatrix, Vector2, Vector3};
 
 use crate::{
     editor::{
         camera::WorldCamera,
-        config::{NEW_BRUSH_MIN_SCREEN_DISTANCE, VERTEX_HIGHLIGHT_COLOR},
+        config::{NEW_BRUSH_MIN_SCREEN_DISTANCE, PRIMARY_COLOR},
+        util,
         ActionBinding::*,
     },
     input::InputMapper,
     math::{IntersectionPoint, MinMax, Plane, SolidUtil},
     net,
-    render::{LineBatch, LineFactory, LineVertex, Scene, SolidFactory, Sprite, TextureBank},
+    render::{LineBatch, LineFactory, Scene, SolidFactory, Sprite, TextureBank},
 };
 
 use super::container::SolidContainer;
@@ -39,7 +40,16 @@ impl Default for SolidEditor {
 }
 
 impl SolidEditor {
-    pub fn process(&mut self, ctx: SolidEditorContext) {
+    pub fn container(&self) -> &SolidContainer {
+        &self.container
+    }
+
+    pub fn process(&mut self, behave: bool, ctx: SolidEditorContext) {
+        if !behave {
+            self.container.rebuild(ctx.solid_factory, ctx.texture_bank);
+            return;
+        }
+
         let mut changed_mode = false;
 
         if ctx.input.is_active_once(SolidMode) {
@@ -94,7 +104,7 @@ impl SolidEditor {
         self.container.deselect();
     }
 
-    pub fn save_scene(&self, textures: &TextureBank) {
+    pub fn save_scene(&self) {
         net::set_saved_scene(
             mdl::Scene {
                 camera: mdl::Camera {
@@ -109,7 +119,7 @@ impl SolidEditor {
                         z: 0.0,
                     },
                 },
-                model: self.container.export(textures),
+                model: self.container.export(),
                 props: Vec::new(),
             }
             .encode()
@@ -165,7 +175,7 @@ impl SolidEditor {
                 self.move_op = None;
             }
 
-            if ctx.input.is_active_once(AbortMove) {
+            if ctx.input.is_active_once(AbortMove) | ctx.input.is_active_once(AbortMoveAlt) {
                 self.move_op = None;
                 self.container.abort_move();
             }
@@ -242,7 +252,7 @@ impl SolidState {
     ) {
         if ctx.input.is_active_once(AddSolid) {
             if let Some(raycast) =
-                container.raycast(ctx.world_camera.screen_ray(ctx.input.mouse_pos()))
+                container.raycast(ctx.world_camera.screen_ray(ctx.input.mouse_pos()), true)
             {
                 let world = (raycast.point + raycast.normal * 0.01).grid(ctx.grid_length);
                 let screen = ctx.input.mouse_pos();
@@ -258,7 +268,7 @@ impl SolidState {
         if let (true, Some(new_solid), Some(raycast)) = (
             ctx.input.is_active(AddSolid),
             self.new_solid.as_mut(),
-            container.raycast(ctx.world_camera.screen_ray(ctx.input.mouse_pos())),
+            container.raycast(ctx.world_camera.screen_ray(ctx.input.mouse_pos()), true),
         ) {
             new_solid.end = NewSolidPoint {
                 world: (raycast.point + raycast.normal * 0.01).grid(ctx.grid_length),
@@ -348,7 +358,7 @@ impl PointState {
                         origin: p - vec3(5.0, 5.0, 0.0),
                         extent: vec2(10.0, 10.0),
                         color: if pg.selected {
-                            VERTEX_HIGHLIGHT_COLOR
+                            [PRIMARY_COLOR[0], PRIMARY_COLOR[1], PRIMARY_COLOR[2], 1.0]
                         } else {
                             [0.0, 0.0, 0.0, 1.0]
                         },
@@ -367,14 +377,24 @@ struct NewSolid {
 }
 
 impl NewSolid {
-    fn origin_extent(&self, grid_length: f32) -> (Vector3<f32>, Vector3<f32>) {
+    fn min_max(&self, grid_length: f32) -> (Vector3<f32>, Vector3<f32>) {
         let min = self.start.world.min(self.end.world).cast::<f32>().unwrap() * grid_length;
         let max = self.start.world.max(self.end.world).cast::<f32>().unwrap() * grid_length;
+        (min, max)
+    }
 
+    fn origin_extent(&self, grid_length: f32) -> (Vector3<f32>, Vector3<f32>) {
+        let (min, max) = self.min_max(grid_length);
         let origin = min;
         let extent = max - min + vec3(1.0, 1.0, 1.0) * grid_length;
-
         (origin, extent)
+    }
+
+    fn center_half_extent(&self, grid_length: f32) -> (Vector3<f32>, Vector3<f32>) {
+        let (min, max) = self.min_max(grid_length);
+        let half_extent = (max - min + vec3(1.0, 1.0, 1.0) * grid_length) * 0.5;
+        let center = min + half_extent;
+        (center, half_extent)
     }
 
     fn enough_mouse_distance(&self) -> bool {
@@ -387,63 +407,14 @@ impl NewSolid {
     }
 
     fn build_mesh(&mut self, grid_length: f32, factory: &LineFactory) {
-        let (origin, extent) = self.origin_extent(grid_length);
-
-        const LIM: f32 = 0.01;
-
-        let corrections = [
-            vec3(LIM, LIM, LIM),
-            vec3(-LIM, LIM, LIM),
-            vec3(-LIM, LIM, -LIM),
-            vec3(LIM, LIM, -LIM),
-            vec3(LIM, -LIM, LIM),
-            vec3(-LIM, -LIM, LIM),
-            vec3(-LIM, -LIM, -LIM),
-            vec3(LIM, -LIM, -LIM),
-        ];
-
-        let mut points = [
-            vec3(0.0, 0.0, 0.0),
-            vec3(1.0, 0.0, 0.0),
-            vec3(1.0, 0.0, 1.0),
-            vec3(0.0, 0.0, 1.0),
-            vec3(0.0, 1.0, 0.0),
-            vec3(1.0, 1.0, 0.0),
-            vec3(1.0, 1.0, 1.0),
-            vec3(0.0, 1.0, 1.0),
-        ];
-
-        for (i, p) in points.iter_mut().enumerate() {
-            *p = origin + p.mul_element_wise(extent) + corrections[i];
-        }
-
-        let lines = [
-            [0, 1],
-            [1, 2],
-            [2, 3],
-            [3, 0],
-            [4, 5],
-            [5, 6],
-            [6, 7],
-            [7, 4],
-            [0, 4],
-            [1, 5],
-            [2, 6],
-            [3, 7],
-        ];
-
-        let mut vertices = Vec::new();
-
-        for line in lines {
-            for point in line {
-                vertices.push(LineVertex {
-                    position: points[point].into(),
-                    color: [0.0, 0.0, 0.0, 1.0],
-                });
-            }
-        }
-
-        self.mesh = factory.create(&vertices);
+        let (center, half_extent) = self.center_half_extent(grid_length);
+        self.mesh = factory.create(&util::line_cuboid(
+            center,
+            half_extent,
+            Matrix3::identity(),
+            0.01,
+            [0.0; 3],
+        ));
     }
 }
 

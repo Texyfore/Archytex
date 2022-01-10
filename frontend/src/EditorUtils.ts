@@ -1,9 +1,17 @@
+import Environment from "./env";
+
 interface Callbacks {
   editorModeChanged: (mode: number) => void;
   solidEditorModeChanged: (mode: number) => void;
   gizmoChanged: (gizmo: number) => void;
   cameraSpeedChanged: (speed: number) => void;
   gridSizeChanged: (size: number) => void;
+  sceneSaved: (scene: Uint8Array) => void;
+}
+
+interface AssetLoader {
+  id: number;
+  file: string;
 }
 
 export type { Callbacks };
@@ -12,13 +20,11 @@ export default class EditorHandle {
   private callbacks: Callbacks;
   private loopTimeout: NodeJS.Timeout | undefined;
   private actionQueue: any[];
-  private savedScene: Uint8Array | undefined;
 
   constructor(callbacks: Callbacks) {
     this.callbacks = callbacks;
     this.loopTimeout = undefined;
     this.actionQueue = [];
-    this.savedScene = undefined;
 
     let initialized = false;
 
@@ -71,10 +77,20 @@ export default class EditorHandle {
               }
               case "texture-data": {
                 module.textureData(action.id, action.data);
+                console.log("texture-data");
                 break;
               }
               case "load-textures": {
                 module.loadTextures();
+                console.log("load-textures");
+                break;
+              }
+              case "prop-data": {
+                module.propData(action.id, action.data);
+                break;
+              }
+              case "load-props": {
+                module.loadProps();
                 break;
               }
               case "set-editor-mode": {
@@ -115,7 +131,7 @@ export default class EditorHandle {
 
         const savedScene = module.getSavedScene();
         if (savedScene !== undefined) {
-          this.savedScene = savedScene;
+          callbacks.sceneSaved(savedScene);
         }
       }, 16);
 
@@ -124,87 +140,103 @@ export default class EditorHandle {
   }
 
   setResolution(width: number, height: number) {
-    this.actionQueue.push({
+    this.actionQueue.unshift({
       type: "resolution",
       width: width,
       height: height,
     });
   }
 
-  textureData(id: number, url: string) {
-    let get = async () => {
-      let image = await fetch(url);
-      let arrayBuffer = await image.arrayBuffer();
-      let data = new Uint8Array(arrayBuffer);
-      this.actionQueue.push({
-        type: "texture-data",
-        id: id,
-        data: data,
+  loadTextures(loaders: AssetLoader[]) {
+    Promise.all(
+      loaders.map((loader) =>
+        (async () => {
+          const res = await fetch(`${Environment.asset_url}/${loader.file}`);
+          const arrayBuffer = await res.arrayBuffer();
+          this.actionQueue.unshift({
+            type: "texture-data",
+            id: loader.id,
+            data: new Uint8Array(arrayBuffer),
+          });
+        })()
+      )
+    ).then(() => {
+      this.actionQueue.unshift({
+        type: "load-textures",
       });
-    };
-    get();
+    });
   }
 
-  loadTextures() {
-    this.actionQueue.push({
-      type: "load-textures",
+  loadProps(loaders: AssetLoader[]) {
+    Promise.all(
+      loaders.map((loader) =>
+        (async () => {
+          const res = await fetch(`${Environment.asset_url}/${loader.file}`);
+          const arrayBuffer = await res.arrayBuffer();
+          this.actionQueue.unshift({
+            type: "prop-data",
+            id: loader.id,
+            data: new Uint8Array(arrayBuffer),
+          });
+        })()
+      )
+    ).then(() => {
+      this.actionQueue.unshift({
+        type: "load-props",
+      });
     });
   }
 
   setEditorMode(mode: number) {
-    this.actionQueue.push({
+    this.actionQueue.unshift({
       type: "set-editor-mode",
       mode: mode,
     });
   }
 
   setSolidEditorMode(mode: number) {
-    this.actionQueue.push({
+    this.actionQueue.unshift({
       type: "set-solid-editor-mode",
       mode: mode,
     });
   }
 
   setGizmo(gizmo: number) {
-    this.actionQueue.push({
+    this.actionQueue.unshift({
       type: "set-gizmo",
       gizmo: gizmo,
     });
   }
 
   saveScene() {
-    this.actionQueue.push({
+    this.actionQueue.unshift({
       type: "save-scene",
     });
   }
 
   selectTexture(id: number) {
-    this.actionQueue.push({
+    this.actionQueue.unshift({
       type: "select-texture",
       id: id,
     });
   }
 
   selectProp(id: number) {
-    this.actionQueue.push({
+    this.actionQueue.unshift({
       type: "select-prop",
       id: id,
     });
   }
 
   setCameraSpeed(speed: number) {
-    this.actionQueue.push({
+    this.actionQueue.unshift({
       type: "set-camera-speed",
       speed: speed,
     });
   }
 
-  getSavedScene(): Uint8Array | undefined {
-    return this.savedScene;
-  }
-
   setGridSize(size: number) {
-    this.actionQueue.push({
+    this.actionQueue.unshift({
       type: "set-grid-size",
       size: size,
     });

@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/Texyfore/Archytex/backend/projectloaders"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"time"
 
@@ -20,6 +21,97 @@ type MongoDatabase struct {
 	Users     *mongo.Collection
 	Registers *mongo.Collection
 	Sessions  *mongo.Collection
+	Textures  *mongo.Collection
+	Props     *mongo.Collection
+}
+
+func (m MongoDatabase) GetTextures() ([]models.Asset, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
+	defer cancel()
+	result, err := m.Textures.Find(ctx, bson.D{})
+	if err != nil {
+		return nil, err
+	}
+	if result.Err() != nil {
+		return nil, result.Err()
+	}
+	var assets []models.Asset
+	err = result.All(ctx, &assets)
+	if err != nil {
+		return nil, err
+	}
+	return assets, nil
+}
+
+func (m MongoDatabase) GetTexture(id interface{}) (*models.Asset, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*4)
+	defer cancel()
+	result := m.Textures.FindOne(ctx, bson.D{{"_id", id}})
+	if result.Err() != nil {
+		return nil, result.Err()
+	}
+	var asset models.Asset
+	err := result.Decode(&asset)
+	if err != nil {
+		return nil, err
+	}
+	return &asset, nil
+}
+
+func (m MongoDatabase) GetProps() ([]models.Asset, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
+	defer cancel()
+	result, err := m.Props.Find(ctx, bson.D{})
+	if err != nil {
+		return nil, err
+	}
+	if result.Err() != nil {
+		return nil, result.Err()
+	}
+	var assets []models.Asset
+	err = result.All(ctx, &assets)
+	if err != nil {
+		return nil, err
+	}
+	return assets, nil
+}
+
+func (m MongoDatabase) GetProp(id interface{}) (*models.Asset, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*4)
+	defer cancel()
+	result := m.Props.FindOne(ctx, bson.D{{"_id", id}})
+	if result.Err() != nil {
+		return nil, result.Err()
+	}
+	var asset models.Asset
+	err := result.Decode(&asset)
+	if err != nil {
+		return nil, err
+	}
+	return &asset, nil
+}
+
+func (m MongoDatabase) GetProject(userId interface{}, projectId interface{}) (*models.Project, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*2)
+	defer cancel()
+	_result := m.Users.FindOne(ctx, bson.D{
+		{"_id", userId},
+		{"projects._id", projectId},
+	}, options.FindOne().SetProjection(bson.D{{"projects.$", 1}}))
+	if _result.Err() == mongo.ErrNoDocuments {
+		return nil, ErrProjectNotFound
+	}
+	if _result.Err() != nil {
+		return nil, _result.Err()
+	}
+	var result struct {
+		Projects []models.Project `json:"projects"`
+	}
+	err := _result.Decode(&result)
+	if err != nil {
+		return nil, err
+	}
+	return &result.Projects[0], nil
 }
 
 func (m MongoDatabase) CreateProject(userId interface{}, name string) error {
@@ -29,9 +121,8 @@ func (m MongoDatabase) CreateProject(userId interface{}, name string) error {
 	project := models.Project{
 		Id:      primitive.NewObjectID(),
 		Created: time.Now(),
-		Assets:  []interface{}{},
 		Renders: []models.Render{},
-		Path:    "TODO",
+		Path:    projectloaders.CurrentProjectLoader.NewPath(),
 		Title:   name,
 	}
 	_, err := m.Users.UpdateOne(ctx, bson.D{
@@ -154,6 +245,8 @@ func MongoConnect(connectionString string, database string) (*MongoDatabase, err
 	usersCollection := db.Collection("users")
 	registersCollection := db.Collection("registers")
 	sessionsCollection := db.Collection("sessions")
+	texturesCollection := db.Collection("textures")
+	propsCollection := db.Collection("props")
 	return &MongoDatabase{
 		Client:    client,
 		ctx:       ctx,
@@ -161,6 +254,8 @@ func MongoConnect(connectionString string, database string) (*MongoDatabase, err
 		Users:     usersCollection,
 		Registers: registersCollection,
 		Sessions:  sessionsCollection,
+		Textures:  texturesCollection,
+		Props:     propsCollection,
 	}, nil
 }
 

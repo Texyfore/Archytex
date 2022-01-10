@@ -6,10 +6,12 @@ mod net;
 mod render;
 mod ring_vec;
 
+use std::rc::Rc;
+
 use crate::{editor::EditorMode, render::WorldPass};
 use cgmath::{Matrix4, SquareMatrix};
 use instant::Instant;
-use render::{Scene, SceneRenderer, SpritePass, TextureBank};
+use render::{PropBank, Scene, SceneRenderer, SolidFactory, SpritePass, TextureBank};
 use wasm_bindgen::{prelude::*, JsCast};
 use winit::platform::web::WindowBuilderExtWebSys;
 use winit::{
@@ -107,6 +109,8 @@ struct MainLoop {
     before: Instant,
     renderer: SceneRenderer,
     texture_bank: TextureBank,
+    prop_bank: PropBank,
+    solid_factory: Rc<SolidFactory>,
     input_mapper: InputMapper,
     editor: Editor,
 }
@@ -116,17 +120,20 @@ impl MainLoop {
         let gfx_init = render::init(&window);
         let renderer = gfx_init.create_scene_renderer();
         let texture_bank = gfx_init.create_texture_bank();
-        let solid_factory = gfx_init.create_solid_factory();
+        let prop_bank = gfx_init.create_prop_bank();
+        let solid_factory = Rc::new(gfx_init.create_solid_factory());
         let line_factory = gfx_init.create_line_factory();
 
         let mut input_mapper = InputMapper::default();
-        let editor = Editor::init(solid_factory, line_factory, &mut input_mapper);
+        let editor = Editor::init(solid_factory.clone(), line_factory, &mut input_mapper);
 
         Self {
             window,
             before: Instant::now(),
             renderer,
             texture_bank,
+            prop_bank,
+            solid_factory,
             input_mapper,
             editor,
         }
@@ -173,6 +180,14 @@ impl MainLoop {
                     self.texture_bank.finish();
                     info!("All textures loaded");
                 }
+                Message::PropData { id, data } => {
+                    self.prop_bank.insert_data(id, data);
+                    info!("Uploaded prop {}", id);
+                }
+                Message::LoadProps => {
+                    self.prop_bank.finish(&self.solid_factory);
+                    info!("All props loaded");
+                }
                 Message::SetEditorMode(mode) => {
                     match mode {
                         0 => self.editor.set_mode(EditorMode::Solid),
@@ -198,7 +213,7 @@ impl MainLoop {
                     info!("Camera speed was set to: {:.2}", speed);
                 }
                 Message::SaveScene => {
-                    self.editor.save_scene(&self.texture_bank);
+                    self.editor.save_scene();
                     info!("Scene saved");
                 }
                 Message::SetGridSize(size) => {
@@ -210,9 +225,11 @@ impl MainLoop {
 
         let mut scene = Scene {
             texture_bank: &self.texture_bank,
+            prop_bank: &self.prop_bank,
             world_pass: WorldPass {
                 camera_matrix: Matrix4::identity(),
                 solid_batches: Default::default(),
+                props: Default::default(),
                 line_batches: Default::default(),
             },
             sprite_pass: SpritePass {
@@ -221,11 +238,16 @@ impl MainLoop {
             },
         };
 
-        self.editor
-            .process(elapsed, &self.input_mapper, &self.texture_bank);
+        self.editor.process(
+            elapsed,
+            &self.input_mapper,
+            &self.texture_bank,
+            &self.prop_bank,
+        );
 
         self.input_mapper.tick();
         self.editor.render(&mut scene);
+
         self.renderer.render(scene);
     }
 }

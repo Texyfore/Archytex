@@ -24,6 +24,7 @@ import houseImage12 from "../../img/12.jpg";
 import ColoredReCaptcha from "../ColoredReCaptcha";
 import { Register } from "../../services/register";
 import { useHistory } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 
 const MaxHeightContainer = styled(Box)(({ theme }) => ({
   backgroundColor: "background.paper",
@@ -47,6 +48,8 @@ const MaxHeightContainer = styled(Box)(({ theme }) => ({
   },
 }));
 export default function RegisterForm() {
+  const { t } = useTranslation();
+
   const [showPassword, setShowPassword] = useState(false);
   const [showRePassword, setShowRePassword] = useState(false);
   const [captchaKey, setCaptchaKey] = useState(0);
@@ -84,15 +87,15 @@ export default function RegisterForm() {
   };
   return (
     <MaxHeightContainer
-      display='flex'
-      justifyContent='center'
-      alignItems='center'
+      display="flex"
+      justifyContent="center"
+      alignItems="center"
       sx={{ flexDirection: { xs: "column", md: "row" } }}
     >
       <Box
-        display='flex'
-        flexDirection='column'
-        justifyContent='center'
+        display="flex"
+        flexDirection="column"
+        justifyContent="center"
         width={{ xs: "100%", md: "405.333px" }}
         height={{ xs: "300px", md: "565px" }}
         borderRadius={2}
@@ -103,7 +106,7 @@ export default function RegisterForm() {
       >
         {/* Image */}
         <Box
-          height='50%'
+          height="50%"
           display={{ xs: "none", md: "flex" }}
           sx={{
             backgroundImage: `url(${houseImage12})`,
@@ -113,32 +116,32 @@ export default function RegisterForm() {
         {/* Use third-party */}
         <Box
           paddingX={{ sm: 0, md: 6 }}
-          height='50%'
-          display='flex'
-          flexDirection='column'
-          justifyContent='center'
-          alignItems='center'
+          height="50%"
+          display="flex"
+          flexDirection="column"
+          justifyContent="center"
+          alignItems="center"
         >
           <Typography
-            variant='h3'
+            variant="h3"
             fontSize={24}
             fontWeight={200}
             paddingX={2}
             marginBottom={4}
-            textAlign='center'
+            textAlign="center"
           >
-            Get started with Archytex
+            {t("get_started_with_archytex")}
           </Typography>
           <Button
-            variant='contained'
+            variant="contained"
             sx={{ width: 304, marginY: 2, backgroundColor: "#f5f0f6" }}
           >
-            <Typography variant='button' color='primary.main'>
-              Sign in with Google
+            <Typography variant="button" color="primary.main">
+              {t("sign_in_with_google")}
             </Typography>
           </Button>
           <Button
-            variant='contained'
+            variant="contained"
             sx={{
               width: 304,
               marginTop: 2,
@@ -146,14 +149,14 @@ export default function RegisterForm() {
               backgroundColor: "#f5f0f6",
             }}
           >
-            <Typography variant='button'>Sign in with Apple</Typography>
+            <Typography variant="button">{t("sign_in_with_apple")}</Typography>
           </Button>
         </Box>
       </Box>
       <Box
-        display='flex'
-        flexDirection='column'
-        justifyContent='space-around'
+        display="flex"
+        flexDirection="column"
+        justifyContent="space-around"
         width={{ xs: "100%", md: "unset" }}
         height={{ xs: "100%", md: "565px" }}
         borderRadius={2}
@@ -164,92 +167,94 @@ export default function RegisterForm() {
       >
         {/* Register title */}
         <Box
-          width='304px'
-          marginX='auto'
-          display='flex'
-          alignItems='center'
-          justifyContent='center'
+          width="304px"
+          marginX="auto"
+          display="flex"
+          alignItems="center"
+          justifyContent="center"
           marginTop={3}
         >
           <Box
             height={1.01}
             sx={{ backgroundColor: "primary.main" }}
-            width='100%'
+            width="100%"
           />
-          <Typography variant='h6' fontWeight={600} fontSize='1em' paddingX={2}>
-            REGISTER
+          <Typography variant="h6" fontWeight={600} fontSize="1em" paddingX={2}>
+            {t("register").toUpperCase()}
           </Typography>
           <Box
             height={1.01}
             sx={{ backgroundColor: "primary.main" }}
-            width='100%'
+            width="100%"
           />
         </Box>
 
         {/* Input form */}
         <Box
-          display='flex'
-          flexDirection='column'
-          alignItems='center'
+          display="flex"
+          flexDirection="column"
+          alignItems="center"
           paddingX={{ sm: 0, md: 6 }}
           marginBottom={1}
         >
           <Box
             sx={{ display: "flex", alignItems: "flex-end" }}
-            display='flex'
-            alignItems='flex-end'
-            width='304px'
+            display="flex"
+            alignItems="flex-end"
+            width="304px"
           >
             <AccountCircle sx={{ mr: 1, my: 1 }} />
             <TextField
-              id='standard-required'
-              label='Username'
-              variant='standard'
-              margin='normal'
-              type='text'
+              id="standard-required"
+              label={t("username")}
+              variant="standard"
+              margin="normal"
+              type="text"
               value={username}
               onChange={(ev) => setUsername(ev.target.value)}
             />
           </Box>
           <Box
             sx={{ display: "flex", alignItems: "flex-end" }}
-            display='flex'
-            alignItems='flex-end'
-            width='304px'
+            display="flex"
+            alignItems="flex-end"
+            width="304px"
           >
             <Mail sx={{ mr: 1, my: 1 }} />
             <TextField
-              id='standard-required'
-              label='Email'
-              variant='standard'
-              margin='normal'
-              type='email'
+              id="standard-required"
+              label={t("email")}
+              variant="standard"
+              margin="normal"
+              type="email"
               value={email}
               onChange={(ev) => setEmail(ev.target.value)}
             />
           </Box>
           <Box
-            display='flex'
-            alignItems='flex-end'
-            width='304px'
+            display="flex"
+            alignItems="flex-end"
+            width="304px"
             marginTop={2}
             marginBottom={1}
           >
             <VpnKey sx={{ mr: 1, my: 1 }} />
 
-            <FormControl sx={{ width: "304px" }} variant='standard'>
-              <InputLabel htmlFor='adornment-password'>Password</InputLabel>
+            <FormControl sx={{ width: "304px" }} variant="standard">
+              <InputLabel htmlFor="adornment-password">
+                {t("password")}
+              </InputLabel>
               <Input
                 required
-                id='adornment-password'
+                id="adornment-password"
                 type={showPassword ? "text" : "password"}
                 endAdornment={
-                  <InputAdornment position='end'>
+                  <InputAdornment position="end">
                     <IconButton
-                      aria-label='toggle password visibility'
+                      aria-label="toggle password visibility"
                       onClick={handleClickShowPassword}
                       onMouseDown={handleMouseDownPassword}
-                      edge='end'
+                      edge="end"
                       sx={{ marginRight: "0.1px" }}
                     >
                       {showPassword ? <VisibilityOff /> : <Visibility />}
@@ -262,29 +267,29 @@ export default function RegisterForm() {
             </FormControl>
           </Box>
           <Box
-            display='flex'
-            alignItems='flex-end'
-            width='304px'
+            display="flex"
+            alignItems="flex-end"
+            width="304px"
             marginTop={2}
             marginBottom={1}
           >
             <RedoRounded sx={{ mr: 1, my: 1 }} />
 
-            <FormControl sx={{ width: "304px" }} variant='standard'>
-              <InputLabel htmlFor='adornment-repassword'>
-                Password again
+            <FormControl sx={{ width: "304px" }} variant="standard">
+              <InputLabel htmlFor="adornment-repassword">
+                {t("password_again")}
               </InputLabel>
               <Input
                 required
-                id='adornment-repassword'
+                id="adornment-repassword"
                 type={showRePassword ? "text" : "password"}
                 endAdornment={
-                  <InputAdornment position='end'>
+                  <InputAdornment position="end">
                     <IconButton
-                      aria-label='toggle password visibility'
+                      aria-label="toggle password visibility"
                       onClick={handleClickShowRePassword}
                       onMouseDown={handleMouseDownPassword}
-                      edge='end'
+                      edge="end"
                       sx={{ marginRight: "0.1px" }}
                     >
                       {showRePassword ? <VisibilityOff /> : <Visibility />}
@@ -297,9 +302,9 @@ export default function RegisterForm() {
         </Box>
 
         {/* ReCAPTCHA */}
-        <Box paddingY={1} display='flex' justifyContent='center'>
+        <Box paddingY={1} display="flex" justifyContent="center">
           <ColoredReCaptcha
-            sitekey='6Lc5gWodAAAAAEVg3MPTn5Nj7KN-ishnafqV4ZL8'
+            sitekey="6Lc5gWodAAAAAEVg3MPTn5Nj7KN-ishnafqV4ZL8"
             onChange={setCaptcha}
             key={captchaKey}
           />
@@ -307,22 +312,24 @@ export default function RegisterForm() {
 
         {/* Submit button */}
         <Box
-          display='flex'
-          flexDirection='column'
-          alignItems='center'
+          display="flex"
+          flexDirection="column"
+          alignItems="center"
           paddingX={{ sm: 0, md: 6 }}
           marginBottom={1}
         >
           <Button
-            variant='outlined'
+            variant="outlined"
             sx={{ width: 304, marginY: 2 }}
             onClick={register}
           >
-            Sign up
+            {t("sign_up")}
           </Button>
-          <Typography variant='caption'>Already have an account?</Typography>
-          <Link variant='caption' href='/login'>
-            Log in to Archytex
+          <Typography variant="caption">
+            {t("already_have_an_account")}
+          </Typography>
+          <Link variant="caption" href="/login">
+            {t("log_in_to_archytex")}
           </Link>
         </Box>
       </Box>

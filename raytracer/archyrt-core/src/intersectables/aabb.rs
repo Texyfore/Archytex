@@ -2,6 +2,7 @@ use crate::utilities::{
     math::Vec3,
     ray::{Intersectable, Intersection, IntersectionBuilder, Ray},
 };
+use crate::utilities::math::Axis3;
 
 #[derive(Clone, Copy)]
 pub struct AABB {
@@ -21,6 +22,9 @@ impl AABB {
             min: self.min.min(rhs.min),
             max: self.max.max(rhs.max),
         }
+    }
+    pub fn max_axis(self) -> Axis3{
+        (self.max-self.min).max_axis()
     }
 }
 

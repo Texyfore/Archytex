@@ -149,6 +149,16 @@ impl MinMax for Vector3<i32> {
     }
 }
 
+impl MinMax for Vector3<f32> {
+    fn min(self, rhs: Self) -> Self {
+        vec3(self.x.min(rhs.x), self.y.min(rhs.y), self.z.min(rhs.z))
+    }
+
+    fn max(self, rhs: Self) -> Self {
+        vec3(self.x.max(rhs.x), self.y.max(rhs.y), self.z.max(rhs.z))
+    }
+}
+
 fn grid(x: f32, y: f32) -> i32 {
     (x / y).floor() as i32
 }

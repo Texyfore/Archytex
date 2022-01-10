@@ -99,11 +99,33 @@ export default function Editor() {
       gridSizeChanged: (size) => {
         setGridRes(3 - size);
       },
+      sceneSaved: (scene) => {
+        alert(scene.length);
+      },
     });
 
-    editorHandle.textureData(0, `${Environment.asset_url}/vertex.png`);
-    editorHandle.textureData(10, `${Environment.asset_url}/nodraw.png`);
-    editorHandle.loadTextures();
+    editorHandle.loadTextures([
+      {
+        id: 0,
+        file: "vertex.png",
+      },
+      {
+        id: 1,
+        file: "nodraw.png",
+      },
+      {
+        id: 2,
+        file: "amogus.png",
+      },
+    ]);
+
+    editorHandle.loadProps([
+      {
+        id: 0,
+        file: "amongus.amdl",
+      },
+    ]);
+
     return editorHandle.destroy;
   }, []);
 
@@ -225,24 +247,23 @@ export default function Editor() {
 
   return (
     <React.Fragment>
-      <EditorAppBar />
-      <AppBarOffset variant='dense' />
+      <EditorAppBar onSave={() => editorHandle.saveScene()} />
+      <AppBarOffset variant="dense" />
       <Box
-        display='flex'
+        display="flex"
         height={`calc(100vh - ${appBarHeight}px)`}
-        overflow='hidden'
+        overflow="hidden"
       >
         <Box
-          width='100%'
-          height='100%'
+          width="100%"
+          height="100%"
           ref={observe}
-          // sx={{ backgroundColor: "#0c0c0c" }}
-          sx={{ backgroundColor: "red" }}
+          sx={{ backgroundColor: "#0c0c0c" }}
         ></Box>
         <EditorMenu />
       </Box>
       <canvas
-        id='viewport-canvas'
+        id="viewport-canvas"
         style={{ position: "absolute", top: `${appBarHeight}px` }}
         onContextMenu={(e) => {
           e.preventDefault();
@@ -252,12 +273,12 @@ export default function Editor() {
       {/* viewport UI */}
       <>
         {/* Viewport mode */}
-        <Box position='absolute' top={appBarHeight + 10} left={10} width={180}>
+        <Box position="absolute" top={appBarHeight + 10} left={10} width={180}>
           <Select
-            id='mode-select'
+            id="mode-select"
             value={viewportMode}
             onChange={handleViewportModeChange}
-            size='small'
+            size="small"
             fullWidth
             sx={{
               color: "white",
@@ -270,14 +291,14 @@ export default function Editor() {
               },
             }}
           >
-            <MenuItem value='prop'>
-              <Box display='flex' alignItems='center' gap={2}>
-                <Chair fontSize='small' /> Prop mode
+            <MenuItem value="prop">
+              <Box display="flex" alignItems="center" gap={2}>
+                <Chair fontSize="small" /> Prop mode
               </Box>
             </MenuItem>
-            <MenuItem value='solid'>
-              <Box display='flex' alignItems='center' gap={2}>
-                <ViewCompact fontSize='small' /> Solid mode
+            <MenuItem value="solid">
+              <Box display="flex" alignItems="center" gap={2}>
+                <ViewCompact fontSize="small" /> Solid mode
               </Box>
             </MenuItem>
           </Select>
@@ -285,7 +306,7 @@ export default function Editor() {
 
         {/* Selection mode */}
         <Box
-          position='absolute'
+          position="absolute"
           top={appBarHeight + 10}
           left={220}
           display={viewportMode === "solid" ? "initial" : "none"}
@@ -294,26 +315,26 @@ export default function Editor() {
             value={selectionMode}
             exclusive
             onChange={handleSelectionModeChange}
-            color='primary'
-            size='small'
+            color="primary"
+            size="small"
             sx={{ height: 30.75 }}
           >
-            <ToggleButton value='mesh'>
-              <Tooltip title='Mesh select mode'>
+            <ToggleButton value="mesh">
+              <Tooltip title="Mesh select mode">
                 <Box marginTop={0.8}>
                   <MeshSelectIcon />
                 </Box>
               </Tooltip>
             </ToggleButton>
-            <ToggleButton value='face'>
-              <Tooltip title='Face select mode'>
+            <ToggleButton value="face">
+              <Tooltip title="Face select mode">
                 <Box marginTop={0.8}>
                   <FaceSelectIcon />
                 </Box>
               </Tooltip>
             </ToggleButton>
-            <ToggleButton value='vertex'>
-              <Tooltip title='Vertex select mode'>
+            <ToggleButton value="vertex">
+              <Tooltip title="Vertex select mode">
                 <Box marginTop={0.8}>
                   <VertexSelectIcon />
                 </Box>
@@ -323,38 +344,38 @@ export default function Editor() {
         </Box>
 
         {/* Translate mode */}
-        <Box position='absolute' top='40vh' left={10}>
+        <Box position="absolute" top="40vh" left={10}>
           <ToggleButtonGroup
             value={translateMode}
             exclusive
             onChange={handleTranslateModeChange}
-            color='primary'
-            size='small'
-            orientation='vertical'
+            color="primary"
+            size="small"
+            orientation="vertical"
           >
-            <ToggleButton value='select'>
-              <Tooltip title='Select' placement='right'>
+            <ToggleButton value="select">
+              <Tooltip title="Select" placement="right">
                 <Box marginTop={0.8} width={36} height={30}>
                   <VertexSelectIcon />
                 </Box>
               </Tooltip>
             </ToggleButton>
-            <ToggleButton value='move'>
-              <Tooltip title='Move' placement='right'>
+            <ToggleButton value="move">
+              <Tooltip title="Move" placement="right">
                 <Box marginTop={0.8} width={36} height={30}>
                   <VertexSelectIcon />
                 </Box>
               </Tooltip>
             </ToggleButton>
-            <ToggleButton value='rotate'>
-              <Tooltip title='Rotate' placement='right'>
+            <ToggleButton value="rotate">
+              <Tooltip title="Rotate" placement="right">
                 <Box marginTop={0.8} width={36} height={30}>
                   <VertexSelectIcon />
                 </Box>
               </Tooltip>
             </ToggleButton>
-            <ToggleButton value='scale'>
-              <Tooltip title='Scale' placement='right'>
+            <ToggleButton value="scale">
+              <Tooltip title="Scale" placement="right">
                 <Box marginTop={0.8} width={36} height={30}>
                   <VertexSelectIcon />
                 </Box>
@@ -365,11 +386,11 @@ export default function Editor() {
 
         {/* Camera settings */}
         <Box
-          position='absolute'
+          position="absolute"
           top={appBarHeight + 10}
-          left='calc(100% - 400px)'
+          left="calc(100% - 400px)"
         >
-          <Tooltip title='Camera settings'>
+          <Tooltip title="Camera settings">
             <IconButton onClick={handleCameraMenuClick}>
               <VideoCameraBack />
             </IconButton>
@@ -377,7 +398,7 @@ export default function Editor() {
         </Box>
         <Menu
           anchorEl={cameraAnchorEl}
-          id='camera-menu'
+          id="camera-menu"
           open={cameraMenuOpen}
           onClose={handleCameraMenuClose}
           PaperProps={{
@@ -410,13 +431,13 @@ export default function Editor() {
                 <Typography gutterBottom>Camera speed</Typography>
                 <Box width={150}>
                   <Slider
-                    size='small'
+                    size="small"
                     defaultValue={cameraSpeed}
                     step={1}
                     min={1}
                     max={100}
                     onChange={handleCameraSpeedChange}
-                    valueLabelDisplay='auto'
+                    valueLabelDisplay="auto"
                   />
                 </Box>
               </Box>
@@ -426,11 +447,11 @@ export default function Editor() {
 
         {/* Grid settings */}
         <Box
-          position='absolute'
+          position="absolute"
           top={appBarHeight + 10}
-          left='calc(100% - 450px)'
+          left="calc(100% - 450px)"
         >
-          <Tooltip title='Grid settings'>
+          <Tooltip title="Grid settings">
             <IconButton onClick={handleGridMenuClick}>
               <Grid3x3Rounded />
             </IconButton>
@@ -438,7 +459,7 @@ export default function Editor() {
         </Box>
         <Menu
           anchorEl={gridAnchorEl}
-          id='grid-menu'
+          id="grid-menu"
           open={gridMenuOpen}
           onClose={handleGridMenuClose}
           PaperProps={{
@@ -472,21 +493,21 @@ export default function Editor() {
                 <Box width={150}>
                   <Stack
                     spacing={2}
-                    direction='row'
+                    direction="row"
                     sx={{ mb: 1 }}
-                    alignItems='center'
+                    alignItems="center"
                   >
-                    <Grid3x3Rounded fontSize='small' />
+                    <Grid3x3Rounded fontSize="small" />
                     <Slider
-                      size='small'
+                      size="small"
                       defaultValue={gridRes}
                       step={1}
                       min={1}
                       max={6}
                       onChange={handleGridResChange}
-                      valueLabelDisplay='auto'
+                      valueLabelDisplay="auto"
                     />
-                    <Grid4x4Rounded fontSize='small' />
+                    <Grid4x4Rounded fontSize="small" />
                   </Stack>
                 </Box>
               </Box>

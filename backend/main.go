@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"github.com/Texyfore/Archytex/backend/projectloaders"
 	"github.com/Texyfore/Archytex/backend/routes/authenticated"
 	"github.com/Texyfore/Archytex/backend/session"
 	"log"
@@ -36,6 +37,7 @@ func main() {
 	}
 
 	database.CurrentDatabase = db
+	projectloaders.CurrentProjectLoader = projectloaders.FileProjectLoader{Directory: os.Getenv("PROJECTS_PATH")}
 
 	//TODO: Read port
 	port, err := strconv.Atoi(os.Getenv("PORT"))
@@ -51,6 +53,7 @@ func main() {
 	api.HandleFunc("/register", routes.Register).Methods("POST")
 	api.HandleFunc("/login", routes.Login).Methods("POST")
 	api.HandleFunc("/verify", routes.Verify).Methods("GET")
+	api.HandleFunc("/assets", routes.Assets).Methods("GET")
 	api.HandleFunc("/ws", routes.Ws)
 
 	auth := api.PathPrefix("/auth").Subrouter()
@@ -59,6 +62,7 @@ func main() {
 	auth.HandleFunc("/user", authenticated.User).Methods("POST")
 	auth.HandleFunc("/project", authenticated.Project).Methods("POST")
 	auth.HandleFunc("/project/{id}", authenticated.Project).Methods("DELETE", "PATCH")
+	auth.HandleFunc("/project/{id}/data", authenticated.ProjectData).Methods("GET", "POST")
 
 	http.Handle("/", r)
 	fmt.Printf("Listening on port %d\n", port)
