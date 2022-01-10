@@ -26,6 +26,7 @@ pub struct PropEditor {
     move_op: Option<MoveOp>,
 }
 
+#[derive(Clone)]
 struct Prop {
     id: PropID,
     transform: RTransform,
@@ -57,6 +58,16 @@ impl Prop {
         }
 
         None
+    }
+
+    fn copy(&self, solid_factory: &SolidFactory) -> Self {
+        Self {
+            id: self.id,
+            transform: solid_factory.create_transform(),
+            location: self.location.clone(),
+            previous_location: self.location.clone(),
+            selected: false,
+        }
     }
 }
 
@@ -147,8 +158,27 @@ impl PropEditor {
             }
         }
 
+        let mut should_move = state.input.is_active_once(Move);
+
+        if state.input.is_active_once(CopySolid) {
+            #[allow(clippy::needless_collect)]
+            let new_props = self
+                .props
+                .iter()
+                .filter(|(_, prop)| prop.selected)
+                .map(|(_, prop)| prop.copy(state.solid_factory))
+                .collect::<Vec<_>>();
+
+            new_props.into_iter().for_each(|prop| {
+                self.props.push(prop);
+            });
+
+            should_move = true;
+            self.rebuild = true;
+        }
+
         let mut abort_move = false;
-        if state.input.is_active_once(Move) {
+        if should_move {
             if self.move_op.is_some() {
                 abort_move = true;
             } else {
