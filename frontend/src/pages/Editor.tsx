@@ -128,7 +128,7 @@ export default function Editor() {
       },
     ]);
 
-    editorHandle.loadScene(`${Environment.asset_url}/amogus2.ascn`);
+    editorHandle.loadScene(`${Environment.asset_url}/test.ascn`);
 
     return editorHandle.destroy;
   }, []);
