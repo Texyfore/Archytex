@@ -3,7 +3,7 @@ use crate::{
         math::{solve_quadratic, QuadraticResult, Vec3},
         ray::{Intersectable, Intersection, IntersectionBuilder, Ray},
     },
-    vector,
+    vector, textures::color_provider::SolidColor,
 };
 
 pub struct Sphere {
@@ -50,7 +50,8 @@ fn find_closest(solutions: QuadraticResult) -> Option<f64> {
 }
 
 impl Intersectable for Sphere {
-    fn intersect(&self, ray: Ray) -> Option<Intersection> {
+    type C = SolidColor;
+    fn intersect(&self, ray: Ray) -> Option<Intersection<Self::C>> {
         //Solving the equation |ray.origin+ray.direction*t-self.origin|=self.radius for t
         //Rewritten: t^2*(ray.direction^2) + t*(2*ray.origin*ray.direction-2*ray.direction*self.origin)+(ray.origin^2+self.origin^2-2*ray.origin*self.origin)=self.radius^2
         let t2 = 1.0; //Assuming ray is normalized. Otherwise ray.direction.length_squared()
@@ -67,7 +68,6 @@ impl Intersectable for Sphere {
             IntersectionBuilder {
                 distance: Some(distance),
                 pos: Some(pos),
-                color: self.color,
                 ray,
                 normal,
                 ..Default::default()

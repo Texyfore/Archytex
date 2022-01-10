@@ -1,7 +1,7 @@
-use crate::utilities::{
+use crate::{utilities::{
     math::Vec3,
     ray::{Intersectable, Intersection, IntersectionBuilder, Ray},
-};
+}, textures::color_provider::SolidColor};
 
 pub struct Surface {
     pub normal: Vec3,
@@ -35,7 +35,8 @@ impl Surface {
 }
 
 impl Intersectable for Surface {
-    fn intersect(&self, ray: Ray) -> Option<Intersection> {
+    type C = SolidColor;
+    fn intersect(&self, ray: Ray) -> Option<Intersection<Self::C>> {
         //Solving   self.normal*(ray.origin+ray.direction*t)=self.distance              ->
         //          self.normal*ray.origin+self.normal*ray.direction*t=self.distance    ->
         //          self.normal*ray.direction*t=self.distance-self.normal*ray.origin    ->
@@ -54,7 +55,6 @@ impl Intersectable for Surface {
             IntersectionBuilder {
                 distance: Some(t),
                 normal: self.normal,
-                color: self.color,
                 ray,
                 ..Default::default()
             }

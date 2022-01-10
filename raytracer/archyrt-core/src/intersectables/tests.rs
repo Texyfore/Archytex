@@ -106,7 +106,7 @@ mod triangle {
             math::Vec3,
             ray::{Intersectable, Ray},
         },
-        vector,
+        vector, textures::TextureID,
     };
 
     #[test]
@@ -118,7 +118,7 @@ mod triangle {
                 Vec3::new(-1.0, -1.0, -1.0),
             ],
             [vector!(0.0, 0.0), vector!(0.0, 1.0), vector!(1.0, 0.0)],
-            Vec3::from_single(1.0),
+            TextureID(1),
         );
         let ray = Ray {
             origin: Vec3::from_single(0.0),
@@ -136,7 +136,7 @@ mod triangle {
                 Vec3::new(-1.0, -1.0, -1.0),
             ],
             [vector!(0.0, 0.0), vector!(0.0, 1.0), vector!(1.0, 0.0)],
-            Vec3::from_single(1.0),
+            TextureID(1),
         );
         let ray = Ray {
             origin: Vec3::new(0.0, 0.0, 5.0),

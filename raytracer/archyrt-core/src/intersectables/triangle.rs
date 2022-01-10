@@ -1,3 +1,5 @@
+use crate::textures::TextureID;
+use crate::textures::color_provider::ColorProvider;
 use crate::utilities::math::{Axis3, Vec2};
 use crate::vector;
 use crate::{
@@ -17,21 +19,21 @@ pub struct Triangle {
     pub b: Vec3,
     pub c: Vec3,
     pub normal: Vec3,
-    pub color: Vec3,
     pub uv: [Vec2; 3],
+    pub texture: TextureID
 }
 
 impl Triangle {
-    pub fn new(vertices: [Vec3; 3], uv: [Vec2; 3], color: Vec3) -> Self {
+    pub fn new(vertices: [Vec3; 3], uv: [Vec2; 3], texture: TextureID) -> Self {
         let [a, b, c] = vertices;
         let normal = (b - a).cross(c - a).normalized();
         Self {
             a,
             b,
             c,
-            color,
             normal,
             uv,
+            texture
         }
     }
     pub fn bounds(&self) -> AABB {
@@ -65,12 +67,29 @@ impl Default for Triangle {
         let b = Vec3::new(1.0, -1.0, 3.0);
         let c = Vec3::new(-1.0, -1.0, 3.0);
         let uv = [vector![0.0, 0.0], vector![0.0, 1.0], vector![1.0, 0.0]];
-        Self::new([a, b, c], uv, Vec3::from_single(1.0))
+        Self::new([a, b, c], uv, TextureID(1))
+    }
+}
+
+pub struct TriangleColor{
+    
+}
+
+impl Default for TriangleColor{
+    fn default() -> Self {
+        Self {  }
+    }
+}
+
+impl ColorProvider for TriangleColor {
+    fn get_color(&self) -> Vec3 {
+        vector!(1.0, 1.0, 1.0)
     }
 }
 
 impl Intersectable for Triangle {
-    fn intersect(&self, ray: Ray) -> Option<Intersection> {
+    type C = TriangleColor;
+    fn intersect(&self, ray: Ray) -> Option<Intersection<Self::C>> {
         //Based on https://www.scratchapixel.com/lessons/3d-basic-rendering/ray-tracing-rendering-a-triangle/moller-trumbore-ray-triangle-intersection
         //Backface culling
         if self.normal.dot(ray.direction) > 0.0 {
@@ -88,7 +107,7 @@ impl Intersectable for Triangle {
                 ray,
                 distance: Some(t),
                 normal: self.normal,
-                color: self.color,
+                color_provider: TriangleColor{},
                 ..Default::default()
             }
             .build(),

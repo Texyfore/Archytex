@@ -248,7 +248,7 @@ mod rays {
             math::Vec3,
             ray::{IntersectionBuilder, Ray},
         },
-        vector,
+        vector, textures::color_provider::SolidColor,
     };
 
     #[test]
@@ -263,7 +263,7 @@ mod rays {
             direction: vector!(0.4, 0.5, 0.5),
         };
         let intersection = IntersectionBuilder {
-            color,
+            color_provider: SolidColor(color),
             normal,
             distance,
             distance_squared,
@@ -282,7 +282,7 @@ mod rays {
     }
     #[test]
     fn intersection_conversion() {
-        let i1 = IntersectionBuilder {
+        let i1 = IntersectionBuilder::<SolidColor> {
             ray: Ray {
                 direction: vector!(0.0, 0.0, 1.0),
                 ..Default::default()
@@ -291,7 +291,7 @@ mod rays {
             ..Default::default()
         }
         .build();
-        let i2 = IntersectionBuilder {
+        let i2 = IntersectionBuilder::<SolidColor> {
             ray: Ray {
                 direction: vector!(0.0, 0.0, 1.0),
                 ..Default::default()
@@ -300,7 +300,7 @@ mod rays {
             ..Default::default()
         }
         .build();
-        let i3 = IntersectionBuilder {
+        let i3 = IntersectionBuilder::<SolidColor> {
             ray: Ray {
                 direction: vector!(0.0, 0.0, 1.0),
                 ..Default::default()

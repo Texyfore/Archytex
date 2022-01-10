@@ -1,5 +1,6 @@
 use crate::intersectables::triangle::Triangle;
 use crate::loaders::Loader;
+use crate::textures::TextureID;
 use crate::utilities::math::{Vec2, Vec3};
 use crate::{cameras::perspective::PerspectiveCamera, vector};
 use anyhow::{anyhow, Result};
@@ -120,12 +121,12 @@ impl AMDLLoader {
                 let triangle1 = Triangle::new(
                     [point0, point2, point1],
                     [uv0, uv2, uv1],
-                    Vec3::from_single(0.5),
+                    TextureID(face.texture_id.0),
                 );
                 let triangle2 = Triangle::new(
                     [point0, point3, point2],
                     [uv0, uv3, uv2],
-                    Vec3::from_single(0.5),
+                    TextureID(face.texture_id.0),
                 );
                 triangles.push(triangle1);
                 triangles.push(triangle2);

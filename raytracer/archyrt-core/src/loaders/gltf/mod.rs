@@ -9,6 +9,7 @@ use crate::cameras::perspective::PerspectiveCamera;
 use crate::intersectables::triangle::Triangle;
 use crate::matrix;
 
+use crate::textures::TextureID;
 use crate::utilities::math::Vec3;
 use crate::utilities::math::Vector;
 
@@ -74,7 +75,7 @@ impl GltfLoader {
                                         triangle[1].tex_coords.into(),
                                         triangle[2].tex_coords.into(),
                                     ],
-                                    Vec3::from_single(1.0),
+                                    TextureID(1),
                                 );
                                 t.normal = triangle[0].normal.into();
                                 t.normal += triangle[1].normal.into();

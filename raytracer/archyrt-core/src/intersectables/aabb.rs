@@ -1,7 +1,7 @@
-use crate::utilities::{
+use crate::{utilities::{
     math::Vec3,
     ray::{Intersectable, Intersection, IntersectionBuilder, Ray},
-};
+}, textures::color_provider::SolidColor};
 use crate::utilities::math::Axis3;
 
 #[derive(Clone, Copy)]
@@ -79,7 +79,8 @@ pub struct AABBRay {
 }
 
 impl Intersectable for AABBRay {
-    fn intersect(&self, ray: Ray) -> Option<Intersection> {
+    type C = SolidColor;
+    fn intersect(&self, ray: Ray) -> Option<Intersection<Self::C>> {
         let t = self.aabb.intersect(ray)?;
         let o = (self.aabb.min + self.aabb.max) / 2.0;
         let p = ray.direction * t + ray.origin;
@@ -106,7 +107,6 @@ impl Intersectable for AABBRay {
                 distance: Some(t),
                 pos: Some(p),
                 normal,
-                color: self.color,
                 ..Default::default()
             }
             .build(),

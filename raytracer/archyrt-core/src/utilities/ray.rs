@@ -1,6 +1,6 @@
 use std::convert::identity;
 
-use crate::intersectables;
+use crate::{intersectables, textures::color_provider::ColorProvider};
 
 use super::math::Vec3;
 
@@ -17,7 +17,7 @@ impl Ray {
 }
 
 #[derive(Default)]
-pub struct IntersectionBuilder {
+pub struct IntersectionBuilder<C: ColorProvider> {
     pub ray: Ray,
     /// At least one of pos, distance or distance_squared are required
     pub pos: Option<Vec3>,
@@ -26,17 +26,17 @@ pub struct IntersectionBuilder {
     /// At least one of pos, distance or distance_squared are required
     pub distance_squared: Option<f64>,
     pub normal: Vec3,
-    pub color: Vec3,
+    pub color_provider: C
 }
-impl IntersectionBuilder {
-    pub fn build(self) -> Intersection {
+impl<C: ColorProvider> IntersectionBuilder<C> {
+    pub fn build(self) -> Intersection<C> {
         Intersection(self)
     }
 }
 
-pub struct Intersection(IntersectionBuilder);
+pub struct Intersection<C: ColorProvider>(IntersectionBuilder<C>);
 
-impl Intersection {
+impl<C: ColorProvider> Intersection<C> {
     pub fn get_ray(&self) -> Ray {
         self.0.ray
     }
@@ -74,19 +74,21 @@ impl Intersection {
         self.0.normal
     }
     pub fn get_color(&self) -> Vec3 {
-        self.0.color
+        self.0.color_provider.get_color()
     }
 }
 
 pub trait Intersectable {
-    fn intersect(&self, ray: Ray) -> Option<Intersection>;
+    type C: ColorProvider;
+    fn intersect(&self, ray: Ray) -> Option<Intersection<Self::C>>;
 }
 
 impl<T> Intersectable for Vec<T>
 where
     T: Intersectable,
 {
-    fn intersect(&self, ray: Ray) -> Option<Intersection> {
+    type C = T::C;
+    fn intersect(&self, ray: Ray) -> Option<Intersection<T::C>> {
         self.iter()
             .map(|object| object.intersect(ray))
             .filter_map(identity)
@@ -101,7 +103,8 @@ impl<T> Intersectable for &T
 where
     T: Intersectable,
 {
-    fn intersect(&self, ray: Ray) -> Option<Intersection> {
+    type C = T::C;
+    fn intersect(&self, ray: Ray) -> Option<Intersection<T::C>> {
         (*self).intersect(ray)
     }
 }

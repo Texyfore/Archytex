@@ -1,8 +1,11 @@
 use std::cmp::Ordering;
 use crate::intersectables::aabb::AABB;
 use crate::intersectables::triangle::Triangle;
+use crate::textures::color_provider::SolidColor;
 use crate::utilities::math::Vec3;
 use crate::utilities::ray::{Intersectable, Ray, Intersection};
+
+use super::triangle::TriangleColor;
 
 pub enum BVH{
     Branch{left: Box<BVH>, right: Box<BVH>, aabb: AABB},
@@ -47,7 +50,8 @@ impl BVH{
 }
 
 impl Intersectable for BVH {
-    fn intersect(&self, ray: Ray) -> Option<Intersection> {
+    type C = TriangleColor;
+    fn intersect(&self, ray: Ray) -> Option<Intersection<Self::C>> {
         match self{
             BVH::Leaf(triangle) => triangle.intersect(ray),
             BVH::Branch { left, right, aabb } => {
