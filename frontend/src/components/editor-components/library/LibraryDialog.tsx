@@ -1,21 +1,21 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   Box,
   Button,
   Dialog,
   DialogActions,
   DialogContent,
-  DialogContentText,
   DialogTitle,
   IconButton,
-  List,
-  ListItemButton,
   Paper,
   PaperProps,
+  Tooltip,
+  Typography,
 } from "@mui/material";
 import Draggable from "react-draggable";
-import { Close } from "@mui/icons-material";
+import { Close, FilterList } from "@mui/icons-material";
 import TextureLibrary from "./TextureLibrary";
+import SearchBar from "../../SearchBar";
 
 function PaperComponent(props: PaperProps) {
   return (
@@ -28,14 +28,18 @@ function PaperComponent(props: PaperProps) {
   );
 }
 
+type LibraryType = "textureLibrary" | "propLibrary" | "projectLibrary";
+
 interface LibraryDialogProps {
   open: boolean;
   handleClose: () => void;
+  libraryType: LibraryType;
 }
 
 export default function LibraryDialog({
   open,
   handleClose,
+  libraryType,
 }: LibraryDialogProps) {
   const descriptionElementRef = React.useRef<HTMLElement>(null);
   React.useEffect(() => {
@@ -66,8 +70,35 @@ export default function LibraryDialog({
       >
         <Close />
       </IconButton>
-      <DialogTitle style={{ cursor: "move" }} id='draggable-dialog-title'>
-        Texture library
+      <DialogTitle
+        style={{ cursor: "move", borderBottom: "1px solid grayText" }}
+        id='draggable-dialog-title'
+      >
+        <Box display='flex' flexWrap='wrap' marginBottom={2}>
+          <Typography variant='h6'>
+            {libraryType === "textureLibrary"
+              ? "Texture library"
+              : libraryType === "propLibrary"
+              ? "Prop library"
+              : libraryType === "projectLibrary"
+              ? "Project library"
+              : "Library"}
+          </Typography>
+        </Box>
+        <Box
+          sx={{
+            position: "absolute",
+            right: 60,
+            top: 10,
+          }}
+        >
+          <Tooltip title='Filter results'>
+            <Button endIcon={<FilterList />} color='inherit'>
+              Filter results
+            </Button>
+          </Tooltip>
+        </Box>
+        <SearchBar />
       </DialogTitle>
       <DialogContent>
         <Box width={550}>
@@ -75,7 +106,7 @@ export default function LibraryDialog({
         </Box>
       </DialogContent>
       <DialogActions>
-        <Button onClick={handleClose}>Import</Button>
+        <Button onClick={handleClose}>Accept</Button>
       </DialogActions>
     </Dialog>
   );

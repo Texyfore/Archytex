@@ -3,7 +3,7 @@ import { Box, List, ListItem, ListItemButton, Typography } from "@mui/material";
 import React, { useState } from "react";
 import LibraryDialog from "./library/LibraryDialog";
 
-type LibraryType = "textureLibrary" | "propLibrary";
+type LibraryType = "textureLibrary" | "propLibrary" | "projectLibrary";
 
 export default function EditorMenu() {
   const objects = [
@@ -82,7 +82,11 @@ export default function EditorMenu() {
       </Box>
 
       {/* Library dialog */}
-      <LibraryDialog open={libraryOpen} handleClose={handleLibraryClose} />
+      <LibraryDialog
+        open={libraryOpen}
+        handleClose={handleLibraryClose}
+        libraryType={libraryType}
+      />
     </>
   );
 }
