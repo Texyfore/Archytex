@@ -1,6 +1,6 @@
-import { Category, Settings } from "@mui/icons-material";
-import { Box, List, ListItem, ListItemButton, Typography } from "@mui/material";
 import React, { useState } from "react";
+import { Box, List, ListItem, ListItemButton, Typography } from "@mui/material";
+import { Category, Settings } from "@mui/icons-material";
 import LibraryDialog from "./library/LibraryDialog";
 
 type LibraryType = "textureLibrary" | "propLibrary" | "projectLibrary";
