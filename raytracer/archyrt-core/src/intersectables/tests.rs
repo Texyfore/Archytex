@@ -106,6 +106,7 @@ mod triangle {
             math::Vec3,
             ray::{Intersectable, Ray},
         },
+        vector,
     };
 
     #[test]
@@ -116,6 +117,7 @@ mod triangle {
                 Vec3::new(1.0, -1.0, -1.0),
                 Vec3::new(-1.0, -1.0, -1.0),
             ],
+            [vector!(0.0, 0.0), vector!(0.0, 1.0), vector!(1.0, 0.0)],
             Vec3::from_single(1.0),
         );
         let ray = Ray {
@@ -133,6 +135,7 @@ mod triangle {
                 Vec3::new(1.0, -1.0, -1.0),
                 Vec3::new(-1.0, -1.0, -1.0),
             ],
+            [vector!(0.0, 0.0), vector!(0.0, 1.0), vector!(1.0, 0.0)],
             Vec3::from_single(1.0),
         );
         let ray = Ray {

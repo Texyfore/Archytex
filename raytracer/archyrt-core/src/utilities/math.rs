@@ -1,15 +1,16 @@
+use std::cmp::Ordering;
 use std::{
     fmt::Debug,
     ops::{Add, AddAssign, Div, DivAssign, Index, IndexMut, Mul, MulAssign, Neg, Sub, SubAssign},
 };
-use std::cmp::Ordering;
 
-use cgmath::Vector3;
-use mdl::Vector2;
+use cgmath::{Vector2, Vector3};
 
 #[derive(Copy, Clone)]
-pub enum Axis3{
-    X, Y, Z
+pub enum Axis3 {
+    X,
+    Y,
+    Z,
 }
 
 #[derive(Clone, Copy, PartialEq)]
@@ -316,26 +317,33 @@ impl Vec3 {
         )
     }
 
-    pub fn get(self, axis: Axis3) -> f64{
-        match axis{
+    pub fn get(self, axis: Axis3) -> f64 {
+        match axis {
             Axis3::X => self.x(),
             Axis3::Y => self.y(),
-            Axis3::Z => self.z()
+            Axis3::Z => self.z(),
         }
     }
 
-    pub fn max_axis(self) -> Axis3{
-        [Axis3::X, Axis3::Y, Axis3::Z].into_iter().max_by(|a, b|self.get(*a).partial_cmp(&self.get(*b)).unwrap_or(Ordering::Equal)).unwrap()
+    pub fn max_axis(self) -> Axis3 {
+        [Axis3::X, Axis3::Y, Axis3::Z]
+            .into_iter()
+            .max_by(|a, b| {
+                self.get(*a)
+                    .partial_cmp(&self.get(*b))
+                    .unwrap_or(Ordering::Equal)
+            })
+            .unwrap()
     }
 }
 
-impl From<mdl::Vector3> for Vec3{
+impl From<mdl::Vector3> for Vec3 {
     fn from(vec: mdl::Vector3) -> Self {
         (&vec).into()
     }
 }
 
-impl From<&mdl::Vector3> for Vec3{
+impl From<&mdl::Vector3> for Vec3 {
     fn from(vec: &mdl::Vector3) -> Self {
         vector![vec.x as f64, vec.y as f64, vec.z as f64]
     }
@@ -344,6 +352,11 @@ impl From<&mdl::Vector3> for Vec3{
 impl From<Vector3<f32>> for Vec3 {
     fn from(a: Vector3<f32>) -> Self {
         Self::new(a.x as f64, a.y as f64, a.z as f64)
+    }
+}
+impl From<Vector2<f32>> for Vec2 {
+    fn from(a: Vector2<f32>) -> Self {
+        vector!(a.x as f64, a.y as f64)
     }
 }
 
@@ -361,14 +374,14 @@ impl Vec2 {
     }
 }
 
-impl From<mdl::Vector2> for Vec2{
+impl From<mdl::Vector2> for Vec2 {
     fn from(vec: mdl::Vector2) -> Self {
         (&vec).into()
     }
 }
 
-impl From<&mdl::Vector2> for Vec2{
-    fn from(vec: &Vector2) -> Self {
+impl From<&mdl::Vector2> for Vec2 {
+    fn from(vec: &mdl::Vector2) -> Self {
         vector![vec.x as f64, vec.y as f64]
     }
 }
@@ -397,35 +410,35 @@ impl Matrix3x3 {
         }
         Some(o)
     }
-    pub fn rotate_x(self, angle: f64) -> Self{
+    pub fn rotate_x(self, angle: f64) -> Self {
         let sin = angle.sin();
         let cos = angle.cos();
         let matrix: Matrix3x3 = matrix!(
-          vector![1.0, 0.0, 0.0],
-          vector![0.0, cos, sin],
-          vector![0.0, -sin, cos]
+            vector![1.0, 0.0, 0.0],
+            vector![0.0, cos, sin],
+            vector![0.0, -sin, cos]
         );
-        self*matrix
+        self * matrix
     }
-    pub fn rotate_y(self, angle: f64) -> Self{
+    pub fn rotate_y(self, angle: f64) -> Self {
         let sin = angle.sin();
         let cos = angle.cos();
         let matrix: Matrix3x3 = matrix!(
-          vector![cos, 0.0, -sin],
-          vector![0.0, 1.0, 0.0],
-          vector![sin, 0.0, cos]
+            vector![cos, 0.0, -sin],
+            vector![0.0, 1.0, 0.0],
+            vector![sin, 0.0, cos]
         );
-        self*matrix
+        self * matrix
     }
-    pub fn rotate_z(self, angle: f64) -> Self{
+    pub fn rotate_z(self, angle: f64) -> Self {
         let sin = angle.sin();
         let cos = angle.cos();
         let matrix: Matrix3x3 = matrix!(
-          vector![cos, sin, 0.0],
-          vector![-sin, cos, 0.0],
-          vector![0.0, 0.0, 1.0]
+            vector![cos, sin, 0.0],
+            vector![-sin, cos, 0.0],
+            vector![0.0, 0.0, 1.0]
         );
-        self*matrix
+        self * matrix
     }
 }
 

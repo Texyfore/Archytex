@@ -1,4 +1,5 @@
-use std::cmp::Ordering;
+use crate::utilities::math::{Axis3, Vec2};
+use crate::vector;
 use crate::{
     matrix,
     utilities::{
@@ -6,7 +7,7 @@ use crate::{
         ray::{Intersectable, Intersection, IntersectionBuilder, Ray},
     },
 };
-use crate::utilities::math::Axis3;
+use std::cmp::Ordering;
 
 use super::aabb::AABB;
 
@@ -17,10 +18,11 @@ pub struct Triangle {
     pub c: Vec3,
     pub normal: Vec3,
     pub color: Vec3,
+    pub uv: [Vec2; 3],
 }
 
 impl Triangle {
-    pub fn new(vertices: [Vec3; 3], color: Vec3) -> Self {
+    pub fn new(vertices: [Vec3; 3], uv: [Vec2; 3], color: Vec3) -> Self {
         let [a, b, c] = vertices;
         let normal = (b - a).cross(c - a).normalized();
         Self {
@@ -29,6 +31,7 @@ impl Triangle {
             c,
             color,
             normal,
+            uv,
         }
     }
     pub fn bounds(&self) -> AABB {
@@ -37,13 +40,13 @@ impl Triangle {
         AABB { min, max }
     }
 
-    pub fn centroid(&self) -> Vec3{
-        (self.a+self.b+self.c)/3.0
+    pub fn centroid(&self) -> Vec3 {
+        (self.a + self.b + self.c) / 3.0
     }
 
-    pub fn side(&self, a: Axis3, divider: f64) -> Ordering{
+    pub fn side(&self, a: Axis3, divider: f64) -> Ordering {
         let o = self.a.get(a) >= divider;
-        for p in [self.b, self.c].iter(){
+        for p in [self.b, self.c].iter() {
             if (p.get(a) >= divider) != o {
                 return Ordering::Equal;
             }
@@ -61,7 +64,8 @@ impl Default for Triangle {
         let a = Vec3::new(0.0, 0.0, 3.0);
         let b = Vec3::new(1.0, -1.0, 3.0);
         let c = Vec3::new(-1.0, -1.0, 3.0);
-        Self::new([a, b, c], Vec3::from_single(1.0))
+        let uv = [vector![0.0, 0.0], vector![0.0, 1.0], vector![1.0, 0.0]];
+        Self::new([a, b, c], uv, Vec3::from_single(1.0))
     }
 }
 

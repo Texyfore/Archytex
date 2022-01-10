@@ -69,6 +69,11 @@ impl GltfLoader {
                                         triangle[1].position.into(),
                                         triangle[2].position.into(),
                                     ],
+                                    [
+                                        triangle[0].tex_coords.into(),
+                                        triangle[1].tex_coords.into(),
+                                        triangle[2].tex_coords.into(),
+                                    ],
                                     Vec3::from_single(1.0),
                                 );
                                 t.normal = triangle[0].normal.into();
