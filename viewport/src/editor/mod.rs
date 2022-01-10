@@ -221,25 +221,11 @@ impl Editor {
     }
 
     pub fn save_scene(&self) {
-        let model = self.solid_editor.save();
-        let props = self.prop_editor.save();
-
         net::set_saved_scene(
             mdl::Scene {
-                camera: mdl::Camera {
-                    position: mdl::Vector3 {
-                        x: 0.0,
-                        y: 0.0,
-                        z: 0.0,
-                    },
-                    rotation: mdl::Vector3 {
-                        x: 0.0,
-                        y: 0.0,
-                        z: 0.0,
-                    },
-                },
-                model,
-                props,
+                camera: self.world_camera.save(),
+                model: self.solid_editor.save(),
+                props: self.prop_editor.save(),
             }
             .encode()
             .unwrap(),
@@ -263,6 +249,7 @@ impl Editor {
 
     pub fn load_scene(&mut self, scene: mdl::Scene) {
         self.mode = EditorMode::Solid;
+        self.world_camera.load(scene.camera);
         self.prop_editor.load(&self.solid_factory, scene.props);
         self.solid_editor.load(scene.model);
     }

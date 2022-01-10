@@ -25,8 +25,8 @@ pub struct WorldCamera {
 impl Default for WorldCamera {
     fn default() -> Self {
         Self {
-            position: Vector3::zero(),
-            rotation: Vector2::zero(),
+            position: vec3(20.0, 20.0, 20.0),
+            rotation: vec2(-45.0, 45.0),
             speed: 8.0,
             sensitivity: 4.0,
 
@@ -165,6 +165,26 @@ impl WorldCamera {
             }
         } else {
             None
+        }
+    }
+
+    pub fn load(&mut self, camera: mdl::Camera) {
+        self.position = vec3(camera.position.x, camera.position.y, camera.position.z);
+        self.rotation = vec2(camera.rotation.x, camera.rotation.y);
+    }
+
+    pub fn save(&self) -> mdl::Camera {
+        mdl::Camera {
+            position: mdl::Vector3 {
+                x: self.position.x,
+                y: self.position.y,
+                z: self.position.z,
+            },
+            rotation: mdl::Vector3 {
+                x: self.rotation.x,
+                y: self.rotation.y,
+                z: 0.0,
+            },
         }
     }
 }
