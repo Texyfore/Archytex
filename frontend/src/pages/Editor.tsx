@@ -17,7 +17,7 @@ import React, { useEffect, useState } from "react";
 import EditorMenu from "../components/editor-components/EditorMenu";
 import EditorAppBar from "../components/editor-components/EditorAppBar";
 import AppBarOffset from "../components/AppBarOffset";
-import EditorHandle from "../EditorUtils";
+import EditorHandle from "../editorUtils";
 import useDimensions from "react-cool-dimensions";
 import Environment from "../env";
 import {
@@ -100,7 +100,9 @@ export default function Editor() {
         setGridRes(3 - size);
       },
       sceneSaved: (scene) => {
-        alert(scene.length);
+        const blob = new Blob([scene]);
+        const url = URL.createObjectURL(blob);
+        window.open(url);
       },
     });
 
@@ -125,6 +127,8 @@ export default function Editor() {
         file: "amongus.amdl",
       },
     ]);
+
+    editorHandle.loadScene(`${Environment.asset_url}/amogus2.ascn`);
 
     return editorHandle.destroy;
   }, []);
