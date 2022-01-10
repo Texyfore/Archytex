@@ -11,7 +11,10 @@ use winit::event::{MouseButton, VirtualKeyCode};
 use crate::{
     input::{InputMapper, Trigger},
     net,
-    render::{LineBatch, LineFactory, LineVertex, PropBank, Scene, SolidFactory, TextureBank},
+    render::{
+        LineBatch, LineFactory, LineVertex, PropBank, PropID, Scene, SolidFactory, TextureBank,
+        TextureID,
+    },
 };
 
 use self::{
@@ -252,6 +255,14 @@ impl Editor {
         self.world_camera.load(scene.camera);
         self.prop_editor.load(&self.solid_factory, scene.props);
         self.solid_editor.load(scene.model);
+    }
+
+    pub fn set_texture(&mut self, texture_id: TextureID) {
+        self.solid_editor.set_texture(texture_id);
+    }
+
+    pub fn set_prop(&mut self, prop_id: PropID) {
+        self.prop_editor.set_prop(prop_id);
     }
 }
 
