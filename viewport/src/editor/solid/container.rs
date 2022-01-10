@@ -346,6 +346,53 @@ impl SolidContainer {
         }
     }
 
+    pub fn select_all<K: AsSelectAllKind>(&mut self, kind: &K) {
+        if let Some(selected) = self.selected.as_mut() {
+            match selected {
+                Selection::Points(points) => {
+                    if points.is_empty() {
+                        points.append(&mut self.points.iter().map(|(i, _)| i).collect());
+                    } else {
+                        points.clear();
+                    }
+                }
+                Selection::Faces(faces) => {
+                    if faces.is_empty() {
+                        faces.append(&mut self.faces.iter().map(|(i, _)| i).collect());
+                    } else {
+                        faces.clear();
+                    }
+                }
+                Selection::Solids(solids) => {
+                    if solids.is_empty() {
+                        solids.append(&mut self.solids.iter().map(|(i, _)| i).collect());
+                    } else {
+                        solids.clear();
+                    }
+                }
+            }
+        } else {
+            match kind.as_select_all_kind() {
+                SelectAllKind::Points => {
+                    self.selected = Some(Selection::Points(
+                        self.points.iter().map(|(i, _)| i).collect(),
+                    ));
+                }
+                SelectAllKind::Faces => {
+                    self.selected = Some(Selection::Faces(
+                        self.faces.iter().map(|(i, _)| i).collect(),
+                    ));
+                }
+                SelectAllKind::Solids => {
+                    self.selected = Some(Selection::Solids(
+                        self.solids.iter().map(|(i, _)| i).collect(),
+                    ));
+                }
+            }
+        }
+        self.needs_rebuild = true;
+    }
+
     pub fn deselect(&mut self) {
         if self.selected.is_some() {
             self.needs_rebuild = true;
@@ -437,7 +484,7 @@ impl SolidContainer {
                 normal: plane.normal,
                 solid: None,
             })
-        }else {
+        } else {
             None
         }
     }
@@ -477,7 +524,7 @@ impl SolidContainer {
                     let points = face.quad.map(|i| self.points[i].position);
                     let edge0 = points[1] - points[0];
                     let edge1 = points[3] - points[0];
-                    let normal = (edge0.cross(edge1)).normalize();
+                    let normal = edge0.cross(edge1).normalize();
 
                     let color = if selected {
                         FACE_HIGHLIGHT_COLOR
@@ -499,6 +546,34 @@ impl SolidContainer {
                         }
                     }
                 }
+            }
+
+            for (i, _) in &self.mesh_cache {
+                let (verts, tris) = batches.entry(*i).or_default();
+                let t0 = verts.len() as u16;
+
+                verts.push(SolidVertex {
+                    position: [0.0, 0.0, 1000000.0],
+                    normal: [1.0, 0.0, 0.0],
+                    texcoord: [0.0, 0.0],
+                    color: [1.0; 4],
+                });
+
+                verts.push(SolidVertex {
+                    position: [1.0, 0.0, 1000000.0],
+                    normal: [1.0, 0.0, 0.0],
+                    texcoord: [1.0, 0.0],
+                    color: [1.0; 4],
+                });
+
+                verts.push(SolidVertex {
+                    position: [0.0, 1.0, 1000000.0],
+                    normal: [1.0, 0.0, 0.0],
+                    texcoord: [0.0, 1.0],
+                    color: [1.0; 4],
+                });
+
+                tris.push([t0, t0 + 1, t0 + 2]);
             }
 
             self.mesh_cache = batches
@@ -590,4 +665,14 @@ enum Selection {
     Points(Vec<usize>),
     Faces(Vec<usize>),
     Solids(Vec<usize>),
+}
+
+pub enum SelectAllKind {
+    Points,
+    Faces,
+    Solids,
+}
+
+pub trait AsSelectAllKind {
+    fn as_select_all_kind(&self) -> SelectAllKind;
 }

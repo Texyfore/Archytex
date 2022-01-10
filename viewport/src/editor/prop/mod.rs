@@ -64,8 +64,8 @@ impl Prop {
         Self {
             id: self.id,
             transform: solid_factory.create_transform(),
-            location: self.location.clone(),
-            previous_location: self.location.clone(),
+            location: self.location,
+            previous_location: self.location,
             selected: false,
         }
     }
@@ -118,7 +118,7 @@ impl PropEditor {
     }
 
     pub fn process(&mut self, state: PropEditorState) {
-        if state.input.is_active(Modifier) && state.input.is_active_once(AddProp) {
+        if state.input.is_active(Modifier) && state.input.is_active_once(EditorAdd) {
             if let Some(raycast) = state
                 .solid_container
                 .raycast(state.camera.screen_ray(state.input.mouse_pos()), true)
@@ -140,7 +140,7 @@ impl PropEditor {
             }
         }
 
-        if state.input.is_active_once(Select) && self.move_op.is_none() {
+        if state.input.was_active_once(Select) && self.move_op.is_none() {
             if !state.input.is_active(EnableMultiSelect) {
                 for (_, prop) in &mut self.props {
                     prop.selected = false;
@@ -158,9 +158,17 @@ impl PropEditor {
             }
         }
 
+        if !state.input.is_active(MoveCamera) && state.input.is_active_once(SelectAll) {
+            let new_selected = !self.props.iter().any(|(_, prop)| prop.selected);
+            self.props
+                .iter_mut()
+                .for_each(|(_, prop)| prop.selected = new_selected);
+            self.rebuild = true;
+        }
+
         let mut should_move = state.input.is_active_once(Move);
 
-        if state.input.is_active_once(CopySolid) {
+        if state.input.is_active_once(EditorCopy) {
             #[allow(clippy::needless_collect)]
             let new_props = self
                 .props
@@ -237,7 +245,7 @@ impl PropEditor {
             }
         }
 
-        if state.input.is_active_once(DeleteSolid) {
+        if state.input.is_active_once(EditorDel) {
             let selected: Vec<usize> = self
                 .props
                 .iter()
