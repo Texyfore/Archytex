@@ -10,11 +10,9 @@ require (
 )
 
 require (
-	github.com/dpapathanasiou/go-recaptcha v0.0.0-20190121160230-be5090b17804 // indirect
 	github.com/go-stack/stack v1.8.0 // indirect
 	github.com/golang/snappy v0.0.1 // indirect
 	github.com/gorilla/handlers v1.5.1
-	github.com/gorilla/sessions v1.2.1 // indirect
 	github.com/gorilla/websocket v1.4.2
 	github.com/klauspost/compress v1.13.6 // indirect
 	github.com/matthewhartstonge/argon2 v0.1.5
@@ -28,3 +26,5 @@ require (
 	golang.org/x/text v0.3.6 // indirect
 	gopkg.in/ezzarghili/recaptcha-go.v4 v4.3.0
 )
+
+require github.com/felixge/httpsnoop v1.0.1 // indirect

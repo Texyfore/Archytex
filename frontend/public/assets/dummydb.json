@@ -1,0 +1,26 @@
+{
+  "props": [
+    {
+      "id": 0,
+      "url": "amogus.amdl",
+      "public": true
+    }
+  ],
+  "textures": [
+    {
+      "id": 0,
+      "url": "vertex.png",
+      "public": false
+    },
+    {
+      "id": 1,
+      "url": "nodraw.png",
+      "public": true
+    },
+    {
+      "id": 2,
+      "url": "amogus.png",
+      "public": false
+    }
+  ]
+}
