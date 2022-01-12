@@ -1,14 +1,15 @@
-use std::{collections::VecDeque, sync::Mutex};
+use concurrent_queue::ConcurrentQueue;
+use std::sync::Mutex;
 use wasm_bindgen::prelude::*;
 
-static mut FROM_JS: Option<Mutex<VecDeque<Message>>> = None;
-static mut TO_JS: Option<Mutex<VecDeque<String>>> = None;
+static mut FROM_JS: Option<ConcurrentQueue<Message>> = None;
+static mut TO_JS: Option<ConcurrentQueue<String>> = None;
 static mut SAVED_SCENE: Option<Mutex<Option<Vec<u8>>>> = None;
 
 pub fn init() {
     unsafe {
-        FROM_JS = Some(Default::default());
-        TO_JS = Some(Default::default());
+        FROM_JS = Some(ConcurrentQueue::bounded(16));
+        TO_JS = Some(ConcurrentQueue::bounded(16));
         SAVED_SCENE = Some(Default::default());
     }
     // Initialization done, make it known to the outside world
@@ -16,13 +17,13 @@ pub fn init() {
 }
 
 pub fn send_packet(json: String) {
-    let mut deque = unsafe { TO_JS.as_mut().unwrap().try_lock().unwrap() };
-    deque.push_back(json);
+    let deque = unsafe { TO_JS.as_mut().unwrap() };
+    deque.push(json).ok();
 }
 
 pub fn query_packet() -> Option<Message> {
-    let mut deque = unsafe { FROM_JS.as_mut().unwrap().try_lock().unwrap() };
-    deque.pop_front()
+    let deque = unsafe { FROM_JS.as_mut().unwrap() };
+    deque.pop().ok()
 }
 
 pub fn set_saved_scene(data: Vec<u8>) {
@@ -31,22 +32,15 @@ pub fn set_saved_scene(data: Vec<u8>) {
 }
 
 fn push_from_js(message: Message) {
-    let mut deque = unsafe {
-        FROM_JS
-            .as_mut()
-            .expect("Sent packet while uninitialized!")
-            .try_lock()
-            .unwrap()
-    };
-    deque.push_back(message);
+    let deque = unsafe { FROM_JS.as_mut().expect("Sent packet while uninitialized!") };
+    deque.push(message).ok();
 }
 
 #[wasm_bindgen(js_name = "queryMessage")]
 pub fn __query_message() -> Option<String> {
     unsafe {
         if let Some(deque) = TO_JS.as_mut() {
-            let mut deque = deque.try_lock().unwrap();
-            deque.pop_front()
+            deque.pop().ok()
         } else {
             None
         }
