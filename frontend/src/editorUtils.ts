@@ -11,7 +11,7 @@ interface Callbacks {
 
 interface AssetLoader {
   id: number;
-  file: string;
+  url: string;
 }
 
 export type { Callbacks };
@@ -155,7 +155,7 @@ export default class EditorHandle {
     Promise.all(
       loaders.map((loader) =>
         (async () => {
-          const res = await fetch(`${Environment.asset_url}/${loader.file}`);
+          const res = await fetch(`${Environment.asset_url}/${loader.url}`);
           const arrayBuffer = await res.arrayBuffer();
           this.actionQueue.unshift({
             type: "texture-data",
@@ -175,7 +175,7 @@ export default class EditorHandle {
     Promise.all(
       loaders.map((loader) =>
         (async () => {
-          const res = await fetch(`${Environment.asset_url}/${loader.file}`);
+          const res = await fetch(`${Environment.asset_url}/${loader.url}`);
           const arrayBuffer = await res.arrayBuffer();
           this.actionQueue.unshift({
             type: "prop-data",

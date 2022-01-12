@@ -106,23 +106,12 @@ export default function Editor() {
       },
     });
 
-    editorHandle.loadTextures([
-      {
-        id: 0,
-        file: "vertex.png",
-      },
-      {
-        id: 1,
-        file: "nodraw.png",
-      },
-    ]);
-
-    editorHandle.loadProps([
-      {
-        id: 0,
-        file: "amongus.amdl",
-      },
-    ]);
+    (async () => {
+      const res = await fetch(`${Environment.asset_url}/dummydb.json`);
+      const assets = await res.json();
+      editorHandle.loadTextures(assets.textures)
+      editorHandle.loadProps(assets.props)
+    })();
 
     return editorHandle.destroy;
   }, []);
