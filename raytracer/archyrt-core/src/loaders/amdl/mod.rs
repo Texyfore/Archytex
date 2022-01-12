@@ -1,6 +1,8 @@
 use crate::intersectables::triangle::Triangle;
 use crate::loaders::Loader;
 use crate::textures::TextureID;
+use crate::textures::texture_repo::TextureRepository;
+use crate::textures::texture_repo::png::PngTextureRepo;
 use crate::utilities::math::{Vec2, Vec3};
 use crate::{cameras::perspective::PerspectiveCamera, vector};
 use anyhow::{anyhow, Result};
@@ -12,9 +14,10 @@ use std::io::Read;
 use std::ops::Mul;
 use std::path::Path;
 
-pub struct AMDLLoader {
+pub struct AMDLLoader<R: TextureRepository> {
     triangles: Vec<Triangle>,
     camera: PerspectiveCamera,
+    textures: R
 }
 
 fn to_hashmap<T>(a: Vec<(u32, T)>) -> HashMap<u32, T> {
@@ -39,20 +42,20 @@ fn texcoord(point: Vec3, normal: Vec3) -> Vec2 {
     }
 }
 
-impl AMDLLoader {
-    pub fn from_path<P: AsRef<Path>>(path: P) -> Result<Self> {
+impl<R: TextureRepository> AMDLLoader<R> {
+    pub fn from_path<P: AsRef<Path>>(path: P, repo: R) -> Result<Self> {
         let mut f = File::open(path)?;
         let mut buf: Vec<u8> = Vec::new();
         f.read_to_end(&mut buf)?;
-        return Self::from_bytes(buf);
+        return Self::from_bytes(buf, repo);
     }
-    pub fn from_bytes(data: Vec<u8>) -> Result<Self> {
+    pub fn from_bytes(data: Vec<u8>, repo: R) -> Result<Self> {
         let scene =
             mdl::Scene::decode(data.as_slice()).ok_or(anyhow!("Unable to decode scene file"))?;
-        return Self::from_scene(scene);
+        return Self::from_scene(scene, repo);
     }
 
-    pub fn from_scene(scene: mdl::Scene) -> Result<Self> {
+    pub fn from_scene(scene: mdl::Scene, repo: R) -> Result<Self> {
         let mut triangles: Vec<Triangle> = Vec::new();
         let focal_distance = 0.595877;
         let camera = PerspectiveCamera::from_euler(
@@ -132,11 +135,11 @@ impl AMDLLoader {
                 triangles.push(triangle2);
             }
         }
-        Ok(Self { camera, triangles })
+        Ok(Self { camera, triangles, textures: repo})
     }
 }
 
-impl Loader for AMDLLoader {
+impl<R: TextureRepository> Loader for AMDLLoader<R> {
     type C = PerspectiveCamera;
 
     fn get_triangles(&self) -> &Vec<Triangle> {
@@ -145,5 +148,11 @@ impl Loader for AMDLLoader {
 
     fn get_camera(&self) -> &Self::C {
         return &self.camera;
+    }
+
+    type Tex = R;
+
+    fn get_textures(&self) -> &Self::Tex {
+        &self.textures
     }
 }
