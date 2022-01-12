@@ -1,3 +1,5 @@
+pub mod amdl_textures;
+
 use crate::intersectables::triangle::Triangle;
 use crate::loaders::Loader;
 

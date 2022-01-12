@@ -1,5 +1,5 @@
 use archyrt_core::intersectables::bvh::BVH;
-use archyrt_core::loaders::amdl::AMDLLoader;
+use archyrt_core::loaders::amdl::{AMDLLoader, amdl_textures};
 use archyrt_core::{
     api::fragment_collector::FragmentCollector,
     cameras::perspective::PerspectiveCamera,
@@ -14,11 +14,7 @@ fn main() {
     println!("Load file");
     let pos = Vec3::new(7.0, 1.0, 1.0) * 2.0;
     let target = Vec3::new(0.0, 0.0, 0.0);
-    let repo = PngTextureRepo::new(
-        "../../frontend/public/assets",
-        &[(TextureID(1), "nodraw.png"), (TextureID(2), "amogus.png")],
-    )
-    .unwrap();
+    let repo = amdl_textures::load("../assets").unwrap();
     let loader = AMDLLoader::from_path("test.amdl").unwrap();
     let camera = PerspectiveCamera::new(pos, (target - pos).normalized(), 0.595877);
     let object = loader.get_triangles();
