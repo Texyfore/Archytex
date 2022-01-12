@@ -47,10 +47,10 @@ impl AMDLLoader {
         let mut f = File::open(path)?;
         let mut buf: Vec<u8> = Vec::new();
         f.read_to_end(&mut buf)?;
-        Self::from_bytes(buf)
+        Self::from_bytes(&buf)
     }
-    pub fn from_bytes(data: Vec<u8>) -> Result<Self> {
-        let scene = mdl::Scene::decode(data.as_slice())
+    pub fn from_bytes(data: &[u8]) -> Result<Self> {
+        let scene = mdl::Scene::decode(data)
             .ok_or_else(|| anyhow!("Unable to decode scene file"))?;
         Self::from_scene(scene)
     }
@@ -58,14 +58,19 @@ impl AMDLLoader {
     pub fn from_scene(scene: mdl::Scene) -> Result<Self> {
         let mut triangles: Vec<Triangle> = Vec::new();
         let focal_distance = 0.595877;
-        let camera = PerspectiveCamera::from_euler(
-            scene.camera.position.into(),
-            scene.camera.rotation.into(),
+        let mut camera_pos: Vec3 = scene.camera.position.into();
+        camera_pos.inner[2] = -camera_pos[2];
+        let rotation: Vec3 = scene.camera.rotation.into();
+        let mut camera = PerspectiveCamera::from_euler(
+            camera_pos,
+            rotation/180.0*std::f64::consts::PI,
             focal_distance,
         );
+        camera.matrix = camera.matrix.transpose();
+        
         let faces = to_hashmap(scene.model.faces);
         let points = to_hashmap(scene.model.points);
-        for (_, solid) in &scene.model.solids[1..] {
+        for (_, solid) in &scene.model.solids {
             let faces: Vec<_> = solid
                 .faces
                 .iter()
