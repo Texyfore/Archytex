@@ -1,4 +1,10 @@
-use std::cmp::Ordering;
+use crate::textures::color_provider::ColorProvider;
+use crate::textures::samplers::nearest::NearestSampler;
+use crate::textures::samplers::TextureSampler;
+use crate::textures::texture_repo::TextureRepository;
+use crate::textures::TextureID;
+use crate::utilities::math::{Axis3, Vec2};
+use crate::vector;
 use crate::{
     matrix,
     utilities::{
@@ -6,7 +12,7 @@ use crate::{
         ray::{Intersectable, Intersection, IntersectionBuilder, Ray},
     },
 };
-use crate::utilities::math::Axis3;
+use std::cmp::Ordering;
 
 use super::aabb::AABB;
 
@@ -16,19 +22,21 @@ pub struct Triangle {
     pub b: Vec3,
     pub c: Vec3,
     pub normal: Vec3,
-    pub color: Vec3,
+    pub uv: [Vec2; 3],
+    pub texture: TextureID,
 }
 
 impl Triangle {
-    pub fn new(vertices: [Vec3; 3], color: Vec3) -> Self {
+    pub fn new(vertices: [Vec3; 3], uv: [Vec2; 3], texture: TextureID) -> Self {
         let [a, b, c] = vertices;
         let normal = (b - a).cross(c - a).normalized();
         Self {
             a,
             b,
             c,
-            color,
             normal,
+            uv,
+            texture,
         }
     }
     pub fn bounds(&self) -> AABB {
@@ -37,13 +45,13 @@ impl Triangle {
         AABB { min, max }
     }
 
-    pub fn centroid(&self) -> Vec3{
-        (self.a+self.b+self.c)/3.0
+    pub fn centroid(&self) -> Vec3 {
+        (self.a + self.b + self.c) / 3.0
     }
 
-    pub fn side(&self, a: Axis3, divider: f64) -> Ordering{
+    pub fn side(&self, a: Axis3, divider: f64) -> Ordering {
         let o = self.a.get(a) >= divider;
-        for p in [self.b, self.c].iter(){
+        for p in [self.b, self.c].iter() {
             if (p.get(a) >= divider) != o {
                 return Ordering::Equal;
             }
@@ -61,12 +69,31 @@ impl Default for Triangle {
         let a = Vec3::new(0.0, 0.0, 3.0);
         let b = Vec3::new(1.0, -1.0, 3.0);
         let c = Vec3::new(-1.0, -1.0, 3.0);
-        Self::new([a, b, c], Vec3::from_single(1.0))
+        let uv = [vector![0.0, 0.0], vector![0.0, 1.0], vector![1.0, 0.0]];
+        Self::new([a, b, c], uv, TextureID(1))
+    }
+}
+
+#[derive(Default)]
+pub struct TriangleColor {
+    pub uv: [Vec2; 3],
+    pub barycentric: Vec3,
+    pub texture: TextureID,
+}
+
+impl ColorProvider for TriangleColor {
+    fn get_color<R: TextureRepository>(&self, repo: &R) -> Vec3 {
+        let sampler = NearestSampler {};
+        let coords = self.uv[1] * self.barycentric[0]
+            + self.uv[2] * self.barycentric[1]
+            + self.uv[0] * self.barycentric[2];
+        sampler.sample(repo, self.texture, coords)
     }
 }
 
 impl Intersectable for Triangle {
-    fn intersect(&self, ray: Ray) -> Option<Intersection> {
+    type C = TriangleColor;
+    fn intersect(&self, ray: Ray) -> Option<Intersection<Self::C>> {
         //Based on https://www.scratchapixel.com/lessons/3d-basic-rendering/ray-tracing-rendering-a-triangle/moller-trumbore-ray-triangle-intersection
         //Backface culling
         if self.normal.dot(ray.direction) > 0.0 {
@@ -84,7 +111,11 @@ impl Intersectable for Triangle {
                 ray,
                 distance: Some(t),
                 normal: self.normal,
-                color: self.color,
+                color_provider: TriangleColor {
+                    uv: self.uv.clone(),
+                    barycentric: Vec3::new(u, v, 1.0 - u - v),
+                    texture: self.texture,
+                },
                 ..Default::default()
             }
             .build(),

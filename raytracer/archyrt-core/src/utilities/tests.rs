@@ -244,6 +244,7 @@ mod matrices {
 #[cfg(test)]
 mod rays {
     use crate::{
+        textures::{color_provider::SolidColor, texture_repo::DummyTextureRepository},
         utilities::{
             math::Vec3,
             ray::{IntersectionBuilder, Ray},
@@ -253,6 +254,7 @@ mod rays {
 
     #[test]
     fn intersection_builder() {
+        let dummyTextures = DummyTextureRepository();
         let color = Vec3::new(1.0, 2.0, 3.0);
         let normal = Vec3::new(4.0, 5.0, 6.0);
         let pos = Some(Vec3::new(7.0, 8.0, 9.0));
@@ -263,7 +265,7 @@ mod rays {
             direction: vector!(0.4, 0.5, 0.5),
         };
         let intersection = IntersectionBuilder {
-            color,
+            color_provider: SolidColor(color),
             normal,
             distance,
             distance_squared,
@@ -271,7 +273,7 @@ mod rays {
             ray,
         }
         .build();
-        assert_eq!(color, intersection.get_color());
+        assert_eq!(color, intersection.get_color(&dummyTextures));
         assert_eq!(normal, intersection.get_normal());
         assert_eq!(pos.unwrap(), intersection.get_pos());
         assert_eq!(distance.unwrap(), intersection.get_distance());
@@ -282,7 +284,7 @@ mod rays {
     }
     #[test]
     fn intersection_conversion() {
-        let i1 = IntersectionBuilder {
+        let i1 = IntersectionBuilder::<SolidColor> {
             ray: Ray {
                 direction: vector!(0.0, 0.0, 1.0),
                 ..Default::default()
@@ -291,7 +293,7 @@ mod rays {
             ..Default::default()
         }
         .build();
-        let i2 = IntersectionBuilder {
+        let i2 = IntersectionBuilder::<SolidColor> {
             ray: Ray {
                 direction: vector!(0.0, 0.0, 1.0),
                 ..Default::default()
@@ -300,7 +302,7 @@ mod rays {
             ..Default::default()
         }
         .build();
-        let i3 = IntersectionBuilder {
+        let i3 = IntersectionBuilder::<SolidColor> {
             ray: Ray {
                 direction: vector!(0.0, 0.0, 1.0),
                 ..Default::default()

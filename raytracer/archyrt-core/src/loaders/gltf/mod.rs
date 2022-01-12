@@ -9,6 +9,8 @@ use crate::cameras::perspective::PerspectiveCamera;
 use crate::intersectables::triangle::Triangle;
 use crate::matrix;
 
+use crate::textures::texture_repo::TextureRepository;
+use crate::textures::TextureID;
 use crate::utilities::math::Vec3;
 use crate::utilities::math::Vector;
 
@@ -69,7 +71,12 @@ impl GltfLoader {
                                         triangle[1].position.into(),
                                         triangle[2].position.into(),
                                     ],
-                                    Vec3::from_single(1.0),
+                                    [
+                                        triangle[0].tex_coords.into(),
+                                        triangle[1].tex_coords.into(),
+                                        triangle[2].tex_coords.into(),
+                                    ],
+                                    TextureID(1),
                                 );
                                 t.normal = triangle[0].normal.into();
                                 t.normal += triangle[1].normal.into();
@@ -87,7 +94,7 @@ impl GltfLoader {
             Some(model)
         }
         .ok_or(anyhow!("Could not get model"))?;
-        Ok(GltfLoader { camera, triangles })
+        Ok(Self { camera, triangles })
     }
 }
 

@@ -1,13 +1,14 @@
+use crate::utilities::math::Matrix3x3;
 use crate::{
     api::{camera::Camera, fragment_render::FragmentContext},
     matrix,
+    textures::texture_repo::TextureRepository,
     utilities::{
         math::{Matrix, Vec2, Vec3},
         ray::Ray,
     },
     vector,
 };
-use crate::utilities::math::Matrix3x3;
 
 #[derive(Debug)]
 pub struct PerspectiveCamera {
@@ -35,13 +36,16 @@ impl PerspectiveCamera {
         Self {
             position,
             focal_distance,
-            matrix: Matrix3x3::identity().rotate_z(euler_direction.z()).rotate_y(euler_direction.y()).rotate_x(euler_direction.x()),
+            matrix: Matrix3x3::identity()
+                .rotate_z(euler_direction.z())
+                .rotate_y(euler_direction.y())
+                .rotate_x(euler_direction.x()),
         }
     }
 }
 
 impl Camera for PerspectiveCamera {
-    fn get_ray(&self, ctx: &FragmentContext, pos: Vec2) -> Ray {
+    fn get_ray<R: TextureRepository>(&self, ctx: &FragmentContext<R>, pos: Vec2) -> Ray {
         let uv = {
             //Calculate center-origin coordinates
             let mut uv = vector!(pos.x() - 0.5, 0.5 - pos.y());

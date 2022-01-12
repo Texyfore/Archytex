@@ -1,12 +1,13 @@
 use crate::{
     api::fragment_render::{FragmentContext, FragmentRender},
+    textures::texture_repo::TextureRepository,
     utilities::math::{Vec2, Vec3},
 };
 
 struct DummyRenderer {}
 
 impl FragmentRender for DummyRenderer {
-    fn render_fragment(&self, _: &FragmentContext, pos: Vec2) -> Vec3 {
+    fn render_fragment<R: TextureRepository>(&self, _: &FragmentContext<R>, pos: Vec2) -> Vec3 {
         let c = (pos.x() + pos.y()) / 2.0;
         Vec3::new(c, c, c)
     }
@@ -16,6 +17,7 @@ mod array_collector {
     use crate::{
         api::fragment_collector::FragmentCollector,
         collector::{array_collector::ArrayCollector, tests::DummyRenderer},
+        textures::texture_repo::DummyTextureRepository,
         utilities::math::Vec3,
     };
 
@@ -43,9 +45,10 @@ mod array_collector {
 
     #[test]
     fn render() {
+        let repo = DummyTextureRepository {};
         let collector = ArrayCollector {};
         let renderer = DummyRenderer {};
-        let image = collector.collect(renderer, 4, 4);
+        let image = collector.collect(renderer, repo, 4, 4);
         let expected = vec![
             vec![0.0 / 6.0, 1.0 / 6.0, 2.0 / 6.0, 3.0 / 6.0],
             vec![1.0 / 6.0, 2.0 / 6.0, 3.0 / 6.0, 4.0 / 6.0],
@@ -64,15 +67,17 @@ mod array_collector {
 mod image_collector {
     use crate::{
         api::fragment_collector::FragmentCollector, collector::image_collector::ImageCollector,
+        textures::texture_repo::DummyTextureRepository,
     };
 
     use super::DummyRenderer;
 
     #[test]
     fn render() {
+        let repo = DummyTextureRepository {};
         let collector = ImageCollector {};
         let renderer = DummyRenderer {};
-        let image = collector.collect(renderer, 4, 4).unwrap();
+        let image = collector.collect(renderer, repo, 4, 4).unwrap();
         assert_eq!(image.get_pixel(0, 0).0[0], 0);
         assert_eq!(image.get_pixel(1, 1).0[0], 85);
         assert_eq!(image.get_pixel(3, 1).0[0], 170);
