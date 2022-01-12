@@ -4,8 +4,12 @@ import os
 import sys
 
 def main():
+    profile = "--dev"
+    if len(sys.argv) == 2 and sys.argv[1] == "--release":
+        profile = "--release"
+
     os.chdir("viewport")
-    os.system("wasm-pack build --dev")
+    os.system(f"wasm-pack build {profile}")
     os.chdir("../frontend")
     os.system("yarn upgrade viewport")
     os.system("yarn start")
