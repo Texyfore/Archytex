@@ -5,7 +5,7 @@ interface Environment{
 }
 
 const dev: Environment = {
-    base_url: "http://localhost:8080/api/",
+    base_url: "http://localhost:8080/api",
     ws_url: "ws://localhost:8080/api/ws",
     asset_url: "/assets"
 }
