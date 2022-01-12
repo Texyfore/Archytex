@@ -1,8 +1,11 @@
-use crate::{utilities::{
-    math::Vec3,
-    ray::{Intersectable, Intersection, IntersectionBuilder, Ray},
-}, textures::color_provider::SolidColor};
 use crate::utilities::math::Axis3;
+use crate::{
+    textures::color_provider::SolidColor,
+    utilities::{
+        math::Vec3,
+        ray::{Intersectable, Intersection, IntersectionBuilder, Ray},
+    },
+};
 
 #[derive(Clone, Copy)]
 pub struct AABB {
@@ -23,8 +26,8 @@ impl AABB {
             max: self.max.max(rhs.max),
         }
     }
-    pub fn max_axis(self) -> Axis3{
-        (self.max-self.min).max_axis()
+    pub fn max_axis(self) -> Axis3 {
+        (self.max - self.min).max_axis()
     }
 }
 

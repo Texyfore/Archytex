@@ -1,9 +1,10 @@
 use crate::{
+    textures::color_provider::SolidColor,
     utilities::{
         math::{solve_quadratic, QuadraticResult, Vec3},
         ray::{Intersectable, Intersection, IntersectionBuilder, Ray},
     },
-    vector, textures::color_provider::SolidColor,
+    vector,
 };
 
 pub struct Sphere {

@@ -3,6 +3,7 @@ use crate::{
         fragment_collector::FragmentCollector,
         fragment_render::{FragmentContext, FragmentRender},
     },
+    textures::texture_repo::TextureRepository,
     utilities::math::Vec3,
     vector,
 };
@@ -11,10 +12,17 @@ pub struct ArrayCollector {}
 
 impl<T: FragmentRender> FragmentCollector<T> for ArrayCollector {
     type Output = Vec<Vec<Vec3>>;
-    fn collect(&self, fragment_render: T, width: usize, height: usize) -> Self::Output {
+    fn collect<R: TextureRepository>(
+        &self,
+        fragment_render: T,
+        texture_repo: R,
+        width: usize,
+        height: usize,
+    ) -> Self::Output {
         let ctx = FragmentContext {
             width: width as _,
             height: height as _,
+            repo: texture_repo,
         };
         let mut rows = Vec::with_capacity(height);
         for y in 0..height {

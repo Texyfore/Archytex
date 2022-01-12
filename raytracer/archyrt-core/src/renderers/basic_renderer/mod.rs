@@ -5,6 +5,7 @@ use crate::{
     },
     cameras::perspective::PerspectiveCamera,
     intersectables::sphere::Sphere,
+    textures::texture_repo::TextureRepository,
     utilities::{
         math::{Vec2, Vec3},
         ray::Intersectable,
@@ -32,13 +33,13 @@ impl Default for BasicRenderer<PerspectiveCamera, Sphere> {
 }
 
 impl<T: Camera, K: Intersectable> FragmentRender for BasicRenderer<T, K> {
-    fn render_fragment(&self, ctx: &FragmentContext, pos: Vec2) -> Vec3 {
+    fn render_fragment<R: TextureRepository>(&self, ctx: &FragmentContext<R>, pos: Vec2) -> Vec3 {
         let ray = self.camera.get_ray(ctx, pos);
         match self.object.intersect(ray) {
             Some(intersection) => {
                 let pos = intersection.get_pos();
                 let normal = intersection.get_normal();
-                let base = intersection.get_color();
+                let base = intersection.get_color(&ctx.repo);
                 let lamp_direction = self.lamp - pos;
                 let shadow = lamp_direction.dot(normal) / lamp_direction.length();
                 let shadow = shadow.clamp(0.0, 1.0);

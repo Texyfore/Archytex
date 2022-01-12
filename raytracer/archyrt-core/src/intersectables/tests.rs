@@ -102,11 +102,12 @@ mod surface {
 mod triangle {
     use crate::{
         intersectables::triangle::Triangle,
+        textures::TextureID,
         utilities::{
             math::Vec3,
             ray::{Intersectable, Ray},
         },
-        vector, textures::TextureID,
+        vector,
     };
 
     #[test]

@@ -15,14 +15,8 @@ fn main() {
     println!("Load file");
     let pos = Vec3::new(7.0, 1.0, 1.0)*2.0;
     let target = Vec3::new(0.0, 0.0, 0.0);
-    let mut textures = HashMap::new();
-    textures.insert(TextureID(1), "nodraw.png".into());
-    textures.insert(TextureID(2), "amogus.png".into());
-    let repo = PngTextureRepo{
-        base: "../frontend/public/assets".into(),
-        textures
-    };
-    let loader = AMDLLoader::from_path("test.amdl", repo).unwrap();
+    let repo = PngTextureRepo::new("../../frontend/public/assets", &[(TextureID(1), "nodraw.png"), (TextureID(2), "amogus.png")]).unwrap();
+    let loader = AMDLLoader::from_path("test.amdl").unwrap();
     let camera = PerspectiveCamera::new(
         pos,
         (target-pos).normalized(), 0.595877);
@@ -36,6 +30,6 @@ fn main() {
         lamp: pos,
     };
     let collector = ImageCollector {};
-    let image = collector.collect(renderer, 1920, 1080).unwrap();
+    let image = collector.collect(renderer,repo, 1920/2, 1080/2).unwrap();
     image.save("image.png").unwrap();
 }

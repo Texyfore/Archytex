@@ -9,21 +9,20 @@ use crate::cameras::perspective::PerspectiveCamera;
 use crate::intersectables::triangle::Triangle;
 use crate::matrix;
 
-use crate::textures::TextureID;
 use crate::textures::texture_repo::TextureRepository;
+use crate::textures::TextureID;
 use crate::utilities::math::Vec3;
 use crate::utilities::math::Vector;
 
 use super::Loader;
 
-pub struct GltfLoader<R: TextureRepository> {
+pub struct GltfLoader {
     camera: PerspectiveCamera,
     triangles: Vec<Triangle>,
-    textures: R
 }
 
-impl<R: TextureRepository> GltfLoader<R> {
-    pub fn load<P>(path: P, repo: R) -> Result<Self>
+impl GltfLoader {
+    pub fn load<P>(path: P) -> Result<Self>
     where
         P: AsRef<Path>,
     {
@@ -95,11 +94,11 @@ impl<R: TextureRepository> GltfLoader<R> {
             Some(model)
         }
         .ok_or(anyhow!("Could not get model"))?;
-        Ok(Self { camera, triangles, textures: repo})
+        Ok(Self { camera, triangles })
     }
 }
 
-impl<R: TextureRepository> Loader for GltfLoader<R> {
+impl Loader for GltfLoader {
     type C = PerspectiveCamera;
 
     fn get_triangles(&self) -> &Vec<Triangle> {
@@ -108,11 +107,5 @@ impl<R: TextureRepository> Loader for GltfLoader<R> {
 
     fn get_camera(&self) -> &PerspectiveCamera {
         &self.camera
-    }
-
-    type Tex = R;
-
-    fn get_textures(&self) -> &Self::Tex {
-        return &self.textures;
     }
 }

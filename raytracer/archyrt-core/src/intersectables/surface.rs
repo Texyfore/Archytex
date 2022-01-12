@@ -1,7 +1,10 @@
-use crate::{utilities::{
-    math::Vec3,
-    ray::{Intersectable, Intersection, IntersectionBuilder, Ray},
-}, textures::color_provider::SolidColor};
+use crate::{
+    textures::color_provider::SolidColor,
+    utilities::{
+        math::Vec3,
+        ray::{Intersectable, Intersection, IntersectionBuilder, Ray},
+    },
+};
 
 pub struct Surface {
     pub normal: Vec3,

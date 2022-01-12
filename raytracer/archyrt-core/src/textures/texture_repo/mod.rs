@@ -1,8 +1,15 @@
-use super::{TextureID, texture::Texture};
+use super::{texture::Texture, TextureID};
 
 pub mod png;
 
+pub trait TextureRepository {
+    fn get(&self, id: TextureID) -> Option<&Texture>;
+}
 
-pub trait TextureRepository{
-    fn get(&self, id: TextureID) -> Option<Texture>;
+pub struct DummyTextureRepository();
+
+impl TextureRepository for DummyTextureRepository {
+    fn get(&self, id: TextureID) -> Option<&Texture> {
+        None
+    }
 }

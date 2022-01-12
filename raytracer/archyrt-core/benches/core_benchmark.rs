@@ -3,6 +3,7 @@ use archyrt_core::{
     collector::image_collector::ImageCollector,
     intersectables::sphere::Sphere,
     renderers::basic_renderer::BasicRenderer,
+    textures::texture_repo::DummyTextureRepository,
     utilities::{
         math::Vec3,
         ray::{Intersectable, Ray},
@@ -30,11 +31,12 @@ pub fn sphere_ray_intersection(c: &mut Criterion) {
 pub fn rendering(c: &mut Criterion) {
     c.bench_function("rendering", |b| {
         b.iter(|| {
+            let repo = DummyTextureRepository {};
             let renderer = BasicRenderer {
                 ..Default::default()
             };
             let collector = ImageCollector {};
-            let image = collector.collect(renderer, 10, 10).unwrap();
+            let image = collector.collect(renderer, repo, 10, 10).unwrap();
             black_box(image);
         })
     });

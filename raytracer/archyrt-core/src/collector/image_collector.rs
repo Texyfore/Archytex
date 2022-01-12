@@ -1,6 +1,9 @@
 use image::{Rgb, RgbImage};
 
-use crate::api::{fragment_collector::FragmentCollector, fragment_render::FragmentRender};
+use crate::{
+    api::{fragment_collector::FragmentCollector, fragment_render::FragmentRender},
+    textures::texture_repo::TextureRepository,
+};
 
 use super::array_collector::ArrayCollector;
 
@@ -9,9 +12,15 @@ pub struct ImageCollector {}
 impl<T: FragmentRender> FragmentCollector<T> for ImageCollector {
     type Output = Option<RgbImage>;
 
-    fn collect(&self, fragment_render: T, width: usize, height: usize) -> Self::Output {
+    fn collect<R: TextureRepository>(
+        &self,
+        fragment_render: T,
+        texture_repo: R,
+        width: usize,
+        height: usize,
+    ) -> Self::Output {
         let array_collector = ArrayCollector {};
-        let arr = array_collector.collect(fragment_render, width, height);
+        let arr = array_collector.collect(fragment_render, texture_repo, width, height);
         let mut image = RgbImage::new(width as u32, height as u32);
         for (x, y, color) in image.enumerate_pixels_mut() {
             let fragment = arr.get(y as usize)?.get(x as usize)?;

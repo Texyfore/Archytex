@@ -1,5 +1,8 @@
-use crate::textures::TextureID;
 use crate::textures::color_provider::ColorProvider;
+use crate::textures::samplers::nearest::NearestSampler;
+use crate::textures::samplers::TextureSampler;
+use crate::textures::texture_repo::TextureRepository;
+use crate::textures::TextureID;
 use crate::utilities::math::{Axis3, Vec2};
 use crate::vector;
 use crate::{
@@ -20,7 +23,7 @@ pub struct Triangle {
     pub c: Vec3,
     pub normal: Vec3,
     pub uv: [Vec2; 3],
-    pub texture: TextureID
+    pub texture: TextureID,
 }
 
 impl Triangle {
@@ -33,7 +36,7 @@ impl Triangle {
             c,
             normal,
             uv,
-            texture
+            texture,
         }
     }
     pub fn bounds(&self) -> AABB {
@@ -71,19 +74,20 @@ impl Default for Triangle {
     }
 }
 
-pub struct TriangleColor{
-    
-}
-
-impl Default for TriangleColor{
-    fn default() -> Self {
-        Self {  }
-    }
+#[derive(Default)]
+pub struct TriangleColor {
+    pub uv: [Vec2; 3],
+    pub barycentric: Vec3,
+    pub texture: TextureID,
 }
 
 impl ColorProvider for TriangleColor {
-    fn get_color(&self) -> Vec3 {
-        vector!(1.0, 1.0, 1.0)
+    fn get_color<R: TextureRepository>(&self, repo: &R) -> Vec3 {
+        let sampler = NearestSampler {};
+        let coords = self.uv[1] * self.barycentric[0]
+            + self.uv[2] * self.barycentric[1]
+            + self.uv[0] * self.barycentric[2];
+        sampler.sample(repo, self.texture, coords)
     }
 }
 
@@ -107,7 +111,11 @@ impl Intersectable for Triangle {
                 ray,
                 distance: Some(t),
                 normal: self.normal,
-                color_provider: TriangleColor{},
+                color_provider: TriangleColor {
+                    uv: self.uv.clone(),
+                    barycentric: Vec3::new(u, v, 1.0 - u - v),
+                    texture: self.texture,
+                },
                 ..Default::default()
             }
             .build(),
