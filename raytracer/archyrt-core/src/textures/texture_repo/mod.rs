@@ -9,7 +9,7 @@ pub trait TextureRepository {
 pub struct DummyTextureRepository();
 
 impl TextureRepository for DummyTextureRepository {
-    fn get(&self, id: TextureID) -> Option<&Texture> {
+    fn get(&self, _id: TextureID) -> Option<&Texture> {
         None
     }
 }

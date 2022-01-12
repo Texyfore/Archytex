@@ -112,7 +112,7 @@ impl Intersectable for Triangle {
                 distance: Some(t),
                 normal: self.normal,
                 color_provider: TriangleColor {
-                    uv: self.uv.clone(),
+                    uv: self.uv,
                     barycentric: Vec3::new(u, v, 1.0 - u - v),
                     texture: self.texture,
                 },

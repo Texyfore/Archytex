@@ -1,6 +1,6 @@
 use std::{collections::HashMap, path::Path};
 
-use anyhow::{anyhow, Result};
+use anyhow::Result;
 use image::io::Reader as ImageReader;
 
 use crate::{

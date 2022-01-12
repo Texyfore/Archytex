@@ -19,9 +19,12 @@ impl TextureSampler for NearestSampler {
             let x = ((x * (w as f64)) as usize) % w;
             let y = ((y * (h as f64)) as usize) % h;
             let index = y * w + x;
-            texture.get(index).or(Some(Vec3::from_single(0.5))).unwrap()
+            texture
+                .get(index)
+                .or_else(|| Some(Vec3::from_single(0.5)))
+                .unwrap()
         } else {
-            return Vec3::from_single(1.0);
+            Vec3::from_single(1.0)
         }
     }
 }

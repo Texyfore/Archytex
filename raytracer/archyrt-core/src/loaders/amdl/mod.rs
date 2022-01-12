@@ -1,17 +1,16 @@
 use crate::intersectables::triangle::Triangle;
 use crate::loaders::Loader;
-use crate::textures::texture_repo::png::PngTextureRepo;
-use crate::textures::texture_repo::TextureRepository;
+
 use crate::textures::TextureID;
 use crate::utilities::math::{Vec2, Vec3};
 use crate::{cameras::perspective::PerspectiveCamera, vector};
 use anyhow::{anyhow, Result};
 use mdl;
-use mdl::{Face, Point, Vector2};
+
 use std::collections::HashMap;
 use std::fs::File;
 use std::io::Read;
-use std::ops::Mul;
+
 use std::path::Path;
 
 pub struct AMDLLoader {
@@ -46,12 +45,12 @@ impl AMDLLoader {
         let mut f = File::open(path)?;
         let mut buf: Vec<u8> = Vec::new();
         f.read_to_end(&mut buf)?;
-        return Self::from_bytes(buf);
+        Self::from_bytes(buf)
     }
     pub fn from_bytes(data: Vec<u8>) -> Result<Self> {
-        let scene =
-            mdl::Scene::decode(data.as_slice()).ok_or(anyhow!("Unable to decode scene file"))?;
-        return Self::from_scene(scene);
+        let scene = mdl::Scene::decode(data.as_slice())
+            .ok_or_else(|| anyhow!("Unable to decode scene file"))?;
+        Self::from_scene(scene)
     }
 
     pub fn from_scene(scene: mdl::Scene) -> Result<Self> {
@@ -142,10 +141,10 @@ impl Loader for AMDLLoader {
     type C = PerspectiveCamera;
 
     fn get_triangles(&self) -> &Vec<Triangle> {
-        return &self.triangles;
+        &self.triangles
     }
 
     fn get_camera(&self) -> &Self::C {
-        return &self.camera;
+        &self.camera
     }
 }

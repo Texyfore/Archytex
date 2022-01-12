@@ -1,9 +1,4 @@
-use std::convert::identity;
-
-use crate::{
-    intersectables,
-    textures::{color_provider::ColorProvider, texture_repo::TextureRepository},
-};
+use crate::textures::{color_provider::ColorProvider, texture_repo::TextureRepository};
 
 use super::math::Vec3;
 
@@ -94,11 +89,11 @@ where
     fn intersect(&self, ray: Ray) -> Option<Intersection<T::C>> {
         self.iter()
             .map(|object| object.intersect(ray))
-            .filter_map(identity)
+            .flatten()
             .map(|intersection| (intersection.get_distance_squared(), intersection))
             .filter(|(distance, _)| distance.is_normal())
             .min_by(|a, b| a.0.partial_cmp(&b.0).unwrap())
-            .and_then(|(_, a)| Some(a))
+            .map(|(_, a)| a)
     }
 }
 

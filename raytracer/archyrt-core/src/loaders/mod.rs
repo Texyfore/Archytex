@@ -1,7 +1,4 @@
-use crate::{
-    api::camera::Camera, intersectables::triangle::Triangle,
-    textures::texture_repo::TextureRepository,
-};
+use crate::{api::camera::Camera, intersectables::triangle::Triangle};
 
 pub mod amdl;
 pub mod gltf;

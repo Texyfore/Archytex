@@ -2,16 +2,14 @@ use anyhow::anyhow;
 use anyhow::bail;
 use anyhow::Result;
 use cgmath::Angle;
-use std::convert::identity;
 use std::path::Path;
 
 use crate::cameras::perspective::PerspectiveCamera;
 use crate::intersectables::triangle::Triangle;
 use crate::matrix;
 
-use crate::textures::texture_repo::TextureRepository;
 use crate::textures::TextureID;
-use crate::utilities::math::Vec3;
+
 use crate::utilities::math::Vector;
 
 use super::Loader;
@@ -27,18 +25,18 @@ impl GltfLoader {
         P: AsRef<Path>,
     {
         let scene = easy_gltf::load(path).map_err(|_| anyhow!("Could not open glTF file"))?;
-        if scene.len() <= 0 {
+        if scene.is_empty() {
             bail!("Could not find first scene");
         }
         let scene = &scene[0];
-        let camera = if scene.cameras.len() <= 0 {
+        let camera = if scene.cameras.is_empty() {
             None
         } else {
             let camera = &scene.cameras[0];
             let focal_distance = 1.0 / ((camera.fov / 2.0).tan() * 2.0) as f64;
             let camera = PerspectiveCamera {
                 position: camera.position().into(),
-                focal_distance: focal_distance,
+                focal_distance,
                 matrix: matrix!(
                     Vector::from(camera.right()),
                     Vector::from(camera.up()),
@@ -47,11 +45,11 @@ impl GltfLoader {
             };
             Some(camera)
         }
-        .ok_or(anyhow!("No camera found"))?;
-        let triangles: Vec<Triangle> = if scene.models.len() <= 0 {
+        .ok_or_else(|| anyhow!("No camera found"))?;
+        let triangles: Vec<Triangle> = if scene.models.is_empty() {
             None
         } else {
-            let model: Vec<Triangle> = (&scene)
+            let model: Vec<Triangle> = scene
                 .models
                 .iter()
                 .map(|model| {
@@ -88,12 +86,12 @@ impl GltfLoader {
                             .collect::<Vec<Triangle>>(),
                     )
                 })
-                .filter_map(identity)
+                .flatten()
                 .flatten()
                 .collect();
             Some(model)
         }
-        .ok_or(anyhow!("Could not get model"))?;
+        .ok_or_else(|| anyhow!("Could not get model"))?;
         Ok(Self { camera, triangles })
     }
 }

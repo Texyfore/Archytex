@@ -254,7 +254,7 @@ mod rays {
 
     #[test]
     fn intersection_builder() {
-        let dummyTextures = DummyTextureRepository();
+        let dummy_textures = DummyTextureRepository();
         let color = Vec3::new(1.0, 2.0, 3.0);
         let normal = Vec3::new(4.0, 5.0, 6.0);
         let pos = Some(Vec3::new(7.0, 8.0, 9.0));
@@ -273,7 +273,7 @@ mod rays {
             ray,
         }
         .build();
-        assert_eq!(color, intersection.get_color(&dummyTextures));
+        assert_eq!(color, intersection.get_color(&dummy_textures));
         assert_eq!(normal, intersection.get_normal());
         assert_eq!(pos.unwrap(), intersection.get_pos());
         assert_eq!(distance.unwrap(), intersection.get_distance());

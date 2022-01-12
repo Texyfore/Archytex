@@ -1,6 +1,6 @@
 use crate::intersectables::aabb::AABB;
 use crate::intersectables::triangle::Triangle;
-use crate::textures::color_provider::SolidColor;
+
 use crate::utilities::math::Vec3;
 use crate::utilities::ray::{Intersectable, Intersection, Ray};
 use std::cmp::Ordering;
@@ -16,8 +16,8 @@ pub enum BVH {
     Leaf(Triangle),
 }
 
-fn bounding(triangles: &Vec<Triangle>) -> AABB {
-    if triangles.len() <= 0 {
+fn bounding(triangles: &[Triangle]) -> AABB {
+    if triangles.is_empty() {
         return AABB::new(Vec3::default(), Vec3::default());
     }
     let mut bounds = triangles[0].bounds();
@@ -28,15 +28,15 @@ fn bounding(triangles: &Vec<Triangle>) -> AABB {
 }
 
 impl BVH {
-    pub fn from_triangles(triangles: &Vec<Triangle>) -> Option<Self> {
-        if triangles.len() == 0 {
+    pub fn from_triangles(triangles: &[Triangle]) -> Option<Self> {
+        if triangles.is_empty() {
             return None;
         }
         if triangles.len() == 1 {
             let triangle = triangles.iter().next().unwrap().clone();
             return Some(BVH::Leaf(triangle));
         }
-        let bounds = bounding(&triangles);
+        let bounds = bounding(triangles);
         let maxis = bounds.max_axis();
         let mut along_maxis: Vec<_> = triangles
             .iter()
@@ -64,9 +64,7 @@ impl Intersectable for BVH {
         match self {
             BVH::Leaf(triangle) => triangle.intersect(ray),
             BVH::Branch { left, right, aabb } => {
-                if let None = aabb.intersect(ray) {
-                    return None;
-                }
+                aabb.intersect(ray)?;
                 let a = left.intersect(ray);
                 let b = right.intersect(ray);
                 match (a, b) {
