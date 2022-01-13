@@ -3,7 +3,9 @@ pub mod ascn;
 pub mod error;
 pub mod proc;
 
-use cgmath::{Vector2, Vector3};
+pub use cgmath as math;
+
+use math::{Vector2, Vector3};
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize)]

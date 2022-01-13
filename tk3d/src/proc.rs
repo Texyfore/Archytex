@@ -1,6 +1,9 @@
-use cgmath::{vec2, InnerSpace};
-
-use crate::{Mesh, Triangle, Vertex, ascn::Model, error::MeshGenError};
+use crate::{
+    ascn::Model,
+    error::MeshGenError,
+    math::{vec2, InnerSpace},
+    Mesh, Triangle, Vertex,
+};
 
 pub struct SolidMesh {
     pub faces: [Mesh; 6],

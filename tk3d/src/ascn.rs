@@ -1,7 +1,6 @@
-use cgmath::Vector3;
 use serde::{Deserialize, Serialize};
 
-use crate::{error::DecodeError, PropID, TextureID};
+use crate::{error::DecodeError, math::Vector3, PropID, TextureID};
 
 #[derive(Serialize, Deserialize)]
 pub struct Scene {
