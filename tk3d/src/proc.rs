@@ -1,9 +1,9 @@
 use cgmath::{vec2, InnerSpace};
 
-use crate::{TexturedMesh, Triangle, Vertex, ascn::Model, error::MeshGenError};
+use crate::{Mesh, Triangle, Vertex, ascn::Model, error::MeshGenError};
 
 pub struct SolidMesh {
-    pub faces: [TexturedMesh; 6],
+    pub faces: [Mesh; 6],
 }
 
 impl Model {
@@ -43,7 +43,7 @@ impl Model {
                 let edge1 = points[3] - points[0];
                 let normal = edge0.cross(edge1).normalize();
 
-                face_meshes.push(TexturedMesh {
+                face_meshes.push(Mesh {
                     texture: face.texture,
                     vertices: points
                         .map(|point| {

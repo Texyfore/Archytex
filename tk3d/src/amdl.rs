@@ -1,10 +1,10 @@
 use serde::{Deserialize, Serialize};
 
-use crate::{error::DecodeError, TexturedMesh};
+use crate::{error::DecodeError, Mesh};
 
 #[derive(Serialize, Deserialize)]
 pub struct PropModel {
-    pub mesh: TexturedMesh,
+    pub mesh: Mesh,
 }
 
 impl PropModel {

@@ -7,7 +7,7 @@ use cgmath::{Vector2, Vector3};
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize)]
-pub struct TexturedMesh {
+pub struct Mesh {
     pub texture: TextureID,
     pub vertices: Vec<Vertex>,
     pub triangles: Vec<Triangle>,
