@@ -11,6 +11,8 @@ easy-gltf = "0.1.4"
 anyhow = "1.0.44"
 cgmath = "0.18.0"
 mdl = {path="../../mdl"}
+serde_json = "1.0.74"
+serde = "1.0.133"
 
 [dev-dependencies]
 criterion = "0.3.5"

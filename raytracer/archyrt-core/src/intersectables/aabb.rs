@@ -1,4 +1,5 @@
 use crate::utilities::math::Axis3;
+use crate::vector;
 use crate::{
     textures::color_provider::SolidColor,
     utilities::{
@@ -33,46 +34,61 @@ impl AABB {
 
 impl AABB {
     pub fn intersect(&self, ray: Ray) -> Option<f64> {
-        //https://www.scratchapixel.com/lessons/3d-basic-rendering/minimal-ray-tracer-rendering-simple-shapes/ray-box-intersection
-        // Why?
-        let (tmin, tmax) = if ray.direction.x() < 0.0 {
-            (self.max.x(), self.min.x())
+        let invdir = vector![1./ray.direction[0],1./ray.direction[1],1./ray.direction[2]];
+        let (mut tmin, mut tmax) = if invdir.x() >= 0.0 {
+            let tmin = (self.min.x() - ray.origin.x()) * invdir.x();
+            let tmax = (self.max.x() - ray.origin.x()) * invdir.x();
+            (tmin, tmax)
         } else {
-            (self.min.x(), self.max.x())
+            let tmin = (self.max.x() - ray.origin.x()) * invdir.x();
+            let tmax = (self.min.x() - ray.origin.x()) * invdir.x();
+            (tmin, tmax)
         };
-        let tmin = (tmin - ray.origin.x()) / ray.direction.x();
-        let tmax = (tmax - ray.origin.x()) / ray.direction.x();
-
-        let (tymin, tymax) = if ray.direction.y() < 0.0 {
-            (self.max.y(), self.min.y())
+        let (tymin, tymax) = if invdir.y() >= 0.0 {
+            let tymin = (self.min.y() - ray.origin.y()) * invdir.y();
+            let tymax = (self.max.y() - ray.origin.y()) * invdir.y();
+            (tymin, tymax)
         } else {
-            (self.min.y(), self.max.y())
+            let tymin = (self.max.y() - ray.origin.y()) * invdir.y();
+            let tymax = (self.min.y() - ray.origin.y()) * invdir.y();
+            (tymin, tymax)
         };
-        let tymin = (tymin - ray.origin.y()) / ray.direction.y();
-        let tymax = (tymax - ray.origin.y()) / ray.direction.y();
 
-        if tmin > tymax || tymin > tmax {
+        if (tmin > tymax) || (tymin > tmax) {
             return None;
         }
-        let tmin = tmin.max(tymin);
-        let tmax = tmax.min(tymax);
+        if tymin > tmin {
+            tmin = tymin;
+        }
+        if tymax < tmax {
+            tmax = tymax;
+        }
 
-        let (tzmin, tzmax) = if ray.direction.z() < 0.0 {
-            (self.max.z(), self.min.z())
+        let (tzmin, tzmax) = if invdir.z() >= 0.0 {
+            let tzmin = (self.min.z() - ray.origin.z()) * invdir.z();
+            let tzmax = (self.max.z() - ray.origin.z()) * invdir.z();
+            (tzmin, tzmax)
         } else {
-            (self.min.z(), self.max.z())
+            let tzmin = (self.max.z() - ray.origin.z()) * invdir.z();
+            let tzmax = (self.min.z() - ray.origin.z()) * invdir.z();
+            (tzmin, tzmax)
         };
-        let tzmin = (tzmin - ray.origin.z()) / ray.direction.z();
-        let tzmax = (tzmax - ray.origin.z()) / ray.direction.z();
 
-        if tmin > tzmax || tzmin > tmax {
+        if (tmin > tzmax) || (tzmin > tmax) {
             return None;
         }
-        let tmin = tmin.max(tzmin);
-        if tmin < 0.0 {
+        if tzmin > tmin {
+            tmin = tzmin;
+        }
+        if tzmax < tmax {
+            tmax = tzmax;
+        }
+
+        let t = if tmin < 0.0 { tmax } else { tmin };
+        if tmax < 0.0 {
             return None;
         }
-        Some(tmin)
+        Some(t)
     }
 }
 
