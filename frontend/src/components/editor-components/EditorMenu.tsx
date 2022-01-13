@@ -1,11 +1,13 @@
-import { Category, Settings } from "@mui/icons-material";
-import { Box, List, ListItem, ListItemButton, Typography } from "@mui/material";
 import React, { useState } from "react";
+import { Box, List, ListItem, ListItemButton, Typography } from "@mui/material";
+import { Category, Settings } from "@mui/icons-material";
 import LibraryDialog from "./library/LibraryDialog";
 
-type LibraryType = "textureLibrary" | "propLibrary";
-
-export default function EditorMenu() {
+type libraryType = "textureLibrary" | "propLibrary";
+interface EditorMenuProps {
+  libraryType: libraryType;
+}
+export default function EditorMenu({ libraryType }: EditorMenuProps) {
   const objects = [
     {
       name: "Object",
@@ -14,11 +16,9 @@ export default function EditorMenu() {
 
   //Library dialog
   const [libraryOpen, setLibraryOpen] = useState<boolean>(false);
-  const [libraryType, setLibraryType] = useState<LibraryType>("textureLibrary");
   const handleLibraryClickOpen = () => {
     setLibraryOpen(true);
   };
-
   const handleLibraryClose = () => {
     setLibraryOpen(false);
   };
@@ -76,13 +76,23 @@ export default function EditorMenu() {
         </Box>
         <Box sx={{ overflowY: "scroll" }}>
           <List>
-            <ListItem onClick={handleLibraryClickOpen}>Texture</ListItem>
+            <ListItem onClick={handleLibraryClickOpen}>
+              {libraryType === "textureLibrary"
+                ? "Choose texture"
+                : libraryType === "propLibrary"
+                ? "Choose prop"
+                : ""}
+            </ListItem>
           </List>
         </Box>
       </Box>
 
       {/* Library dialog */}
-      <LibraryDialog open={libraryOpen} handleClose={handleLibraryClose} />
+      <LibraryDialog
+        open={libraryOpen}
+        handleClose={handleLibraryClose}
+        libraryType={libraryType}
+      />
     </>
   );
 }
