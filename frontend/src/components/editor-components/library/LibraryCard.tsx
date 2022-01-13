@@ -1,44 +1,71 @@
 import React from "react";
 import {
+  Box,
   Card,
   CardActionArea,
   CardContent,
   CardMedia,
+  Chip,
   Typography,
+  Tooltip,
 } from "@mui/material";
-import image1 from "../../../img/1.jpg";
 
+enum FilterOptions {
+  brick = "Brick",
+  wood = "Wood",
+  concrete = "Concrete",
+  rock = "Rock",
+  dirty = "Dirty",
+  clean = "Clean",
+}
 interface LibraryCardProps {
   index: number;
+  name: string;
+  image: string;
+  filterOptions: FilterOptions[];
   selected: number | undefined;
-  handleSelection: (n: number | undefined) => void;
+  handleSelectionChange: (n: number | undefined) => void;
 }
+
 export default function LibraryCard({
   index,
+  name,
+  image,
+  filterOptions,
   selected,
-  handleSelection,
+  handleSelectionChange,
 }: LibraryCardProps) {
   const click = () => {
-    index === selected ? handleSelection(undefined) : handleSelection(index);
+    index === selected
+      ? handleSelectionChange(undefined)
+      : handleSelectionChange(index);
   };
+
   return (
     <Card
       sx={
         index === selected
           ? {
-              maxWidth: 160,
+              maxWidth: 175,
               border: "2px solid #39A0ED",
               transition: "border 200ms ease-in-out",
             }
-          : { maxWidth: 160, border: "2px solid transparent" }
+          : { maxWidth: 175, border: "2px solid transparent" }
       }
     >
       <CardActionArea onClick={click}>
-        <CardMedia component='img' height='140' image={image1} alt='texture' />
+        <CardMedia component='img' height='140' image={image} alt='texture' />
         <CardContent>
-          <Typography gutterBottom component='div'>
-            Texture
-          </Typography>
+          <Tooltip title={name} placement='top'>
+            <Typography gutterBottom width='100%' noWrap>
+              {name}
+            </Typography>
+          </Tooltip>
+          <Box display='flex' flexWrap='wrap' justifyContent='start' gap={1}>
+            {filterOptions.map((filterOption) => (
+              <Chip size='small' label={filterOption} />
+            ))}
+          </Box>
         </CardContent>
       </CardActionArea>
     </Card>

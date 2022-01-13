@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   Box,
   Button,
@@ -17,6 +17,7 @@ import {
   Paper,
   PaperProps,
   Typography,
+  Tooltip,
 } from "@mui/material";
 import { Close, FilterList } from "@mui/icons-material";
 import Draggable from "react-draggable";
@@ -34,12 +35,21 @@ function PaperComponent(props: PaperProps) {
   );
 }
 
-type LibraryType = "textureLibrary" | "propLibrary" | "projectLibrary";
+enum FilterOptions {
+  brick = "Brick",
+  wood = "Wood",
+  concrete = "Concrete",
+  rock = "Rock",
+  dirty = "Dirty",
+  clean = "Clean",
+}
+
+type libraryType = "textureLibrary" | "propLibrary";
 
 interface LibraryDialogProps {
   open: boolean;
   handleClose: () => void;
-  libraryType: LibraryType;
+  libraryType: libraryType;
 }
 
 export default function LibraryDialog({
@@ -84,6 +94,11 @@ export default function LibraryDialog({
     setCheckedFilterItem(newChecked);
   };
 
+  //Selection handling
+  const [selected, setSelected] = useState<number | undefined>(undefined);
+  const handleSelectionChange = (n: number | undefined) => {
+    setSelected(n);
+  };
   return (
     <>
       <Dialog
@@ -119,13 +134,7 @@ export default function LibraryDialog({
                 : "Library"}
             </Typography>
           </Box>
-          <Box
-            sx={{
-              position: "absolute",
-              right: 60,
-              top: 10,
-            }}
-          >
+          <Box display='flex' justifyContent='space-between'>
             <Button
               endIcon={<FilterList />}
               color='inherit'
@@ -133,16 +142,32 @@ export default function LibraryDialog({
             >
               Filter results
             </Button>
+            <SearchBar />
           </Box>
-          <SearchBar />
         </DialogTitle>
         <DialogContent>
           <Box width={550}>
-            <TextureLibrary />
+            <TextureLibrary
+              selected={selected}
+              handleSelectionChange={handleSelectionChange}
+            />
           </Box>
         </DialogContent>
         <DialogActions>
-          <Button onClick={handleClose}>Accept</Button>
+          <Box display={selected === undefined ? "block" : "none"}>
+            <Tooltip title='Select an item to use' followCursor>
+              <span>
+                <Button onClick={handleClose} disabled={selected === undefined}>
+                  Accept
+                </Button>
+              </span>
+            </Tooltip>
+          </Box>
+          <Box display={selected !== undefined ? "block" : "none"}>
+            <Button onClick={handleClose} disabled={selected === undefined}>
+              Accept
+            </Button>
+          </Box>
         </DialogActions>
       </Dialog>
 
@@ -152,10 +177,17 @@ export default function LibraryDialog({
         anchorEl={anchorEl}
         open={openFilterMenu}
         onClose={handleFilterMenuClose}
-        sx={{ maxHeight: 500, overflowY: "scroll" }}
+        PaperProps={{
+          style: {
+            maxHeight: 300,
+            width: 250,
+          },
+        }}
       >
         <List>
-          {[...new Array(10)].map((_, index) => (
+          {(
+            Object.keys(FilterOptions) as Array<keyof typeof FilterOptions>
+          ).map((filterOption, index) => (
             <ListItem key={index} disablePadding>
               <ListItemButton
                 role={undefined}
@@ -170,10 +202,17 @@ export default function LibraryDialog({
                     disableRipple
                   />
                 </ListItemIcon>
-                <ListItemText primary={`Filter item ${index + 1}`} />
+                <ListItemText
+                  primary={
+                    filterOption.charAt(0).toUpperCase() + filterOption.slice(1)
+                  }
+                />
               </ListItemButton>
             </ListItem>
           ))}
+          {/* {FilterOptions.map((filterOption, index) => (
+            
+          ))} */}
         </List>
       </Menu>
     </>
