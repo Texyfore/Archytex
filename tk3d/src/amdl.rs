@@ -1,28 +1,13 @@
-use cgmath::{Vector2, Vector3};
 use serde::{Deserialize, Serialize};
 
-use crate::{error::DecodeError, id::TextureID};
+use crate::{error::DecodeError, TexturedMesh};
 
 #[derive(Serialize, Deserialize)]
-pub struct Mesh {
-    pub texture: TextureID,
-    pub vertices: Vec<Vertex>,
-    pub triangles: Vec<Triangle>,
+pub struct PropModel {
+    pub mesh: TexturedMesh,
 }
 
-#[derive(Serialize, Deserialize)]
-pub struct Vertex {
-    pub position: Vector3<f32>,
-    pub normal: Vector3<f32>,
-    pub texcoord: Vector2<f32>,
-}
-
-#[derive(Serialize, Deserialize)]
-pub struct Triangle {
-    pub indices: [u16; 3],
-}
-
-impl Mesh {
+impl PropModel {
     pub fn encode(&self) -> Vec<u8> {
         bincode::serialize(self).unwrap()
     }
