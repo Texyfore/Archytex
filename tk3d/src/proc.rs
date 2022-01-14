@@ -60,7 +60,7 @@ impl Model {
                                 vec2(point.x, point.z)
                             } else {
                                 vec2(point.x, point.y)
-                            };
+                            } / 4.0;
 
                             Vertex {
                                 position: point,
