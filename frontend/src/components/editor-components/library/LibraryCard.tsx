@@ -10,7 +10,7 @@ import {
   Tooltip,
 } from "@mui/material";
 
-enum FilterOptions {
+enum TextureFilterOptions {
   brick = "Brick",
   wood = "Wood",
   concrete = "Concrete",
@@ -18,16 +18,24 @@ enum FilterOptions {
   dirty = "Dirty",
   clean = "Clean",
 }
+enum PropFilterOptions {
+  furniture = "Furniture",
+  decoration = "Decoration",
+  table = "Table",
+  chair = "Chair",
+}
 interface LibraryCardProps {
+  cardType: "prop" | "texture";
   index: number;
   name: string;
   image: string;
-  filterOptions: FilterOptions[];
+  filterOptions: TextureFilterOptions[] | PropFilterOptions[];
   selected: number | undefined;
   handleSelectionChange: (n: number | undefined) => void;
 }
 
 export default function LibraryCard({
+  cardType,
   index,
   name,
   image,
@@ -46,15 +54,23 @@ export default function LibraryCard({
       sx={
         index === selected
           ? {
-              maxWidth: 175,
+              width: 175,
               border: "2px solid #39A0ED",
               transition: "border 200ms ease-in-out",
             }
-          : { maxWidth: 175, border: "2px solid transparent" }
+          : { width: 175, border: "2px solid transparent" }
       }
     >
       <CardActionArea onClick={click}>
-        <CardMedia component='img' height='140' image={image} alt='texture' />
+        <CardMedia
+          component='img'
+          height='140'
+          image={image}
+          alt='prop'
+          sx={
+            cardType === "prop" ? { objectFit: "contain", padding: "10px" } : {}
+          }
+        />
         <CardContent>
           <Tooltip title={name} placement='top'>
             <Typography gutterBottom width='100%' noWrap>

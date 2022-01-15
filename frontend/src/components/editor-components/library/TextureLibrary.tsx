@@ -13,7 +13,7 @@ interface TextureLibraryProps {
   handleSelectionChange: (n: number | undefined) => void;
 }
 
-enum FilterOptions {
+enum TextureFilterOptions {
   brick = "Brick",
   wood = "Wood",
   concrete = "Concrete",
@@ -23,7 +23,7 @@ enum FilterOptions {
 }
 interface Texture {
   name: string;
-  filterOptions: FilterOptions[];
+  filterOptions: TextureFilterOptions[];
   image: string;
 }
 
@@ -34,78 +34,90 @@ export default function TextureLibrary({
   const textures: Texture[] = [
     {
       name: "Concrete floor",
-      filterOptions: [FilterOptions.concrete, FilterOptions.dirty],
+      filterOptions: [
+        TextureFilterOptions.concrete,
+        TextureFilterOptions.dirty,
+      ],
       image: concreteFloor,
     },
     {
       name: "Large floor tiles",
-      filterOptions: [FilterOptions.rock, FilterOptions.dirty],
+      filterOptions: [TextureFilterOptions.rock, TextureFilterOptions.dirty],
       image: largeFloorTiles,
     },
     {
       name: "Red brick",
-      filterOptions: [FilterOptions.brick, FilterOptions.dirty],
+      filterOptions: [TextureFilterOptions.brick, TextureFilterOptions.dirty],
       image: redBrick,
     },
     {
       name: "Brown planks",
-      filterOptions: [FilterOptions.wood, FilterOptions.clean],
+      filterOptions: [TextureFilterOptions.wood, TextureFilterOptions.clean],
       image: brownPlanks,
     },
     {
       name: "Weathered brown planks",
-      filterOptions: [FilterOptions.wood, FilterOptions.dirty],
+      filterOptions: [TextureFilterOptions.wood, TextureFilterOptions.dirty],
       image: weatheredBrownPlanks,
     },
     {
       name: "Concrete wall",
-      filterOptions: [FilterOptions.concrete, FilterOptions.clean],
+      filterOptions: [
+        TextureFilterOptions.concrete,
+        TextureFilterOptions.clean,
+      ],
       image: concreteWall,
     },
     {
       name: "Roof",
-      filterOptions: [FilterOptions.dirty],
+      filterOptions: [TextureFilterOptions.dirty],
       image: roof,
     },
   ];
   const recentTextures: Texture[] = [
     {
       name: "Brown planks",
-      filterOptions: [FilterOptions.wood, FilterOptions.clean],
+      filterOptions: [TextureFilterOptions.wood, TextureFilterOptions.clean],
       image: brownPlanks,
     },
     {
       name: "Concrete wall",
-      filterOptions: [FilterOptions.concrete, FilterOptions.clean],
+      filterOptions: [
+        TextureFilterOptions.concrete,
+        TextureFilterOptions.clean,
+      ],
       image: concreteWall,
     },
   ];
 
   return (
     <>
-      <Typography paddingTop={2} gutterBottom color='GrayText'>
-        Recent
-      </Typography>
-      <Box
-        display='flex'
-        flexWrap='wrap'
-        gap={1}
-        alignItems='start'
-        justifyContent='space-evenly'
-        paddingBottom={3}
-        marginBottom={3}
-        borderBottom='1px solid GrayText'
-      >
-        {recentTextures.map((texture, index) => (
-          <LibraryCard
-            index={index}
-            name={texture.name}
-            image={texture.image}
-            filterOptions={texture.filterOptions}
-            selected={selected}
-            handleSelectionChange={handleSelectionChange}
-          />
-        ))}
+      <Box display={recentTextures.length === 0 ? "none" : "initial"}>
+        <Typography paddingTop={2} gutterBottom color='GrayText'>
+          Recent
+        </Typography>
+        <Box
+          display='flex'
+          flexWrap='wrap'
+          gap={1}
+          alignItems='start'
+          justifyContent='space-evenly'
+          paddingBottom={3}
+          marginBottom={3}
+          borderBottom='1px solid GrayText'
+        >
+          {recentTextures.map((texture, index) => (
+            <LibraryCard
+              cardType='texture'
+              index={index}
+              name={texture.name}
+              image={texture.image}
+              filterOptions={texture.filterOptions}
+              selected={selected}
+              handleSelectionChange={handleSelectionChange}
+            />
+          ))}
+        </Box>
       </Box>
       <Box
         display='flex'
@@ -113,9 +125,11 @@ export default function TextureLibrary({
         gap={1}
         alignItems='start'
         justifyContent='space-evenly'
+        marginTop={recentTextures.length === 0 ? 3 : 0}
       >
         {textures.map((texture, index) => (
           <LibraryCard
+            cardType='texture'
             index={index + 6}
             name={texture.name}
             image={texture.image}
