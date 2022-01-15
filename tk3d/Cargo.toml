@@ -3,8 +3,12 @@ name = "tk3d"
 version = "0.1.0"
 edition = "2021"
 
+[features]
+bytemuck = []
+
 [dependencies]
 bincode = "=1.3.3"
 thiserror = "=1.0.30"
+bytemuck = "=1.7.3"
 cgmath = { version = "=0.18.0", features = ["serde"] }
 serde = { version = "=1.0.133", features = ["derive"] }

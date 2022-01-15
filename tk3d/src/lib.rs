@@ -32,3 +32,9 @@ pub struct Vertex {
 pub struct Triangle {
     pub indices: [u16; 3],
 }
+
+#[cfg(feature="bytemuck")]
+unsafe impl bytemuck::Pod for Vertex {}
+
+#[cfg(feature="bytemuck")]
+unsafe impl bytemuck::Pod for Triangle {}
