@@ -30,6 +30,7 @@ import {
 import MeshSelectIcon from "../components/icons/MeshSelectIcon";
 import FaceSelectIcon from "../components/icons/FaceSelectIcon";
 import VertexSelectIcon from "../components/icons/VertexSelectIcon";
+import { useParams } from "react-router-dom";
 
 const appBarHeight = 48;
 let editorHandle: EditorHandle;
@@ -39,6 +40,9 @@ type translateMode = "select" | "move" | "rotate" | "scale";
 type libraryType = "textureLibrary" | "propLibrary";
 
 export default function Editor() {
+  // Get project ID
+  const { projectId } = useParams<{ projectId: string }>();
+
   // Library type
   const [libraryType, setLibraryType] = useState<libraryType>("textureLibrary");
 
@@ -262,7 +266,6 @@ export default function Editor() {
           e.preventDefault();
         }}
       ></canvas>
-
       {/* viewport UI */}
       <>
         {/* Viewport mode */}
