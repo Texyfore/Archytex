@@ -1,11 +1,11 @@
 [package]
-name = "archyrt-stdpipe"
+name = "archyrt-dom"
 version = "0.1.0"
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-archyrt_core = {path="../archyrt-core"}
+lapin = "1.9.0"
+async-global-executor = "2.0.2"
 anyhow = "1.0.44"
-image = "0.23.14"
