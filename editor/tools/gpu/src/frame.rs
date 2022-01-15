@@ -1,16 +1,17 @@
 use std::iter::once;
 
+use thiserror::Error;
 use wgpu::{
     Color, CommandEncoder, LoadOp, Operations, RenderPassColorAttachment, RenderPassDescriptor,
-    SurfaceTexture, TextureView,
+    SurfaceError, SurfaceTexture, TextureView,
 };
 
 use crate::handle::GpuHandle;
 
 pub struct Frame {
-    pub(crate) texture: SurfaceTexture,
-    pub(crate) view: TextureView,
-    pub(crate) encoder: CommandEncoder,
+    texture: SurfaceTexture,
+    view: TextureView,
+    encoder: CommandEncoder,
 }
 
 impl Frame {
@@ -41,6 +42,24 @@ impl Frame {
         self.texture.present();
     }
 }
+
+impl GpuHandle {
+    pub fn next_frame(&self) -> Result<Frame, NextFrameError> {
+        let texture = self.surface.get_current_texture()?;
+        let view = texture.texture.create_view(&Default::default());
+        let encoder = self.device.create_command_encoder(&Default::default());
+
+        Ok(Frame {
+            texture,
+            view,
+            encoder,
+        })
+    }
+}
+
+#[derive(Error, Debug)]
+#[error("Couldn't get next frame: {0}")]
+pub struct NextFrameError(#[from] SurfaceError);
 
 pub struct RenderPass<'a> {
     pass: wgpu::RenderPass<'a>,

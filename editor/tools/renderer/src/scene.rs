@@ -2,13 +2,16 @@ use std::rc::Rc;
 
 use bytemuck::{Pod, Zeroable};
 use gpu::data::buffer::Buffer;
-use tk3d::{math::Vector3, Triangle, Vertex};
+use tk3d::{
+    math::{Vector2, Vector3},
+    TextureID, Triangle, Vertex,
+};
 
 #[derive(Default)]
 pub struct Scene {
-    meshes: Vec<Rc<Mesh>>,
-    lines: Vec<Rc<Lines>>,
-    sprites: Vec<Sprite>,
+    pub(crate) meshes: Vec<Rc<Mesh>>,
+    pub(crate) lines: Vec<Rc<Lines>>,
+    pub(crate) sprites: Vec<Sprite>,
 }
 
 impl Scene {
@@ -44,4 +47,7 @@ pub struct LineVertex {
 unsafe impl Zeroable for LineVertex {}
 unsafe impl Pod for LineVertex {}
 
-pub struct Sprite;
+pub struct Sprite {
+    texture_id: TextureID,
+    position: Vector2<f32>,
+}

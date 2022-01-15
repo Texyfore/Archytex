@@ -3,11 +3,9 @@ use raw_window_handle::HasRawWindowHandle;
 use thiserror::Error;
 use wgpu::{
     Backends, Device, DeviceDescriptor, Features, Limits, PresentMode, Queue,
-    RequestAdapterOptions, RequestDeviceError, Surface, SurfaceConfiguration, SurfaceError,
-    TextureFormat, TextureUsages,
+    RequestAdapterOptions, RequestDeviceError, Surface, SurfaceConfiguration, TextureFormat,
+    TextureUsages,
 };
-
-use crate::frame::Frame;
 
 pub struct GpuHandle {
     pub(crate) surface: Surface,
@@ -71,18 +69,6 @@ impl GpuHandle {
             },
         )
     }
-
-    pub fn next_frame(&self) -> Result<Frame, NextFrameError> {
-        let texture = self.surface.get_current_texture()?;
-        let view = texture.texture.create_view(&Default::default());
-        let encoder = self.device.create_command_encoder(&Default::default());
-
-        Ok(Frame {
-            texture,
-            view,
-            encoder,
-        })
-    }
 }
 
 #[derive(Error, Debug)]
@@ -92,7 +78,3 @@ pub enum NewError {
     #[error("Selected GPU is unusable: {0}")]
     NoDevice(#[from] RequestDeviceError),
 }
-
-#[derive(Error, Debug)]
-#[error("Couldn't get next frame: {0}")]
-pub struct NextFrameError(#[from] SurfaceError);

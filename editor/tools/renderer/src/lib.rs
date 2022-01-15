@@ -51,5 +51,5 @@ pub enum NewError {
 #[derive(Error, Debug)]
 pub enum RenderError {
     #[error("Couldn't render frame: {0}")]
-    NoNextFrame(#[from] gpu::handle::NextFrameError),
+    NoNextFrame(#[from] gpu::frame::NextFrameError),
 }
