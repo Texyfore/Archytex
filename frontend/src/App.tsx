@@ -20,7 +20,6 @@ import translationEn from "./languages/en_us.json";
 import translationHu from "./languages/hu_hu.json";
 import translationJp from "./languages/jp_jp.json";
 
-
 i18n.use(initReactI18next).init({
   resources: {
     en: { translation: translationEn },
@@ -35,46 +34,40 @@ i18n.use(initReactI18next).init({
 function App() {
   const { t } = useTranslation();
   return (
-    <Suspense fallback={<CircularProgress color="primary" />}>
+    <Suspense fallback={<CircularProgress color='primary' />}>
       <CssBaseline />
       <DummyProvider
         fallback={
           <Box
-            display="flex"
-            height="100vh"
-            justifyContent="center"
-            alignItems="center"
-            flexDirection="column"
+            display='flex'
+            height='100vh'
+            justifyContent='center'
+            alignItems='center'
+            flexDirection='column'
           >
-            <CircularProgress color="primary" />
+            <CircularProgress color='primary' />
             <Typography marginTop={2}>{t("just_a_moment")}</Typography>
           </Box>
         }
       >
         <Router>
           <Switch>
-            <Route exact path="/">
+            <Route exact path='/'>
               <MainPage />
             </Route>
-            <Route path="/dashboard">
+            <Route path='/dashboard'>
               <Dashboard />
             </Route>
-            <Route path="/login">
+            <Route path='/login'>
               <LoginPage />
             </Route>
-            <Route path="/register">
+            <Route path='/register'>
               <RegisterPage />
             </Route>
-            <Route path="/editor">
+            <Route path='/editor/:projectId'>
               <Editor />
             </Route>
-            <Route path="/editor">
-              <Editor />
-            </Route>
-            <Route path="/editor">
-              <Editor />
-            </Route>
-            <Route path="/success">
+            <Route path='/success'>
               <SuccessfulRegistration />
             </Route>
             <Route>
