@@ -4,3 +4,5 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
+wgpu = "=0.12.0"
+futures-lite = "=1.12.0"

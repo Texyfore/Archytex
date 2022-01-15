@@ -30,30 +30,29 @@ impl Channel {
     }
 
     #[wasm_bindgen(js_name = "wasmEndpoint")]
-    pub fn wasm_endpoint(&mut self, on_fatal_error: Function) -> WasmEndpoint {
+    pub fn wasm_endpoint(&mut self, on_log: Function, on_error: Function) -> WasmEndpoint {
         WasmEndpoint {
             receiver: self.receiver.take().unwrap(),
-            on_fatal_error,
+            on_log,
+            on_error,
         }
     }
 }
 
+#[allow(dead_code)]
 #[wasm_bindgen]
 pub struct BrowserEndpoint {
     sender: Sender<IpcMessage>,
 }
 
 #[wasm_bindgen]
-impl BrowserEndpoint {
-    pub fn comment(&self, comment: String) {
-        self.sender.send(IpcMessage::Comment(comment)).unwrap();
-    }
-}
+impl BrowserEndpoint {}
 
 #[wasm_bindgen]
 pub struct WasmEndpoint {
     receiver: Receiver<IpcMessage>,
-    on_fatal_error: Function,
+    on_log: Function,
+    on_error: Function,
 }
 
 impl IpcHost for WasmEndpoint {
@@ -61,8 +60,14 @@ impl IpcHost for WasmEndpoint {
         self.receiver.try_recv().ok()
     }
 
-    fn fatal_error(&self, message: String) {
-        self.on_fatal_error
+    fn log(&self, message: String) {
+        self.on_log
+            .call1(&JsValue::null(), &JsValue::from(message))
+            .unwrap();
+    }
+
+    fn error(&self, message: String) {
+        self.on_error
             .call1(&JsValue::null(), &JsValue::from(message))
             .unwrap();
     }

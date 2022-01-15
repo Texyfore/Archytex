@@ -1,8 +1,7 @@
 pub trait IpcHost {
     fn recv(&self) -> Option<IpcMessage>;
-    fn fatal_error(&self, message: String);
+    fn log(&self, message: String);
+    fn error(&self, message: String);
 }
 
-pub enum IpcMessage {
-    Comment(String),
-}
+pub enum IpcMessage {}

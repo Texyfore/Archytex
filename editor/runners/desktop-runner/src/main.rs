@@ -11,7 +11,11 @@ impl IpcHost for DummyIpcHost {
         None
     }
 
-    fn fatal_error(&self, message: String) {
+    fn log(&self, message: String) {
+        println!("{}", message);
+    }
+
+    fn error(&self, message: String) {
         panic!("{}", message)
     }
 }
