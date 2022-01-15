@@ -21,7 +21,7 @@ const CustomEditorAppBar = styled(AppBar)(({ theme }) => ({
 }));
 
 interface EditorAppBarProps {
-  onSave: () => void;
+  onSave: (type: "export" | "save" | "render") => void;
 }
 
 export default function EditorAppBar({ onSave }: EditorAppBarProps) {
@@ -78,7 +78,7 @@ export default function EditorAppBar({ onSave }: EditorAppBarProps) {
                   variant='text'
                   color='inherit'
                   sx={{ textTransform: "none" }}
-                  onClick={onSave}
+                  onClick={() => onSave("save")}
                 >
                   Save
                 </Button>
@@ -86,7 +86,7 @@ export default function EditorAppBar({ onSave }: EditorAppBarProps) {
                   variant='text'
                   color='inherit'
                   sx={{ textTransform: "none" }}
-                  onClick={onSave}
+                  onClick={() => onSave("export")}
                 >
                   Export
                 </Button>
@@ -94,7 +94,7 @@ export default function EditorAppBar({ onSave }: EditorAppBarProps) {
                   variant='text'
                   color='inherit'
                   sx={{ textTransform: "none" }}
-                  onClick={onSave}
+                  onClick={() => onSave("render")}
                 >
                   Render
                 </Button>

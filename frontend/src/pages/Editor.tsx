@@ -35,6 +35,7 @@ import SelectTransformModeIcon from "../components/icons/SelectTransformModeIcon
 import MoveTransformModeIcon from "../components/icons/MoveTransformModeIcon";
 import RotateTransformModeIcon from "../components/icons/RotateTransformModeIcon";
 import ScaleTransformModeIcon from "../components/icons/ScaleTransformModeIcon";
+import { useApi } from "../services/user/api";
 
 const appBarHeight = 48;
 let editorHandle: EditorHandle;
@@ -43,13 +44,23 @@ type selectionMode = "mesh" | "face" | "vertex";
 type translateMode = "select" | "move" | "rotate" | "scale";
 type libraryType = "textureLibrary" | "propLibrary";
 
+let saveType: "export" | "save" | "render" = "save";
+
 export default function Editor() {
+  // Use API
+  const api = useApi();
+
   // Get project ID
   const { projectId } = useParams<{ projectId: string }>();
 
   // Library type
   const [libraryType, setLibraryType] = useState<libraryType>("textureLibrary");
 
+  // App bar button click
+  const handleAppBarButtonClick = (type: "export" | "save" | "render") => {
+    saveType = type;
+    editorHandle.saveScene(type);
+  };
   const { observe } = useDimensions({
     onResize: ({ width, height }) => {
       editorHandle.setResolution(width, height);
@@ -114,9 +125,34 @@ export default function Editor() {
         setGridRes(3 - size);
       },
       sceneSaved: (scene) => {
-        const blob = new Blob([scene]);
-        const url = URL.createObjectURL(blob);
-        window.open(url);
+        switch (saveType) {
+          case "export":
+            const blob = new Blob([scene]);
+            const blobUrl = URL.createObjectURL(blob);
+            const link = document.createElement("a");
+            link.href = blobUrl;
+            link.download = "scene.ascn";
+            document.body.appendChild(link);
+            link.dispatchEvent(
+              new MouseEvent("click", {
+                bubbles: true,
+                cancelable: true,
+                view: window,
+              })
+            );
+            document.body.removeChild(link);
+            break;
+          case "save":
+            if (api?.state === "logged-in") {
+              api.save(scene);
+            }
+            break;
+          case "render":
+            //TODO: implement render
+            break;
+          default:
+            break;
+        }
       },
     });
 
@@ -128,7 +164,7 @@ export default function Editor() {
     })();
 
     return editorHandle.destroy;
-  }, []);
+  }, [api]);
 
   // Viewport mode change
   const [viewportMode, setViewportMode] = useState<viewportMode>("solid");
@@ -248,7 +284,7 @@ export default function Editor() {
 
   return (
     <React.Fragment>
-      <EditorAppBar onSave={() => editorHandle.saveScene()} />
+      <EditorAppBar onSave={handleAppBarButtonClick} />
       <AppBarOffset variant='dense' />
       <Box
         display='flex'
