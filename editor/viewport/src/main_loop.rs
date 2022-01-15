@@ -1,5 +1,14 @@
-use renderer::{scene::Scene, Renderer};
+use std::rc::Rc;
+
+use renderer::{
+    scene::{MeshObject, Scene},
+    Renderer,
+};
 use thiserror::Error;
+use tk3d::{
+    math::{vec2, vec3},
+    TextureID, Triangle, Vertex,
+};
 use winit::{
     event::{ElementState, MouseButton, VirtualKeyCode},
     window::Window,
@@ -26,7 +35,33 @@ impl MainLoop {
     }
 
     pub fn render(&self) -> Result<(), RenderError> {
-        self.renderer.render(&mut Scene::default())?;
+        let mut scene = Scene::default();
+        scene.push_mesh_object(Rc::new(MeshObject {
+            texture_id: TextureID(0),
+            transform: self.renderer.create_transform(),
+            mesh: self.renderer.create_mesh(
+                &[
+                    Vertex {
+                        position: vec3(0.0, 0.0, -5.0),
+                        normal: vec3(0.0, 0.0, 1.0),
+                        texcoord: vec2(0.0, 0.0),
+                    },
+                    Vertex {
+                        position: vec3(1.0, 0.0, -5.0),
+                        normal: vec3(0.0, 0.0, 1.0),
+                        texcoord: vec2(1.0, 0.0),
+                    },
+                    Vertex {
+                        position: vec3(1.0, 1.0, -5.0),
+                        normal: vec3(0.0, 0.0, 1.0),
+                        texcoord: vec2(1.0, 1.0),
+                    },
+                ],
+                &[Triangle { indices: [0, 1, 2] }],
+            ),
+        }));
+
+        self.renderer.render(&mut scene)?;
         Ok(())
     }
 

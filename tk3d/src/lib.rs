@@ -36,13 +36,16 @@ pub struct Triangle {
 }
 
 #[cfg(feature = "bytemuck")]
-unsafe impl bytemuck::Zeroable for Vertex {}
+use bytemuck::{Pod, Zeroable};
 
 #[cfg(feature = "bytemuck")]
-unsafe impl bytemuck::Pod for Vertex {}
+unsafe impl Zeroable for Vertex {}
 
 #[cfg(feature = "bytemuck")]
-unsafe impl bytemuck::Zeroable for Triangle {}
+unsafe impl Pod for Vertex {}
 
 #[cfg(feature = "bytemuck")]
-unsafe impl bytemuck::Pod for Triangle {}
+unsafe impl Zeroable for Triangle {}
+
+#[cfg(feature = "bytemuck")]
+unsafe impl Pod for Triangle {}

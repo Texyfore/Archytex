@@ -10,11 +10,11 @@ use crate::handle::GpuHandle;
 use super::buffer::Buffer;
 
 pub struct UniformLayout {
-    inner: BindGroupLayout,
+    pub(crate) inner: BindGroupLayout,
 }
 
 pub struct Uniform<T: Pod> {
-    group: BindGroup,
+    pub(crate) group: BindGroup,
     buffer: Buffer<T>,
 }
 
@@ -40,7 +40,10 @@ impl GpuHandle {
     }
 
     pub fn create_uniform<T: Pod + Zeroable>(&self, layout: &UniformLayout) -> Uniform<T> {
-        let buffer = self.create_buffer(&[T::zeroed()], BufferUsages::UNIFORM);
+        let buffer = self.create_buffer(
+            &[T::zeroed()],
+            BufferUsages::UNIFORM | BufferUsages::COPY_DST,
+        );
         let group = self.device.create_bind_group(&BindGroupDescriptor {
             label: None,
             layout: &layout.inner,

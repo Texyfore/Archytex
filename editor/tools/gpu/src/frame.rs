@@ -1,12 +1,17 @@
 use std::iter::once;
 
+use bytemuck::Pod;
 use thiserror::Error;
 use wgpu::{
-    Color, CommandEncoder, LoadOp, Operations, RenderPassColorAttachment, RenderPassDescriptor,
-    SurfaceError, SurfaceTexture, TextureView,
+    Color, CommandEncoder, IndexFormat, LoadOp, Operations, RenderPassColorAttachment,
+    RenderPassDescriptor, RenderPipeline, SurfaceError, SurfaceTexture, TextureView,
 };
 
-use crate::handle::GpuHandle;
+use crate::{
+    data::{buffer::Buffer, texture::Texture, uniform::Uniform},
+    handle::GpuHandle,
+    pipelines::mesh::MeshPipeline,
+};
 
 pub struct Frame {
     texture: SurfaceTexture,
@@ -17,7 +22,7 @@ pub struct Frame {
 impl Frame {
     pub fn begin_pass(&mut self, clear_color: [f32; 3]) -> RenderPass {
         RenderPass {
-            pass: self.encoder.begin_render_pass(&RenderPassDescriptor {
+            inner: self.encoder.begin_render_pass(&RenderPassDescriptor {
                 label: None,
                 color_attachments: &[RenderPassColorAttachment {
                     view: &self.view,
@@ -62,5 +67,27 @@ impl GpuHandle {
 pub struct NextFrameError(#[from] SurfaceError);
 
 pub struct RenderPass<'a> {
-    pass: wgpu::RenderPass<'a>,
+    inner: wgpu::RenderPass<'a>,
+}
+
+impl<'a> RenderPass<'a> {
+    pub fn set_mesh_pipeline(&mut self, pipeline: &'a MeshPipeline) {
+        self.inner.set_pipeline(&pipeline.inner);
+    }
+
+    pub fn set_uniform<T: Pod>(&mut self, slot: u32, uniform: &'a Uniform<T>) {
+        self.inner.set_bind_group(slot, &uniform.group, &[]);
+    }
+
+    pub fn set_texture(&mut self, texture: &'a Texture) {
+        self.inner.set_bind_group(2, &texture.group, &[]);
+    }
+
+    pub fn draw_mesh<V: Pod, T: Pod>(&mut self, vertices: &'a Buffer<V>, triangles: &'a Buffer<T>) {
+        self.inner.set_vertex_buffer(0, vertices.inner.slice(..));
+        self.inner
+            .set_index_buffer(triangles.inner.slice(..), IndexFormat::Uint16);
+        self.inner
+            .draw_indexed(0..triangles.len as u32 * 3, 0, 0..1);
+    }
 }
