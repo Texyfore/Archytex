@@ -5,20 +5,23 @@ use winit::{
     window::Window,
 };
 
-use crate::ipc::IpcHost;
+use crate::{input::Input, ipc::IpcHost};
 
 pub struct MainLoop {
     renderer: Renderer,
+    input: Input,
 }
 
 impl MainLoop {
     pub fn new(window: &Window) -> Result<Self> {
         Ok(Self {
             renderer: Renderer::new(window)?,
+            input: Input::default(),
         })
     }
 
     pub fn process<H: IpcHost>(&mut self, _host: &H) -> Result<()> {
+        self.input.process();
         Ok(())
     }
 
@@ -31,11 +34,11 @@ impl MainLoop {
         self.renderer.resize(width, height);
     }
 
-    pub fn keyboard_input(&mut self, _key: VirtualKeyCode, _state: ElementState) -> Result<()> {
-        Ok(())
+    pub fn keyboard_input(&mut self, key: VirtualKeyCode, state: ElementState) {
+        self.input.keyboard_input(key, state);
     }
 
-    pub fn mouse_input(&mut self, _button: MouseButton, _state: ElementState) -> Result<()> {
-        Ok(())
+    pub fn mouse_input(&mut self, button: MouseButton, state: ElementState) {
+        self.input.mouse_input(button, state);
     }
 }

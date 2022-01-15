@@ -1,6 +1,12 @@
 use anyhow::Result;
 use thiserror::Error;
-use winit::{dpi::PhysicalSize, error::OsError, event::{Event, KeyboardInput, WindowEvent}, event_loop::{ControlFlow, EventLoop}, window::{Window, WindowBuilder}};
+use winit::{
+    dpi::PhysicalSize,
+    error::OsError,
+    event::{Event, KeyboardInput, WindowEvent},
+    event_loop::{ControlFlow, EventLoop},
+    window::{Window, WindowBuilder},
+};
 
 use crate::{ipc::IpcHost, main_loop::MainLoop};
 
@@ -70,7 +76,7 @@ impl WinitLoop {
                         *flow = ControlFlow::Exit;
                     }
 
-                    WindowEvent::Resized(PhysicalSize {width, height}) => {
+                    WindowEvent::Resized(PhysicalSize { width, height }) => {
                         main_loop.window_resized(width, height);
                     }
 
@@ -83,11 +89,11 @@ impl WinitLoop {
                             },
                         ..
                     } => {
-                        check!(host, flow, main_loop.keyboard_input(key, state));
+                        main_loop.keyboard_input(key, state);
                     }
 
                     WindowEvent::MouseInput { button, state, .. } => {
-                        check!(host, flow, main_loop.mouse_input(button, state));
+                        main_loop.mouse_input(button, state);
                     }
 
                     _ => {}

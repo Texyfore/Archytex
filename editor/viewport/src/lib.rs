@@ -2,6 +2,7 @@ pub mod ipc;
 
 mod winit_loop;
 mod main_loop;
+mod input;
 
 use self::{ipc::IpcHost, winit_loop::WinitLoop};
 
