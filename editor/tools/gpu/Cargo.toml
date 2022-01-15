@@ -1,0 +1,15 @@
+[package]
+name = "gpu"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+raw-window-handle = "=0.4.2"
+futures-lite = "=1.12.0"
+thiserror = "=1.0.30"
+
+[target.'cfg(not(target_arch="wasm32"))'.dependencies]
+wgpu = "=0.12.0"
+
+[target.'cfg(target_arch="wasm32")'.dependencies]
+wgpu = { version = "=0.12.0", features = ["webgl"] }
