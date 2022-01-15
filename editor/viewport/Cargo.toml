@@ -4,7 +4,6 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-anyhow = "1.0.52"
 thiserror = "1.0.30"
 winit = "=0.26.1"
 renderer = { path = "../tools/renderer" }

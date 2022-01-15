@@ -1,4 +1,3 @@
-use anyhow::Result;
 use thiserror::Error;
 use winit::{
     dpi::PhysicalSize,
@@ -29,14 +28,14 @@ pub struct WinitLoop {
 
 impl WinitLoop {
     #[cfg(not(target_arch = "wasm32"))]
-    pub fn new() -> Result<Self, WindowCreationError> {
+    pub fn new() -> Result<Self, NewError> {
         let event_loop = EventLoop::new();
         let window = WindowBuilder::default().build(&event_loop)?;
         Ok(Self { event_loop, window })
     }
 
     #[cfg(target_arch = "wasm32")]
-    pub fn new() -> Result<Self, WindowCreationError> {
+    pub fn new() -> Result<Self, NewError> {
         use wasm_bindgen::JsCast;
         use web_sys::HtmlCanvasElement;
         use winit::platform::web::WindowBuilderExtWebSys;
@@ -45,13 +44,13 @@ impl WinitLoop {
         let window = WindowBuilder::default()
             .with_canvas(Some(
                 web_sys::window()
-                    .ok_or(WindowCreationError::HtmlElementNotFound)?
+                    .ok_or(NewError::NoHtmlCanvas)?
                     .document()
-                    .ok_or(WindowCreationError::HtmlElementNotFound)?
+                    .ok_or(NewError::NoHtmlCanvas)?
                     .get_element_by_id("viewport-canvas")
-                    .ok_or(WindowCreationError::HtmlElementNotFound)?
+                    .ok_or(NewError::NoHtmlCanvas)?
                     .dyn_into::<HtmlCanvasElement>()
-                    .map_err(|_| WindowCreationError::HtmlElementNotFound)?,
+                    .map_err(|_| NewError::NoHtmlCanvas)?,
             ))
             .build(&event_loop)?;
 
@@ -111,10 +110,10 @@ impl WinitLoop {
 }
 
 #[derive(Error, Debug)]
-pub enum WindowCreationError {
+pub enum NewError {
     #[cfg(target_arch = "wasm32")]
     #[error("Couldn't create window: No HTML canvas")]
-    HtmlElementNotFound,
+    NoHtmlCanvas,
     #[error("Couldn't create window: {0}")]
     WinitError(#[from] OsError),
 }

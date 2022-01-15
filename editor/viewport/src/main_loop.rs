@@ -1,5 +1,5 @@
-use anyhow::Result;
 use renderer::{scene::Scene, Renderer};
+use thiserror::Error;
 use winit::{
     event::{ElementState, MouseButton, VirtualKeyCode},
     window::Window,
@@ -13,19 +13,19 @@ pub struct MainLoop {
 }
 
 impl MainLoop {
-    pub fn new(window: &Window) -> Result<Self> {
+    pub fn new(window: &Window) -> Result<Self, NewError> {
         Ok(Self {
             renderer: Renderer::new(window)?,
             input: Input::default(),
         })
     }
 
-    pub fn process<H: IpcHost>(&mut self, _host: &H) -> Result<()> {
+    pub fn process<H: IpcHost>(&mut self, _host: &H) -> Result<(), ProcessError> {
         self.input.process();
         Ok(())
     }
 
-    pub fn render(&self) -> Result<()> {
+    pub fn render(&self) -> Result<(), RenderError> {
         self.renderer.render(&mut Scene)?;
         Ok(())
     }
@@ -42,3 +42,17 @@ impl MainLoop {
         self.input.mouse_input(button, state);
     }
 }
+
+#[derive(Error, Debug)]
+pub enum NewError {
+    #[error("Couldn't create main loop: {0}")]
+    NoRenderer(#[from] renderer::NewError),
+}
+
+#[derive(Error, Debug)]
+#[error("Couldn't compute next frame")]
+pub struct ProcessError;
+
+#[derive(Error, Debug)]
+#[error("{0}")]
+pub struct RenderError(#[from] renderer::RenderError);

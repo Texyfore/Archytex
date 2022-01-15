@@ -19,7 +19,7 @@ pub struct GpuHandle {
 }
 
 impl GpuHandle {
-    pub fn new<H: HasRawWindowHandle>(window_handle: &H) -> Result<Self, InitError> {
+    pub fn new<H: HasRawWindowHandle>(window_handle: &H) -> Result<Self, NewError> {
         let instance = wgpu::Instance::new(Backends::all());
         let surface = unsafe { instance.create_surface(window_handle) };
 
@@ -30,7 +30,7 @@ impl GpuHandle {
                     ..Default::default()
                 })
                 .await
-                .ok_or(InitError::NoAdapter)?;
+                .ok_or(NewError::NoAdapter)?;
 
             let surface_format = surface
                 .get_preferred_format(&adapter)
@@ -48,7 +48,7 @@ impl GpuHandle {
                 )
                 .await?;
 
-            Result::<_, InitError>::Ok((surface_format, device, queue))
+            Result::<_, NewError>::Ok((surface_format, device, queue))
         })?;
 
         device.on_uncaptured_error(|e| panic!("{}", e));
@@ -88,7 +88,7 @@ impl GpuHandle {
 }
 
 #[derive(Error, Debug)]
-pub enum InitError {
+pub enum NewError {
     #[error("Couldn't select appropriate GPU")]
     NoAdapter,
     #[error("Selected GPU is unusable: {0}")]

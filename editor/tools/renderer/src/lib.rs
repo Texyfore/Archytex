@@ -12,7 +12,7 @@ pub struct Renderer {
 }
 
 impl Renderer {
-    pub fn new<H: HasRawWindowHandle>(window_handle: &H) -> Result<Self, InitError> {
+    pub fn new<H: HasRawWindowHandle>(window_handle: &H) -> Result<Self, NewError> {
         let gpu = GpuHandle::new(window_handle)?;
         gpu.configure(1024, 768);
         Ok(Self { gpu })
@@ -36,9 +36,9 @@ impl Renderer {
 }
 
 #[derive(Error, Debug)]
-pub enum InitError {
-    #[error("Couldn't initialize renderer: {0}")]
-    GpuError(#[from] gpu::InitError),
+pub enum NewError {
+    #[error("Couldn't create renderer: {0}")]
+    GpuError(#[from] gpu::NewError),
 }
 
 #[derive(Error, Debug)]
