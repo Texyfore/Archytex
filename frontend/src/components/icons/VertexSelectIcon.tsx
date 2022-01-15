@@ -7,6 +7,7 @@ export default function VertexSelectIcon() {
       <path
         d='M12.3751 1.13238L21.2234 6.24098C21.4555 6.37495 21.5984 6.62255 21.5984 6.8905V17.1077C21.5984 17.3756 21.4555 17.6232 21.2234 17.7572L12.3751 22.8658C12.143 22.9998 11.8571 22.9998 11.6251 22.8658L2.77672 17.7572C2.54467 17.6232 2.40172 17.3756 2.40172 17.1077V6.8905C2.40172 6.62255 2.54467 6.37495 2.77672 6.24098L11.6251 1.13238C11.8571 0.998404 12.143 0.998404 12.3751 1.13238Z'
         stroke='black'
+        fill='#f5f0f6'
         stroke-width='0.5'
       />
       <line
@@ -33,13 +34,13 @@ export default function VertexSelectIcon() {
         stroke='black'
         stroke-width='0.5'
       />
-      <circle cx='12.0005' cy='11.6352' r='1.5' fill='black' />
-      <circle cx='12.0005' cy='23.019' r='1.5' fill='black' />
-      <circle cx='2.45141' cy='6.5056' r='1.5' fill='black' />
-      <circle cx='2.45141' cy='17.5828' r='1.5' fill='black' />
-      <circle cx='21.6814' cy='17.5828' r='1.5' fill='black' />
-      <circle cx='21.6814' cy='6.5056' r='1.5' fill='black' />
-      <circle cx='12' cy='0.947987' r='1.5' fill='black' />
+      <circle cx='12.0005' cy='11.6352' r='1.5' fill='#8c8c8c' />
+      <circle cx='12.0005' cy='23.019' r='1.5' fill='#8c8c8c' />
+      <circle cx='2.45141' cy='6.5056' r='1.5' fill='#8c8c8c' />
+      <circle cx='2.45141' cy='17.5828' r='1.5' fill='#8c8c8c' />
+      <circle cx='21.6814' cy='17.5828' r='1.5' fill='#8c8c8c' />
+      <circle cx='21.6814' cy='6.5056' r='1.5' fill='#8c8c8c' />
+      <circle cx='12' cy='0.947987' r='1.5' fill='#8c8c8c' />
     </SvgIcon>
   );
 }

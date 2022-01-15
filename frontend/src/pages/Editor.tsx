@@ -31,6 +31,10 @@ import MeshSelectIcon from "../components/icons/MeshSelectIcon";
 import FaceSelectIcon from "../components/icons/FaceSelectIcon";
 import VertexSelectIcon from "../components/icons/VertexSelectIcon";
 import { useParams } from "react-router-dom";
+import SelectTransformModeIcon from "../components/icons/SelectTransformModeIcon";
+import MoveTransformModeIcon from "../components/icons/MoveTransformModeIcon";
+import RotateTransformModeIcon from "../components/icons/RotateTransformModeIcon";
+import ScaleTransformModeIcon from "../components/icons/ScaleTransformModeIcon";
 
 const appBarHeight = 48;
 let editorHandle: EditorHandle;
@@ -266,6 +270,7 @@ export default function Editor() {
           e.preventDefault();
         }}
       ></canvas>
+
       {/* viewport UI */}
       <>
         {/* Viewport mode */}
@@ -352,28 +357,28 @@ export default function Editor() {
             <ToggleButton value='select'>
               <Tooltip title='Select' placement='right'>
                 <Box marginTop={0.8} width={36} height={30}>
-                  <VertexSelectIcon />
+                  <SelectTransformModeIcon />
                 </Box>
               </Tooltip>
             </ToggleButton>
             <ToggleButton value='move'>
               <Tooltip title='Move' placement='right'>
                 <Box marginTop={0.8} width={36} height={30}>
-                  <VertexSelectIcon />
+                  <MoveTransformModeIcon />
                 </Box>
               </Tooltip>
             </ToggleButton>
             <ToggleButton value='rotate'>
               <Tooltip title='Rotate' placement='right'>
                 <Box marginTop={0.8} width={36} height={30}>
-                  <VertexSelectIcon />
+                  <RotateTransformModeIcon />
                 </Box>
               </Tooltip>
             </ToggleButton>
             <ToggleButton value='scale'>
               <Tooltip title='Scale' placement='right'>
                 <Box marginTop={0.8} width={36} height={30}>
-                  <VertexSelectIcon />
+                  <ScaleTransformModeIcon />
                 </Box>
               </Tooltip>
             </ToggleButton>
