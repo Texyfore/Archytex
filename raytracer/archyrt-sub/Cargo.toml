@@ -1,5 +1,5 @@
 [package]
-name = "archyrt-sub"
+name = "archyrt_sub"
 version = "0.1.0"
 edition = "2021"
 
@@ -10,3 +10,7 @@ lapin = "1.9.0"
 async-global-executor = "2.0.2"
 anyhow = "1.0.44"
 dotenv = "0.15.0"
+redis = "0.21.5"
+futures = "0.3.19"
+lru = "0.7.2"
+archyrt_core = {path="../archyrt-core"}

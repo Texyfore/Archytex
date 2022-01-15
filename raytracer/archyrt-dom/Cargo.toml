@@ -1,5 +1,5 @@
 [package]
-name = "archyrt-dom"
+name = "archyrt_dom"
 version = "0.1.0"
 edition = "2021"
 
@@ -13,3 +13,5 @@ dotenv = "0.15.0"
 futures-util = "0.3.19"
 futures = "0.3.19"
 redis = "0.21.5"
+uuid = {version="0.8.2", features=["v4"]}
+image = "0.23.14"

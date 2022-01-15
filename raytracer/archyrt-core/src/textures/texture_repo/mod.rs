@@ -6,6 +6,12 @@ pub trait TextureRepository {
     fn get(&self, id: TextureID) -> Option<&Texture>;
 }
 
+impl<T: TextureRepository> TextureRepository for &T{
+    fn get(&self, id: TextureID) -> Option<&Texture> {
+        (*self).get(id)
+    }
+}
+
 pub struct DummyTextureRepository();
 
 impl TextureRepository for DummyTextureRepository {
