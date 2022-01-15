@@ -1,14 +1,16 @@
 use std::iter::once;
 
 use wgpu::{
-    Color, CommandEncoder, LoadOp, Operations, Queue, RenderPassColorAttachment,
-    RenderPassDescriptor, SurfaceTexture, TextureView,
+    Color, CommandEncoder, LoadOp, Operations, RenderPassColorAttachment, RenderPassDescriptor,
+    SurfaceTexture, TextureView,
 };
 
+use crate::handle::GpuHandle;
+
 pub struct Frame {
-    pub texture: SurfaceTexture,
-    pub view: TextureView,
-    pub encoder: CommandEncoder,
+    pub(crate) texture: SurfaceTexture,
+    pub(crate) view: TextureView,
+    pub(crate) encoder: CommandEncoder,
 }
 
 impl Frame {
@@ -34,8 +36,8 @@ impl Frame {
         }
     }
 
-    pub fn draw(self, queue: &Queue) {
-        queue.submit(once(self.encoder.finish()));
+    pub fn draw(self, gpu: &GpuHandle) {
+        gpu.queue.submit(once(self.encoder.finish()));
         self.texture.present();
     }
 }

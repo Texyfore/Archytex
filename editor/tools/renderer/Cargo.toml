@@ -4,12 +4,6 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-futures-lite = "=1.12.0"
-thiserror = "=1.0.30"
 raw-window-handle = "=0.4.2"
-
-[target.'cfg(not(target_arch="wasm32"))'.dependencies]
-wgpu = "=0.12.0"
-
-[target.'cfg(target_arch="wasm32")'.dependencies]
-wgpu = { version = "=0.12.0", features = ["webgl"] }
+thiserror = "=1.0.30"
+gpu = { path = "../gpu" }

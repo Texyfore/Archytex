@@ -1,5 +1,3 @@
-mod frame;
-
 use futures_lite::future;
 use raw_window_handle::HasRawWindowHandle;
 use thiserror::Error;
@@ -9,13 +7,13 @@ use wgpu::{
     TextureFormat, TextureUsages,
 };
 
-use self::frame::Frame;
+use crate::frame::Frame;
 
 pub struct GpuHandle {
-    pub surface: Surface,
-    pub surface_format: TextureFormat,
-    pub device: Device,
-    pub queue: Queue,
+    pub(crate) surface: Surface,
+    pub(crate) surface_format: TextureFormat,
+    pub(crate) device: Device,
+    pub(crate) queue: Queue,
 }
 
 impl GpuHandle {

@@ -1,11 +1,10 @@
 pub mod scene;
 
-mod gpu;
-
+use gpu::handle::GpuHandle;
 use raw_window_handle::HasRawWindowHandle;
 use thiserror::Error;
 
-use self::{gpu::GpuHandle, scene::Scene};
+use self::scene::Scene;
 
 pub struct Renderer {
     gpu: GpuHandle,
@@ -29,7 +28,7 @@ impl Renderer {
             let _pass = frame.begin_pass([0.5; 3]);
         }
 
-        frame.draw(&self.gpu.queue);
+        frame.draw(&self.gpu);
 
         Ok(())
     }
@@ -38,11 +37,11 @@ impl Renderer {
 #[derive(Error, Debug)]
 pub enum NewError {
     #[error("Couldn't create renderer: {0}")]
-    GpuError(#[from] gpu::NewError),
+    GpuError(#[from] gpu::handle::NewError),
 }
 
 #[derive(Error, Debug)]
 pub enum RenderError {
     #[error("Couldn't render frame: {0}")]
-    NoNextFrame(#[from] gpu::NextFrameError),
+    NoNextFrame(#[from] gpu::handle::NextFrameError),
 }
