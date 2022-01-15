@@ -1,12 +1,20 @@
 pub mod ipc;
 
-use self::ipc::{IpcEndpoint, IpcMessageFrom, IpcMessageTo};
+mod winit_loop;
 
-pub fn run<I: IpcEndpoint>(ipc_endpoint: I) {
-    if let Some(IpcMessageFrom::CommentFromBackend(comment)) = ipc_endpoint.recv() {
-        ipc_endpoint.send(IpcMessageTo::CommentToFrontend(format!(
-            "Got your comment: `{}`",
-            comment
-        )));
+use anyhow::Result;
+
+use self::{ipc::IpcHost, winit_loop::MainLoop};
+
+pub fn main<H: IpcHost>(host: H) {
+    match run() {
+        Ok(_) => unreachable!(),
+        Err(err) => host.fatal_error(format!("{}", err)),
     }
+}
+
+fn run() -> Result<()> {
+    let main_loop = MainLoop::new()?;
+    main_loop.run()?;
+    unreachable!()
 }

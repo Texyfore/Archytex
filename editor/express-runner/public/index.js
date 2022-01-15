@@ -1,7 +1,11 @@
-import("/editor/web_runner.js").then((module) => {
-    console.log(module.WebIpcBackend);
-  let channel = module.WebIpcBackend.new();
-  let frontend = channel.frontend();
-  let backend = channel.backend();
-  module.start(backend);
+import init, { Channel, run } from "./pkg/web_runner.js";
+
+init().then(() => {
+  const channel = new Channel();
+  const wasmEndpoint = channel.wasmEndpoint(onFatalError);
+  run(wasmEndpoint);
 });
+
+function onFatalError(error) {
+  console.error(`Fatal error: ${error}`);
+}

@@ -1,12 +1,8 @@
-pub trait IpcEndpoint {
-    fn send(&self, message: IpcMessageTo);
-    fn recv(&self) -> Option<IpcMessageFrom>;
+pub trait IpcHost {
+    fn recv(&self) -> Option<IpcMessage>;
+    fn fatal_error(&self, message: String);
 }
 
-pub enum IpcMessageTo {
-    CommentToFrontend(String),
-}
-
-pub enum IpcMessageFrom {
-    CommentFromBackend(String),
+pub enum IpcMessage {
+    Comment(String),
 }

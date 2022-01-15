@@ -1,4 +1,4 @@
 target
-pkg
+express-runner/public/pkg
 **/node_modules
 Cargo.lock

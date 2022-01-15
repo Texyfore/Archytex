@@ -1,80 +1,74 @@
 use std::sync::mpsc::{channel, Receiver, Sender};
 
-use viewport::ipc::{IpcEndpoint, IpcMessageFrom, IpcMessageTo};
-
-use wasm_bindgen::prelude::*;
+use js_sys::Function;
+use viewport::ipc::{IpcHost, IpcMessage};
+use wasm_bindgen::{prelude::*, JsValue};
 
 #[wasm_bindgen]
-pub struct WebIpcChannel {
-    front: Option<(Sender<IpcMessageFrom>, Receiver<IpcMessageTo>)>,
-    back: Option<(Sender<IpcMessageTo>, Receiver<IpcMessageFrom>)>,
+pub struct Channel {
+    sender: Option<Sender<IpcMessage>>,
+    receiver: Option<Receiver<IpcMessage>>,
 }
 
 #[wasm_bindgen]
-impl WebIpcChannel {
+impl Channel {
     #[allow(clippy::new_without_default)]
     #[wasm_bindgen(constructor)]
     pub fn new() -> Self {
-        let (from_tx, from_rx) = channel();
-        let (to_tx, to_rx) = channel();
-
+        let (tx, rx) = channel();
         Self {
-            front: Some((from_tx, to_rx)),
-            back: Some((to_tx, from_rx)),
+            sender: Some(tx),
+            receiver: Some(rx),
         }
     }
 
-    pub fn frontend(&mut self) -> WebIpcFrontend {
-        let (sender, receiver) = self.front.take().unwrap();
-        WebIpcFrontend { sender, receiver }
+    #[wasm_bindgen(js_name = "browserEndpoint")]
+    pub fn browser_endpoint(&mut self) -> BrowserEndpoint {
+        BrowserEndpoint {
+            sender: self.sender.take().unwrap(),
+        }
     }
 
-    pub fn backend(&mut self) -> WebIpcBackend {
-        let (sender, receiver) = self.back.take().unwrap();
-        WebIpcBackend { sender, receiver }
-    }
-}
-
-#[wasm_bindgen]
-pub struct WebIpcFrontend {
-    sender: Sender<IpcMessageFrom>,
-    receiver: Receiver<IpcMessageTo>,
-}
-
-#[wasm_bindgen]
-impl WebIpcFrontend {
-    pub fn send_comment(&self, comment: String) {
-        self.sender
-            .send(IpcMessageFrom::CommentFromBackend(comment))
-            .unwrap();
-    }
-
-    pub fn recv_comment(&self) -> Option<String> {
-        if let Ok(IpcMessageTo::CommentToFrontend(comment)) = self.receiver.try_recv() {
-            Some(comment)
-        } else {
-            None
+    #[wasm_bindgen(js_name = "wasmEndpoint")]
+    pub fn wasm_endpoint(&mut self, on_fatal_error: Function) -> WasmEndpoint {
+        WasmEndpoint {
+            receiver: self.receiver.take().unwrap(),
+            on_fatal_error,
         }
     }
 }
 
 #[wasm_bindgen]
-pub struct WebIpcBackend {
-    sender: Sender<IpcMessageTo>,
-    receiver: Receiver<IpcMessageFrom>,
+pub struct BrowserEndpoint {
+    sender: Sender<IpcMessage>,
 }
 
-impl IpcEndpoint for WebIpcBackend {
-    fn send(&self, message: IpcMessageTo) {
-        self.sender.send(message).unwrap();
+#[wasm_bindgen]
+impl BrowserEndpoint {
+    pub fn comment(&self, comment: String) {
+        self.sender.send(IpcMessage::Comment(comment)).unwrap();
     }
+}
 
-    fn recv(&self) -> Option<IpcMessageFrom> {
+#[wasm_bindgen]
+pub struct WasmEndpoint {
+    receiver: Receiver<IpcMessage>,
+    on_fatal_error: Function,
+}
+
+impl IpcHost for WasmEndpoint {
+    fn recv(&self) -> Option<IpcMessage> {
         self.receiver.try_recv().ok()
     }
+
+    fn fatal_error(&self, message: String) {
+        self.on_fatal_error
+            .call1(&JsValue::null(), &JsValue::from(message))
+            .unwrap();
+    }
 }
 
 #[wasm_bindgen]
-pub fn start(ipc_backend: WebIpcBackend) {
-    viewport::run(ipc_backend);
+pub fn run(host: WasmEndpoint) {
+    viewport::main(host);
 }
