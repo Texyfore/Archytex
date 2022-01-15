@@ -7,3 +7,4 @@ edition = "2021"
 raw-window-handle = "=0.4.2"
 thiserror = "=1.0.30"
 gpu = { path = "../gpu" }
+tk3d = { path = "../../../tk3d" }
