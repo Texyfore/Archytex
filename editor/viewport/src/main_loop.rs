@@ -23,8 +23,11 @@ pub struct MainLoop {
 
 impl MainLoop {
     pub fn new(window: &Window) -> Result<Self, NewError> {
+        let mut renderer = Renderer::new(window)?;
+        renderer.load_texture(TextureID(0), include_bytes!("nodraw.png")).unwrap();
+
         Ok(Self {
-            renderer: Renderer::new(window)?,
+            renderer,
             input: Input::default(),
         })
     }

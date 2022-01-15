@@ -1,6 +1,8 @@
 pub mod data;
 pub mod scene;
 
+use std::collections::HashMap;
+
 use gpu::{
     data::{
         texture::TextureLayout,
@@ -8,10 +10,15 @@ use gpu::{
     },
     handle::GpuHandle,
     pipelines::mesh::MeshPipeline,
+    Sampler,
 };
+use image::{EncodableLayout, ImageError};
 use raw_window_handle::HasRawWindowHandle;
 use thiserror::Error;
-use tk3d::math::{perspective, Deg};
+use tk3d::{
+    math::{perspective, Deg},
+    TextureID,
+};
 
 use self::scene::Scene;
 
@@ -21,6 +28,8 @@ pub struct Renderer {
     texture_layout: TextureLayout,
     mesh_pipeline: MeshPipeline,
     camera_uniform: Uniform<[[f32; 4]; 4]>,
+    textures: HashMap<u32, Texture>,
+    sampler: Sampler,
 }
 
 impl Renderer {
@@ -32,6 +41,8 @@ impl Renderer {
         let texture_layout = gpu.create_texture_layout();
         let mesh_pipeline = gpu.create_mesh_pipeline(&uniform_layout, &texture_layout);
         let camera_uniform = gpu.create_uniform(&uniform_layout);
+        let textures = HashMap::new();
+        let sampler = gpu.create_sampler();
 
         Ok(Self {
             gpu,
@@ -39,6 +50,8 @@ impl Renderer {
             texture_layout,
             mesh_pipeline,
             camera_uniform,
+            textures,
+            sampler,
         })
     }
 
@@ -59,13 +72,36 @@ impl Renderer {
             pass.set_uniform(0, &self.camera_uniform);
 
             for mesh_object in &scene.mesh_objects {
-                pass.set_uniform(1, &mesh_object.transform.uniform);
-                pass.draw_mesh(&mesh_object.mesh.vertices, &mesh_object.mesh.triangles);
+                if let Some(texture) = self.textures.get(&mesh_object.texture_id.0) {
+                    pass.set_uniform(1, &mesh_object.transform.uniform);
+                    pass.set_texture(&texture.inner);
+                    pass.draw_mesh(&mesh_object.mesh.vertices, &mesh_object.mesh.triangles);
+                }
             }
         }
 
         frame.draw(&self.gpu);
 
+        Ok(())
+    }
+
+    pub fn load_texture(&mut self, id: TextureID, buf: &[u8]) -> Result<(), LoadTextureError> {
+        let data = image::load_from_memory(buf)?.into_rgba8();
+        let (width, height) = data.dimensions();
+        self.textures.insert(
+            id.0,
+            Texture {
+                inner: self.gpu.create_texture(
+                    &self.texture_layout,
+                    &self.sampler,
+                    width,
+                    height,
+                    data.as_bytes(),
+                ),
+                width,
+                height,
+            },
+        );
         Ok(())
     }
 }
@@ -80,4 +116,16 @@ pub enum NewError {
 pub enum RenderError {
     #[error("Couldn't render frame: {0}")]
     NoNextFrame(#[from] gpu::frame::NextFrameError),
+}
+
+#[derive(Error, Debug)]
+pub enum LoadTextureError {
+    #[error("Couldn't load texture: {0}")]
+    BadBuffer(#[from] ImageError),
+}
+
+struct Texture {
+    inner: gpu::data::texture::Texture,
+    width: u32,
+    height: u32,
 }

@@ -38,7 +38,7 @@ impl GpuHandle {
                                 bind_group_layouts: &[
                                     &uniform_layout.inner,
                                     &uniform_layout.inner,
-                                    // &texture_layout.inner,
+                                    &texture_layout.inner,
                                 ],
                                 push_constant_ranges: &[],
                             }),

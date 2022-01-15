@@ -2,9 +2,9 @@ use futures_lite::future;
 use raw_window_handle::HasRawWindowHandle;
 use thiserror::Error;
 use wgpu::{
-    Backends, Device, DeviceDescriptor, Features, Limits, PresentMode, Queue,
-    RequestAdapterOptions, RequestDeviceError, Surface, SurfaceConfiguration, TextureFormat,
-    TextureUsages,
+    AddressMode, Backends, Device, DeviceDescriptor, Features, FilterMode, Limits, PresentMode,
+    Queue, RequestAdapterOptions, RequestDeviceError, Sampler, SamplerDescriptor, Surface,
+    SurfaceConfiguration, TextureFormat, TextureUsages,
 };
 
 pub struct GpuHandle {
@@ -68,6 +68,19 @@ impl GpuHandle {
                 present_mode: PresentMode::Fifo,
             },
         )
+    }
+
+    pub fn create_sampler(&self) -> Sampler {
+        self.device.create_sampler(&SamplerDescriptor {
+            label: None,
+            address_mode_u: AddressMode::Repeat,
+            address_mode_v: AddressMode::Repeat,
+            address_mode_w: AddressMode::Repeat,
+            mag_filter: FilterMode::Nearest,
+            min_filter: FilterMode::Nearest,
+            mipmap_filter: FilterMode::Nearest,
+            ..Default::default()
+        })
     }
 }
 
