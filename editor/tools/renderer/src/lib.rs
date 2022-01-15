@@ -1,10 +1,11 @@
 pub mod scene;
 
-use gpu::handle::GpuHandle;
+use gpu::{handle::GpuHandle, BufferUsages};
 use raw_window_handle::HasRawWindowHandle;
 use thiserror::Error;
+use tk3d::{Triangle, Vertex};
 
-use self::scene::Scene;
+use self::scene::{Mesh, Scene};
 
 pub struct Renderer {
     gpu: GpuHandle,
@@ -31,6 +32,13 @@ impl Renderer {
         frame.draw(&self.gpu);
 
         Ok(())
+    }
+
+    pub fn create_mesh(&self, vertices: &[Vertex], triangles: &[Triangle]) -> Mesh {
+        Mesh {
+            vertices: self.gpu.create_buffer(vertices, BufferUsages::VERTEX),
+            triangles: self.gpu.create_buffer(triangles, BufferUsages::INDEX),
+        }
     }
 }
 

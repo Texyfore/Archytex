@@ -26,7 +26,7 @@ impl MainLoop {
     }
 
     pub fn render(&self) -> Result<(), RenderError> {
-        self.renderer.render(&mut Scene)?;
+        self.renderer.render(&mut Scene::default())?;
         Ok(())
     }
 

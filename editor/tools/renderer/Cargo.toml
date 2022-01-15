@@ -6,5 +6,6 @@ edition = "2021"
 [dependencies]
 raw-window-handle = "=0.4.2"
 thiserror = "=1.0.30"
+bytemuck = "=1.7.3"
 gpu = { path = "../gpu" }
-tk3d = { path = "../../../tk3d" }
+tk3d = { path = "../../../tk3d", features = ["bytemuck"] }

@@ -21,20 +21,28 @@ pub struct TextureID(pub u32);
 #[derive(Serialize, Deserialize, Clone, Copy)]
 pub struct PropID(pub u32);
 
-#[derive(Serialize, Deserialize, Clone)]
+#[derive(Serialize, Deserialize, Clone, Copy)]
+#[repr(C)]
 pub struct Vertex {
     pub position: Vector3<f32>,
     pub normal: Vector3<f32>,
     pub texcoord: Vector2<f32>,
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Clone, Copy)]
+#[repr(C)]
 pub struct Triangle {
     pub indices: [u16; 3],
 }
 
-#[cfg(feature="bytemuck")]
+#[cfg(feature = "bytemuck")]
+unsafe impl bytemuck::Zeroable for Vertex {}
+
+#[cfg(feature = "bytemuck")]
 unsafe impl bytemuck::Pod for Vertex {}
 
-#[cfg(feature="bytemuck")]
+#[cfg(feature = "bytemuck")]
+unsafe impl bytemuck::Zeroable for Triangle {}
+
+#[cfg(feature = "bytemuck")]
 unsafe impl bytemuck::Pod for Triangle {}
