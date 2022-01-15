@@ -1,11 +1,6 @@
 use anyhow::Result;
 use thiserror::Error;
-use winit::{
-    error::OsError,
-    event::{Event, KeyboardInput, WindowEvent},
-    event_loop::{ControlFlow, EventLoop},
-    window::{Window, WindowBuilder},
-};
+use winit::{dpi::PhysicalSize, error::OsError, event::{Event, KeyboardInput, WindowEvent}, event_loop::{ControlFlow, EventLoop}, window::{Window, WindowBuilder}};
 
 use crate::{ipc::IpcHost, main_loop::MainLoop};
 
@@ -73,6 +68,10 @@ impl WinitLoop {
                 Event::WindowEvent { event, .. } => match event {
                     WindowEvent::CloseRequested => {
                         *flow = ControlFlow::Exit;
+                    }
+
+                    WindowEvent::Resized(PhysicalSize {width, height}) => {
+                        main_loop.window_resized(width, height);
                     }
 
                     WindowEvent::KeyboardInput {

@@ -1,4 +1,5 @@
 use anyhow::Result;
+use renderer::{scene::Scene, Renderer};
 use winit::{
     event::{ElementState, MouseButton, VirtualKeyCode},
     window::Window,
@@ -6,11 +7,15 @@ use winit::{
 
 use crate::ipc::IpcHost;
 
-pub struct MainLoop;
+pub struct MainLoop {
+    renderer: Renderer,
+}
 
 impl MainLoop {
-    pub fn new(_window: &Window) -> Result<Self> {
-        Ok(Self)
+    pub fn new(window: &Window) -> Result<Self> {
+        Ok(Self {
+            renderer: Renderer::new(window)?,
+        })
     }
 
     pub fn process<H: IpcHost>(&mut self, _host: &H) -> Result<()> {
@@ -18,7 +23,12 @@ impl MainLoop {
     }
 
     pub fn render(&self) -> Result<()> {
+        self.renderer.render(&mut Scene)?;
         Ok(())
+    }
+
+    pub fn window_resized(&self, width: u32, height: u32) {
+        self.renderer.resize(width, height);
     }
 
     pub fn keyboard_input(&mut self, _key: VirtualKeyCode, _state: ElementState) -> Result<()> {
