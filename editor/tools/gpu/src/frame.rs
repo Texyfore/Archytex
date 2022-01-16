@@ -4,11 +4,12 @@ use bytemuck::Pod;
 use thiserror::Error;
 use wgpu::{
     Color, CommandEncoder, IndexFormat, LoadOp, Operations, RenderPassColorAttachment,
-    RenderPassDescriptor, SurfaceError, SurfaceTexture, TextureView,
+    RenderPassDepthStencilAttachment, RenderPassDescriptor, SurfaceError, SurfaceTexture,
+    TextureView,
 };
 
 use crate::{
-    data::{Buffer, Texture, Uniform},
+    data::{Buffer, DepthBuffer, Texture, Uniform},
     handle::GpuHandle,
     pipelines::{LinePipeline, MeshPipeline},
 };
@@ -20,7 +21,11 @@ pub struct Frame {
 }
 
 impl Frame {
-    pub fn begin_pass(&mut self, clear_color: [f32; 3]) -> RenderPass {
+    pub fn begin_pass<'a>(
+        &'a mut self,
+        depth_buffer: &'a DepthBuffer,
+        clear_color: [f32; 3],
+    ) -> RenderPass {
         RenderPass {
             inner: self.encoder.begin_render_pass(&RenderPassDescriptor {
                 label: None,
@@ -37,7 +42,14 @@ impl Frame {
                         store: true,
                     },
                 }],
-                depth_stencil_attachment: None,
+                depth_stencil_attachment: Some(RenderPassDepthStencilAttachment {
+                    view: &depth_buffer.view,
+                    depth_ops: Some(Operations {
+                        load: LoadOp::Clear(1.0),
+                        store: true,
+                    }),
+                    stencil_ops: None,
+                }),
             }),
         }
     }

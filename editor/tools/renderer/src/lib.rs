@@ -5,7 +5,7 @@ use std::collections::HashMap;
 
 use gpu::{
     data::{
-        TextureLayout, {Uniform, UniformLayout},
+        DepthBuffer, TextureLayout, {Uniform, UniformLayout},
     },
     handle::GpuHandle,
     pipelines::{LinePipeline, MeshPipeline},
@@ -23,6 +23,7 @@ use self::scene::Scene;
 
 pub struct Renderer {
     gpu: GpuHandle,
+    depth_buffer: DepthBuffer,
 
     uniform_layout: UniformLayout,
     texture_layout: TextureLayout,
@@ -38,6 +39,7 @@ pub struct Renderer {
 impl Renderer {
     pub fn new<H: HasRawWindowHandle>(window_handle: &H) -> Result<Self, NewError> {
         let gpu = GpuHandle::new(window_handle)?;
+        let depth_buffer = gpu.create_depth_buffer(1024, 768);
         gpu.configure(1024, 768);
 
         let uniform_layout = gpu.create_uniform_layout();
@@ -52,6 +54,7 @@ impl Renderer {
 
         Ok(Self {
             gpu,
+            depth_buffer,
             uniform_layout,
             texture_layout,
             mesh_pipeline,
@@ -62,19 +65,20 @@ impl Renderer {
         })
     }
 
-    pub fn resize(&self, width: u32, height: u32) {
+    pub fn resize(&mut self, width: u32, height: u32) {
         self.gpu.configure(width, height);
         self.gpu.set_uniform(
             &self.camera_uniform,
             &perspective(Deg(80.0), width as f32 / height as f32, 0.1, 100.0).into(),
         );
+        self.depth_buffer = self.gpu.create_depth_buffer(width, height);
     }
 
     pub fn render(&self, scene: &mut Scene) -> Result<(), RenderError> {
         let mut frame = self.gpu.next_frame()?;
 
         {
-            let mut pass = frame.begin_pass([0.1; 3]);
+            let mut pass = frame.begin_pass(&self.depth_buffer, [0.1; 3]);
             pass.set_uniform(0, &self.camera_uniform);
 
             pass.set_mesh_pipeline(&self.mesh_pipeline);

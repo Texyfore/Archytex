@@ -1,8 +1,8 @@
 use wgpu::{
-    vertex_attr_array, Face, FragmentState, FrontFace, MultisampleState,
-    PipelineLayoutDescriptor, PolygonMode, PrimitiveState, PrimitiveTopology, RenderPipeline,
-    RenderPipelineDescriptor, ShaderModuleDescriptor, ShaderSource, VertexBufferLayout,
-    VertexState, VertexStepMode,
+    vertex_attr_array, CompareFunction, DepthStencilState, Face, FragmentState, FrontFace,
+    MultisampleState, PipelineLayoutDescriptor, PolygonMode, PrimitiveState, PrimitiveTopology,
+    RenderPipeline, RenderPipelineDescriptor, ShaderModuleDescriptor, ShaderSource, TextureFormat,
+    VertexBufferLayout, VertexState, VertexStepMode,
 };
 
 use crate::{
@@ -65,7 +65,13 @@ impl GpuHandle {
                         polygon_mode: PolygonMode::Fill,
                         conservative: false,
                     },
-                    depth_stencil: None,
+                    depth_stencil: Some(DepthStencilState {
+                        format: TextureFormat::Depth32Float,
+                        depth_write_enabled: true,
+                        depth_compare: CompareFunction::Less,
+                        stencil: Default::default(),
+                        bias: Default::default(),
+                    }),
                     multisample: MultisampleState::default(),
                     fragment: Some(FragmentState {
                         module: &module,

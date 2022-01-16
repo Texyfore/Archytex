@@ -38,7 +38,7 @@ impl MainLoop {
         Ok(())
     }
 
-    pub fn window_resized(&self, width: u32, height: u32) {
+    pub fn window_resized(&mut self, width: u32, height: u32) {
         self.renderer.resize(width, height);
     }
 
