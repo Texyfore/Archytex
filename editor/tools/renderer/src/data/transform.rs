@@ -1,4 +1,4 @@
-use gpu::data::uniform::Uniform;
+use gpu::data::Uniform;
 use tk3d::math::{Matrix4, SquareMatrix};
 
 use crate::Renderer;

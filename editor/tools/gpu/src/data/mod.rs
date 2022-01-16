@@ -1,3 +1,7 @@
-pub mod buffer;
-pub mod uniform;
-pub mod texture;
+mod buffer;
+mod texture;
+mod uniform;
+
+pub use buffer::Buffer;
+pub use texture::{Texture, TextureLayout};
+pub use uniform::{Uniform, UniformLayout};

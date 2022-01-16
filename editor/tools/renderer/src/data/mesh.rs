@@ -1,4 +1,4 @@
-use gpu::{data::buffer::Buffer, BufferUsages};
+use gpu::{data::Buffer, BufferUsages};
 use tk3d::{Triangle, Vertex};
 
 use crate::Renderer;

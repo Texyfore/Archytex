@@ -6,7 +6,7 @@ use wgpu::{
 };
 
 use crate::{
-    data::{texture::TextureLayout, uniform::UniformLayout},
+    data::{TextureLayout, UniformLayout},
     handle::GpuHandle,
 };
 

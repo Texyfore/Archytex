@@ -8,7 +8,7 @@ use wgpu::{
 };
 
 use crate::{
-    data::{buffer::Buffer, texture::Texture, uniform::Uniform},
+    data::{Buffer, Texture, Uniform},
     handle::GpuHandle,
     pipelines::{LinePipeline, MeshPipeline},
 };

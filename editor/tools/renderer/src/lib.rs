@@ -5,8 +5,7 @@ use std::collections::HashMap;
 
 use gpu::{
     data::{
-        texture::TextureLayout,
-        uniform::{Uniform, UniformLayout},
+        TextureLayout, {Uniform, UniformLayout},
     },
     handle::GpuHandle,
     pipelines::{LinePipeline, MeshPipeline},
@@ -139,7 +138,7 @@ pub enum LoadTextureError {
 }
 
 struct Texture {
-    inner: gpu::data::texture::Texture,
+    inner: gpu::data::Texture,
     _width: u32,
     _height: u32,
 }

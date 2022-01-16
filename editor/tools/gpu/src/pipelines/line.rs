@@ -4,7 +4,7 @@ use wgpu::{
     ShaderSource, VertexBufferLayout, VertexState, VertexStepMode,
 };
 
-use crate::{data::uniform::UniformLayout, handle::GpuHandle};
+use crate::{data::UniformLayout, handle::GpuHandle};
 
 pub struct LinePipeline {
     pub(crate) inner: RenderPipeline,

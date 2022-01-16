@@ -1,5 +1,5 @@
 use bytemuck::{Pod, Zeroable};
-use gpu::{data::buffer::Buffer, BufferUsages};
+use gpu::{data::Buffer, BufferUsages};
 use tk3d::math::Vector3;
 
 use crate::Renderer;
