@@ -25,7 +25,7 @@ impl MainLoop {
     pub fn new(window: &Window) -> Result<Self> {
         let mut renderer = Renderer::new(window)?;
         let input = Input::default();
-        let editor = Editor::new(&renderer);
+        let editor = Editor::default();
 
         {
             let (width, height) = window.inner_size().into();

@@ -1,30 +1,21 @@
 mod camera;
-
-use std::rc::Rc;
+mod scene;
 
 use anyhow::Result;
-use renderer::{data::GizmoMesh, scene::Scene, Renderer};
+use renderer::{scene::Scene as RenderScene, Renderer};
 use winit::event::{MouseButton, VirtualKeyCode};
 
 use crate::input::Input;
 
-use self::camera::Camera;
+use self::{camera::Camera, scene::Scene};
 
+#[derive(Default)]
 pub struct Editor {
     camera: Camera,
-    gizmo_mesh: Rc<GizmoMesh>,
+    scene: Scene,
 }
 
 impl Editor {
-    pub fn new(renderer: &Renderer) -> Self {
-        Self {
-            camera: Camera::default(),
-            gizmo_mesh: Rc::new(renderer.create_gizmo_mesh(
-                &tk3d::agzm::GizmoMesh::decode(include_bytes!("gizmo.agzm")).unwrap(),
-            )),
-        }
-    }
-
     pub fn process(&mut self, ctx: OuterContext) -> Result<()> {
         if ctx.input.is_key_down(VirtualKeyCode::W) {
             self.camera.move_forward(ctx.delta);
@@ -66,7 +57,7 @@ impl Editor {
     }
 
     pub fn render(&self, renderer: &Renderer) -> Result<()> {
-        let mut scene = Scene::default();
+        let mut scene = RenderScene::default();
         scene.set_camera_matrix(self.camera.matrix());
         renderer.render(&scene)?;
 
