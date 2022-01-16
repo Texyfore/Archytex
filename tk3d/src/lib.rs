@@ -52,7 +52,7 @@ unsafe impl Zeroable for Triangle {}
 unsafe impl Pod for Triangle {}
 
 #[cfg(feature = "bytemuck")]
-unsafe impl Zeroable for agzm::Vertex {}
+unsafe impl Zeroable for agzm::GizmoVertex {}
 
 #[cfg(feature = "bytemuck")]
-unsafe impl Pod for agzm::Vertex {}
+unsafe impl Pod for agzm::GizmoVertex {}

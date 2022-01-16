@@ -25,7 +25,7 @@ pub struct GizmoInstances {
 }
 
 pub struct GizmoMesh {
-    pub(crate) vertices: Buffer<tk3d::agzm::Vertex>,
+    pub(crate) vertices: Buffer<tk3d::agzm::GizmoVertex>,
     pub(crate) triangles: Buffer<Triangle>,
 }
 
@@ -36,14 +36,10 @@ impl Renderer {
         }
     }
 
-    pub fn create_gizmo_mesh(
-        &self,
-        vertices: &[tk3d::agzm::Vertex],
-        triangles: &[Triangle],
-    ) -> GizmoMesh {
+    pub fn create_gizmo_mesh(&self, mesh: &tk3d::agzm::GizmoMesh) -> GizmoMesh {
         GizmoMesh {
-            vertices: self.gpu.create_buffer(vertices, BufferUsages::VERTEX),
-            triangles: self.gpu.create_buffer(triangles, BufferUsages::INDEX),
+            vertices: self.gpu.create_buffer(&mesh.vertices, BufferUsages::VERTEX),
+            triangles: self.gpu.create_buffer(&mesh.triangles, BufferUsages::INDEX),
         }
     }
 }

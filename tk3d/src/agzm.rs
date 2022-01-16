@@ -4,12 +4,12 @@ use serde::{Deserialize, Serialize};
 use crate::{error::DecodeError, Triangle};
 
 #[derive(Serialize, Deserialize)]
-pub struct Gizmo {
-    pub vertices: Vec<Vertex>,
+pub struct GizmoMesh {
+    pub vertices: Vec<GizmoVertex>,
     pub triangles: Vec<Triangle>,
 }
 
-impl Gizmo {
+impl GizmoMesh {
     pub fn encode(&self) -> Vec<u8> {
         bincode::serialize(self).unwrap()
     }
@@ -20,6 +20,6 @@ impl Gizmo {
 }
 
 #[derive(Serialize, Deserialize, Clone, Copy)]
-pub struct Vertex {
+pub struct GizmoVertex {
     pub position: Vector3<f32>,
 }

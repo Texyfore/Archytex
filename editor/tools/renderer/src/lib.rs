@@ -14,10 +14,7 @@ use gpu::{
 use image::{EncodableLayout, ImageError};
 use raw_window_handle::HasRawWindowHandle;
 use thiserror::Error;
-use tk3d::{
-    math::{perspective, Deg},
-    TextureID,
-};
+use tk3d::TextureID;
 
 use self::scene::Scene;
 
@@ -69,17 +66,16 @@ impl Renderer {
 
     pub fn resize(&mut self, width: u32, height: u32) {
         self.gpu.configure(width, height);
-        self.gpu.set_uniform(
-            &self.camera_uniform,
-            &perspective(Deg(80.0), width as f32 / height as f32, 0.1, 100.0).into(),
-        );
         self.depth_buffer = self.gpu.create_depth_buffer(width, height);
     }
 
-    pub fn render(&self, scene: &mut Scene) -> Result<(), RenderError> {
+    pub fn render(&self, scene: &Scene) -> Result<(), RenderError> {
         let mut frame = self.gpu.next_frame()?;
 
         {
+            self.gpu
+                .set_uniform(&self.camera_uniform, &scene.camera_matrix);
+
             let mut pass = frame.begin_pass(&self.depth_buffer, [0.1; 3]);
             pass.set_uniform(0, &self.camera_uniform);
 

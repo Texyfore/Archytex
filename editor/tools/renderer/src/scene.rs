@@ -25,7 +25,7 @@ impl Scene {
         self.line_objects.push(line_object);
     }
 
-    pub fn push_gizmos(&mut self, gizmo_object: GizmoObject) {
+    pub fn push_gizmo_object(&mut self, gizmo_object: GizmoObject) {
         self.gizmo_objects.push(gizmo_object);
     }
 }
