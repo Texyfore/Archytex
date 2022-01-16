@@ -9,5 +9,4 @@ type Render struct {
 	Started  time.Time   `json:"started" bson:"started"`
 	Finished *time.Time  `json:"finished, omitempty" bson:"finished, omitempty"`
 	Icon     string      `json:"icon" bson:"icon"`
-	Path     string      `json:"path" bson:"path"`
 }

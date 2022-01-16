@@ -1,13 +1,14 @@
 package authenticated
 
 import (
+	"net/http"
+
 	"github.com/Texyfore/Archytex/backend/database"
 	"github.com/Texyfore/Archytex/backend/database/models"
 	"github.com/Texyfore/Archytex/backend/logging"
 	"github.com/Texyfore/Archytex/backend/projectloaders"
 	"github.com/gorilla/mux"
 	"go.mongodb.org/mongo-driver/bson/primitive"
-	"net/http"
 )
 
 func ProjectData(w http.ResponseWriter, r *http.Request) {

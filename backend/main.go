@@ -2,15 +2,18 @@ package main
 
 import (
 	"fmt"
-	"github.com/Texyfore/Archytex/backend/projectloaders"
-	"github.com/Texyfore/Archytex/backend/routes/authenticated"
-	"github.com/Texyfore/Archytex/backend/session"
 	"log"
 	"math/rand"
 	"net/http"
 	"os"
 	"strconv"
 	"time"
+
+	"github.com/Texyfore/Archytex/backend/projectloaders"
+	"github.com/Texyfore/Archytex/backend/routes/authenticated"
+	"github.com/Texyfore/Archytex/backend/session"
+	"github.com/go-redis/redis/v8"
+	"github.com/streadway/amqp"
 
 	"github.com/Texyfore/Archytex/backend/database"
 	"github.com/Texyfore/Archytex/backend/logging"
@@ -32,6 +35,23 @@ func main() {
 	rand.Seed(time.Now().UnixNano())
 
 	db, err := database.MongoConnect(os.Getenv("MONGO_URI"), os.Getenv("MONGO_DB"))
+	if err != nil {
+		panic(err)
+	}
+
+	amqp, err := amqp.Dial(os.Getenv("AMQP_ADDR"))
+	if err != nil {
+		panic(err)
+	}
+	channel, err := amqp.Channel()
+	if err != nil {
+		panic(err)
+	}
+	database.RabbitmqChannel = channel
+
+	database.RedisClient = redis.NewClient(&redis.Options{
+		Addr: os.Getenv("REDIS_ADDR"),
+	})
 	if err != nil {
 		panic(err)
 	}
@@ -63,6 +83,7 @@ func main() {
 	auth.HandleFunc("/project", authenticated.Project).Methods("POST")
 	auth.HandleFunc("/project/{id}", authenticated.Project).Methods("DELETE", "PATCH")
 	auth.HandleFunc("/project/{id}/data", authenticated.ProjectData).Methods("GET", "POST")
+	auth.HandleFunc("/project/{id}/render", authenticated.Render).Methods("POST")
 
 	http.Handle("/", r)
 	fmt.Printf("Listening on port %d\n", port)
