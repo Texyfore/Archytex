@@ -1,7 +1,7 @@
 use std::rc::Rc;
 
 use renderer::{
-    data::GizmoInstance,
+    data::{GizmoInstance, GizmoMesh},
     scene::{GizmoObject, Scene},
     Renderer,
 };
@@ -17,7 +17,7 @@ use crate::{input::Input, ipc::IpcHost};
 pub struct MainLoop {
     renderer: Renderer,
     input: Input,
-    gizmo_object: Rc<GizmoObject>,
+    gizmo_mesh: Rc<GizmoMesh>,
 }
 
 impl MainLoop {
@@ -26,18 +26,12 @@ impl MainLoop {
         renderer.resize(1024, 768);
 
         let gizmo = tk3d::agzm::Gizmo::decode(include_bytes!("gizmo.agzm")).unwrap();
-        let gizmo_object = Rc::new(GizmoObject {
-            mesh: renderer.create_gizmo_mesh(&gizmo.vertices, &gizmo.triangles),
-            instances: renderer.create_gizmo_instances(&[GizmoInstance::new(
-                Matrix4::from_translation(vec3(0.0, 0.0, -5.0)),
-                [1.0; 3],
-            )]),
-        });
+        let gizmo_mesh = Rc::new(renderer.create_gizmo_mesh(&gizmo.vertices, &gizmo.triangles));
 
         Ok(Self {
             renderer,
             input: Input::default(),
-            gizmo_object,
+            gizmo_mesh,
         })
     }
 
@@ -48,7 +42,19 @@ impl MainLoop {
 
     pub fn render(&self) -> Result<(), RenderError> {
         let mut scene = Scene::default();
-        scene.push_gizmos(self.gizmo_object.clone());
+        scene.push_gizmos(GizmoObject {
+            mesh: self.gizmo_mesh.clone(),
+            instances: Rc::new(self.renderer.create_gizmo_instances(&[
+                GizmoInstance::new(
+                    Matrix4::from_translation(vec3(-2.0, 0.0, -10.0)),
+                    [1.0, 0.0, 0.0],
+                ),
+                GizmoInstance::new(
+                    Matrix4::from_translation(vec3(2.0, 0.0, -10.0)),
+                    [0.0, 1.0, 0.0],
+                ),
+            ])),
+        });
 
         self.renderer.render(&mut scene)?;
         Ok(())

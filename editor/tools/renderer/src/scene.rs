@@ -7,9 +7,9 @@ use crate::data::{GizmoInstances, GizmoMesh, Lines, Mesh, Transform};
 #[derive(Default)]
 pub struct Scene {
     pub(crate) camera_matrix: [[f32; 4]; 4],
-    pub(crate) mesh_objects: Vec<Rc<MeshObject>>,
-    pub(crate) line_objects: Vec<Rc<LineObject>>,
-    pub(crate) gizmo_objects: Vec<Rc<GizmoObject>>,
+    pub(crate) mesh_objects: Vec<MeshObject>,
+    pub(crate) line_objects: Vec<LineObject>,
+    pub(crate) gizmo_objects: Vec<GizmoObject>,
 }
 
 impl Scene {
@@ -17,31 +17,31 @@ impl Scene {
         self.camera_matrix = matrix.into();
     }
 
-    pub fn push_mesh_object(&mut self, mesh_object: Rc<MeshObject>) {
+    pub fn push_mesh_object(&mut self, mesh_object: MeshObject) {
         self.mesh_objects.push(mesh_object);
     }
 
-    pub fn push_line_object(&mut self, line_object: Rc<LineObject>) {
+    pub fn push_line_object(&mut self, line_object: LineObject) {
         self.line_objects.push(line_object);
     }
 
-    pub fn push_gizmos(&mut self, gizmo_object: Rc<GizmoObject>) {
+    pub fn push_gizmos(&mut self, gizmo_object: GizmoObject) {
         self.gizmo_objects.push(gizmo_object);
     }
 }
 
 pub struct MeshObject {
     pub texture_id: TextureID,
-    pub transform: Transform,
-    pub mesh: Mesh,
+    pub transform: Rc<Transform>,
+    pub mesh: Rc<Mesh>,
 }
 
 pub struct LineObject {
-    pub transform: Transform,
-    pub lines: Lines,
+    pub transform: Rc<Transform>,
+    pub lines: Rc<Lines>,
 }
 
 pub struct GizmoObject {
-    pub mesh: GizmoMesh,
-    pub instances: GizmoInstances,
+    pub mesh: Rc<GizmoMesh>,
+    pub instances: Rc<GizmoInstances>,
 }
