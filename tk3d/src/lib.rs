@@ -1,6 +1,7 @@
 pub mod amdl;
 pub mod ascn;
 pub mod error;
+pub mod agzm;
 pub mod proc;
 
 pub use cgmath as math;
@@ -49,3 +50,9 @@ unsafe impl Zeroable for Triangle {}
 
 #[cfg(feature = "bytemuck")]
 unsafe impl Pod for Triangle {}
+
+#[cfg(feature = "bytemuck")]
+unsafe impl Zeroable for agzm::Vertex {}
+
+#[cfg(feature = "bytemuck")]
+unsafe impl Pod for agzm::Vertex {}
