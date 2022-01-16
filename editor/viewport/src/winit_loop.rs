@@ -1,7 +1,8 @@
 use anyhow::Result;
+use tk3d::math::vec2;
 use winit::{
-    dpi::PhysicalSize,
-    event::{Event, KeyboardInput, WindowEvent},
+    dpi::{PhysicalPosition, PhysicalSize},
+    event::{Event, KeyboardInput, MouseScrollDelta, WindowEvent},
     event_loop::{ControlFlow, EventLoop},
     window::{Window, WindowBuilder},
 };
@@ -107,6 +108,20 @@ impl WinitLoop {
                     WindowEvent::MouseInput { button, state, .. } => {
                         main_loop.mouse_input(button, state);
                     }
+
+                    WindowEvent::CursorMoved {
+                        position: PhysicalPosition { x, y },
+                        ..
+                    } => {
+                        main_loop.mouse_movement(vec2(x as f32, y as f32));
+                    }
+
+                    WindowEvent::MouseWheel { delta, .. } => match delta {
+                        MouseScrollDelta::LineDelta(_, y) => main_loop.mouse_wheel_movement(y),
+                        MouseScrollDelta::PixelDelta(PhysicalPosition { y, .. }) => {
+                            main_loop.mouse_wheel_movement(y.signum() as f32)
+                        }
+                    },
 
                     _ => {}
                 },

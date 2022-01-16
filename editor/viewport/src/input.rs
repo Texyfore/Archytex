@@ -1,11 +1,26 @@
 use std::collections::HashMap;
 
+use tk3d::math::{Vector2, Zero};
 use winit::event::{ElementState, MouseButton, VirtualKeyCode};
 
-#[derive(Default)]
 pub struct Input {
     key_states: HashMap<VirtualKeyCode, ActionState>,
     button_states: HashMap<MouseButton, ActionState>,
+    mouse_pos_before: Vector2<f32>,
+    mouse_pos: Vector2<f32>,
+    mouse_wheel: f32,
+}
+
+impl Default for Input {
+    fn default() -> Self {
+        Self {
+            key_states: HashMap::new(),
+            button_states: HashMap::new(),
+            mouse_pos_before: Vector2::zero(),
+            mouse_pos: Vector2::zero(),
+            mouse_wheel: 0.0,
+        }
+    }
 }
 
 impl Input {
@@ -51,6 +66,18 @@ impl Input {
             .unwrap_or(false)
     }
 
+    pub fn mouse_pos(&self) -> Vector2<f32> {
+        self.mouse_pos
+    }
+
+    pub fn mouse_delta(&self) -> Vector2<f32> {
+        self.mouse_pos - self.mouse_pos_before
+    }
+
+    pub fn mouse_wheel(&self) -> f32 {
+        self.mouse_wheel
+    }
+
     pub fn process(&mut self) {
         for state in self.key_states.values_mut() {
             state.increment();
@@ -59,6 +86,9 @@ impl Input {
         for state in self.button_states.values_mut() {
             state.increment();
         }
+
+        self.mouse_pos_before = self.mouse_pos;
+        self.mouse_wheel = 0.0;
     }
 
     pub fn keyboard_input(&mut self, key: VirtualKeyCode, state: ElementState) {
@@ -67,6 +97,14 @@ impl Input {
 
     pub fn mouse_input(&mut self, button: MouseButton, state: ElementState) {
         self.button_states.entry(button).or_default().set(state);
+    }
+
+    pub fn mouse_movement(&mut self, new_pos: Vector2<f32>) {
+        self.mouse_pos = new_pos;
+    }
+
+    pub fn mouse_wheel_movement(&mut self, movement: f32) {
+        self.mouse_wheel = movement;
     }
 }
 
@@ -127,6 +165,7 @@ impl ActionState {
 
 #[cfg(test)]
 mod tests {
+    use tk3d::math::{Vector2, Zero};
     use winit::event::{ElementState, MouseButton, VirtualKeyCode};
 
     use super::Input;
@@ -199,5 +238,38 @@ mod tests {
         assert!(!input.was_button_down_once(MouseButton::Left));
         input.mouse_input(MouseButton::Left, ElementState::Released);
         assert!(input.was_button_down_once(MouseButton::Left));
+    }
+
+    #[test]
+    fn mouse_pos() {
+        let mut input = Input::default();
+
+        assert_eq!(input.mouse_pos(), Vector2::zero());
+        input.mouse_movement(Vector2::new(1.0, 1.0));
+        assert_eq!(input.mouse_pos(), Vector2::new(1.0, 1.0));
+        input.process();
+        assert_eq!(input.mouse_pos(), Vector2::new(1.0, 1.0));
+    }
+
+    #[test]
+    fn mouse_delta() {
+        let mut input = Input::default();
+
+        assert_eq!(input.mouse_delta(), Vector2::zero());
+        input.mouse_movement(Vector2::new(1.0, 1.0));
+        assert_eq!(input.mouse_delta(), Vector2::new(1.0, 1.0));
+        input.process();
+        assert_eq!(input.mouse_delta(), Vector2::zero());
+    }
+
+    #[test]
+    fn mouse_wheel() {
+        let mut input = Input::default();
+
+        assert_eq!(input.mouse_wheel(), 0.0);
+        input.mouse_wheel_movement(1.0);
+        assert_eq!(input.mouse_wheel(), 1.0);
+        input.process();
+        assert_eq!(input.mouse_wheel(), 0.0);
     }
 }

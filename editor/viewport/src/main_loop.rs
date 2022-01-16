@@ -1,16 +1,24 @@
+use std::time::Instant;
+
 use anyhow::Result;
 use renderer::Renderer;
+use tk3d::math::Vector2;
 use winit::{
     event::{ElementState, MouseButton, VirtualKeyCode},
     window::Window,
 };
 
-use crate::{editor::Editor, input::Input, ipc::IpcHost};
+use crate::{
+    editor::{self, Editor},
+    input::Input,
+    ipc::IpcHost,
+};
 
 pub struct MainLoop {
     renderer: Renderer,
     input: Input,
     editor: Editor,
+    before: Instant,
 }
 
 impl MainLoop {
@@ -28,12 +36,20 @@ impl MainLoop {
             renderer,
             input,
             editor,
+            before: Instant::now(),
         })
     }
 
     pub fn process<H: IpcHost>(&mut self, _host: &H) -> Result<()> {
+        let after = Instant::now();
+        let delta = (after - self.before).as_secs_f32();
+        self.before = after;
+
+        self.editor.process(editor::OuterContext {
+            delta,
+            input: &self.input,
+        })?;
         self.input.process();
-        self.editor.process()?;
         Ok(())
     }
 
@@ -53,5 +69,13 @@ impl MainLoop {
 
     pub fn mouse_input(&mut self, button: MouseButton, state: ElementState) {
         self.input.mouse_input(button, state);
+    }
+
+    pub fn mouse_movement(&mut self, new_pos: Vector2<f32>) {
+        self.input.mouse_movement(new_pos);
+    }
+
+    pub fn mouse_wheel_movement(&mut self, movement: f32) {
+        self.input.mouse_wheel_movement(movement);
     }
 }
