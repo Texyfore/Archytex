@@ -3,12 +3,7 @@ mod camera;
 use std::rc::Rc;
 
 use anyhow::Result;
-use renderer::{
-    data::{GizmoInstance, GizmoMesh},
-    scene::{GizmoObject, Scene},
-    Renderer,
-};
-use tk3d::math::{Matrix4, SquareMatrix};
+use renderer::{data::GizmoMesh, scene::Scene, Renderer};
 use winit::event::{MouseButton, VirtualKeyCode};
 
 use crate::input::Input;
@@ -34,24 +29,31 @@ impl Editor {
         if ctx.input.is_key_down(VirtualKeyCode::W) {
             self.camera.move_forward(ctx.delta);
         }
+
         if ctx.input.is_key_down(VirtualKeyCode::S) {
             self.camera.move_backward(ctx.delta);
         }
+
         if ctx.input.is_key_down(VirtualKeyCode::A) {
             self.camera.move_left(ctx.delta);
         }
+
         if ctx.input.is_key_down(VirtualKeyCode::D) {
             self.camera.move_right(ctx.delta);
         }
+
         if ctx.input.is_key_down(VirtualKeyCode::Q) {
             self.camera.move_down(ctx.delta);
         }
+
         if ctx.input.is_key_down(VirtualKeyCode::E) {
             self.camera.move_up(ctx.delta);
         }
+
         if ctx.input.is_button_down(MouseButton::Right) {
             self.camera.look(ctx.input.mouse_delta(), ctx.delta);
         }
+
         if ctx.input.mouse_wheel().abs() > 0.1 {
             if ctx.input.mouse_wheel().signum() > 0.0 {
                 self.camera.increase_speed();
@@ -59,22 +61,15 @@ impl Editor {
                 self.camera.decrease_speed();
             }
         }
+
         Ok(())
     }
 
     pub fn render(&self, renderer: &Renderer) -> Result<()> {
         let mut scene = Scene::default();
-
         scene.set_camera_matrix(self.camera.matrix());
-        scene.push_gizmo_object(GizmoObject {
-            mesh: self.gizmo_mesh.clone(),
-            instances: Rc::new(
-                renderer
-                    .create_gizmo_instances(&[GizmoInstance::new(Matrix4::identity(), [1.0; 3])]),
-            ),
-        });
-
         renderer.render(&scene)?;
+
         Ok(())
     }
 
