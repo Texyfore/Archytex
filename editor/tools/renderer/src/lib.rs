@@ -41,7 +41,6 @@ impl Renderer {
     pub fn new<H: HasRawWindowHandle>(window_handle: &H) -> Result<Self, NewError> {
         let gpu = GpuHandle::new(window_handle)?;
         let depth_buffer = gpu.create_depth_buffer(1024, 768);
-        gpu.configure(1024, 768);
 
         let uniform_layout = gpu.create_uniform_layout();
         let texture_layout = gpu.create_texture_layout();
