@@ -1,11 +1,11 @@
 use std::rc::Rc;
 
+use anyhow::Result;
 use renderer::{
     data::{GizmoInstance, GizmoMesh},
     scene::{GizmoObject, Scene},
     Renderer,
 };
-use thiserror::Error;
 use tk3d::math::{vec3, Matrix4};
 use winit::{
     event::{ElementState, MouseButton, VirtualKeyCode},
@@ -21,7 +21,7 @@ pub struct MainLoop {
 }
 
 impl MainLoop {
-    pub fn new(window: &Window) -> Result<Self, NewError> {
+    pub fn new(window: &Window) -> Result<Self> {
         let mut renderer = Renderer::new(window)?;
         renderer.resize(1024, 768);
 
@@ -35,12 +35,12 @@ impl MainLoop {
         })
     }
 
-    pub fn process<H: IpcHost>(&mut self, _host: &H) -> Result<(), ProcessError> {
+    pub fn process<H: IpcHost>(&mut self, _host: &H) -> Result<()> {
         self.input.process();
         Ok(())
     }
 
-    pub fn render(&self) -> Result<(), RenderError> {
+    pub fn render(&self) -> Result<()> {
         let mut scene = Scene::default();
         scene.push_gizmos(GizmoObject {
             mesh: self.gizmo_mesh.clone(),
@@ -72,17 +72,3 @@ impl MainLoop {
         self.input.mouse_input(button, state);
     }
 }
-
-#[derive(Error, Debug)]
-pub enum NewError {
-    #[error("Couldn't create main loop: {0}")]
-    NoRenderer(#[from] renderer::NewError),
-}
-
-#[derive(Error, Debug)]
-#[error("Couldn't compute next frame")]
-pub struct ProcessError;
-
-#[derive(Error, Debug)]
-#[error("{0}")]
-pub struct RenderError(#[from] renderer::RenderError);

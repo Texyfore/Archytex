@@ -4,8 +4,8 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-thiserror = "1.0.30"
 winit = "=0.26.1"
+anyhow = "1.0.52"
 renderer = { path = "../tools/renderer" }
 tk3d = { path = "../../tk3d", features = ["bytemuck"] }
 

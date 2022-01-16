@@ -1,7 +1,6 @@
-use thiserror::Error;
+use anyhow::Result;
 use winit::{
     dpi::PhysicalSize,
-    error::OsError,
     event::{Event, KeyboardInput, WindowEvent},
     event_loop::{ControlFlow, EventLoop},
     window::{Window, WindowBuilder},
@@ -14,7 +13,11 @@ macro_rules! check {
         match $e {
             Ok(_) => {}
             Err(err) => {
-                $h.error(format!("{}", err));
+                $h.error(format!(
+                    "Error: {}\n\nCaused by:\n    {}",
+                    err,
+                    err.root_cause()
+                ));
                 *$f = ControlFlow::Exit;
             }
         }
@@ -28,14 +31,19 @@ pub struct WinitLoop {
 
 impl WinitLoop {
     #[cfg(not(target_arch = "wasm32"))]
-    pub fn new() -> Result<Self, NewError> {
+    pub fn new() -> Result<Self> {
+        use anyhow::Context;
+
         let event_loop = EventLoop::new();
-        let window = WindowBuilder::default().build(&event_loop)?;
+        let window = WindowBuilder::default()
+            .build(&event_loop)
+            .context("couldn't create window")?;
+
         Ok(Self { event_loop, window })
     }
 
     #[cfg(target_arch = "wasm32")]
-    pub fn new() -> Result<Self, NewError> {
+    pub fn new() -> Result<Self> {
         use wasm_bindgen::JsCast;
         use web_sys::HtmlCanvasElement;
         use winit::platform::web::WindowBuilderExtWebSys;
@@ -44,15 +52,16 @@ impl WinitLoop {
         let window = WindowBuilder::default()
             .with_canvas(Some(
                 web_sys::window()
-                    .ok_or(NewError::NoHtmlCanvas)?
+                    .unwrap()
                     .document()
-                    .ok_or(NewError::NoHtmlCanvas)?
+                    .unwrap()
                     .get_element_by_id("viewport-canvas")
-                    .ok_or(NewError::NoHtmlCanvas)?
+                    .unwrap()
                     .dyn_into::<HtmlCanvasElement>()
-                    .map_err(|_| NewError::NoHtmlCanvas)?,
+                    .unwrap(),
             ))
-            .build(&event_loop)?;
+            .build(&event_loop)
+            .context("couldn't create window")?;
 
         Ok(Self { event_loop, window })
     }
@@ -61,7 +70,11 @@ impl WinitLoop {
         let mut main_loop = match MainLoop::new(&self.window) {
             Ok(ok) => ok,
             Err(err) => {
-                host.error(format!("{}", err));
+                host.error(format!(
+                    "Error: {}\n\nCaused by:\n    {}",
+                    err,
+                    err.root_cause()
+                ));
                 return;
             }
         };
@@ -107,13 +120,4 @@ impl WinitLoop {
             }
         });
     }
-}
-
-#[derive(Error, Debug)]
-pub enum NewError {
-    #[cfg(target_arch = "wasm32")]
-    #[error("Couldn't create window: No HTML canvas")]
-    NoHtmlCanvas,
-    #[error("Couldn't create window: {0}")]
-    WinitError(#[from] OsError),
 }
