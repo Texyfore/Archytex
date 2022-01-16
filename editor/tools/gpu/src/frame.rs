@@ -4,13 +4,13 @@ use bytemuck::Pod;
 use thiserror::Error;
 use wgpu::{
     Color, CommandEncoder, IndexFormat, LoadOp, Operations, RenderPassColorAttachment,
-    RenderPassDescriptor, RenderPipeline, SurfaceError, SurfaceTexture, TextureView,
+    RenderPassDescriptor, SurfaceError, SurfaceTexture, TextureView,
 };
 
 use crate::{
     data::{buffer::Buffer, texture::Texture, uniform::Uniform},
     handle::GpuHandle,
-    pipelines::mesh::MeshPipeline,
+    pipelines::{LinePipeline, MeshPipeline},
 };
 
 pub struct Frame {
@@ -75,6 +75,10 @@ impl<'a> RenderPass<'a> {
         self.inner.set_pipeline(&pipeline.inner);
     }
 
+    pub fn set_line_pipeline(&mut self, pipeline: &'a LinePipeline) {
+        self.inner.set_pipeline(&pipeline.inner);
+    }
+
     pub fn set_uniform<T: Pod>(&mut self, slot: u32, uniform: &'a Uniform<T>) {
         self.inner.set_bind_group(slot, &uniform.group, &[]);
     }
@@ -83,7 +87,16 @@ impl<'a> RenderPass<'a> {
         self.inner.set_bind_group(2, &texture.group, &[]);
     }
 
-    pub fn draw_mesh<V: Pod, T: Pod>(&mut self, vertices: &'a Buffer<V>, triangles: &'a Buffer<T>) {
+    pub fn draw<V: Pod>(&mut self, vertices: &'a Buffer<V>) {
+        self.inner.set_vertex_buffer(0, vertices.inner.slice(..));
+        self.inner.draw(0..vertices.len as u32, 0..1);
+    }
+
+    pub fn draw_indexed<V: Pod, T: Pod>(
+        &mut self,
+        vertices: &'a Buffer<V>,
+        triangles: &'a Buffer<T>,
+    ) {
         self.inner.set_vertex_buffer(0, vertices.inner.slice(..));
         self.inner
             .set_index_buffer(triangles.inner.slice(..), IndexFormat::Uint16);

@@ -9,7 +9,7 @@ use gpu::{
         uniform::{Uniform, UniformLayout},
     },
     handle::GpuHandle,
-    pipelines::mesh::MeshPipeline,
+    pipelines::{LinePipeline, MeshPipeline},
     Sampler,
 };
 use image::{EncodableLayout, ImageError};
@@ -24,9 +24,13 @@ use self::scene::Scene;
 
 pub struct Renderer {
     gpu: GpuHandle,
+
     uniform_layout: UniformLayout,
     texture_layout: TextureLayout,
+
     mesh_pipeline: MeshPipeline,
+    line_pipeline: LinePipeline,
+
     camera_uniform: Uniform<[[f32; 4]; 4]>,
     textures: HashMap<u32, Texture>,
     sampler: Sampler,
@@ -39,7 +43,10 @@ impl Renderer {
 
         let uniform_layout = gpu.create_uniform_layout();
         let texture_layout = gpu.create_texture_layout();
+
         let mesh_pipeline = gpu.create_mesh_pipeline(&uniform_layout, &texture_layout);
+        let line_pipeline = gpu.create_line_pipeline(&uniform_layout);
+
         let camera_uniform = gpu.create_uniform(&uniform_layout);
         let textures = HashMap::new();
         let sampler = gpu.create_sampler();
@@ -49,6 +56,7 @@ impl Renderer {
             uniform_layout,
             texture_layout,
             mesh_pipeline,
+            line_pipeline,
             camera_uniform,
             textures,
             sampler,
@@ -68,15 +76,21 @@ impl Renderer {
 
         {
             let mut pass = frame.begin_pass([0.1; 3]);
-            pass.set_mesh_pipeline(&self.mesh_pipeline);
             pass.set_uniform(0, &self.camera_uniform);
 
+            pass.set_mesh_pipeline(&self.mesh_pipeline);
             for mesh_object in &scene.mesh_objects {
                 if let Some(texture) = self.textures.get(&mesh_object.texture_id.0) {
                     pass.set_uniform(1, &mesh_object.transform.uniform);
                     pass.set_texture(&texture.inner);
-                    pass.draw_mesh(&mesh_object.mesh.vertices, &mesh_object.mesh.triangles);
+                    pass.draw_indexed(&mesh_object.mesh.vertices, &mesh_object.mesh.triangles);
                 }
+            }
+
+            pass.set_line_pipeline(&self.line_pipeline);
+            for line_object in &scene.line_objects {
+                pass.set_uniform(1, &line_object.transform.uniform);
+                pass.draw(&line_object.lines.vertices);
             }
         }
 
@@ -98,8 +112,8 @@ impl Renderer {
                     height,
                     data.as_bytes(),
                 ),
-                width,
-                height,
+                _width: width,
+                _height: height,
             },
         );
         Ok(())
@@ -126,6 +140,6 @@ pub enum LoadTextureError {
 
 struct Texture {
     inner: gpu::data::texture::Texture,
-    width: u32,
-    height: u32,
+    _width: u32,
+    _height: u32,
 }
