@@ -8,7 +8,7 @@ use gpu::{
         DepthBuffer, TextureLayout, {Uniform, UniformLayout},
     },
     handle::GpuHandle,
-    pipelines::{LinePipeline, MeshPipeline},
+    pipelines::{GizmoPipeline, LinePipeline, MeshPipeline},
     Sampler,
 };
 use image::{EncodableLayout, ImageError};
@@ -30,6 +30,7 @@ pub struct Renderer {
 
     mesh_pipeline: MeshPipeline,
     line_pipeline: LinePipeline,
+    gizmo_pipeline: GizmoPipeline,
 
     camera_uniform: Uniform<[[f32; 4]; 4]>,
     textures: HashMap<u32, Texture>,
@@ -47,6 +48,7 @@ impl Renderer {
 
         let mesh_pipeline = gpu.create_mesh_pipeline(&uniform_layout, &texture_layout);
         let line_pipeline = gpu.create_line_pipeline(&uniform_layout);
+        let gizmo_pipeline = gpu.create_gizmo_pipeline(&uniform_layout);
 
         let camera_uniform = gpu.create_uniform(&uniform_layout);
         let textures = HashMap::new();
@@ -59,6 +61,7 @@ impl Renderer {
             texture_layout,
             mesh_pipeline,
             line_pipeline,
+            gizmo_pipeline,
             camera_uniform,
             textures,
             sampler,
@@ -94,6 +97,15 @@ impl Renderer {
             for line_object in &scene.line_objects {
                 pass.set_uniform(1, &line_object.transform.uniform);
                 pass.draw(&line_object.lines.vertices);
+            }
+
+            pass.set_gizmo_pipeline(&self.gizmo_pipeline);
+            for gizmo_object in &scene.gizmo_objects {
+                pass.draw_gizmos(
+                    &gizmo_object.mesh.vertices,
+                    &gizmo_object.mesh.triangles,
+                    &gizmo_object.instances.buffer,
+                )
             }
         }
 

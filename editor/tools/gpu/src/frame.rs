@@ -11,7 +11,7 @@ use wgpu::{
 use crate::{
     data::{Buffer, DepthBuffer, Texture, Uniform},
     handle::GpuHandle,
-    pipelines::{LinePipeline, MeshPipeline},
+    pipelines::{GizmoPipeline, LinePipeline, MeshPipeline},
 };
 
 pub struct Frame {
@@ -91,6 +91,10 @@ impl<'a> RenderPass<'a> {
         self.inner.set_pipeline(&pipeline.inner);
     }
 
+    pub fn set_gizmo_pipeline(&mut self, pipeline: &'a GizmoPipeline) {
+        self.inner.set_pipeline(&pipeline.inner);
+    }
+
     pub fn set_uniform<T: Pod>(&mut self, slot: u32, uniform: &'a Uniform<T>) {
         self.inner.set_bind_group(slot, &uniform.group, &[]);
     }
@@ -114,5 +118,19 @@ impl<'a> RenderPass<'a> {
             .set_index_buffer(triangles.inner.slice(..), IndexFormat::Uint16);
         self.inner
             .draw_indexed(0..triangles.len as u32 * 3, 0, 0..1);
+    }
+
+    pub fn draw_gizmos<V: Pod, T: Pod, I: Pod>(
+        &mut self,
+        vertices: &'a Buffer<V>,
+        triangles: &'a Buffer<T>,
+        instances: &'a Buffer<I>,
+    ) {
+        self.inner.set_vertex_buffer(0, vertices.inner.slice(..));
+        self.inner.set_vertex_buffer(1, instances.inner.slice(..));
+        self.inner
+            .set_index_buffer(triangles.inner.slice(..), IndexFormat::Uint16);
+        self.inner
+            .draw_indexed(0..triangles.len as u32 * 3, 0, 0..instances.len as u32);
     }
 }

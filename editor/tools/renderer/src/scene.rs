@@ -1,18 +1,15 @@
 use std::rc::Rc;
 
-use tk3d::{
-    math::{Matrix4, Vector2},
-    TextureID,
-};
+use tk3d::{math::Matrix4, TextureID};
 
-use crate::data::{Lines, Mesh, Transform};
+use crate::data::{GizmoInstances, GizmoMesh, Lines, Mesh, Transform};
 
 #[derive(Default)]
 pub struct Scene {
     pub(crate) camera_matrix: [[f32; 4]; 4],
     pub(crate) mesh_objects: Vec<Rc<MeshObject>>,
     pub(crate) line_objects: Vec<Rc<LineObject>>,
-    pub(crate) sprites: Vec<Sprite>,
+    pub(crate) gizmo_objects: Vec<Rc<GizmoObject>>,
 }
 
 impl Scene {
@@ -28,8 +25,8 @@ impl Scene {
         self.line_objects.push(line_object);
     }
 
-    pub fn push_sprite(&mut self, sprite: Sprite) {
-        self.sprites.push(sprite);
+    pub fn push_gizmos(&mut self, gizmo_object: Rc<GizmoObject>) {
+        self.gizmo_objects.push(gizmo_object);
     }
 }
 
@@ -44,7 +41,7 @@ pub struct LineObject {
     pub lines: Lines,
 }
 
-pub struct Sprite {
-    pub texture_id: TextureID,
-    pub position: Vector2<f32>,
+pub struct GizmoObject {
+    pub mesh: GizmoMesh,
+    pub instances: GizmoInstances,
 }

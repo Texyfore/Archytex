@@ -44,13 +44,14 @@ impl GpuHandle {
                                 ],
                             },
                             VertexBufferLayout {
-                                array_stride: 64,
+                                array_stride: 80,
                                 step_mode: VertexStepMode::Instance,
                                 attributes: &vertex_attr_array![
-                                    0 => Float32x4,
                                     1 => Float32x4,
                                     2 => Float32x4,
                                     3 => Float32x4,
+                                    4 => Float32x4,
+                                    5 => Float32x4,
                                 ],
                             },
                         ],
