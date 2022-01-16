@@ -425,11 +425,9 @@ func (m MongoDatabase) SubscribeProjects(userId interface{}) (chan Updates, erro
 		defer stream.Close(context.TODO())
 		defer close(c)
 		//Send first update
-		r, err := m.Users.Aggregate(context.TODO(), pipeline)
-		if err != nil {
-			fmt.Println(err)
-			return
-		}
+		r := m.Users.FindOne(context.TODO(), bson.D{
+			{"_id", userId},
+		})
 		var data struct {
 			FullDocument Updates `json:"fullDocument" bson:"fullDocument"`
 		}

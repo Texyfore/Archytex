@@ -144,11 +144,13 @@ export default function Editor() {
             break;
           case "save":
             if (api?.state === "logged-in") {
-              api.save(scene);
+              api.save(scene, projectId);
             }
             break;
           case "render":
-            //TODO: implement render
+            if (api?.state === "logged-in") {
+              api.render(scene, projectId);
+            }
             break;
           default:
             break;

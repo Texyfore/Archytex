@@ -72,7 +72,10 @@ const DummyProvider = ({
           logOut: () => {
             setValue(getDefault());
           },
-          save: async (data: Uint8Array) => {
+          save: async (data: Uint8Array, id: string) => {
+            console.log(data.length);
+          },
+          render: async (data: Uint8Array, id: string) => {
             console.log(data.length);
           },
         });

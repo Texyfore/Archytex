@@ -199,8 +199,15 @@ const RestProvider = ({
       user: internal.user,
       logOut: () => setInternal(null),
       subscribe: subscribe(internal),
-      save: async (data: Uint8Array) => {
-        internal.fetch(`${Environment.base_url}project`, {
+      save: async (data: Uint8Array, id: string) => {
+        internal.fetch(`${Environment.base_url}auth/project/${id}/data`, {
+          method: "POST",
+          body: data,
+          headers: { "Content-Type": "application/octet-stream" },
+        });
+      },
+      render: async (data: Uint8Array, id: string) => {
+        internal.fetch(`${Environment.base_url}auth/project/${id}/render`, {
           method: "POST",
           body: data,
           headers: { "Content-Type": "application/octet-stream" },

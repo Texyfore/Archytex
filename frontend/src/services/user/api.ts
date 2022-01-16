@@ -16,7 +16,8 @@ interface UserLoggedIn {
     dispatch: ProjectsDispatch;
     dispose: () => void;
   };
-  save: (data: Uint8Array) => Promise<void>;
+  save: (data: Uint8Array, id: string) => Promise<void>;
+  render: (data: Uint8Array, id: string) => Promise<void>;
 }
 interface UserNotLoggedIn {
   state: "not-logged-in";
