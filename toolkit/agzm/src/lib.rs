@@ -1,15 +1,15 @@
 use bincode::ErrorKind;
-use cgmath::Vector3;
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
 
+pub use gizmo::{Mesh, Vertex};
+
 #[derive(Serialize, Deserialize)]
-pub struct Mesh {
-    pub vertices: Vec<Vector3<f32>>,
-    pub triangles: Vec<[u16; 3]>,
+pub struct Gizmo {
+    pub mesh: Mesh,
 }
 
-impl Mesh {
+impl Gizmo {
     pub fn encode(&self) -> Result<Vec<u8>, EncodeError> {
         Ok(bincode::serialize(self)?)
     }
@@ -20,9 +20,9 @@ impl Mesh {
 }
 
 #[derive(Error, Debug)]
-#[error("couldn't encode Mesh: {0}")]
+#[error("{0}")]
 pub struct EncodeError(#[from] Box<ErrorKind>);
 
 #[derive(Error, Debug)]
-#[error("couldn't decode Mesh: {0}")]
+#[error("{0}")]
 pub struct DecodeError(#[from] Box<ErrorKind>);

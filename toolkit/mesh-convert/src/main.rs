@@ -1,12 +1,12 @@
 use std::fs::write;
 
 use anyhow::{bail, ensure, Context, Result};
+use asset_id::TextureID;
 use clap::{App, Arg, ArgMatches};
 use gltf::mesh::{
     util::{ReadIndices, ReadTexCoords},
     Mode,
 };
-use tk3d::TextureID;
 
 fn main() {
     let matches = App::new("meshtool")
@@ -44,6 +44,8 @@ fn run(subcommand: &str, matches: &ArgMatches) -> Result<()> {
 }
 
 fn build_amdl(matches: &ArgMatches) -> Result<Vec<u8>> {
+    use amdl::*;
+
     let src = matches.value_of("src").unwrap();
     let texture: u32 = matches
         .value_of("texture")
@@ -108,7 +110,7 @@ fn build_amdl(matches: &ArgMatches) -> Result<Vec<u8>> {
         .into_iter()
         .zip(normals.into_iter())
         .zip(texcoords.into_iter())
-        .map(|((p, n), t)| tk3d::Vertex {
+        .map(|((p, n), t)| Vertex {
             position: p.into(),
             normal: n.into(),
             texcoord: t.into(),
@@ -126,27 +128,27 @@ fn build_amdl(matches: &ArgMatches) -> Result<Vec<u8>> {
 
     let triangles = indices
         .chunks_exact(3)
-        .map(|w| tk3d::Triangle {
-            indices: w.try_into().unwrap(),
-        })
+        .map(|w| w.try_into().unwrap())
         .collect();
 
-    let model = tk3d::amdl::PropModel {
-        bounding_box: tk3d::amdl::BoundingBox {
+    let model = Model {
+        texture_id: TextureID(texture),
+        bounding_box: BoundingBox {
             min: box_min.into(),
             max: box_max.into(),
         },
-        mesh: tk3d::Mesh {
-            texture: TextureID(texture),
+        mesh: Mesh {
             vertices,
             triangles,
         },
     };
 
-    Ok(model.encode())
+    model.encode().context("couldn't encode model")
 }
 
 fn build_agzm(matches: &ArgMatches) -> Result<Vec<u8>> {
+    use agzm::*;
+
     let src = matches.value_of("src").unwrap();
 
     let (document, buffers, _) = gltf::import(&src).context("couldn't import gltf file")?;
@@ -167,7 +169,7 @@ fn build_agzm(matches: &ArgMatches) -> Result<Vec<u8>> {
     let vertices = reader
         .read_positions()
         .context("couldn't read positions")?
-        .map(|p| tk3d::agzm::Vertex { position: p.into() })
+        .map(|p| Vertex { position: p.into() })
         .collect::<Vec<_>>();
 
     let indices = if let ReadIndices::U16(indices) =
@@ -181,15 +183,15 @@ fn build_agzm(matches: &ArgMatches) -> Result<Vec<u8>> {
 
     let triangles = indices
         .chunks_exact(3)
-        .map(|w| tk3d::Triangle {
-            indices: w.try_into().unwrap(),
-        })
+        .map(|w| w.try_into().unwrap())
         .collect();
 
-    let gizmo = tk3d::agzm::Gizmo {
-        vertices,
-        triangles,
-    };
-
-    Ok(gizmo.encode())
+    Gizmo {
+        mesh: Mesh {
+            vertices,
+            triangles,
+        },
+    }
+    .encode()
+    .context("couldn't encode mesh")
 }

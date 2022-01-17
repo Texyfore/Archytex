@@ -1,6 +1,6 @@
 use bytemuck::{Pod, Zeroable};
+use cgmath::Matrix4;
 use gpu::{data::Buffer, BufferUsages};
-use tk3d::{math::Matrix4, Triangle};
 
 use crate::Renderer;
 
@@ -25,8 +25,8 @@ pub struct GizmoInstances {
 }
 
 pub struct GizmoMesh {
-    pub(crate) vertices: Buffer<tk3d::agzm::GizmoVertex>,
-    pub(crate) triangles: Buffer<Triangle>,
+    pub(crate) vertices: Buffer<gizmo::Vertex>,
+    pub(crate) triangles: Buffer<[u16; 3]>,
 }
 
 impl Renderer {
@@ -36,7 +36,7 @@ impl Renderer {
         }
     }
 
-    pub fn create_gizmo_mesh(&self, mesh: &tk3d::agzm::GizmoMesh) -> GizmoMesh {
+    pub fn create_gizmo_mesh(&self, mesh: &gizmo::Mesh) -> GizmoMesh {
         GizmoMesh {
             vertices: self.gpu.create_buffer(&mesh.vertices, BufferUsages::VERTEX),
             triangles: self.gpu.create_buffer(&mesh.triangles, BufferUsages::INDEX),

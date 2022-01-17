@@ -5,9 +5,9 @@ edition = "2021"
 
 [dependencies]
 winit = "=0.26.1"
-anyhow = "1.0.52"
+anyhow = "=1.0.52"
+cgmath = "=0.18.0"
 renderer = { path = "../tools/renderer" }
-tk3d = { path = "../../tk3d", features = ["bytemuck"] }
 
 [target.'cfg(target_arch="wasm32")'.dependencies]
 web-sys = { version = "0.3.55", features = ["Document", "Window", "Node"] }

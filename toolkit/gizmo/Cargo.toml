@@ -1,0 +1,12 @@
+[package]
+name = "gizmo"
+version = "0.1.0"
+edition = "2021"
+
+[features]
+serialize = ["serde", "cgmath/serde"]
+
+[dependencies]
+cgmath = "=0.18.0"
+serde = { version = "1.0.133", features = ["derive"], optional = true }
+bytemuck = { version="=1.7.3", features = ["derive"], optional = true }

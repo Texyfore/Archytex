@@ -55,9 +55,9 @@ impl Scene {
 }
 
 #[derive(Error, Debug)]
-#[error("couldn't encode Scene: {0}")]
+#[error("{0}")]
 pub struct EncodeError(#[from] Box<ErrorKind>);
 
 #[derive(Error, Debug)]
-#[error("couldn't decode Scene: {0}")]
+#[error("{0}")]
 pub struct DecodeError(#[from] Box<ErrorKind>);

@@ -1,6 +1,6 @@
 use bytemuck::{Pod, Zeroable};
+use cgmath::Vector3;
 use gpu::{data::Buffer, BufferUsages};
-use tk3d::math::Vector3;
 
 use crate::Renderer;
 

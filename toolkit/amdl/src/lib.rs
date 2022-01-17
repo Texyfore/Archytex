@@ -1,12 +1,15 @@
 use asset_id::TextureID;
 use bincode::ErrorKind;
-use mesh::Mesh;
+use cgmath::Vector3;
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
+
+pub use mesh::{Mesh, Vertex};
 
 #[derive(Serialize, Deserialize)]
 pub struct Model {
     pub texture_id: TextureID,
+    pub bounding_box: BoundingBox,
     pub mesh: Mesh,
 }
 
@@ -20,10 +23,16 @@ impl Model {
     }
 }
 
+#[derive(Serialize, Deserialize)]
+pub struct BoundingBox {
+    pub min: Vector3<f32>,
+    pub max: Vector3<f32>,
+}
+
 #[derive(Error, Debug)]
-#[error("couldn't encode Model: {0}")]
+#[error("{0}")]
 pub struct EncodeError(#[from] Box<ErrorKind>);
 
 #[derive(Error, Debug)]
-#[error("couldn't decode Model: {0}")]
+#[error("{0}")]
 pub struct DecodeError(#[from] Box<ErrorKind>);
