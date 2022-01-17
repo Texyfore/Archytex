@@ -11,9 +11,11 @@ use lapin::{
     types::FieldTable,
     Channel, Connection, ConnectionProperties, Queue,
 };
+use mongodb::{options::{ClientOptions, UpdateOptions}, bson::{Document, doc, oid::ObjectId}, Collection};
 use uuid::Uuid;
 
 async fn handle_job(
+    users: Collection<Document>,
     mut redis_client: redis::Client,
     channel: Channel,
     delivery: Delivery,
@@ -23,6 +25,13 @@ async fn handle_job(
     let response_queue = response_queue.name().as_str();
     let task_queue = task_queue.name().as_str();
     let s = String::from_utf8(delivery.data)?;
+    let s: Vec<&str> = s.split("#").collect();
+    let user = s[1];
+    let project_id = s[2];
+    let s = s[0].to_string();
+    let user: ObjectId = ObjectId::parse_str(user)?;
+    let project_id: ObjectId = ObjectId::parse_str(project_id)?;
+    let render_id: ObjectId = ObjectId::parse_str(&s)?;
     let samples: i32 =
         redis::Cmd::get(format!("archyrt:{}:samples", s)).query(&mut redis_client)?;
     let width: usize = redis::Cmd::get(format!("archyrt:{}:width", s)).query(&mut redis_client)?;
@@ -74,12 +83,17 @@ async fn handle_job(
         )
         .await?;
     let mut counter = 0;
+    
     while let Some(delivery) = consumer.next().await {
         let (_, delivery) = delivery.unwrap();
         counter += 1;
         if counter >= samples {
             break;
         }
+        
+        //Update percentage
+        let percentage = (counter as f32) / (samples as f32);
+        users.update_many(doc! {"_id": user}, doc!{"$set":{"projects.$[project].renders.$[render].status": percentage}}, UpdateOptions::builder().array_filters(vec![doc!{"render._id": render_id}, doc!{"project._id": project_id}]).build()).await?;
     }
     channel
         .queue_delete(response_queue, Default::default())
@@ -123,6 +137,7 @@ async fn handle_job(
         .join(s)
         .with_extension("png");
     output.save(path)?;
+    users.update_many(doc! {"_id": user}, doc!{"$set":{"projects.$[project].renders.$[render].status": 1.0}}, UpdateOptions::builder().array_filters(vec![doc!{"render._id": render_id}, doc!{"project._id": project_id}]).build()).await?;
     redis::Cmd::del(&image_key).query(&mut redis_client)?;
     Ok(())
 }
@@ -141,8 +156,13 @@ fn main() -> Result<()> {
 
     let amqp_addr = env::var("AMQP_ADDR").unwrap();
     let redis_addr = env::var("REDIS_ADDR").unwrap();
+    let mongodb_addr = env::var("MONGODB_ADDR").unwrap();
     env::var("IMAGES").unwrap();
     async_global_executor::block_on(async {
+        let mongodb_options = ClientOptions::parse(mongodb_addr).await?;
+        let mongodb_client = mongodb::Client::with_options(mongodb_options)?;
+        let db = mongodb_client.database("archytex");
+        let users = db.collection::<Document>("users");
         let rabbitmq_client = Connection::connect(
             &amqp_addr,
             ConnectionProperties::default().with_default_executor(8),
@@ -190,13 +210,13 @@ fn main() -> Result<()> {
                 )
                 .await?;
             async_global_executor::spawn(handle_job(
+                users.clone(),
                 redis_client.clone(),
                 channel.clone(),
                 delivery,
                 response_queue,
                 task_queue.clone(),
-            ))
-            .detach();
+            )).detach();
         }
 
         Ok(())

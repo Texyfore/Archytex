@@ -52,7 +52,7 @@ func Render(w http.ResponseWriter, r *http.Request) {
 		logging.Error(w, r, err, "couldn't create render", http.StatusInternalServerError)
 		return
 	}
-	err = database.RedisClient.Set(ctx, fmt.Sprintf("archyrt:%s:samples", task_id), 1, 0).Err()
+	err = database.RedisClient.Set(ctx, fmt.Sprintf("archyrt:%s:samples", task_id), 100, 0).Err()
 	if err != nil {
 		logging.Error(w, r, err, "couldn't create render", http.StatusInternalServerError)
 		return
@@ -64,7 +64,7 @@ func Render(w http.ResponseWriter, r *http.Request) {
 	}
 	err = database.RabbitmqChannel.Publish("", "archyrt:dispatch", false, false, amqp.Publishing{
 		ContentType: "text/plain",
-		Body:        []byte(task_id),
+		Body:        []byte(task_id + "#" + session.User.Id.(primitive.ObjectID).Hex() + "#" + projectId.Hex()),
 	})
 	if err != nil {
 		logging.Error(w, r, err, "couldn't create render", http.StatusInternalServerError)
