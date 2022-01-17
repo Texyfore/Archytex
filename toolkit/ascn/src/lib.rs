@@ -1,4 +1,4 @@
-#[cfg(feature = "mesh-gen")]
+//#[cfg(feature = "mesh-gen")]
 mod mesh_gen_impl;
 
 use asset_id::{PropID, TextureID};
@@ -28,13 +28,18 @@ pub struct Model {
 #[derive(Serialize, Deserialize)]
 pub struct Solid {
     pub faces: [Face; 6],
-    pub points: [Vector3<f32>; 8],
+    pub points: [Point; 8],
 }
 
 #[derive(Serialize, Deserialize)]
 pub struct Face {
     pub texture_id: TextureID,
     pub points: [usize; 4],
+}
+
+#[derive(Serialize, Deserialize)]
+pub struct Point {
+    pub position: Vector3<f32>,
 }
 
 #[derive(Serialize, Deserialize)]

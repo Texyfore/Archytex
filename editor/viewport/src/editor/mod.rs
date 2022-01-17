@@ -2,12 +2,16 @@ mod camera;
 mod scene;
 
 use anyhow::Result;
+use cgmath::vec3;
 use renderer::{scene::Scene as RenderScene, Renderer};
 use winit::event::{MouseButton, VirtualKeyCode};
 
 use crate::input::Input;
 
-use self::{camera::Camera, scene::Scene};
+use self::{
+    camera::Camera,
+    scene::{Action, Scene, Solid},
+};
 
 #[derive(Default)]
 pub struct Editor {
@@ -50,6 +54,21 @@ impl Editor {
                 self.camera.increase_speed();
             } else {
                 self.camera.decrease_speed();
+            }
+        }
+
+        if ctx.input.is_button_down(MouseButton::Left) {
+            self.scene.act(Action::AddSolid(Solid::new(
+                vec3(0.0, 0.0, 0.0),
+                vec3(1.0, 1.0, 1.0),
+            )));
+        }
+
+        if ctx.input.is_key_down(VirtualKeyCode::LControl) {
+            if ctx.input.is_key_down_once(VirtualKeyCode::Z) {
+                self.scene.undo();
+            } else if ctx.input.is_key_down_once(VirtualKeyCode::Y) {
+                self.scene.redo();
             }
         }
 

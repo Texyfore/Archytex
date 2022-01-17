@@ -1,5 +1,4 @@
-use std::time::Instant;
-
+use instant::Instant;
 use anyhow::Result;
 use cgmath::Vector2;
 use renderer::Renderer;

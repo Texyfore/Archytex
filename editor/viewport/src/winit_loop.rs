@@ -1,4 +1,4 @@
-use anyhow::Result;
+use anyhow::{Context, Result};
 use cgmath::vec2;
 use winit::{
     dpi::{PhysicalPosition, PhysicalSize},
@@ -33,8 +33,6 @@ pub struct WinitLoop {
 impl WinitLoop {
     #[cfg(not(target_arch = "wasm32"))]
     pub fn new() -> Result<Self> {
-        use anyhow::Context;
-
         let event_loop = EventLoop::new();
         let window = WindowBuilder::default()
             .build(&event_loop)

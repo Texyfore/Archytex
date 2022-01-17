@@ -9,4 +9,4 @@ bincode = "=1.3.3"
 cgmath = "=0.18.0"
 serde = { version = "=1.0.133", features = ["derive"] }
 asset-id = { path = "../asset-id", features = ["serde"] }
-mesh-gen = { path = "../mesh-gen", optional = true }
+mesh-gen = { path = "../mesh-gen" }

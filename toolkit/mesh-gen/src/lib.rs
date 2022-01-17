@@ -5,13 +5,13 @@ use cgmath::{vec2, InnerSpace, Vector3};
 use mesh::{Mesh, Vertex};
 use thiserror::Error;
 
-pub trait Model<F: Face, S: Solid<F>> {
+pub trait Model<S: Solid<F, P>, F: Face, P: Point> {
     fn solids(&self) -> &[S];
 }
 
-pub trait Solid<F: Face> {
-    fn faces(&self) -> &[F];
-    fn points(&self) -> &[Vector3<f32>; 8];
+pub trait Solid<F: Face, P: Point> {
+    fn faces(&self) -> &[F; 6];
+    fn points(&self) -> &[P; 8];
 }
 
 pub trait Face {
@@ -19,12 +19,16 @@ pub trait Face {
     fn points(&self) -> &[usize; 4];
 }
 
+pub trait Point {
+    fn position(&self) -> Vector3<f32>;
+}
+
 pub struct SolidMesh {
     pub texture_id: TextureID,
     pub mesh: Mesh,
 }
 
-pub fn mesh_gen<F: Face, S: Solid<F>, M: Model<F, S>>(
+pub fn mesh_gen<M: Model<S, F, P>, S: Solid<F, P>, F: Face, P: Point>(
     model: &M,
 ) -> Result<Vec<SolidMesh>, MeshGenError> {
     let mut batches = HashMap::<TextureID, Mesh>::new();
@@ -37,7 +41,7 @@ pub fn mesh_gen<F: Face, S: Solid<F>, M: Model<F, S>>(
                 solid.points().get(face.points()[2]),
                 solid.points().get(face.points()[3]),
             ) {
-                [*p0, *p1, *p2, *p3]
+                [p0.position(), p1.position(), p2.position(), p3.position()]
             } else {
                 return Err(MeshGenError);
             };

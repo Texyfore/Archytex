@@ -7,8 +7,12 @@ edition = "2021"
 winit = "=0.26.1"
 anyhow = "=1.0.52"
 cgmath = "=0.18.0"
+instant = "=0.1.12"
 renderer = { path = "../tools/renderer" }
+pin-vec = { path = "../tools/pin-vec" }
+asset-id = { path = "../../toolkit/asset-id" }
+mesh-gen = { path = "../../toolkit/mesh-gen" }
 
-[target.'cfg(target_arch="wasm32")'.dependencies]
+[target.'cfg(target_arch = "wasm32")'.dependencies]
 web-sys = { version = "0.3.55", features = ["Document", "Window", "Node"] }
 wasm-bindgen = "=0.2.78"

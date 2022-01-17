@@ -1,8 +1,13 @@
 use std::iter::Flatten;
 
-#[derive(Default)]
 pub struct PinVec<T> {
     slots: Vec<Option<T>>,
+}
+
+impl<T> Default for PinVec<T> {
+    fn default() -> Self {
+        Self { slots: Vec::new() }
+    }
 }
 
 impl<T> PinVec<T> {
