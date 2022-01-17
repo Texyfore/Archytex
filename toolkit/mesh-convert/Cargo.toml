@@ -1,0 +1,13 @@
+[package]
+name = "mesh-convert"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+clap = "3.0.7"
+gltf = "0.16.0"
+anyhow = "1.0.52"
+amdl = { path = "../amdl" }
+agzm = { path = "../agzm" }
+mesh = { path = "../mesh" }
+asset-id = { path = "../asset-id" }

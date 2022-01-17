@@ -20,9 +20,9 @@ impl Mesh {
 }
 
 #[derive(Error, Debug)]
-#[error("couldn't encode Mesh: {0}")]
+#[error("{0}")]
 pub struct EncodeError(#[from] Box<ErrorKind>);
 
 #[derive(Error, Debug)]
-#[error("couldn't decode Mesh: {0}")]
+#[error("{0}")]
 pub struct DecodeError(#[from] Box<ErrorKind>);

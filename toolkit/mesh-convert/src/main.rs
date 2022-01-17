@@ -1,12 +1,12 @@
 use std::fs::write;
 
 use anyhow::{bail, ensure, Context, Result};
+use asset_id::TextureID;
 use clap::{App, Arg, ArgMatches};
 use gltf::mesh::{
     util::{ReadIndices, ReadTexCoords},
     Mode,
 };
-use tk3d::TextureID;
 
 fn main() {
     let matches = App::new("meshtool")
@@ -108,7 +108,7 @@ fn build_amdl(matches: &ArgMatches) -> Result<Vec<u8>> {
         .into_iter()
         .zip(normals.into_iter())
         .zip(texcoords.into_iter())
-        .map(|((p, n), t)| tk3d::Vertex {
+        .map(|((p, n), t)| mesh::Vertex {
             position: p.into(),
             normal: n.into(),
             texcoord: t.into(),
@@ -126,24 +126,22 @@ fn build_amdl(matches: &ArgMatches) -> Result<Vec<u8>> {
 
     let triangles = indices
         .chunks_exact(3)
-        .map(|w| tk3d::Triangle {
-            indices: w.try_into().unwrap(),
-        })
+        .map(|w| w.try_into().unwrap())
         .collect();
 
-    let model = tk3d::amdl::PropModel {
-        bounding_box: tk3d::amdl::BoundingBox {
+    let model = amdl::Model {
+        texture_id: TextureID(texture),
+        bounding_box: amdl::BoundingBox {
             min: box_min.into(),
             max: box_max.into(),
         },
-        mesh: tk3d::Mesh {
-            texture: TextureID(texture),
+        mesh: mesh::Mesh {
             vertices,
             triangles,
         },
     };
 
-    Ok(model.encode())
+    model.encode().context("couldn't encode model")
 }
 
 fn build_agzm(matches: &ArgMatches) -> Result<Vec<u8>> {
@@ -167,7 +165,7 @@ fn build_agzm(matches: &ArgMatches) -> Result<Vec<u8>> {
     let vertices = reader
         .read_positions()
         .context("couldn't read positions")?
-        .map(|p| tk3d::agzm::Vertex { position: p.into() })
+        .map(|p| p.into())
         .collect::<Vec<_>>();
 
     let indices = if let ReadIndices::U16(indices) =
@@ -181,15 +179,13 @@ fn build_agzm(matches: &ArgMatches) -> Result<Vec<u8>> {
 
     let triangles = indices
         .chunks_exact(3)
-        .map(|w| tk3d::Triangle {
-            indices: w.try_into().unwrap(),
-        })
+        .map(|w| w.try_into().unwrap())
         .collect();
 
-    let gizmo = tk3d::agzm::Gizmo {
+    let gizmo = agzm::Mesh {
         vertices,
         triangles,
     };
 
-    Ok(gizmo.encode())
+    gizmo.encode().context("couldn't encode mesh")
 }
