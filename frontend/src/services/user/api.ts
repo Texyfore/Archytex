@@ -7,17 +7,25 @@ interface User {
   email: string;
   coins: number;
 }
-type Callback = (projects: Projects)=>void;
+type Callback = (projects: Projects) => void;
 interface UserLoggedIn {
-    state: "logged-in"
-    logOut: ()=>void
-    user: User
-    subscribe: ( callback: Callback )=>{dispatch: ProjectsDispatch, dispose: ()=>void}
+  state: "logged-in";
+  logOut: () => void;
+  user: User;
+  subscribe: (callback: Callback) => {
+    dispatch: ProjectsDispatch;
+    dispose: () => void;
+  };
+  save: (data: Uint8Array, id: string) => Promise<void>;
+  render: (data: Uint8Array, id: string) => Promise<void>;
 }
 interface UserNotLoggedIn {
-    state: "not-logged-in"
-    logIn: (username: string, password: string, stayLoggedIn: boolean) => Promise<void>
-
+  state: "not-logged-in";
+  logIn: (
+    username: string,
+    password: string,
+    stayLoggedIn: boolean
+  ) => Promise<void>;
 }
 
 type UserController = UserLoggedIn | UserNotLoggedIn | null;
@@ -35,5 +43,5 @@ const useApi = (required?: boolean) => {
   return val;
 };
 
-export type { User, UserController, Callback }
-export { ApiContext, useApi }
+export type { User, UserController, Callback };
+export { ApiContext, useApi };

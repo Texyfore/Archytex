@@ -6,7 +6,7 @@ interface Callbacks {
   gizmoChanged: (gizmo: number) => void;
   cameraSpeedChanged: (speed: number) => void;
   gridSizeChanged: (size: number) => void;
-  sceneSaved: (scene: Uint8Array) => void;
+  sceneSaved: (scene: Uint8Array, mode: string) => void;
 }
 
 interface AssetLoader {
@@ -20,11 +20,13 @@ export default class EditorHandle {
   private callbacks: Callbacks;
   private loopTimeout: NodeJS.Timeout | undefined;
   private actionQueue: any[];
+  private lastExportMode: string;
 
   constructor(callbacks: Callbacks) {
     this.callbacks = callbacks;
     this.loopTimeout = undefined;
     this.actionQueue = [];
+    this.lastExportMode = "";
 
     let initialized = false;
 
@@ -135,7 +137,7 @@ export default class EditorHandle {
 
         const savedScene = module.getSavedScene();
         if (savedScene !== undefined) {
-          callbacks.sceneSaved(savedScene);
+          callbacks.sceneSaved(savedScene, this.lastExportMode);
         }
       }, 16);
 
@@ -212,7 +214,8 @@ export default class EditorHandle {
     });
   }
 
-  saveScene() {
+  saveScene(mode: string) {
+    this.lastExportMode = mode;
     this.actionQueue.unshift({
       type: "save-scene",
     });

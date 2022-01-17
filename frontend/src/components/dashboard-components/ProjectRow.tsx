@@ -6,6 +6,7 @@ import {
   KeyboardArrowDown,
   KeyboardArrowRight,
   MoreVert,
+  Send,
 } from "@mui/icons-material";
 import {
   Collapse,
@@ -30,6 +31,7 @@ import {
   easing,
 } from "@mui/material";
 import React, { useState } from "react";
+import { useHistory } from "react-router-dom";
 import { Project, Render, useProjects } from "../../services/projects";
 import RenderCard from "./RenderCard";
 
@@ -42,6 +44,8 @@ export default function ProjectRow({
   project,
   feedbackSnackbar,
 }: ProjectRowProps) {
+  const history = useHistory();
+
   //Read projects
   const { dispatch: dispatchProjects } = useProjects();
 
@@ -152,6 +156,16 @@ export default function ProjectRow({
       {/* BUG: In the 'medium' media query, when the renders collapse is open, the layout breaks */}
       <Collapse in={openProject} unmountOnExit>
         <Grid container spacing={2} padding={2}>
+          <Box width='100%' paddingX={2} paddingTop={1}>
+            <Button
+              variant='outlined'
+              endIcon={<Send />}
+              color='inherit'
+              onClick={() => history.push(`/editor/${project.id}`)}
+            >
+              Open project in editor
+            </Button>
+          </Box>
           {project.renders.map((render: Render, index) => (
             <Grow
               key={render.id}
@@ -181,6 +195,13 @@ export default function ProjectRow({
           horizontal: "right",
         }}
       >
+        <MenuItem onClick={() => history.push(`/editor/${project.id}`)}>
+          <ListItemIcon>
+            <Send />
+          </ListItemIcon>
+          Open in editor
+        </MenuItem>
+        <Divider />
         <MenuItem onClick={handleUnderEditStart}>
           <ListItemIcon>
             <Edit />

@@ -2,8 +2,9 @@ package database
 
 import (
 	"errors"
-	"github.com/Texyfore/Archytex/backend/database/models"
 	"time"
+
+	"github.com/Texyfore/Archytex/backend/database/models"
 )
 
 var CurrentDatabase Database
@@ -28,6 +29,8 @@ type Database interface {
 	DeleteProject(userId interface{}, projectId interface{}) error
 	GetProject(userId interface{}, projectId interface{}) (*models.Project, error)
 	SubscribeProjects(userId interface{}) (chan Updates, error)
+
+	CreateRender(userId interface{}, projectId interface{}, name string) (interface{}, error)
 
 	GetTextures() ([]models.Asset, error)
 	GetTexture(id interface{}) (*models.Asset, error)

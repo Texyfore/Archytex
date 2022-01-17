@@ -4,9 +4,10 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"time"
+
 	"github.com/Texyfore/Archytex/backend/projectloaders"
 	"go.mongodb.org/mongo-driver/bson/primitive"
-	"time"
 
 	"github.com/Texyfore/Archytex/backend/database/models"
 	"go.mongodb.org/mongo-driver/bson"
@@ -133,6 +134,32 @@ func (m MongoDatabase) CreateProject(userId interface{}, name string) error {
 		}},
 	})
 	return err
+}
+
+func (m MongoDatabase) CreateRender(userId interface{}, projectId interface{}, name string) (interface{}, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
+	defer cancel()
+	id := primitive.NewObjectID()
+	render := models.Render{
+		Id:       id,
+		Finished: nil,
+		Icon:     "",
+		Name:     name,
+		Started:  time.Now(),
+		Status:   0.0,
+	}
+	_, err := m.Users.UpdateOne(ctx, bson.D{
+		{"_id", userId},
+	}, bson.D{
+		{"$push", bson.D{
+			{"projects.$[elem].renders", render},
+		}},
+	}, &options.UpdateOptions{
+		ArrayFilters: &options.ArrayFilters{
+			Filters: []interface{}{bson.M{"elem._id": projectId}},
+		},
+	})
+	return id, err
 }
 
 func (m MongoDatabase) RenameProject(userId interface{}, projectId interface{}, name string) error {
@@ -396,6 +423,7 @@ func (m MongoDatabase) SubscribeProjects(userId interface{}) (chan Updates, erro
 	c := make(chan Updates)
 	go func() {
 		defer stream.Close(context.TODO())
+		defer close(c)
 		//Send first update
 		r := m.Users.FindOne(context.TODO(), bson.D{
 			{"_id", userId},
@@ -414,7 +442,6 @@ func (m MongoDatabase) SubscribeProjects(userId interface{}) (chan Updates, erro
 			}
 			c <- data.FullDocument
 		}
-		close(c)
 	}()
 	return c, nil
 }

@@ -23,6 +23,7 @@ import { Close, FilterList } from "@mui/icons-material";
 import Draggable from "react-draggable";
 import TextureLibrary from "./TextureLibrary";
 import SearchBar from "../../SearchBar";
+import PropLibrary from "./PropLibrary";
 
 function PaperComponent(props: PaperProps) {
   return (
@@ -35,13 +36,19 @@ function PaperComponent(props: PaperProps) {
   );
 }
 
-enum FilterOptions {
+enum TextureFilterOptions {
   brick = "Brick",
   wood = "Wood",
   concrete = "Concrete",
   rock = "Rock",
   dirty = "Dirty",
   clean = "Clean",
+}
+enum PropFilterOptions {
+  furniture = "Furniture",
+  decoration = "Decoration",
+  table = "Table",
+  chair = "Chair",
 }
 
 type libraryType = "textureLibrary" | "propLibrary";
@@ -147,10 +154,17 @@ export default function LibraryDialog({
         </DialogTitle>
         <DialogContent>
           <Box width={550}>
-            <TextureLibrary
-              selected={selected}
-              handleSelectionChange={handleSelectionChange}
-            />
+            {libraryType === "textureLibrary" ? (
+              <TextureLibrary
+                selected={selected}
+                handleSelectionChange={handleSelectionChange}
+              />
+            ) : (
+              <PropLibrary
+                selected={selected}
+                handleSelectionChange={handleSelectionChange}
+              />
+            )}
           </Box>
         </DialogContent>
         <DialogActions>
@@ -186,7 +200,11 @@ export default function LibraryDialog({
       >
         <List>
           {(
-            Object.keys(FilterOptions) as Array<keyof typeof FilterOptions>
+            Object.keys(
+              libraryType === "textureLibrary"
+                ? TextureFilterOptions
+                : PropFilterOptions
+            ) as Array<keyof typeof TextureFilterOptions>
           ).map((filterOption, index) => (
             <ListItem key={index} disablePadding>
               <ListItemButton
@@ -210,9 +228,6 @@ export default function LibraryDialog({
               </ListItemButton>
             </ListItem>
           ))}
-          {/* {FilterOptions.map((filterOption, index) => (
-            
-          ))} */}
         </List>
       </Menu>
     </>
