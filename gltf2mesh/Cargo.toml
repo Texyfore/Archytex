@@ -1,8 +1,0 @@
-[package]
-name = "gltf2mesh"
-version = "0.1.0"
-edition = "2021"
-
-[dependencies]
-gltf = "0.16.0"
-mdl = { path = "../mdl" }
