@@ -11,11 +11,12 @@ import {
 } from "@mui/material";
 import React from "react";
 import { useTranslation } from "react-i18next";
+import { useHistory } from "react-router-dom";
 import { useApi } from "../services/user/api";
 
 const UserIconButton = () => {
   const { t } = useTranslation();
-
+  const history = useHistory();
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
   const avatarMenuOpen = Boolean(anchorEl);
   const handleAvatarMenuClick = (
@@ -29,10 +30,16 @@ const UserIconButton = () => {
   const api = useApi();
   const username = api?.state === "logged-in" ? api.user.username : "";
 
+  const handleLogOut = () => {
+    if (api?.state === "logged-in") {
+      history.push("/");
+      api.logOut();
+    }
+  };
   return (
     <>
       <Button
-        variant="text"
+        variant='text'
         disableRipple
         disableFocusRipple
         disabled
@@ -44,13 +51,13 @@ const UserIconButton = () => {
             color: "inherit",
           },
         }}
-        color="inherit"
+        color='inherit'
       >
         <Typography
-          fontSize="1.2em"
+          fontSize='1.2em'
           noWrap
           width={{ md: "280px", lg: "400px", xl: "500px" }}
-          textAlign="end"
+          textAlign='end'
         >
           {username}
         </Typography>
@@ -88,20 +95,20 @@ const UserIconButton = () => {
       >
         <MenuItem>
           <ListItemIcon>
-            <AccountCircle fontSize="small" />
+            <AccountCircle fontSize='small' />
           </ListItemIcon>
           {t("account")}
         </MenuItem>
         <MenuItem>
           <ListItemIcon>
-            <CreditCard fontSize="small" />
+            <CreditCard fontSize='small' />
           </ListItemIcon>
           {t("subscription")}
         </MenuItem>
         <Divider />
-        <MenuItem>
+        <MenuItem onClick={handleLogOut}>
           <ListItemIcon>
-            <Logout fontSize="small" />
+            <Logout fontSize='small' />
           </ListItemIcon>
           {t("log_out")}
         </MenuItem>
