@@ -24,6 +24,7 @@ import Draggable from "react-draggable";
 import TextureLibrary from "./TextureLibrary";
 import SearchBar from "../../SearchBar";
 import PropLibrary from "./PropLibrary";
+import { useTranslation } from "react-i18next";
 
 function PaperComponent(props: PaperProps) {
   return (
@@ -64,6 +65,8 @@ export default function LibraryDialog({
   handleClose,
   libraryType,
 }: LibraryDialogProps) {
+  const { t } = useTranslation();
+
   //Dialog
   const descriptionElementRef = React.useRef<HTMLElement>(null);
   React.useEffect(() => {
@@ -106,6 +109,8 @@ export default function LibraryDialog({
   const handleSelectionChange = (n: number | undefined) => {
     setSelected(n);
   };
+
+  const tooltipText = "Select an item to use";
   return (
     <>
       <Dialog
@@ -133,12 +138,10 @@ export default function LibraryDialog({
           <Box display='flex' flexWrap='wrap' marginBottom={2}>
             <Typography variant='h6'>
               {libraryType === "textureLibrary"
-                ? "Texture library"
+                ? t("texture_library")
                 : libraryType === "propLibrary"
-                ? "Prop library"
-                : libraryType === "projectLibrary"
-                ? "Project library"
-                : "Library"}
+                ? t("prop_library")
+                : t("library")}
             </Typography>
           </Box>
           <Box display='flex' justifyContent='space-between'>
@@ -147,7 +150,7 @@ export default function LibraryDialog({
               color='inherit'
               onClick={handleFilterClick}
             >
-              Filter results
+              {t("filter_results")}
             </Button>
             <SearchBar />
           </Box>
@@ -169,17 +172,17 @@ export default function LibraryDialog({
         </DialogContent>
         <DialogActions>
           <Box display={selected === undefined ? "block" : "none"}>
-            <Tooltip title='Select an item to use' followCursor>
+            <Tooltip title={tooltipText} followCursor>
               <span>
                 <Button onClick={handleClose} disabled={selected === undefined}>
-                  Accept
+                  {t("accept")}
                 </Button>
               </span>
             </Tooltip>
           </Box>
           <Box display={selected !== undefined ? "block" : "none"}>
             <Button onClick={handleClose} disabled={selected === undefined}>
-              Accept
+              {t("accept")}
             </Button>
           </Box>
         </DialogActions>

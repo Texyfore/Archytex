@@ -17,6 +17,7 @@ import SearchBar from "../SearchBar";
 import ProjectNewModal from "./ProjectNewModal";
 import { Project, useProjects } from "../../services/projects";
 import ProjectRow from "./ProjectRow";
+import { useTranslation } from "react-i18next";
 
 const headerHeight = 50;
 const projectMenuHeight = 60;
@@ -40,6 +41,9 @@ interface actionFeedbackSnackbarProps {
 }
 
 export default function ProjectBrowser() {
+  //i18n
+  const { t } = useTranslation();
+
   //Load projects
   const { projects } = useProjects();
 
@@ -66,6 +70,8 @@ export default function ProjectBrowser() {
     setActionFeedbackSnackbarParams({ text: text, severity: severity });
     setActionFeedbackSnackbarOpen(true);
   };
+  const tooltipText = t("create_new_project");
+
   return (
     <React.Fragment>
       {/* Project browser actions */}
@@ -85,11 +91,11 @@ export default function ProjectBrowser() {
             startIcon={<LibraryAdd />}
             onClick={handleNewProjectModalOpen}
           >
-            New project
+            {t("new_project")}
           </Button>
         </Box>
         <Box display={{ xs: "block", md: "none" }}>
-          <Tooltip title='Create new project'>
+          <Tooltip title={tooltipText}>
             <IconButton size='large' onClick={handleNewProjectModalOpen}>
               <LibraryAdd />
             </IconButton>
@@ -112,7 +118,7 @@ export default function ProjectBrowser() {
             gap={2}
           >
             <CircularProgress />
-            <Typography>Loading projects...</Typography>
+            <Typography>{t("loading_projects")}</Typography>
           </Box>
         ) : (
           projects.map((project: Project) => (

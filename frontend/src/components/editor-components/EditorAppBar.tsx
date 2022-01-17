@@ -49,7 +49,8 @@ export default function EditorAppBar({ onSave }: EditorAppBarProps) {
   const handleLanguageClose = () => {
     setLanguageAnchorEl(null);
   };
-
+  const tooltipText: string =
+    t("archytex") + " " + t("version") + " " + "1.0.0";
   return (
     <>
       <CustomEditorAppBar elevation={0}>
@@ -62,10 +63,7 @@ export default function EditorAppBar({ onSave }: EditorAppBarProps) {
           >
             <Box width='100%' height='100%' display='flex' alignItems='center'>
               <Box height='100%' display='flex' alignItems='center'>
-                <Tooltip
-                  title='Archytex version 0.0.1'
-                  placement='bottom-start'
-                >
+                <Tooltip title={tooltipText} placement='bottom-start'>
                   <Box>
                     <ArchytexIcon size={25} />
                   </Box>
@@ -80,7 +78,7 @@ export default function EditorAppBar({ onSave }: EditorAppBarProps) {
                   sx={{ textTransform: "none" }}
                   onClick={() => onSave("save")}
                 >
-                  Save
+                  {t("save")}
                 </Button>
                 <Button
                   variant='text'
@@ -88,7 +86,7 @@ export default function EditorAppBar({ onSave }: EditorAppBarProps) {
                   sx={{ textTransform: "none" }}
                   onClick={() => onSave("export")}
                 >
-                  Export
+                  {t("export")}
                 </Button>
                 <Button
                   variant='text'
@@ -96,7 +94,7 @@ export default function EditorAppBar({ onSave }: EditorAppBarProps) {
                   sx={{ textTransform: "none" }}
                   onClick={() => onSave("render")}
                 >
-                  Render
+                  {t("render")}
                 </Button>
               </Box>
             </Box>
