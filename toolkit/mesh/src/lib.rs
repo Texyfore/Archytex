@@ -1,12 +1,12 @@
 use cgmath::{Vector2, Vector3};
 
-#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[cfg_attr(feature = "serialize", derive(serde::Serialize, serde::Deserialize))]
 pub struct Mesh {
     pub vertices: Vec<Vertex>,
     pub triangles: Vec<[u16; 3]>,
 }
 
-#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[cfg_attr(feature = "serialize", derive(serde::Serialize, serde::Deserialize))]
 #[repr(C)]
 #[derive(Clone, Copy)]
 pub struct Vertex {
