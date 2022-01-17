@@ -5,8 +5,8 @@ use cgmath::{vec2, InnerSpace, Vector3};
 use mesh::{Mesh, Vertex};
 use thiserror::Error;
 
-pub trait Model<S: Solid<F, P>, F: Face, P: Point> {
-    fn solids(&self) -> &[S];
+pub trait Model<'a, S: Solid<F, P>, F: Face, P: Point> {
+    fn solids(&'a self) -> Vec<&'a S>;
 }
 
 pub trait Solid<F: Face, P: Point> {
@@ -28,8 +28,8 @@ pub struct SolidMesh {
     pub mesh: Mesh,
 }
 
-pub fn mesh_gen<M: Model<S, F, P>, S: Solid<F, P>, F: Face, P: Point>(
-    model: &M,
+pub fn mesh_gen<'a, M: Model<'a, S, F, P>, S: 'a + Solid<F, P>, F: Face, P: Point>(
+    model: &'a M,
 ) -> Result<Vec<SolidMesh>, MeshGenError> {
     let mut batches = HashMap::<TextureID, Mesh>::new();
 
@@ -85,9 +85,12 @@ pub fn mesh_gen<M: Model<S, F, P>, S: Solid<F, P>, F: Face, P: Point>(
         }
     }
 
-    todo!()
+    Ok(batches
+        .into_iter()
+        .map(|(texture_id, mesh)| SolidMesh { texture_id, mesh })
+        .collect())
 }
 
 #[derive(Error, Debug)]
-#[error("couldn't generate mesh: broken model")]
+#[error("broken model")]
 pub struct MeshGenError;

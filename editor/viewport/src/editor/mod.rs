@@ -57,10 +57,10 @@ impl Editor {
             }
         }
 
-        if ctx.input.is_button_down(MouseButton::Left) {
+        if ctx.input.is_button_down_once(MouseButton::Left) {
             self.scene.act(Action::AddSolid(Solid::new(
                 vec3(0.0, 0.0, 0.0),
-                vec3(1.0, 1.0, 1.0),
+                vec3(4.0, 4.0, 4.0),
             )));
         }
 
@@ -79,7 +79,6 @@ impl Editor {
         let mut scene = RenderScene::default();
         scene.set_camera_matrix(self.camera.matrix());
         renderer.render(&scene)?;
-
         Ok(())
     }
 
@@ -91,4 +90,5 @@ impl Editor {
 pub struct OuterContext<'a> {
     pub delta: f32,
     pub input: &'a Input,
+    pub renderer: &'a Renderer,
 }

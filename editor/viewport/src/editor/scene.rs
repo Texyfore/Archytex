@@ -1,39 +1,32 @@
-use std::collections::VecDeque;
-
 use asset_id::TextureID;
 use cgmath::{vec3, ElementWise, Vector3};
-use mesh_gen::SolidMesh;
 use pin_vec::PinVec;
 
 #[derive(Default)]
 pub struct Scene {
     solids: PinVec<Solid>,
-    undo_stack: VecDeque<Action>,
-    redo_stack: VecDeque<Action>,
+    undo_stack: Vec<Action>,
+    redo_stack: Vec<Action>,
 }
 
 impl Scene {
     pub fn act(&mut self, action: Action) {
         let inverse = self.execute_action(action);
-        self.undo_stack.push_back(inverse);
+        self.undo_stack.push(inverse);
     }
 
     pub fn undo(&mut self) {
-        if let Some(action) = self.undo_stack.pop_front() {
+        if let Some(action) = self.undo_stack.pop() {
             let inverse = self.execute_action(action);
-            self.redo_stack.push_back(inverse);
+            self.redo_stack.push(inverse);
         }
     }
 
     pub fn redo(&mut self) {
-        if let Some(action) = self.redo_stack.pop_front() {
+        if let Some(action) = self.redo_stack.pop() {
             let inverse = self.execute_action(action);
-            self.undo_stack.push_back(inverse);
+            self.undo_stack.push(inverse);
         }
-    }
-
-    pub fn mesh_gen(&self) -> Vec<SolidMesh> {
-        mesh_gen::mesh_gen(model)
     }
 
     fn execute_action(&mut self, action: Action) -> Action {
@@ -44,9 +37,9 @@ impl Scene {
     }
 }
 
-impl mesh_gen::Model<Solid, Face, Point> for Scene {
-    fn solids(&self) -> &[Solid] {
-        &self.solids.iter().collect::<Vec<_>>()
+impl<'a> mesh_gen::Model<'a, Solid, Face, Point> for Scene {
+    fn solids(&self) -> Vec<&Solid> {
+        self.solids.iter().collect()
     }
 }
 
@@ -145,7 +138,7 @@ impl mesh_gen::Solid<Face, Point> for Solid {
     }
 }
 
-struct Face {
+pub struct Face {
     texture_id: TextureID,
     points: [usize; 4],
     selected: bool,
@@ -161,7 +154,7 @@ impl mesh_gen::Face for Face {
     }
 }
 
-struct Point {
+pub struct Point {
     position: Vector3<f32>,
     selected: bool,
 }

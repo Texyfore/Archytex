@@ -2,9 +2,9 @@ use cgmath::Vector3;
 
 use crate::{Face, Model, Point, Solid};
 
-impl mesh_gen::Model<Solid, Face, Point> for Model {
-    fn solids(&self) -> &[Solid] {
-        &self.solids
+impl<'a> mesh_gen::Model<'a, Solid, Face, Point> for Model {
+    fn solids(&self) -> Vec<&Solid> {
+        self.solids.iter().collect()
     }
 }
 

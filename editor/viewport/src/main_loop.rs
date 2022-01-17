@@ -1,6 +1,7 @@
-use instant::Instant;
 use anyhow::Result;
+use asset_id::TextureID;
 use cgmath::Vector2;
+use instant::Instant;
 use renderer::Renderer;
 use winit::{
     event::{ElementState, MouseButton, VirtualKeyCode},
@@ -26,6 +27,8 @@ impl MainLoop {
         let input = Input::default();
         let editor = Editor::default();
 
+        renderer.load_texture(TextureID(0), include_bytes!("nodraw.png"))?;
+
         {
             let (width, height) = window.inner_size().into();
             renderer.resize(width, height);
@@ -47,8 +50,11 @@ impl MainLoop {
         self.editor.process(editor::OuterContext {
             delta,
             input: &self.input,
+            renderer: &self.renderer,
         })?;
+
         self.input.process();
+
         Ok(())
     }
 
