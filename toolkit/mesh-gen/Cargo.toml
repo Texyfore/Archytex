@@ -1,0 +1,10 @@
+[package]
+name = "mesh-gen"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+cgmath = "=0.18.0"
+thiserror = "=1.0.30"
+mesh = { path = "../mesh" }
+asset-id = { path = "../asset-id" }
