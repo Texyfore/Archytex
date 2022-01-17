@@ -14,7 +14,7 @@ pub struct Scene {
 #[derive(Serialize, Deserialize)]
 pub struct Camera {
     pub position: Vector3<f32>,
-    pub rotataion: Vector2<f32>,
+    pub rotation: Vector2<f32>,
 }
 
 #[derive(Serialize, Deserialize)]
