@@ -1,6 +1,7 @@
 use cgmath::{Vector2, Vector3};
 
 #[cfg_attr(feature = "serialize", derive(serde::Serialize, serde::Deserialize))]
+#[derive(Default)]
 pub struct Mesh {
     pub vertices: Vec<Vertex>,
     pub triangles: Vec<[u16; 3]>,

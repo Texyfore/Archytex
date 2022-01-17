@@ -1,3 +1,6 @@
+#[cfg(feature = "mesh-gen")]
+mod mesh_gen_impl;
+
 use asset_id::{PropID, TextureID};
 use bincode::ErrorKind;
 use cgmath::{Vector2, Vector3};
