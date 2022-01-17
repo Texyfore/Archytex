@@ -1,6 +1,7 @@
 [workspace]
 members = [
     "asset-id",
+    "mesh-gen",
     "mesh",
     "ascn",
     "amdl",
