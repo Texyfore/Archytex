@@ -1,5 +1,7 @@
 import init, { Channel, run } from "./pkg/web_runner.js";
 
+document.oncontextmenu = () => { return false };
+
 init().then(() => {
   const channel = new Channel();
   const wasmEndpoint = channel.wasmEndpoint(onLog, onFatalError);
