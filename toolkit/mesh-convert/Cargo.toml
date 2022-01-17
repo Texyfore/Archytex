@@ -9,5 +9,4 @@ gltf = "0.16.0"
 anyhow = "1.0.52"
 amdl = { path = "../amdl" }
 agzm = { path = "../agzm" }
-mesh = { path = "../mesh" }
 asset-id = { path = "../asset-id" }

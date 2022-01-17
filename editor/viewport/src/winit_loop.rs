@@ -1,5 +1,5 @@
 use anyhow::Result;
-use tk3d::math::vec2;
+use cgmath::vec2;
 use winit::{
     dpi::{PhysicalPosition, PhysicalSize},
     event::{Event, KeyboardInput, MouseScrollDelta, WindowEvent},

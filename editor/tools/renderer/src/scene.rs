@@ -1,6 +1,7 @@
 use std::rc::Rc;
 
-use tk3d::{math::Matrix4, TextureID};
+use asset_id::TextureID;
+use cgmath::Matrix4;
 
 use crate::data::{GizmoInstances, GizmoMesh, Lines, Mesh, Transform};
 

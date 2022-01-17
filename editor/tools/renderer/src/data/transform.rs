@@ -1,5 +1,5 @@
+use cgmath::{Matrix4, SquareMatrix};
 use gpu::data::Uniform;
-use tk3d::math::{Matrix4, SquareMatrix};
 
 use crate::Renderer;
 

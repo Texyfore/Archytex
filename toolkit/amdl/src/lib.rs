@@ -1,9 +1,10 @@
 use asset_id::TextureID;
 use bincode::ErrorKind;
 use cgmath::Vector3;
-use mesh::Mesh;
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
+
+pub use mesh::{Mesh, Vertex};
 
 #[derive(Serialize, Deserialize)]
 pub struct Model {

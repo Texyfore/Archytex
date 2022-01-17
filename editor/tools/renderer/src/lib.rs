@@ -3,6 +3,7 @@ pub mod scene;
 
 use std::collections::HashMap;
 
+use asset_id::TextureID;
 use gpu::{
     data::{
         DepthBuffer, TextureLayout, {Uniform, UniformLayout},
@@ -14,7 +15,6 @@ use gpu::{
 use image::{EncodableLayout, ImageError};
 use raw_window_handle::HasRawWindowHandle;
 use thiserror::Error;
-use tk3d::TextureID;
 
 use self::scene::Scene;
 

@@ -1,8 +1,8 @@
 use std::time::Instant;
 
 use anyhow::Result;
+use cgmath::Vector2;
 use renderer::Renderer;
-use tk3d::math::Vector2;
 use winit::{
     event::{ElementState, MouseButton, VirtualKeyCode},
     window::Window,

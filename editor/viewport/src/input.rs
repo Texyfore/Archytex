@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use tk3d::math::{Vector2, Zero};
+use cgmath::{Vector2, Zero};
 use winit::event::{ElementState, MouseButton, VirtualKeyCode};
 
 pub struct Input {
@@ -23,6 +23,7 @@ impl Default for Input {
     }
 }
 
+#[allow(dead_code)]
 impl Input {
     pub fn is_key_down(&self, key: VirtualKeyCode) -> bool {
         self.key_states
@@ -165,7 +166,7 @@ impl ActionState {
 
 #[cfg(test)]
 mod tests {
-    use tk3d::math::{Vector2, Zero};
+    use cgmath::{Vector2, Zero};
     use winit::event::{ElementState, MouseButton, VirtualKeyCode};
 
     use super::Input;

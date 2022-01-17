@@ -44,6 +44,8 @@ fn run(subcommand: &str, matches: &ArgMatches) -> Result<()> {
 }
 
 fn build_amdl(matches: &ArgMatches) -> Result<Vec<u8>> {
+    use amdl::*;
+
     let src = matches.value_of("src").unwrap();
     let texture: u32 = matches
         .value_of("texture")
@@ -108,7 +110,7 @@ fn build_amdl(matches: &ArgMatches) -> Result<Vec<u8>> {
         .into_iter()
         .zip(normals.into_iter())
         .zip(texcoords.into_iter())
-        .map(|((p, n), t)| mesh::Vertex {
+        .map(|((p, n), t)| Vertex {
             position: p.into(),
             normal: n.into(),
             texcoord: t.into(),
@@ -129,13 +131,13 @@ fn build_amdl(matches: &ArgMatches) -> Result<Vec<u8>> {
         .map(|w| w.try_into().unwrap())
         .collect();
 
-    let model = amdl::Model {
+    let model = Model {
         texture_id: TextureID(texture),
-        bounding_box: amdl::BoundingBox {
+        bounding_box: BoundingBox {
             min: box_min.into(),
             max: box_max.into(),
         },
-        mesh: mesh::Mesh {
+        mesh: Mesh {
             vertices,
             triangles,
         },
@@ -145,6 +147,8 @@ fn build_amdl(matches: &ArgMatches) -> Result<Vec<u8>> {
 }
 
 fn build_agzm(matches: &ArgMatches) -> Result<Vec<u8>> {
+    use agzm::*;
+
     let src = matches.value_of("src").unwrap();
 
     let (document, buffers, _) = gltf::import(&src).context("couldn't import gltf file")?;
@@ -165,7 +169,7 @@ fn build_agzm(matches: &ArgMatches) -> Result<Vec<u8>> {
     let vertices = reader
         .read_positions()
         .context("couldn't read positions")?
-        .map(|p| p.into())
+        .map(|p| Vertex { position: p.into() })
         .collect::<Vec<_>>();
 
     let indices = if let ReadIndices::U16(indices) =
@@ -182,10 +186,12 @@ fn build_agzm(matches: &ArgMatches) -> Result<Vec<u8>> {
         .map(|w| w.try_into().unwrap())
         .collect();
 
-    let gizmo = agzm::Mesh {
-        vertices,
-        triangles,
-    };
-
-    gizmo.encode().context("couldn't encode mesh")
+    Gizmo {
+        mesh: Mesh {
+            vertices,
+            triangles,
+        },
+    }
+    .encode()
+    .context("couldn't encode mesh")
 }

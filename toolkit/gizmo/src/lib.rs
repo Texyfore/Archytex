@@ -12,8 +12,6 @@ pub struct Mesh {
 #[derive(Clone, Copy)]
 pub struct Vertex {
     pub position: Vector3<f32>,
-    pub normal: Vector3<f32>,
-    pub texcoord: Vector2<f32>,
 }
 
 #[cfg(feature = "bytemuck")]
