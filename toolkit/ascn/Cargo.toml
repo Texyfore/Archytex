@@ -2,3 +2,10 @@
 name = "ascn"
 version = "0.1.0"
 edition = "2021"
+
+[dependencies]
+thiserror = "=1.0.30"
+bincode = "=1.3.3"
+cgmath = "=0.18.0"
+serde = { version = "=1.0.133", features = ["derive"] }
+asset-id = { path = "../asset-id", features = ["serde"] }
