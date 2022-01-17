@@ -1,0 +1,8 @@
+[workspace]
+members = [
+    "asset-id",
+    "mesh",
+    "ascn",
+    "amdl",
+    "agzm"
+]
