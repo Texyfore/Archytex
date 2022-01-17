@@ -1,10 +1,18 @@
 use serde::{Deserialize, Serialize};
+use cgmath::Vector3;
 
 use crate::{error::DecodeError, Mesh};
 
 #[derive(Serialize, Deserialize)]
 pub struct PropModel {
+    pub bounding_box: BoundingBox,
     pub mesh: Mesh,
+}
+
+#[derive(Serialize, Deserialize)]
+pub struct BoundingBox {
+    pub min: Vector3<f32>,
+    pub max: Vector3<f32>,
 }
 
 impl PropModel {
@@ -13,6 +21,6 @@ impl PropModel {
     }
 
     pub fn decode(buf: &[u8]) -> Result<Self, DecodeError> {
-        bincode::deserialize(buf).map_err(|source| DecodeError { source })
+        Ok(bincode::deserialize(buf)?)
     }
 }

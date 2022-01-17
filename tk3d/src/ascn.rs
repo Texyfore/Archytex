@@ -51,6 +51,6 @@ impl Scene {
     }
 
     pub fn decode(buf: &[u8]) -> Result<Self, DecodeError> {
-        bincode::deserialize(buf).map_err(|source| DecodeError { source })
+        Ok(bincode::deserialize(buf)?)
     }
 }

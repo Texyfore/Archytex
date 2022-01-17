@@ -2,12 +2,10 @@ use futures_lite::future;
 use raw_window_handle::HasRawWindowHandle;
 use thiserror::Error;
 use wgpu::{
-    Backends, Device, DeviceDescriptor, Features, Limits, PresentMode, Queue,
-    RequestAdapterOptions, RequestDeviceError, Surface, SurfaceConfiguration, SurfaceError,
-    TextureFormat, TextureUsages,
+    AddressMode, Backends, Device, DeviceDescriptor, Features, FilterMode, Limits, PresentMode,
+    Queue, RequestAdapterOptions, RequestDeviceError, Sampler, SamplerDescriptor, Surface,
+    SurfaceConfiguration, TextureFormat, TextureUsages,
 };
-
-use crate::frame::Frame;
 
 pub struct GpuHandle {
     pub(crate) surface: Surface,
@@ -72,15 +70,16 @@ impl GpuHandle {
         )
     }
 
-    pub fn next_frame(&self) -> Result<Frame, NextFrameError> {
-        let texture = self.surface.get_current_texture()?;
-        let view = texture.texture.create_view(&Default::default());
-        let encoder = self.device.create_command_encoder(&Default::default());
-
-        Ok(Frame {
-            texture,
-            view,
-            encoder,
+    pub fn create_sampler(&self) -> Sampler {
+        self.device.create_sampler(&SamplerDescriptor {
+            label: None,
+            address_mode_u: AddressMode::Repeat,
+            address_mode_v: AddressMode::Repeat,
+            address_mode_w: AddressMode::Repeat,
+            mag_filter: FilterMode::Nearest,
+            min_filter: FilterMode::Nearest,
+            mipmap_filter: FilterMode::Nearest,
+            ..Default::default()
         })
     }
 }
@@ -92,7 +91,3 @@ pub enum NewError {
     #[error("Selected GPU is unusable: {0}")]
     NoDevice(#[from] RequestDeviceError),
 }
-
-#[derive(Error, Debug)]
-#[error("Couldn't get next frame: {0}")]
-pub struct NextFrameError(#[from] SurfaceError);

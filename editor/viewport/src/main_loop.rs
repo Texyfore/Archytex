@@ -1,36 +1,65 @@
-use renderer::{scene::Scene, Renderer};
-use thiserror::Error;
+use std::time::Instant;
+
+use anyhow::Result;
+use renderer::Renderer;
+use tk3d::math::Vector2;
 use winit::{
     event::{ElementState, MouseButton, VirtualKeyCode},
     window::Window,
 };
 
-use crate::{input::Input, ipc::IpcHost};
+use crate::{
+    editor::{self, Editor},
+    input::Input,
+    ipc::IpcHost,
+};
 
 pub struct MainLoop {
     renderer: Renderer,
     input: Input,
+    editor: Editor,
+    before: Instant,
 }
 
 impl MainLoop {
-    pub fn new(window: &Window) -> Result<Self, NewError> {
+    pub fn new(window: &Window) -> Result<Self> {
+        let mut renderer = Renderer::new(window)?;
+        let input = Input::default();
+        let editor = Editor::default();
+
+        {
+            let (width, height) = window.inner_size().into();
+            renderer.resize(width, height);
+        }
+
         Ok(Self {
-            renderer: Renderer::new(window)?,
-            input: Input::default(),
+            renderer,
+            input,
+            editor,
+            before: Instant::now(),
         })
     }
 
-    pub fn process<H: IpcHost>(&mut self, _host: &H) -> Result<(), ProcessError> {
+    pub fn process<H: IpcHost>(&mut self, _host: &H) -> Result<()> {
+        let after = Instant::now();
+        let delta = (after - self.before).as_secs_f32();
+        self.before = after;
+
+        self.editor.process(editor::OuterContext {
+            delta,
+            input: &self.input,
+        })?;
         self.input.process();
         Ok(())
     }
 
-    pub fn render(&self) -> Result<(), RenderError> {
-        self.renderer.render(&mut Scene)?;
+    pub fn render(&self) -> Result<()> {
+        self.editor.render(&self.renderer)?;
         Ok(())
     }
 
-    pub fn window_resized(&self, width: u32, height: u32) {
+    pub fn window_resized(&mut self, width: u32, height: u32) {
+        self.editor.window_resized(width, height);
         self.renderer.resize(width, height);
     }
 
@@ -41,18 +70,12 @@ impl MainLoop {
     pub fn mouse_input(&mut self, button: MouseButton, state: ElementState) {
         self.input.mouse_input(button, state);
     }
+
+    pub fn mouse_movement(&mut self, new_pos: Vector2<f32>) {
+        self.input.mouse_movement(new_pos);
+    }
+
+    pub fn mouse_wheel_movement(&mut self, movement: f32) {
+        self.input.mouse_wheel_movement(movement);
+    }
 }
-
-#[derive(Error, Debug)]
-pub enum NewError {
-    #[error("Couldn't create main loop: {0}")]
-    NoRenderer(#[from] renderer::NewError),
-}
-
-#[derive(Error, Debug)]
-#[error("Couldn't compute next frame")]
-pub struct ProcessError;
-
-#[derive(Error, Debug)]
-#[error("{0}")]
-pub struct RenderError(#[from] renderer::RenderError);
