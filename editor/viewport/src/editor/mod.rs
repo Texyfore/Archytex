@@ -1,9 +1,15 @@
 mod camera;
 mod scene;
 
-use anyhow::Result;
+use std::rc::Rc;
+
+use anyhow::{Context, Result};
 use cgmath::vec3;
-use renderer::{scene::Scene as RenderScene, Renderer};
+use mesh_gen::mesh_gen;
+use renderer::{
+    scene::{MeshObject, Scene as RenderScene},
+    Renderer,
+};
 use winit::event::{MouseButton, VirtualKeyCode};
 
 use crate::input::Input;
@@ -17,6 +23,7 @@ use self::{
 pub struct Editor {
     camera: Camera,
     scene: Scene,
+    mesh_cache: Vec<MeshObject>,
 }
 
 impl Editor {
@@ -62,13 +69,16 @@ impl Editor {
                 vec3(0.0, 0.0, 0.0),
                 vec3(4.0, 4.0, 4.0),
             )));
+            self.regen_meshes(ctx.renderer)?;
         }
 
         if ctx.input.is_key_down(VirtualKeyCode::LControl) {
             if ctx.input.is_key_down_once(VirtualKeyCode::Z) {
                 self.scene.undo();
+                self.regen_meshes(ctx.renderer)?;
             } else if ctx.input.is_key_down_once(VirtualKeyCode::Y) {
                 self.scene.redo();
+                self.regen_meshes(ctx.renderer)?;
             }
         }
 
@@ -78,12 +88,56 @@ impl Editor {
     pub fn render(&self, renderer: &Renderer) -> Result<()> {
         let mut scene = RenderScene::default();
         scene.set_camera_matrix(self.camera.matrix());
+
+        for mesh_object in &self.mesh_cache {
+            scene.push_mesh_object(mesh_object.clone());
+        }
+
         renderer.render(&scene)?;
         Ok(())
     }
 
     pub fn window_resized(&mut self, width: u32, height: u32) {
         self.camera.recreate_projection(width, height);
+    }
+
+    fn regen_meshes(&mut self, renderer: &Renderer) -> Result<()> {
+        let old_textures = self
+            .mesh_cache
+            .iter()
+            .map(|mesh_object| mesh_object.texture_id)
+            .collect::<Vec<_>>();
+
+        self.mesh_cache.clear();
+        self.mesh_cache.append(
+            &mut mesh_gen(&self.scene)
+                .context("couldn't build solid mesh")?
+                .into_iter()
+                .map(|solid_mesh| MeshObject {
+                    texture_id: solid_mesh.texture_id,
+                    transform: Rc::new(renderer.create_transform()),
+                    mesh: Rc::new(
+                        renderer.create_mesh(&solid_mesh.mesh.vertices, &solid_mesh.mesh.triangles),
+                    ),
+                })
+                .collect(),
+        );
+
+        for old_texture in old_textures {
+            if !self
+                .mesh_cache
+                .iter()
+                .any(|mesh_object| mesh_object.texture_id == old_texture)
+            {
+                self.mesh_cache.push(MeshObject {
+                    texture_id: old_texture,
+                    transform: Rc::new(renderer.create_transform()),
+                    mesh: Rc::new(renderer.create_mesh(&[], &[])),
+                });
+            }
+        }
+
+        Ok(())
     }
 }
 

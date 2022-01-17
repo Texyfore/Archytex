@@ -13,6 +13,7 @@ impl Scene {
     pub fn act(&mut self, action: Action) {
         let inverse = self.execute_action(action);
         self.undo_stack.push(inverse);
+        self.redo_stack.clear();
     }
 
     pub fn undo(&mut self) {

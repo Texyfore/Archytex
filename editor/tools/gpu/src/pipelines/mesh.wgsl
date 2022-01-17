@@ -73,7 +73,8 @@ fn fs_main(in: VertexOut) -> FragmentOut {
     var color_a = color.a;
 
     var light_dir = normalize(vec3<f32>(0.1, 0.2, 0.3));
-    var diffuse = clamp(dot(light_dir, in.normal), 0.0, 0.7) + 0.3;
+    // var diffuse = clamp(dot(light_dir, in.normal), 0.0, 0.7) + 0.3;
+    var diffuse = 1.0;
     color_rgb = color_rgb * diffuse;
 
     var out: FragmentOut;

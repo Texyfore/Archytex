@@ -25,13 +25,14 @@ impl MainLoop {
     pub fn new(window: &Window) -> Result<Self> {
         let mut renderer = Renderer::new(window)?;
         let input = Input::default();
-        let editor = Editor::default();
+        let mut editor = Editor::default();
 
         renderer.load_texture(TextureID(0), include_bytes!("nodraw.png"))?;
 
         {
             let (width, height) = window.inner_size().into();
             renderer.resize(width, height);
+            editor.window_resized(width, height);
         }
 
         Ok(Self {

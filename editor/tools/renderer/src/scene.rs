@@ -31,17 +31,20 @@ impl Scene {
     }
 }
 
+#[derive(Clone)]
 pub struct MeshObject {
     pub texture_id: TextureID,
     pub transform: Rc<Transform>,
     pub mesh: Rc<Mesh>,
 }
 
+#[derive(Clone)]
 pub struct LineObject {
     pub transform: Rc<Transform>,
     pub lines: Rc<Lines>,
 }
 
+#[derive(Clone)]
 pub struct GizmoObject {
     pub mesh: Rc<GizmoMesh>,
     pub instances: Rc<GizmoInstances>,
