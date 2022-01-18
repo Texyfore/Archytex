@@ -8,6 +8,7 @@ import largeFloorTiles from "../../../img/texture_thumbnails/large_floor_tiles_0
 import redBrick from "../../../img/texture_thumbnails/red_brick_03.jpg";
 import roof from "../../../img/texture_thumbnails/roof_09.jpg";
 import weatheredBrownPlanks from "../../../img/texture_thumbnails/weathered_brown_planks.jpg";
+import { useTranslation } from "react-i18next";
 interface TextureLibraryProps {
   selected: number | undefined;
   handleSelectionChange: (n: number | undefined) => void;
@@ -31,6 +32,8 @@ export default function TextureLibrary({
   selected,
   handleSelectionChange,
 }: TextureLibraryProps) {
+  const { t } = useTranslation();
+
   const textures: Texture[] = [
     {
       name: "Concrete floor",
@@ -94,7 +97,7 @@ export default function TextureLibrary({
     <>
       <Box display={recentTextures.length === 0 ? "none" : "initial"}>
         <Typography paddingTop={2} gutterBottom color='GrayText'>
-          Recent
+          {t("recent")}
         </Typography>
         <Box
           display='flex'

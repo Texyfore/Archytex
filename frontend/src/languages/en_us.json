@@ -102,5 +102,9 @@
   "prop_library": "Prop library",
   "library": "Library",
   "filter_results": "Filter results",
-  "accept": "Accept"
+  "accept": "Accept",
+  "recent": "Recent",
+  "select_an_item_to_use": "Select an item to use",
+  "camera_settings": "Camera settings",
+  "grid_settings": "Grid settings"
 }

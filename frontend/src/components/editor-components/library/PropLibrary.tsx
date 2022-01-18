@@ -11,6 +11,7 @@ import paintedWoodenChair from "../../../img/prop_thumbnails/painted_wooden_chai
 import pottedPlant from "../../../img/prop_thumbnails/potted_plant_04.png";
 import standingPictureFrame from "../../../img/prop_thumbnails/standing_picture_frame_01.png";
 import steelFramShelves from "../../../img/prop_thumbnails/steel_frame_shelves_01.png";
+import { useTranslation } from "react-i18next";
 interface PropLibraryProps {
   selected: number | undefined;
   handleSelectionChange: (n: number | undefined) => void;
@@ -33,6 +34,8 @@ export default function PropLibrary({
   selected,
   handleSelectionChange,
 }: PropLibraryProps) {
+  const { t } = useTranslation();
+
   const props: Prop[] = [
     {
       name: "Alarm clock",
@@ -97,7 +100,7 @@ export default function PropLibrary({
     <>
       <Box display={recentProps.length === 0 ? "none" : "initial"}>
         <Typography paddingTop={2} gutterBottom color='GrayText'>
-          Recent
+          {t("recent")}
         </Typography>
         <Box
           display='flex'

@@ -65,6 +65,7 @@ export default function LibraryDialog({
   handleClose,
   libraryType,
 }: LibraryDialogProps) {
+  //Translation
   const { t } = useTranslation();
 
   //Dialog
@@ -110,7 +111,7 @@ export default function LibraryDialog({
     setSelected(n);
   };
 
-  const tooltipText = "Select an item to use";
+  const tooltipText = t("select_an_item_to_use");
   return (
     <>
       <Dialog

@@ -295,6 +295,8 @@ export default function Editor() {
   const moveTooltipText = t("move_translate_mode");
   const rotateTooltipText = t("rotate_translate_mode");
   const scaleTooltipText = t("scale_translate_mode");
+  const cameraSettingsTooltipText = t("camera_settings");
+  const gridSettingsTooltipText = t("grid_settings");
 
   return (
     <React.Fragment>
@@ -441,7 +443,7 @@ export default function Editor() {
           top={appBarHeight + 10}
           left='calc(100% - 400px)'
         >
-          <Tooltip title='Camera settings'>
+          <Tooltip title={cameraSettingsTooltipText}>
             <IconButton onClick={handleCameraMenuClick}>
               <VideoCameraBack />
             </IconButton>
@@ -502,7 +504,7 @@ export default function Editor() {
           top={appBarHeight + 10}
           left='calc(100% - 450px)'
         >
-          <Tooltip title='Grid settings'>
+          <Tooltip title={gridSettingsTooltipText}>
             <IconButton onClick={handleGridMenuClick}>
               <Grid3x3Rounded />
             </IconButton>
