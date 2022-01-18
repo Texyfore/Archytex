@@ -1,11 +1,8 @@
 mod camera;
 mod scene;
 
-use std::rc::Rc;
-
-use anyhow::{Context, Result};
+use anyhow::Result;
 use cgmath::vec3;
-use mesh_gen::mesh_gen;
 use renderer::{
     scene::{MeshObject, Scene as RenderScene},
     Renderer,
@@ -102,41 +99,6 @@ impl Editor {
     }
 
     fn regen_meshes(&mut self, renderer: &Renderer) -> Result<()> {
-        let old_textures = self
-            .mesh_cache
-            .iter()
-            .map(|mesh_object| mesh_object.texture_id)
-            .collect::<Vec<_>>();
-
-        self.mesh_cache.clear();
-        self.mesh_cache.append(
-            &mut mesh_gen(&self.scene)
-                .context("couldn't build solid mesh")?
-                .into_iter()
-                .map(|solid_mesh| MeshObject {
-                    texture_id: solid_mesh.texture_id,
-                    transform: Rc::new(renderer.create_transform()),
-                    mesh: Rc::new(
-                        renderer.create_mesh(&solid_mesh.mesh.vertices, &solid_mesh.mesh.triangles),
-                    ),
-                })
-                .collect(),
-        );
-
-        for old_texture in old_textures {
-            if !self
-                .mesh_cache
-                .iter()
-                .any(|mesh_object| mesh_object.texture_id == old_texture)
-            {
-                self.mesh_cache.push(MeshObject {
-                    texture_id: old_texture,
-                    transform: Rc::new(renderer.create_transform()),
-                    mesh: Rc::new(renderer.create_mesh(&[], &[])),
-                });
-            }
-        }
-
         Ok(())
     }
 }

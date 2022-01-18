@@ -38,12 +38,6 @@ impl Scene {
     }
 }
 
-impl<'a> mesh_gen::Model<'a, Solid, Face, Point> for Scene {
-    fn solids(&self) -> Vec<&Solid> {
-        self.solids.iter().collect()
-    }
-}
-
 pub enum Action {
     AddSolid(Solid),
     RemoveSolid(usize),
@@ -129,39 +123,13 @@ impl Solid {
     }
 }
 
-impl mesh_gen::Solid<Face, Point> for Solid {
-    fn faces(&self) -> &[Face; 6] {
-        &self.faces
-    }
-
-    fn points(&self) -> &[Point; 8] {
-        &self.points
-    }
-}
-
 pub struct Face {
     texture_id: TextureID,
     points: [usize; 4],
     selected: bool,
 }
 
-impl mesh_gen::Face for Face {
-    fn texture_id(&self) -> TextureID {
-        self.texture_id
-    }
-
-    fn points(&self) -> &[usize; 4] {
-        &self.points
-    }
-}
-
 pub struct Point {
     position: Vector3<f32>,
     selected: bool,
-}
-
-impl mesh_gen::Point for Point {
-    fn position(&self) -> Vector3<f32> {
-        self.position
-    }
 }
