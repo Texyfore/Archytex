@@ -2,10 +2,11 @@ package routes
 
 import (
 	"encoding/json"
+	"net/http"
+
 	"github.com/Texyfore/Archytex/backend/database"
 	"github.com/Texyfore/Archytex/backend/database/models"
 	"github.com/Texyfore/Archytex/backend/logging"
-	"net/http"
 )
 
 type assetsResponse struct {
