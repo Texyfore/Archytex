@@ -73,6 +73,30 @@ impl<T> IntoIterator for PinVec<T> {
     }
 }
 
+impl<'a, T> IntoIterator for &'a PinVec<T> {
+    type Item = &'a T;
+
+    type IntoIter = Iter<'a, T>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        Iter {
+            flatten: self.slots.iter().flatten(),
+        }
+    }
+}
+
+impl<'a, T> IntoIterator for &'a mut PinVec<T> {
+    type Item = &'a mut T;
+
+    type IntoIter = IterMut<'a, T>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        IterMut {
+            flatten: self.slots.iter_mut().flatten(),
+        }
+    }
+}
+
 pub struct Iter<'a, T> {
     flatten: Flatten<std::slice::Iter<'a, Option<T>>>,
 }
@@ -226,5 +250,32 @@ mod tests {
         };
 
         assert_eq!(vec.into_iter().collect::<Vec<_>>(), vec![()]);
+    }
+
+    #[test]
+    fn ref_into_iter() {
+        let vec = PinVec {
+            slots: vec![None, Some(()), Some(()), None],
+        };
+
+        let mut i = 0;
+        for val in &vec {
+            assert_eq!(val, &());
+            i += 1;
+        }
+        assert_eq!(i, 2);
+    }
+
+    #[test]
+    fn mut_into_iter() {
+        let mut vec = PinVec {
+            slots: vec![None, Some(0), Some(1), None],
+        };
+
+        for val in &mut vec {
+            *val += 1;
+        }
+
+        assert_eq!(vec.slots, vec![None, Some(1), Some(2), None]);
     }
 }
