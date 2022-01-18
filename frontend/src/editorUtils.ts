@@ -249,16 +249,10 @@ export default class EditorHandle {
     });
   }
 
-  loadScene(url: string) {
-    (async () => {
-      const res = await fetch(url);
-      const arrayBuffer = await res.arrayBuffer();
-      return new Uint8Array(arrayBuffer);
-    })().then((scene) => {
-      this.actionQueue.unshift({
-        type: "load-scene",
-        scene: scene,
-      });
+  loadScene(scene: Uint8Array) {
+    this.actionQueue.unshift({
+      type: "load-scene",
+      scene: scene,
     });
   }
 
