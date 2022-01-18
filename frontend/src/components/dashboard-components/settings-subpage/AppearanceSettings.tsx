@@ -12,8 +12,11 @@ import {
   Typography,
 } from "@mui/material";
 import { ColorMode, useColorMode } from "../../../services/colorMode";
+import { useTranslation } from "react-i18next";
 
 export default function AppearanceSettings() {
+  const { t } = useTranslation();
+
   const [colorMode, toggle] = useColorMode();
 
   return (
@@ -28,8 +31,10 @@ export default function AppearanceSettings() {
           <Palette fontSize='large' />
         </Box>
         <Box>
-          <Typography variant='h6'>Appearance</Typography>
-          <Typography variant='caption'>Change how Archytex looks</Typography>
+          <Typography variant='h6'>{t("appearance")}</Typography>
+          <Typography variant='caption'>
+            {t("change_how_archytex_looks")}
+          </Typography>
         </Box>
       </Box>
       <Divider />
@@ -41,8 +46,8 @@ export default function AppearanceSettings() {
               <DarkMode />
             </ListItemIcon>
             <ListItemText
-              primary='Dark mode'
-              secondary='Set the application theme to dark.'
+              primary={t("dark_mode")}
+              secondary={t("set_the_application_theme_to_dark")}
             />
             <Switch
               edge='end'

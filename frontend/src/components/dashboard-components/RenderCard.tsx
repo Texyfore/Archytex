@@ -15,12 +15,15 @@ import {
 import { Close, Download, InfoOutlined, Share } from "@mui/icons-material";
 import CircularProgressWithLabel from "../CircularProgressWithLabel";
 import { Render } from "../../services/projects";
+import { useTranslation } from "react-i18next";
 
 interface RenderCardProps {
   render: Render;
 }
 
 export default function RenderCard({ render }: RenderCardProps) {
+  const { t } = useTranslation();
+
   //Enlarge render image modal
   const [openEnlargeRenderModal, setOpenEnlargeRenderModal] = useState<
     undefined | Render
@@ -30,6 +33,11 @@ export default function RenderCard({ render }: RenderCardProps) {
   };
   const handleCloseEnlargeRenderModal = () =>
     setOpenEnlargeRenderModal(undefined);
+
+  const downloadTooltipText = t("download");
+  const shareTooltipText = t("share");
+  const detailsTooltipText = t("details");
+  const closeImageTooltipText = t("close_image");
 
   return (
     <React.Fragment>
@@ -69,7 +77,7 @@ export default function RenderCard({ render }: RenderCardProps) {
                 <CircularProgressWithLabel
                   size={80}
                   thickness={1}
-                  value={render.status*100}
+                  value={render.status * 100}
                 />
               </Box>
             </Box>
@@ -83,21 +91,21 @@ export default function RenderCard({ render }: RenderCardProps) {
           </Tooltip>
         </CardActionArea>
         <CardActions>
-          <Tooltip title='Download' arrow>
+          <Tooltip title={downloadTooltipText} arrow>
             <span>
-              <IconButton size='small' disabled={render.status*100 < 100}>
+              <IconButton size='small' disabled={render.status * 100 < 100}>
                 <Download />
               </IconButton>
             </span>
           </Tooltip>
-          <Tooltip title='Share' arrow>
+          <Tooltip title={shareTooltipText} arrow>
             <span>
-              <IconButton size='small' disabled={render.status*100 < 100}>
+              <IconButton size='small' disabled={render.status * 100 < 100}>
                 <Share />
               </IconButton>
             </span>
           </Tooltip>
-          <Tooltip title='Details' arrow>
+          <Tooltip title={detailsTooltipText} arrow>
             <span>
               <IconButton size='small'>
                 <InfoOutlined />
@@ -145,7 +153,7 @@ export default function RenderCard({ render }: RenderCardProps) {
             </Box>
           </Grow>
           <Box position='absolute' top='5px' right='5px'>
-            <Tooltip title='Close image'>
+            <Tooltip title={closeImageTooltipText}>
               <IconButton
                 sx={{ color: "#f5f0f6" }}
                 onClick={handleCloseEnlargeRenderModal}

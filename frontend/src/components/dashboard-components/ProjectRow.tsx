@@ -31,6 +31,7 @@ import {
   easing,
 } from "@mui/material";
 import React, { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useHistory } from "react-router-dom";
 import { Project, Render, useProjects } from "../../services/projects";
 import RenderCard from "./RenderCard";
@@ -44,6 +45,8 @@ export default function ProjectRow({
   project,
   feedbackSnackbar,
 }: ProjectRowProps) {
+  const { t } = useTranslation();
+
   const history = useHistory();
 
   //Read projects
@@ -83,7 +86,7 @@ export default function ProjectRow({
       id: project.id,
     });
     handleDeleteProjectModalClose();
-    feedbackSnackbar("Project deleted successfully!", "success");
+    feedbackSnackbar(t("project_deleted_successfully"), "success");
   };
 
   //Title edit handling
@@ -106,6 +109,8 @@ export default function ProjectRow({
     feedbackSnackbar("Project renamed successfully!", "success");
   };
 
+  const tooltipText = t("project_actions");
+
   return (
     <React.Fragment>
       {/* Projects list item */}
@@ -113,7 +118,7 @@ export default function ProjectRow({
         key={project.id}
         disablePadding
         secondaryAction={
-          <Tooltip title='Project actions'>
+          <Tooltip title={tooltipText}>
             <IconButton onClick={handleProjectActionsMenuClick}>
               <MoreVert />
             </IconButton>
@@ -139,7 +144,7 @@ export default function ProjectRow({
             marginLeft={2}
             display={{ xs: "none", lg: "block" }}
           >
-            ( {project.renders.length} renders )
+            ( {project.renders.length} {t("renders_count")} )
           </Typography>
           <Typography
             noWrap
@@ -163,7 +168,7 @@ export default function ProjectRow({
               color='inherit'
               onClick={() => history.push(`/editor/${project.id}`)}
             >
-              Open project in editor
+              {t("open_project_in_editor")}
             </Button>
           </Box>
           {project.renders.map((render: Render, index) => (
@@ -199,28 +204,30 @@ export default function ProjectRow({
           <ListItemIcon>
             <Send />
           </ListItemIcon>
-          Open in editor
+          {t("open_in_editor")}
         </MenuItem>
         <Divider />
         <MenuItem onClick={handleUnderEditStart}>
           <ListItemIcon>
             <Edit />
           </ListItemIcon>
-          Edit name
+          {t("edit_name")}
         </MenuItem>
         <Divider />
         <MenuItem>
           <ListItemIcon>
             <InfoOutlined />
           </ListItemIcon>
-          Project details
+          {t("project_details")}
         </MenuItem>
         <Divider />
         <MenuItem onClick={handleDeleteProjectModalOpen}>
           <ListItemIcon>
             <Delete color='error' />
           </ListItemIcon>
-          <Typography sx={{ color: "error.main" }}>Delete project</Typography>
+          <Typography sx={{ color: "error.main" }}>
+            {t("delete_project")}
+          </Typography>
         </MenuItem>
       </Menu>
 
@@ -328,7 +335,7 @@ export default function ProjectRow({
                 variant='h6'
                 component='h2'
               >
-                Delete project
+                {t("delete_project")}
               </Typography>
               <IconButton onClick={handleDeleteProjectModalClose}>
                 <Close />
@@ -336,10 +343,10 @@ export default function ProjectRow({
             </Box>
             <Box display='flex' flexDirection='column' marginY={3}>
               <Typography variant='body1'>
-                Are you sure you want to delete this project?
+                {t("project_delete_confirm")}
               </Typography>
               <Typography variant='body1' fontWeight='bold'>
-                This action cannot be reversed.
+                {t("no_reverse")}
               </Typography>
             </Box>
             <Box>
@@ -349,7 +356,7 @@ export default function ProjectRow({
                 color='error'
                 onClick={handleProjectDelete}
               >
-                Delete
+                {t("delete")}
               </Button>
               <Button
                 size='large'
@@ -358,7 +365,7 @@ export default function ProjectRow({
                 sx={{ marginLeft: 2 }}
                 onClick={handleDeleteProjectModalClose}
               >
-                Cancel
+                {t("cancel")}
               </Button>
             </Box>
           </Box>

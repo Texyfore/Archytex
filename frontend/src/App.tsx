@@ -15,7 +15,6 @@ import Editor from "./pages/Editor";
 import { RestProvider } from "./services/user/rest";
 import PageNotFound from "./pages/PageNotFound";
 import SuccessfulRegistration from "./pages/SuccessfulRegistration";
-
 import translationEn from "./languages/en_us.json";
 import translationHu from "./languages/hu_hu.json";
 import translationJp from "./languages/jp_jp.json";

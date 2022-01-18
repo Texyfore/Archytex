@@ -2,6 +2,7 @@ import React from "react";
 import { styled, alpha } from "@mui/material/styles";
 import { Search } from "@mui/icons-material";
 import { InputBase } from "@mui/material";
+import { useTranslation } from "react-i18next";
 
 const SearchDiv = styled("div")(({ theme }) => ({
   position: "relative",
@@ -50,13 +51,14 @@ const StyledInputBase = styled(InputBase)(({ theme }) => ({
 }));
 
 export default function SearchBar() {
+  const { t } = useTranslation();
   return (
     <SearchDiv>
       <SearchIconWrapper>
         <Search />
       </SearchIconWrapper>
       <StyledInputBase
-        placeholder='Search…'
+        placeholder={t("search")}
         inputProps={{ "aria-label": "search" }}
       />
     </SearchDiv>

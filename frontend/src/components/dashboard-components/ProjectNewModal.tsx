@@ -11,6 +11,7 @@ import {
   Typography,
 } from "@mui/material";
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useProjects } from "../../services/projects";
 
 const modalStyle = {
@@ -41,6 +42,9 @@ export default function ProjectNewModal({
   feedbackSnackbar,
   ...params
 }: Parameters) {
+  //i18n
+  const { t } = useTranslation();
+
   const [name, setName] = useState("");
   const { dispatch: projectsDispatch } = useProjects();
   const onCreate = () => {
@@ -52,7 +56,7 @@ export default function ProjectNewModal({
       });
       setName("");
       handleModalClose();
-      feedbackSnackbar("Project created successfully!", "success");
+      feedbackSnackbar(t("project_created_successfully"), "success");
     }
   };
   return (
@@ -75,7 +79,7 @@ export default function ProjectNewModal({
         >
           <Box display='flex' justifyContent='space-between'>
             <Typography id='transition-modal-title' variant='h6' component='h2'>
-              Create new project
+              {t("create_new_project")}
             </Typography>
             <IconButton onClick={handleModalClose}>
               <Close />
@@ -85,7 +89,7 @@ export default function ProjectNewModal({
             <TextField
               required
               id='standard-required'
-              label='Project name'
+              label={t("project_name")}
               variant='standard'
               margin='normal'
               value={name}
@@ -104,7 +108,7 @@ export default function ProjectNewModal({
               variant='contained'
               onClick={onCreate}
             >
-              Create
+              {t("create")}
             </Button>
           </Box>
         </Box>
