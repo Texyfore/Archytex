@@ -17,6 +17,7 @@ interface UserLoggedIn {
     dispose: () => void;
   };
   save: (data: Uint8Array, id: string) => Promise<void>;
+  load: (id: string) => Promise<Uint8Array | undefined>;
   render: (data: Uint8Array, id: string) => Promise<void>;
 }
 interface UserNotLoggedIn {

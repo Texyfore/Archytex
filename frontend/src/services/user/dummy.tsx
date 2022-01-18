@@ -78,6 +78,9 @@ const DummyProvider = ({
           render: async (data: Uint8Array, id: string) => {
             console.log(data.length);
           },
+          load: async(id: string) => {
+            return undefined;
+          }
         });
       },
     };

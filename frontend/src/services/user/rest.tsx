@@ -213,6 +213,12 @@ const RestProvider = ({
           headers: { "Content-Type": "application/octet-stream" },
         });
       },
+      load: async(id: string) => {
+        const result = await internal.fetch(`${Environment.base_url}auth/project/${id}/data`, {
+          method: "GET"
+        });
+        return new Uint8Array(await result.arrayBuffer());
+      }
     });
   }, [internal]);
   return value == null ? (

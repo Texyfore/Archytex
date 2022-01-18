@@ -167,10 +167,17 @@ export default function Editor() {
       const assets = await res.json();
       editorHandle.loadTextures(assets.textures);
       editorHandle.loadProps(assets.props);
+      if (projectId !== null && api?.state === "logged-in") {
+        const project = await api.load(projectId);
+        if(project){
+          console.log("Loading scene... " + project.length)
+          editorHandle.loadScene(project);
+        }
+      }
     })();
 
     return editorHandle.destroy;
-  }, [api]);
+  }, [api, projectId]);
 
   // Viewport mode change
   const [viewportMode, setViewportMode] = useState<viewportMode>("solid");
