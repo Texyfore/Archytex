@@ -16,6 +16,7 @@ import { Close, Download, InfoOutlined, Share } from "@mui/icons-material";
 import CircularProgressWithLabel from "../CircularProgressWithLabel";
 import { Render } from "../../services/projects";
 import { useTranslation } from "react-i18next";
+import Environment from "../../env";
 
 interface RenderCardProps {
   render: Render;
@@ -51,7 +52,7 @@ export default function RenderCard({ render }: RenderCardProps) {
             sx={{
               height: { xs: "150px", sm: "200px", md: "250px" },
             }}
-            image={render.icon}
+            image={`${Environment.base_url}render/${render.icon}`}
             alt='green iguana'
           />
           {/* Image overlay for progress information */}

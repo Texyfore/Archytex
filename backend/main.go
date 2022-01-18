@@ -75,6 +75,7 @@ func main() {
 	api.HandleFunc("/verify", routes.Verify).Methods("GET")
 	api.HandleFunc("/assets", routes.Assets).Methods("GET")
 	api.HandleFunc("/ws", routes.Ws)
+	api.HandleFunc("/render/{render}", authenticated.ShowRender).Methods("GET")
 
 	auth := api.PathPrefix("/auth").Subrouter()
 	auth.Use(session.UserMiddleware)
