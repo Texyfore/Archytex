@@ -1,6 +1,8 @@
 pub mod data;
 pub mod scene;
 
+pub use mesh;
+
 use std::collections::HashMap;
 
 use asset_id::TextureID;

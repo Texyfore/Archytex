@@ -8,10 +8,10 @@ pub struct Mesh {
 }
 
 impl Renderer {
-    pub fn create_mesh(&self, vertices: &[mesh::Vertex], triangles: &[[u16; 3]]) -> Mesh {
+    pub fn create_mesh(&self, mesh: &mesh::Mesh) -> Mesh {
         Mesh {
-            vertices: self.gpu.create_buffer(vertices, BufferUsages::VERTEX),
-            triangles: self.gpu.create_buffer(triangles, BufferUsages::INDEX),
+            vertices: self.gpu.create_buffer(&mesh.vertices, BufferUsages::VERTEX),
+            triangles: self.gpu.create_buffer(&mesh.triangles, BufferUsages::INDEX),
         }
     }
 }
