@@ -2,9 +2,10 @@ use std::{collections::HashMap, rc::Rc};
 
 use asset_id::TextureID;
 use cgmath::{vec2, vec3, ElementWise, InnerSpace, Vector3};
-use formats::ascn::PointID;
 use pin_vec::PinVec;
 use renderer::{data::solid, scene::SolidObject, Renderer};
+
+pub use formats::ascn::PointID;
 
 macro_rules! points {
     [$($p:literal),* $(,)?] => {[
@@ -129,7 +130,8 @@ impl Scene {
 
 pub enum Action {
     AddSolid(Solid),
-    RemoveSolid(usize),
+    RemoveSolid(SolidID),
+    MovePoint {},
 }
 
 pub struct Solid {
@@ -173,4 +175,32 @@ pub struct Face {
 pub struct Point {
     position: Vector3<f32>,
     selected: bool,
+}
+
+#[derive(Clone, Copy)]
+pub struct SolidID(usize);
+
+impl From<usize> for SolidID {
+    fn from(value: usize) -> Self {
+        Self(value)
+    }
+}
+
+#[derive(Clone, Copy)]
+pub struct FaceID(u8);
+
+impl FaceID {
+    fn new(value: u8) -> Option<Self> {
+        if value < 8 {
+            Some(Self(value))
+        } else {
+            None
+        }
+    }
+}
+
+impl From<FaceID> for usize {
+    fn from(value: FaceID) -> Self {
+        value.0 as usize
+    }
 }
