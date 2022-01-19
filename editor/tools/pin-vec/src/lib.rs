@@ -31,6 +31,10 @@ impl<T> PinVec<T> {
         }
     }
 
+    pub fn clear(&mut self) {
+        self.slots.clear();
+    }
+
     pub fn get(&self, index: usize) -> Option<&T> {
         if let Some(slot) = self.slots.get(index) {
             slot.as_ref()
@@ -161,6 +165,17 @@ mod tests {
 
         assert_eq!(vec.remove(0), Some(()));
         assert_eq!(vec.remove(0), None);
+    }
+
+    #[test]
+    fn clear() {
+        let mut vec = PinVec {
+            slots: vec![None, Some(())],
+        };
+
+        assert_eq!(vec.slots, vec![None, Some(())]);
+        vec.clear();
+        assert_eq!(vec.slots, vec![]);
     }
 
     #[test]
