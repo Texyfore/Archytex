@@ -4,13 +4,13 @@ use gpu::{data::Buffer, BufferUsages};
 
 use crate::Renderer;
 
-pub struct Lines {
-    pub(crate) vertices: Buffer<LineVertex>,
+pub struct Mesh {
+    pub(crate) vertices: Buffer<Vertex>,
 }
 
 impl Renderer {
-    pub fn create_lines(&self, vertices: &[LineVertex]) -> Lines {
-        Lines {
+    pub fn create_lines(&self, vertices: &[Vertex]) -> Mesh {
+        Mesh {
             vertices: self.gpu.create_buffer(vertices, BufferUsages::VERTEX),
         }
     }
@@ -18,10 +18,10 @@ impl Renderer {
 
 #[derive(Clone, Copy)]
 #[repr(C)]
-pub struct LineVertex {
+pub struct Vertex {
     pub position: Vector3<f32>,
     pub color: [f32; 3],
 }
 
-unsafe impl Zeroable for LineVertex {}
-unsafe impl Pod for LineVertex {}
+unsafe impl Zeroable for Vertex {}
+unsafe impl Pod for Vertex {}

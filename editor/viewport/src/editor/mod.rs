@@ -4,7 +4,7 @@ mod scene;
 use anyhow::Result;
 use cgmath::vec3;
 use renderer::{
-    scene::{SolidObject, Scene as RenderScene},
+    scene::{Scene as RenderScene, SolidObject},
     Renderer,
 };
 use winit::event::{MouseButton, VirtualKeyCode};
@@ -99,6 +99,7 @@ impl Editor {
     }
 
     fn regen_meshes(&mut self, renderer: &Renderer) -> Result<()> {
+        self.scene.gen_meshes(renderer, &mut self.mesh_cache);
         Ok(())
     }
 }

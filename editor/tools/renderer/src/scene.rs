@@ -3,7 +3,7 @@ use std::rc::Rc;
 use asset_id::TextureID;
 use cgmath::Matrix4;
 
-use crate::data::{gizmo, lines::*, solid, transform::Transform};
+use crate::data::{gizmo, line, solid, transform::Transform};
 
 #[derive(Default)]
 pub struct Scene {
@@ -41,7 +41,7 @@ pub struct SolidObject {
 #[derive(Clone)]
 pub struct LineObject {
     pub transform: Rc<Transform>,
-    pub lines: Rc<Lines>,
+    pub lines: Rc<line::Mesh>,
 }
 
 #[derive(Clone)]

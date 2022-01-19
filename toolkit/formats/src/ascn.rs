@@ -34,7 +34,7 @@ pub struct Face {
     pub points: [PointID; 4],
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Clone, Copy, Serialize, Deserialize)]
 pub struct PointID(u8);
 
 #[derive(Serialize, Deserialize)]
@@ -71,7 +71,7 @@ impl PointID {
 
 impl From<PointID> for usize {
     fn from(value: PointID) -> Self {
-        value.0 as usize
+        value.0 as Self
     }
 }
 
