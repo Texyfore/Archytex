@@ -1,6 +1,32 @@
 use asset_id::TextureID;
 use cgmath::{vec3, ElementWise, Vector3};
+use formats::ascn::PointID;
 use pin_vec::PinVec;
+
+macro_rules! points {
+    [$($p:literal),* $(,)?] => {[
+        $(PointID::new($p).unwrap()),*
+    ]};
+}
+
+macro_rules! face {
+    ($t:literal: $p0:literal $p1:literal $p2:literal $p3:literal) => {
+        Face {
+            texture_id: TextureID($t),
+            points: points![$p0, $p1, $p2, $p3],
+            selected: false,
+        }
+    };
+}
+
+macro_rules! point {
+    ($o:ident $e:ident [$x:literal $y:literal $z:literal]) => {
+        Point {
+            position: $o + $e.mul_element_wise(vec3($x as f32, $y as f32, $z as f32)),
+            selected: false,
+        }
+    };
+}
 
 #[derive(Default)]
 pub struct Scene {
@@ -53,70 +79,22 @@ impl Solid {
     pub fn new(origin: Vector3<f32>, extent: Vector3<f32>) -> Self {
         Self {
             faces: [
-                Face {
-                    texture_id: TextureID(0),
-                    points: [1, 2, 6, 5],
-                    selected: false,
-                },
-                Face {
-                    texture_id: TextureID(0),
-                    points: [0, 4, 7, 3],
-                    selected: false,
-                },
-                Face {
-                    texture_id: TextureID(0),
-                    points: [2, 3, 7, 6],
-                    selected: false,
-                },
-                Face {
-                    texture_id: TextureID(0),
-                    points: [0, 1, 5, 4],
-                    selected: false,
-                },
-                Face {
-                    texture_id: TextureID(0),
-                    points: [4, 5, 6, 7],
-                    selected: false,
-                },
-                Face {
-                    texture_id: TextureID(0),
-                    points: [0, 3, 2, 1],
-                    selected: false,
-                },
+                face!(0: 1 2 6 5),
+                face!(0: 0 4 7 3),
+                face!(0: 2 3 7 6),
+                face!(0: 0 1 5 4),
+                face!(0: 4 5 6 7),
+                face!(0: 0 3 2 1),
             ],
             points: [
-                Point {
-                    position: origin + extent.mul_element_wise(vec3(0.0, 0.0, 0.0)),
-                    selected: false,
-                },
-                Point {
-                    position: origin + extent.mul_element_wise(vec3(1.0, 0.0, 0.0)),
-                    selected: false,
-                },
-                Point {
-                    position: origin + extent.mul_element_wise(vec3(1.0, 1.0, 0.0)),
-                    selected: false,
-                },
-                Point {
-                    position: origin + extent.mul_element_wise(vec3(0.0, 1.0, 0.0)),
-                    selected: false,
-                },
-                Point {
-                    position: origin + extent.mul_element_wise(vec3(0.0, 0.0, 1.0)),
-                    selected: false,
-                },
-                Point {
-                    position: origin + extent.mul_element_wise(vec3(1.0, 0.0, 1.0)),
-                    selected: false,
-                },
-                Point {
-                    position: origin + extent.mul_element_wise(vec3(1.0, 1.0, 1.0)),
-                    selected: false,
-                },
-                Point {
-                    position: origin + extent.mul_element_wise(vec3(0.0, 1.0, 1.0)),
-                    selected: false,
-                },
+                point!(origin extent [0 0 0]),
+                point!(origin extent [1 0 0]),
+                point!(origin extent [1 1 0]),
+                point!(origin extent [0 1 0]),
+                point!(origin extent [0 0 1]),
+                point!(origin extent [1 0 1]),
+                point!(origin extent [1 1 1]),
+                point!(origin extent [0 1 1]),
             ],
             selected: false,
         }
@@ -125,7 +103,7 @@ impl Solid {
 
 pub struct Face {
     texture_id: TextureID,
-    points: [usize; 4],
+    points: [PointID; 4],
     selected: bool,
 }
 
