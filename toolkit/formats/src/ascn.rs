@@ -31,8 +31,11 @@ pub struct Solid {
 #[derive(Serialize, Deserialize)]
 pub struct Face {
     pub texture_id: TextureID,
-    pub points: [usize; 4],
+    pub points: [PointID; 4],
 }
+
+#[derive(Serialize, Deserialize)]
+pub struct PointID(u8);
 
 #[derive(Serialize, Deserialize)]
 pub struct Point {
@@ -53,6 +56,22 @@ impl Scene {
 
     pub fn decode(&self, buf: &[u8]) -> Result<Self, DecodeError> {
         Ok(bincode::deserialize(buf)?)
+    }
+}
+
+impl PointID {
+    pub fn new(value: u8) -> Option<Self> {
+        if value < 8 {
+            Some(Self(value))
+        } else {
+            None
+        }
+    }
+}
+
+impl From<PointID> for usize {
+    fn from(value: PointID) -> Self {
+        value.0 as usize
     }
 }
 

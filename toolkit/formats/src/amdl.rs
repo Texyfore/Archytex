@@ -1,10 +1,8 @@
 use asset_id::TextureID;
 use bincode::ErrorKind;
-use cgmath::Vector3;
+use cgmath::{Vector2, Vector3};
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
-
-pub use mesh::{Mesh, Vertex};
 
 #[derive(Serialize, Deserialize)]
 pub struct Model {
@@ -27,6 +25,19 @@ impl Model {
 pub struct BoundingBox {
     pub min: Vector3<f32>,
     pub max: Vector3<f32>,
+}
+
+#[derive(Serialize, Deserialize)]
+pub struct Mesh {
+    pub vertices: Vec<Vertex>,
+    pub triangles: Vec<[u16; 3]>,
+}
+
+#[derive(Serialize, Deserialize)]
+pub struct Vertex {
+    pub position: Vector3<f32>,
+    pub normal: Vector3<f32>,
+    pub texcoord: Vector2<f32>,
 }
 
 #[derive(Error, Debug)]

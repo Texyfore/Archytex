@@ -10,6 +10,4 @@ cgmath = "=0.18.0"
 image = "=0.23.14"
 bytemuck = { version = "=1.7.3", features = ["derive"] }
 gpu = { path = "../gpu" }
-mesh = { path = "../../../toolkit/mesh", features = ["bytemuck"] }
-gizmo = { path = "../../../toolkit/gizmo", features = ["bytemuck"] }
 asset-id = { path = "../../../toolkit/asset-id" }

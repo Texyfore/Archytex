@@ -4,7 +4,7 @@ mod scene;
 use anyhow::Result;
 use cgmath::vec3;
 use renderer::{
-    scene::{MeshObject, Scene as RenderScene},
+    scene::{SolidObject, Scene as RenderScene},
     Renderer,
 };
 use winit::event::{MouseButton, VirtualKeyCode};
@@ -20,7 +20,7 @@ use self::{
 pub struct Editor {
     camera: Camera,
     scene: Scene,
-    mesh_cache: Vec<MeshObject>,
+    mesh_cache: Vec<SolidObject>,
 }
 
 impl Editor {
@@ -87,7 +87,7 @@ impl Editor {
         scene.set_camera_matrix(self.camera.matrix());
 
         for mesh_object in &self.mesh_cache {
-            scene.push_mesh_object(mesh_object.clone());
+            scene.push_solid_object(mesh_object.clone());
         }
 
         renderer.render(&scene)?;

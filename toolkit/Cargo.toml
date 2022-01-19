@@ -1,9 +1,6 @@
 [workspace]
 members = [
     "mesh-convert",
+    "formats",
     "asset-id",
-    "mesh",
-    "ascn",
-    "amdl",
-    "agzm"
 ]

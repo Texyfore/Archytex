@@ -1,8 +1,6 @@
 pub mod data;
 pub mod scene;
 
-pub use mesh;
-
 use std::collections::HashMap;
 
 use asset_id::TextureID;
@@ -82,7 +80,7 @@ impl Renderer {
             pass.set_uniform(0, &self.camera_uniform);
 
             pass.set_mesh_pipeline(&self.mesh_pipeline);
-            for mesh_object in &scene.mesh_objects {
+            for mesh_object in &scene.solid_objects {
                 if let Some(texture) = self.textures.get(&mesh_object.texture_id.0) {
                     pass.set_uniform(1, &mesh_object.transform.uniform);
                     pass.set_texture(&texture.inner);
