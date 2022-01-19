@@ -84,7 +84,7 @@ impl Editor {
 
     pub fn render(&self, renderer: &Renderer) -> Result<()> {
         let mut scene = RenderScene::default();
-        scene.set_camera_matrix(self.camera.matrix());
+        scene.set_camera_matrices(self.camera.matrix(), self.camera.projection());
 
         for mesh_object in &self.mesh_cache {
             scene.push_solid_object(mesh_object.clone());

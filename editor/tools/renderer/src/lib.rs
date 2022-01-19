@@ -4,6 +4,7 @@ pub mod scene;
 use std::collections::HashMap;
 
 use asset_id::TextureID;
+use bytemuck::{Pod, Zeroable};
 use gpu::{
     data::{
         DepthBuffer, TextureLayout, {Uniform, UniformLayout},
@@ -29,7 +30,7 @@ pub struct Renderer {
     line_pipeline: LinePipeline,
     gizmo_pipeline: GizmoPipeline,
 
-    camera_uniform: Uniform<[[f32; 4]; 4]>,
+    camera_uniform: Uniform<CameraBlock>,
     textures: HashMap<u32, Texture>,
     sampler: Sampler,
 }
@@ -73,8 +74,13 @@ impl Renderer {
         let mut frame = self.gpu.next_frame()?;
 
         {
-            self.gpu
-                .set_uniform(&self.camera_uniform, &scene.camera_matrix);
+            self.gpu.set_uniform(
+                &self.camera_uniform,
+                &CameraBlock {
+                    world: scene.camera_world,
+                    clip: scene.camera_clip,
+                },
+            );
 
             let mut pass = frame.begin_pass(&self.depth_buffer, [0.01; 3]);
             pass.set_uniform(0, &self.camera_uniform);
@@ -152,4 +158,11 @@ struct Texture {
     inner: gpu::data::Texture,
     _width: u32,
     _height: u32,
+}
+
+#[repr(C)]
+#[derive(Clone, Copy, Pod, Zeroable)]
+struct CameraBlock {
+    world: [[f32; 4]; 4],
+    clip: [[f32; 4]; 4],
 }

@@ -1,21 +1,23 @@
 use std::rc::Rc;
 
 use asset_id::TextureID;
-use cgmath::Matrix4;
+use cgmath::{Matrix4, Transform as CgMathTransform};
 
 use crate::data::{gizmo, line, solid, transform::Transform};
 
 #[derive(Default)]
 pub struct Scene {
-    pub(crate) camera_matrix: [[f32; 4]; 4],
+    pub(crate) camera_world: [[f32; 4]; 4],
+    pub(crate) camera_clip: [[f32; 4]; 4],
     pub(crate) solid_objects: Vec<SolidObject>,
     pub(crate) line_objects: Vec<LineObject>,
     pub(crate) gizmo_objects: Vec<GizmoObject>,
 }
 
 impl Scene {
-    pub fn set_camera_matrix(&mut self, matrix: Matrix4<f32>) {
-        self.camera_matrix = matrix.into();
+    pub fn set_camera_matrices(&mut self, world: Matrix4<f32>, projection: Matrix4<f32>) {
+        self.camera_world = world.into();
+        self.camera_clip = (projection * world.inverse_transform().unwrap()).into();
     }
 
     pub fn push_solid_object(&mut self, solid_object: SolidObject) {
