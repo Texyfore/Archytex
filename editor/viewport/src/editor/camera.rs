@@ -24,7 +24,7 @@ impl Default for Camera {
 
 impl Camera {
     pub fn recreate_projection(&mut self, width: u32, height: u32) {
-        self.projection = perspective(Deg(80.0), width as f32 / height as f32, 0.1, 256.0);
+        self.projection = perspective(Deg(80.0), width as f32 / height as f32, 0.1, 100.0);
     }
 
     pub fn projection(&self) -> Matrix4<f32> {

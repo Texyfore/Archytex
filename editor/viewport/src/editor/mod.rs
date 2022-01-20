@@ -4,7 +4,7 @@ mod scene;
 use anyhow::Result;
 use cgmath::{vec3, Vector3};
 use renderer::{
-    scene::{Scene as RenderScene, SolidObject},
+    scene::{LineObject, Scene as RenderScene, SolidObject},
     Renderer,
 };
 use winit::event::{MouseButton, VirtualKeyCode};
@@ -13,7 +13,7 @@ use crate::input::Input;
 
 use self::{
     camera::Camera,
-    scene::{Action, Scene, Solid, SolidID},
+    scene::{Action, RaycastHit, Scene, Solid},
 };
 
 #[derive(Default)]
@@ -21,6 +21,7 @@ pub struct Editor {
     camera: Camera,
     scene: Scene,
     mesh_cache: Vec<SolidObject>,
+    line_cache: Option<LineObject>,
 }
 
 impl Editor {
@@ -62,24 +63,33 @@ impl Editor {
         }
 
         if ctx.input.is_button_down_once(MouseButton::Left) {
-            self.scene.act(Action::AddSolid(Solid::new(
-                vec3(0.0, 0.0, 0.0),
-                vec3(4.0, 4.0, 4.0),
-            )));
+            self.scene.act(Action::AddSolid(
+                None,
+                Solid::new(vec3(0.0, 0.0, 0.0), vec3(1.0, 1.0, 1.0)),
+            ));
             self.regen_meshes(ctx.renderer)?;
         }
 
-        if ctx.input.is_key_down_once(VirtualKeyCode::B) {
-            self.scene.act(Action::MoveSolid {
-                index: SolidID(0),
-                delta: Vector3::new(1.0, 0.0, 0.0),
-            });
+        if ctx.input.is_key_down_once(VirtualKeyCode::M) {
+            self.scene
+                .act(Action::MoveSolids(Vector3::new(1.0, 0.0, 0.0)));
             self.regen_meshes(ctx.renderer)?;
         }
 
         if ctx.input.is_key_down_once(VirtualKeyCode::R) {
-            self.scene.act(Action::RemoveSolid(SolidID(0)));
-            self.regen_meshes(ctx.renderer)?;
+            if let Some(RaycastHit::Solid { solid_id, .. }) = self.scene.raycast() {
+                self.scene.act(Action::RemoveSolids(vec![solid_id]));
+                self.regen_meshes(ctx.renderer)?;
+            }
+        }
+
+        if ctx.input.is_key_down_once(VirtualKeyCode::S) {
+            self.scene
+                .act(Action::SelectSolids(self.scene.get_all_solids()))
+        }
+
+        if ctx.input.is_key_down_once(VirtualKeyCode::D) {
+            self.scene.act(Action::DeselectSolids);
         }
 
         if ctx.input.is_key_down(VirtualKeyCode::LControl) {
@@ -103,6 +113,10 @@ impl Editor {
             scene.push_solid_object(mesh_object.clone());
         }
 
+        for line_object in &self.line_cache {
+            scene.push_line_object(line_object.clone());
+        }
+
         renderer.render(&scene)?;
         Ok(())
     }
@@ -112,7 +126,8 @@ impl Editor {
     }
 
     fn regen_meshes(&mut self, renderer: &Renderer) -> Result<()> {
-        self.scene.gen_meshes(renderer, &mut self.mesh_cache);
+        self.scene
+            .gen_meshes(renderer, &mut self.mesh_cache, &mut self.line_cache);
         Ok(())
     }
 }

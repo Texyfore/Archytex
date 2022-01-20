@@ -82,7 +82,7 @@ impl Renderer {
                 },
             );
 
-            let mut pass = frame.begin_pass(&self.depth_buffer, [0.01; 3]);
+            let mut pass = frame.begin_pass(&self.depth_buffer, [0.1; 3]);
             pass.set_uniform(0, &self.camera_uniform);
 
             pass.set_mesh_pipeline(&self.mesh_pipeline);

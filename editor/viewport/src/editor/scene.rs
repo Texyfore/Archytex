@@ -2,14 +2,15 @@ use std::{collections::HashMap, rc::Rc};
 
 use asset_id::TextureID;
 use cgmath::{vec2, vec3, ElementWise, InnerSpace, Vector3};
-use pin_vec::PinVec;
-use renderer::{data::solid, scene::SolidObject, Renderer};
-
-pub use formats::ascn::PointID;
+use renderer::{
+    data::{line, solid},
+    scene::{LineObject, SolidObject},
+    Renderer,
+};
 
 macro_rules! points {
     [$($p:literal),* $(,)?] => {[
-        $(PointID::new($p).unwrap()),*
+        $(PointID($p)),*
     ]};
 }
 
@@ -32,9 +33,22 @@ macro_rules! point {
     };
 }
 
+macro_rules! entity_id {
+    ($name:ident, $ty:ty) => {
+        #[derive(Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash)]
+        pub struct $name($ty);
+    };
+}
+
+entity_id!(SolidID, u32);
+entity_id!(FaceID, usize);
+entity_id!(PointID, usize);
+entity_id!(PropID, u32);
+
 #[derive(Default)]
 pub struct Scene {
-    solids: PinVec<Solid>,
+    solids: HashMap<SolidID, Solid>,
+    next_solid_id: u32,
     undo_stack: Vec<Action>,
     redo_stack: Vec<Action>,
 }
@@ -60,7 +74,29 @@ impl Scene {
         }
     }
 
-    pub fn gen_meshes(&self, renderer: &Renderer, solids: &mut Vec<SolidObject>) {
+    pub fn get_all_solids(&self) -> Vec<SolidID> {
+        self.solids.keys().copied().collect()
+    }
+
+    pub fn raycast(&self) -> Option<RaycastHit> {
+        if let Some(solid_id) = self.solids.keys().copied().next() {
+            return Some(RaycastHit::Solid {
+                solid_id,
+                face_id: FaceID(0),
+                point_id: None,
+            });
+        }
+        None
+    }
+
+    pub fn gen_meshes(
+        &self,
+        renderer: &Renderer,
+        solids: &mut Vec<SolidObject>,
+        lines: &mut Option<LineObject>,
+    ) {
+        let transform = Rc::new(renderer.create_transform());
+
         let old_texture_ids = solids
             .iter()
             .map(|solid_object| solid_object.texture_id)
@@ -68,7 +104,7 @@ impl Scene {
 
         let mut batches = HashMap::<TextureID, (Vec<solid::Vertex>, Vec<[u16; 3]>)>::new();
 
-        for solid in &self.solids {
+        for solid in self.solids.values() {
             for face in &solid.faces {
                 let (vertices, triangles) = batches.entry(face.texture_id).or_default();
                 let t0 = vertices.len() as u16;
@@ -76,9 +112,7 @@ impl Scene {
                 triangles.push([t0, t0 + 1, t0 + 2]);
                 triangles.push([t0, t0 + 2, t0 + 3]);
 
-                let points = face
-                    .points
-                    .map(|point_id| &solid.points[Into::<usize>::into(point_id)]);
+                let points = face.points.map(|point_id| &solid.points[point_id.0]);
 
                 let normal = {
                     let edge0 = points[1].position - points[0].position;
@@ -114,36 +148,122 @@ impl Scene {
             .into_iter()
             .map(|(texture_id, (vertices, triangles))| SolidObject {
                 texture_id,
-                transform: Rc::new(renderer.create_transform()),
+                transform: transform.clone(),
                 mesh: Rc::new(renderer.create_mesh(&vertices, &triangles)),
             })
-            .collect()
+            .collect();
+
+        let mut vertices = Vec::new();
+
+        let mut add_line = |solid: &Solid, a: usize, b: usize| {
+            vertices.push(line::Vertex {
+                position: solid.points[a].position,
+                color: [0.0; 3],
+            });
+            vertices.push(line::Vertex {
+                position: solid.points[b].position,
+                color: [0.0; 3],
+            });
+        };
+
+        for solid in self.solids.values() {
+            for face in [0, 1] {
+                let disp = face * 4;
+                add_line(solid, disp, disp + 1);
+                add_line(solid, disp + 1, disp + 2);
+                add_line(solid, disp + 2, disp + 3);
+                add_line(solid, disp + 3, disp);
+            }
+
+            for segment in 0..4 {
+                add_line(solid, segment, segment + 4);
+            }
+        }
+
+        *lines = Some(LineObject {
+            transform,
+            lines: Rc::new(renderer.create_lines(&vertices)),
+        });
     }
 
     fn execute_action(&mut self, action: Action) -> Action {
         match action {
-            Action::AddSolid(solid) => Action::RemoveSolid(self.solids.push(solid).into()),
-            Action::RemoveSolid(index) => Action::AddSolid(self.solids.remove(index.0).unwrap()),
-            Action::MoveSolid { index, delta } => {
-                if let Some(solid) = self.solids.get_mut(index.0) {
+            Action::AddSolid(id, solid) => {
+                let id = id.unwrap_or_else(|| {
+                    let id = SolidID(self.next_solid_id);
+                    self.next_solid_id += 1;
+                    id
+                });
+
+                self.solids.insert(id, solid);
+                Action::RemoveSolids(vec![id])
+            }
+
+            Action::AddSolids(solids) => {
+                let mut solid_ids = Vec::new();
+
+                for (solid_id, solid) in solids {
+                    self.solids.insert(solid_id, solid);
+                    solid_ids.push(solid_id);
+                }
+
+                Action::RemoveSolids(solid_ids)
+            }
+
+            Action::RemoveSolids(ids) => {
+                let mut solids = Vec::new();
+                for solid_id in ids {
+                    let solid = self.solids.remove(&solid_id).unwrap();
+                    solids.push((solid_id, solid));
+                }
+
+                Action::AddSolids(solids)
+            }
+
+            Action::SelectSolids(solid_ids) => {
+                for solid_id in &solid_ids {
+                    let solid = self.solids.get_mut(solid_id).unwrap();
+                    solid.selected = !solid.selected;
+                }
+
+                Action::SelectSolids(solid_ids)
+            }
+
+            Action::DeselectSolids => {
+                let mut solid_ids = Vec::new();
+
+                for (solid_id, solid) in &mut self.solids {
+                    if solid.selected {
+                        solid.selected = false;
+                        solid_ids.push(*solid_id);
+                    }
+                }
+
+                Action::SelectSolids(solid_ids)
+            }
+
+            Action::MoveSolids(delta) => {
+                for solid in self.solids.values_mut().filter(|solid| solid.selected) {
                     for point in &mut solid.points {
                         point.position += delta;
                     }
                 }
 
-                Action::MoveSolid {
-                    index,
-                    delta: -delta,
-                }
+                Action::MoveSolids(-delta)
             }
         }
     }
 }
 
 pub enum Action {
-    AddSolid(Solid),
-    RemoveSolid(SolidID),
-    MoveSolid { index: SolidID, delta: Vector3<f32> },
+    AddSolid(Option<SolidID>, Solid),
+    AddSolids(Vec<(SolidID, Solid)>),
+    RemoveSolids(Vec<SolidID>),
+
+    SelectSolids(Vec<SolidID>),
+    DeselectSolids,
+
+    MoveSolids(Vector3<f32>),
 }
 
 pub struct Solid {
@@ -189,30 +309,11 @@ pub struct Point {
     selected: bool,
 }
 
-#[derive(Clone, Copy)]
-pub struct SolidID(pub usize);
-
-impl From<usize> for SolidID {
-    fn from(value: usize) -> Self {
-        Self(value)
-    }
-}
-
-#[derive(Clone, Copy)]
-pub struct FaceID(u8);
-
-impl FaceID {
-    fn new(value: u8) -> Option<Self> {
-        if value < 8 {
-            Some(Self(value))
-        } else {
-            None
-        }
-    }
-}
-
-impl From<FaceID> for usize {
-    fn from(value: FaceID) -> Self {
-        value.0 as usize
-    }
+pub enum RaycastHit {
+    Solid {
+        solid_id: SolidID,
+        face_id: FaceID,
+        point_id: Option<PointID>,
+    },
+    Prop(PropID),
 }
