@@ -83,7 +83,7 @@ impl Scene {
             return Some(RaycastHit::Solid {
                 solid_id,
                 face_id: FaceID(0),
-                point_id: None,
+                point_id: Some(PointID(0)),
             });
         }
         None
@@ -242,6 +242,56 @@ impl Scene {
                 Action::SelectSolids(solid_ids)
             }
 
+            Action::SelectFaces(ids) => {
+                for (solid_id, face_id) in &ids {
+                    let solid = self.solids.get_mut(solid_id).unwrap();
+                    let face = &mut solid.faces[face_id.0];
+                    face.selected = !face.selected;
+                }
+
+                Action::SelectFaces(ids)
+            }
+
+            Action::DeselectFaces => {
+                let mut ids = Vec::new();
+
+                for (solid_id, solid) in &mut self.solids {
+                    for (face_id, face) in solid.faces.iter_mut().enumerate() {
+                        if face.selected {
+                            face.selected = false;
+                            ids.push((*solid_id, FaceID(face_id)));
+                        }
+                    }
+                }
+
+                Action::SelectFaces(ids)
+            }
+
+            Action::SelectPoints(ids) => {
+                for (solid_id, point_id) in &ids {
+                    let solid = self.solids.get_mut(solid_id).unwrap();
+                    let point = &mut solid.points[point_id.0];
+                    point.selected = !point.selected;
+                }
+
+                Action::SelectPoints(ids)
+            }
+
+            Action::DeselectPoints => {
+                let mut ids = Vec::new();
+
+                for (solid_id, solid) in &mut self.solids {
+                    for (point_id, point) in solid.points.iter_mut().enumerate() {
+                        if point.selected {
+                            point.selected = false;
+                            ids.push((*solid_id, PointID(point_id)));
+                        }
+                    }
+                }
+
+                Action::SelectPoints(ids)
+            }
+
             Action::MoveSolids(delta) => {
                 for solid in self.solids.values_mut().filter(|solid| solid.selected) {
                     for point in &mut solid.points {
@@ -250,6 +300,33 @@ impl Scene {
                 }
 
                 Action::MoveSolids(-delta)
+            }
+
+            Action::MoveFaces(delta) => {
+                for solid in self.solids.values_mut() {
+                    for face in &solid.faces {
+                        if face.selected {
+                            for point in face.points {
+                                let point = &mut solid.points[point.0];
+                                point.position += delta;
+                            }
+                        }
+                    }
+                }
+
+                Action::MoveFaces(-delta)
+            }
+
+            Action::MovePoints(delta) => {
+                for solid in self.solids.values_mut() {
+                    for point in &mut solid.points {
+                        if point.selected {
+                            point.position += delta;
+                        }
+                    }
+                }
+
+                Action::MovePoints(-delta)
             }
         }
     }
@@ -263,7 +340,15 @@ pub enum Action {
     SelectSolids(Vec<SolidID>),
     DeselectSolids,
 
+    SelectFaces(Vec<(SolidID, FaceID)>),
+    DeselectFaces,
+
+    SelectPoints(Vec<(SolidID, PointID)>),
+    DeselectPoints,
+
     MoveSolids(Vector3<f32>),
+    MoveFaces(Vector3<f32>),
+    MovePoints(Vector3<f32>),
 }
 
 pub struct Solid {

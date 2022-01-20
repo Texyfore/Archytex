@@ -72,7 +72,7 @@ impl Editor {
 
         if ctx.input.is_key_down_once(VirtualKeyCode::M) {
             self.scene
-                .act(Action::MoveSolids(Vector3::new(1.0, 0.0, 0.0)));
+                .act(Action::MovePoints(Vector3::new(-0.1, 0.0, 0.0)));
             self.regen_meshes(ctx.renderer)?;
         }
 
@@ -83,13 +83,20 @@ impl Editor {
             }
         }
 
-        if ctx.input.is_key_down_once(VirtualKeyCode::S) {
-            self.scene
-                .act(Action::SelectSolids(self.scene.get_all_solids()))
+        if ctx.input.is_key_down_once(VirtualKeyCode::O) {
+            if let Some(RaycastHit::Solid {
+                solid_id,
+                point_id: Some(point_id),
+                ..
+            }) = self.scene.raycast()
+            {
+                self.scene
+                    .act(Action::SelectPoints(vec![(solid_id, point_id)]));
+            }
         }
 
-        if ctx.input.is_key_down_once(VirtualKeyCode::D) {
-            self.scene.act(Action::DeselectSolids);
+        if ctx.input.is_key_down_once(VirtualKeyCode::P) {
+            self.scene.act(Action::DeselectPoints);
         }
 
         if ctx.input.is_key_down(VirtualKeyCode::LControl) {
