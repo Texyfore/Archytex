@@ -122,8 +122,20 @@ impl Scene {
 
     fn execute_action(&mut self, action: Action) -> Action {
         match action {
-            Action::AddSolid(solid) => Action::RemoveSolid(self.solids.push(solid)),
-            Action::RemoveSolid(index) => Action::AddSolid(self.solids.remove(index).unwrap()),
+            Action::AddSolid(solid) => Action::RemoveSolid(self.solids.push(solid).into()),
+            Action::RemoveSolid(index) => Action::AddSolid(self.solids.remove(index.0).unwrap()),
+            Action::MoveSolid { index, delta } => {
+                if let Some(solid) = self.solids.get_mut(index.0) {
+                    for point in &mut solid.points {
+                        point.position += delta;
+                    }
+                }
+
+                Action::MoveSolid {
+                    index,
+                    delta: -delta,
+                }
+            }
         }
     }
 }
@@ -131,7 +143,7 @@ impl Scene {
 pub enum Action {
     AddSolid(Solid),
     RemoveSolid(SolidID),
-    MovePoint {},
+    MoveSolid { index: SolidID, delta: Vector3<f32> },
 }
 
 pub struct Solid {
@@ -178,7 +190,7 @@ pub struct Point {
 }
 
 #[derive(Clone, Copy)]
-pub struct SolidID(usize);
+pub struct SolidID(pub usize);
 
 impl From<usize> for SolidID {
     fn from(value: usize) -> Self {

@@ -2,7 +2,7 @@ mod camera;
 mod scene;
 
 use anyhow::Result;
-use cgmath::vec3;
+use cgmath::{vec3, Vector3};
 use renderer::{
     scene::{Scene as RenderScene, SolidObject},
     Renderer,
@@ -13,7 +13,7 @@ use crate::input::Input;
 
 use self::{
     camera::Camera,
-    scene::{Action, Scene, Solid},
+    scene::{Action, Scene, Solid, SolidID},
 };
 
 #[derive(Default)]
@@ -66,6 +66,19 @@ impl Editor {
                 vec3(0.0, 0.0, 0.0),
                 vec3(4.0, 4.0, 4.0),
             )));
+            self.regen_meshes(ctx.renderer)?;
+        }
+
+        if ctx.input.is_key_down_once(VirtualKeyCode::B) {
+            self.scene.act(Action::MoveSolid {
+                index: SolidID(0),
+                delta: Vector3::new(1.0, 0.0, 0.0),
+            });
+            self.regen_meshes(ctx.renderer)?;
+        }
+
+        if ctx.input.is_key_down_once(VirtualKeyCode::R) {
+            self.scene.act(Action::RemoveSolid(SolidID(0)));
             self.regen_meshes(ctx.renderer)?;
         }
 
