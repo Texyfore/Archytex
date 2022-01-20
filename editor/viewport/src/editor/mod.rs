@@ -65,14 +65,14 @@ impl Editor {
         if ctx.input.is_button_down_once(MouseButton::Left) {
             self.scene.act(Action::AddSolid(
                 None,
-                Solid::new(vec3(0.0, 0.0, 0.0), vec3(1.0, 1.0, 1.0)),
+                Solid::new(vec3(0, 0, 0), vec3(100, 100, 100)),
             ));
             self.regen_meshes(ctx.renderer)?;
         }
 
         if ctx.input.is_key_down_once(VirtualKeyCode::M) {
             self.scene
-                .act(Action::MovePoints(Vector3::new(-0.1, 0.0, 0.0)));
+                .act(Action::MovePoints(Vector3::new(-10, 0, 0)));
             self.regen_meshes(ctx.renderer)?;
         }
 

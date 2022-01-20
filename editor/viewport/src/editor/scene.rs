@@ -27,7 +27,7 @@ macro_rules! face {
 macro_rules! point {
     ($o:ident $e:ident [$x:literal $y:literal $z:literal]) => {
         Point {
-            position: $o + $e.mul_element_wise(vec3($x as f32, $y as f32, $z as f32)),
+            position: $o + $e.mul_element_wise(vec3($x, $y, $z)),
             selected: false,
         }
     };
@@ -115,25 +115,27 @@ impl Scene {
                 let points = face.points.map(|point_id| &solid.points[point_id.0]);
 
                 let normal = {
-                    let edge0 = points[1].position - points[0].position;
-                    let edge1 = points[3].position - points[0].position;
+                    let edge0 = points[1].meters() - points[0].meters();
+                    let edge1 = points[3].meters() - points[0].meters();
                     edge0.cross(edge1).normalize()
                 };
 
                 for point in points {
+                    let position = point.meters();
+
                     vertices.push(solid::Vertex {
-                        position: point.position,
+                        position: point.meters(),
                         normal,
                         texcoord: if normal.x.abs() > normal.y.abs() {
                             if normal.x.abs() > normal.z.abs() {
-                                vec2(point.position.y, point.position.z)
+                                vec2(position.y, position.z)
                             } else {
-                                vec2(point.position.x, point.position.y)
+                                vec2(position.x, position.y)
                             }
                         } else if normal.y.abs() > normal.z.abs() {
-                            vec2(point.position.x, point.position.z)
+                            vec2(position.x, position.z)
                         } else {
-                            vec2(point.position.x, point.position.y)
+                            vec2(position.x, position.y)
                         } / 4.0,
                     });
                 }
@@ -157,11 +159,11 @@ impl Scene {
 
         let mut add_line = |solid: &Solid, a: usize, b: usize| {
             vertices.push(line::Vertex {
-                position: solid.points[a].position,
+                position: solid.points[a].meters(),
                 color: [0.0; 3],
             });
             vertices.push(line::Vertex {
-                position: solid.points[b].position,
+                position: solid.points[b].meters(),
                 color: [0.0; 3],
             });
         };
@@ -346,9 +348,9 @@ pub enum Action {
     SelectPoints(Vec<(SolidID, PointID)>),
     DeselectPoints,
 
-    MoveSolids(Vector3<f32>),
-    MoveFaces(Vector3<f32>),
-    MovePoints(Vector3<f32>),
+    MoveSolids(Vector3<i32>),
+    MoveFaces(Vector3<i32>),
+    MovePoints(Vector3<i32>),
 }
 
 pub struct Solid {
@@ -358,7 +360,7 @@ pub struct Solid {
 }
 
 impl Solid {
-    pub fn new(origin: Vector3<f32>, extent: Vector3<f32>) -> Self {
+    pub fn new(origin: Vector3<i32>, extent: Vector3<i32>) -> Self {
         Self {
             faces: [
                 face!(0: 1 2 6 5),
@@ -390,8 +392,14 @@ pub struct Face {
 }
 
 pub struct Point {
-    position: Vector3<f32>,
+    position: Vector3<i32>,
     selected: bool,
+}
+
+impl Point {
+    fn meters(&self) -> Vector3<f32> {
+        self.position.cast().unwrap() * 0.01
+    }
 }
 
 pub enum RaycastHit {
