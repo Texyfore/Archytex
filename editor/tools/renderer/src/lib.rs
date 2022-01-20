@@ -10,7 +10,7 @@ use gpu::{
         DepthBuffer, TextureLayout, {Uniform, UniformLayout},
     },
     handle::GpuHandle,
-    pipelines::{GizmoPipeline, LinePipeline, MeshPipeline},
+    pipelines::{GizmoPipeline, LinePipeline, SolidPipeline},
     Sampler,
 };
 use image::{EncodableLayout, ImageError};
@@ -26,7 +26,7 @@ pub struct Renderer {
     uniform_layout: UniformLayout,
     texture_layout: TextureLayout,
 
-    mesh_pipeline: MeshPipeline,
+    mesh_pipeline: SolidPipeline,
     line_pipeline: LinePipeline,
     gizmo_pipeline: GizmoPipeline,
 

@@ -10,7 +10,7 @@ use crate::{
     handle::GpuHandle,
 };
 
-pub struct MeshPipeline {
+pub struct SolidPipeline {
     pub(crate) inner: RenderPipeline,
 }
 
@@ -19,13 +19,13 @@ impl GpuHandle {
         &self,
         uniform_layout: &UniformLayout,
         texture_layout: &TextureLayout,
-    ) -> MeshPipeline {
+    ) -> SolidPipeline {
         let module = self.device.create_shader_module(&ShaderModuleDescriptor {
             label: None,
-            source: ShaderSource::Wgsl(include_str!("mesh.wgsl").into()),
+            source: ShaderSource::Wgsl(include_str!("solid.wgsl").into()),
         });
 
-        MeshPipeline {
+        SolidPipeline {
             inner: self
                 .device
                 .create_render_pipeline(&RenderPipelineDescriptor {
@@ -47,12 +47,13 @@ impl GpuHandle {
                         module: &module,
                         entry_point: "vs_main",
                         buffers: &[VertexBufferLayout {
-                            array_stride: 32,
+                            array_stride: 48,
                             step_mode: VertexStepMode::Vertex,
                             attributes: &vertex_attr_array![
                                 0 => Float32x3,
                                 1 => Float32x3,
                                 2 => Float32x2,
+                                3 => Float32x4,
                             ],
                         }],
                     },

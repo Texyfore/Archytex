@@ -90,11 +90,13 @@ impl Editor {
             {
                 self.scene
                     .act(Action::SelectFaces(vec![(solid_id, face_id)]));
+                self.regen_meshes(ctx.renderer)?;
             }
         }
 
         if ctx.input.is_key_down_once(VirtualKeyCode::P) {
             self.scene.act(Action::DeselectFaces);
+            self.regen_meshes(ctx.renderer)?;
         }
 
         if ctx.input.is_key_down_once(VirtualKeyCode::T) {

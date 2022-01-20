@@ -14,6 +14,7 @@ pub struct Vertex {
     pub position: Vector3<f32>,
     pub normal: Vector3<f32>,
     pub texcoord: Vector2<f32>,
+    pub tint: [f32; 4],
 }
 
 unsafe impl Zeroable for Vertex {}

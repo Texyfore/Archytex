@@ -78,6 +78,22 @@ impl Scene {
         self.solids.keys().copied().collect()
     }
 
+    pub fn get_all_faces(&self) -> Vec<(SolidID, FaceID)> {
+        self.solids
+            .keys()
+            .map(|solid_id| (0..6).map(|i| (*solid_id, FaceID(i))))
+            .flatten()
+            .collect()
+    }
+
+    pub fn get_all_points(&self) -> Vec<(SolidID, PointID)> {
+        self.solids
+            .keys()
+            .map(|solid_id| (0..8).map(|i| (*solid_id, PointID(i))))
+            .flatten()
+            .collect()
+    }
+
     pub fn raycast(&self) -> Option<RaycastHit> {
         if let Some(solid_id) = self.solids.keys().copied().next() {
             return Some(RaycastHit::Solid {
@@ -137,6 +153,11 @@ impl Scene {
                         } else {
                             vec2(position.x, position.y)
                         } / 4.0,
+                        tint: if face.selected {
+                            [1.0, 1.0, 0.5, 0.2]
+                        } else {
+                            [0.0; 4]
+                        },
                     });
                 }
             }
