@@ -1,11 +1,14 @@
 mod camera;
 mod scene;
 
+use std::rc::Rc;
+
 use anyhow::Result;
-use asset_id::TextureID;
+use asset_id::{GizmoID, TextureID};
 use cgmath::{vec3, Vector3};
 use renderer::{
-    scene::{LineObject, Scene as RenderScene, SolidObject},
+    data::gizmo,
+    scene::{GizmoObject, LineObject, Scene as RenderScene, SolidObject},
     Renderer,
 };
 use winit::event::{MouseButton, VirtualKeyCode};
@@ -21,8 +24,7 @@ use self::{
 pub struct Editor {
     camera: Camera,
     scene: Scene,
-    mesh_cache: Vec<SolidObject>,
-    line_cache: Option<LineObject>,
+    graphics: Option<Graphics>,
 }
 
 impl Editor {
@@ -121,12 +123,16 @@ impl Editor {
         let mut scene = RenderScene::default();
         scene.set_camera_matrices(self.camera.matrix(), self.camera.projection());
 
-        for mesh_object in &self.mesh_cache {
-            scene.push_solid_object(mesh_object.clone());
-        }
+        if let Some(graphics) = &self.graphics {
+            for mesh_object in &graphics.solid_objects {
+                scene.push_solid_object(mesh_object.clone());
+            }
 
-        for line_object in &self.line_cache {
-            scene.push_line_object(line_object.clone());
+            scene.push_line_object(graphics.line_object.clone());
+            scene.push_gizmo_object(GizmoObject {
+                id: GizmoID(0),
+                instances: graphics.point_gizmo_instances.clone(),
+            });
         }
 
         renderer.render(&scene)?;
@@ -138,8 +144,7 @@ impl Editor {
     }
 
     fn regen_meshes(&mut self, renderer: &Renderer) -> Result<()> {
-        self.scene
-            .gen_meshes(renderer, &mut self.mesh_cache, &mut self.line_cache);
+        self.scene.gen_meshes(renderer, &mut self.graphics);
         Ok(())
     }
 }
@@ -148,4 +153,10 @@ pub struct OuterContext<'a> {
     pub delta: f32,
     pub input: &'a Input,
     pub renderer: &'a Renderer,
+}
+
+struct Graphics {
+    solid_objects: Vec<SolidObject>,
+    line_object: LineObject,
+    point_gizmo_instances: Rc<gizmo::Instances>,
 }

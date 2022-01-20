@@ -11,8 +11,8 @@ pub struct Instances {
 #[repr(C)]
 #[derive(Clone, Copy, Pod, Zeroable)]
 pub struct Instance {
-    matrix: [[f32; 4]; 4],
-    color: [f32; 4],
+    pub matrix: [[f32; 4]; 4],
+    pub color: [f32; 4],
 }
 
 impl Instance {
@@ -42,13 +42,6 @@ impl Renderer {
     pub fn create_gizmo_instances(&self, instances: &[Instance]) -> Instances {
         Instances {
             buffer: self.gpu.create_buffer(instances, BufferUsages::VERTEX),
-        }
-    }
-
-    pub fn create_gizmo_mesh(&self, vertices: &[Vertex], triangles: &[[u16; 3]]) -> Mesh {
-        Mesh {
-            vertices: self.gpu.create_buffer(vertices, BufferUsages::VERTEX),
-            triangles: self.gpu.create_buffer(triangles, BufferUsages::INDEX),
         }
     }
 }

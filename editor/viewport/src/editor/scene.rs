@@ -1,12 +1,14 @@
 use std::{collections::HashMap, rc::Rc};
 
 use asset_id::TextureID;
-use cgmath::{vec2, vec3, ElementWise, InnerSpace, Vector3};
+use cgmath::{vec2, vec3, ElementWise, InnerSpace, Matrix4, Vector3};
 use renderer::{
-    data::{line, solid},
+    data::{gizmo, line, solid},
     scene::{LineObject, SolidObject},
     Renderer,
 };
+
+use super::Graphics;
 
 macro_rules! points {
     [$($p:literal),* $(,)?] => {[
@@ -105,18 +107,16 @@ impl Scene {
         None
     }
 
-    pub fn gen_meshes(
-        &self,
-        renderer: &Renderer,
-        solids: &mut Vec<SolidObject>,
-        lines: &mut Option<LineObject>,
-    ) {
+    pub(super) fn gen_meshes(&self, renderer: &Renderer, graphics: &mut Option<Graphics>) {
         let transform = Rc::new(renderer.create_transform());
 
-        let old_texture_ids = solids
-            .iter()
-            .map(|solid_object| solid_object.texture_id)
-            .collect::<Vec<_>>();
+        let old_texture_ids = graphics.as_ref().map(|graphics| {
+            graphics
+                .solid_objects
+                .iter()
+                .map(|solid_object| solid_object.texture_id)
+                .collect::<Vec<_>>()
+        });
 
         let mut batches = HashMap::<TextureID, (Vec<solid::Vertex>, Vec<[u16; 3]>)>::new();
 
@@ -163,27 +163,20 @@ impl Scene {
             }
         }
 
-        for old_texture_id in old_texture_ids {
-            batches.entry(old_texture_id).or_default();
+        if let Some(old_texture_ids) = old_texture_ids {
+            for old_texture_id in old_texture_ids {
+                batches.entry(old_texture_id).or_default();
+            }
         }
 
-        *solids = batches
-            .into_iter()
-            .map(|(texture_id, (vertices, triangles))| SolidObject {
-                texture_id,
-                transform: transform.clone(),
-                mesh: Rc::new(renderer.create_mesh(&vertices, &triangles)),
-            })
-            .collect();
-
-        let mut vertices = Vec::new();
+        let mut lines = Vec::new();
 
         let mut add_line = |solid: &Solid, a: usize, b: usize| {
-            vertices.push(line::Vertex {
+            lines.push(line::Vertex {
                 position: solid.points[a].meters(),
                 color: [0.0; 3],
             });
-            vertices.push(line::Vertex {
+            lines.push(line::Vertex {
                 position: solid.points[b].meters(),
                 color: [0.0; 3],
             });
@@ -203,9 +196,33 @@ impl Scene {
             }
         }
 
-        *lines = Some(LineObject {
-            transform,
-            lines: Rc::new(renderer.create_lines(&vertices)),
+        *graphics = Some(Graphics {
+            solid_objects: batches
+                .into_iter()
+                .map(|(texture_id, (vertices, triangles))| SolidObject {
+                    texture_id,
+                    transform: transform.clone(),
+                    mesh: Rc::new(renderer.create_mesh(&vertices, &triangles)),
+                })
+                .collect(),
+            line_object: LineObject {
+                transform,
+                lines: Rc::new(renderer.create_lines(&lines)),
+            },
+            point_gizmo_instances: Rc::new(
+                renderer.create_gizmo_instances(
+                    &self
+                        .solids
+                        .values()
+                        .map(|solid| solid.points.iter())
+                        .flatten()
+                        .map(|point| gizmo::Instance {
+                            matrix: Matrix4::from_translation(point.meters()).into(),
+                            color: [0.0; 4],
+                        })
+                        .collect::<Vec<_>>(),
+                ),
+            ),
         });
     }
 

@@ -1,9 +1,9 @@
 pub mod data;
 pub mod scene;
 
-use std::collections::HashMap;
+use std::{collections::HashMap, rc::Rc};
 
-use asset_id::TextureID;
+use asset_id::{GizmoID, TextureID};
 use bytemuck::{Pod, Zeroable};
 use gpu::{
     data::{
@@ -11,13 +11,13 @@ use gpu::{
     },
     handle::GpuHandle,
     pipelines::{GizmoPipeline, LinePipeline, SolidPipeline},
-    Sampler,
+    BufferUsages, Sampler,
 };
 use image::{EncodableLayout, ImageError};
 use raw_window_handle::HasRawWindowHandle;
 use thiserror::Error;
 
-use self::scene::Scene;
+use self::{data::gizmo, scene::Scene};
 
 pub struct Renderer {
     gpu: GpuHandle,
@@ -31,8 +31,10 @@ pub struct Renderer {
     gizmo_pipeline: GizmoPipeline,
 
     camera_uniform: Uniform<CameraBlock>,
-    textures: HashMap<u32, Texture>,
     sampler: Sampler,
+
+    textures: HashMap<TextureID, Texture>,
+    gizmos: HashMap<GizmoID, Rc<gizmo::Mesh>>,
 }
 
 impl Renderer {
@@ -48,8 +50,10 @@ impl Renderer {
         let gizmo_pipeline = gpu.create_gizmo_pipeline(&uniform_layout);
 
         let camera_uniform = gpu.create_uniform(&uniform_layout);
-        let textures = HashMap::new();
         let sampler = gpu.create_sampler();
+
+        let textures = HashMap::new();
+        let gizmos = HashMap::new();
 
         Ok(Self {
             gpu,
@@ -60,8 +64,9 @@ impl Renderer {
             line_pipeline,
             gizmo_pipeline,
             camera_uniform,
-            textures,
             sampler,
+            textures,
+            gizmos,
         })
     }
 
@@ -87,7 +92,7 @@ impl Renderer {
 
             pass.set_mesh_pipeline(&self.mesh_pipeline);
             for mesh_object in &scene.solid_objects {
-                if let Some(texture) = self.textures.get(&mesh_object.texture_id.0) {
+                if let Some(texture) = self.textures.get(&mesh_object.texture_id) {
                     pass.set_uniform(1, &mesh_object.transform.uniform);
                     pass.set_texture(&texture.inner);
                     pass.draw_indexed(&mesh_object.mesh.vertices, &mesh_object.mesh.triangles);
@@ -102,11 +107,13 @@ impl Renderer {
 
             pass.set_gizmo_pipeline(&self.gizmo_pipeline);
             for gizmo_object in &scene.gizmo_objects {
-                pass.draw_gizmos(
-                    &gizmo_object.mesh.vertices,
-                    &gizmo_object.mesh.triangles,
-                    &gizmo_object.instances.buffer,
-                )
+                if let Some(mesh) = self.gizmos.get(&gizmo_object.id) {
+                    pass.draw_gizmos(
+                        &mesh.vertices,
+                        &mesh.triangles,
+                        &gizmo_object.instances.buffer,
+                    )
+                }
             }
         }
 
@@ -119,7 +126,7 @@ impl Renderer {
         let data = image::load_from_memory(buf)?.into_rgba8();
         let (width, height) = data.dimensions();
         self.textures.insert(
-            id.0,
+            id,
             Texture {
                 inner: self.gpu.create_texture(
                     &self.texture_layout,
@@ -133,6 +140,16 @@ impl Renderer {
             },
         );
         Ok(())
+    }
+
+    pub fn load_gizmo(&mut self, id: GizmoID, vertices: &[gizmo::Vertex], triangles: &[[u16; 3]]) {
+        self.gizmos.insert(
+            id,
+            Rc::new(gizmo::Mesh {
+                vertices: self.gpu.create_buffer(vertices, BufferUsages::VERTEX),
+                triangles: self.gpu.create_buffer(triangles, BufferUsages::INDEX),
+            }),
+        );
     }
 }
 

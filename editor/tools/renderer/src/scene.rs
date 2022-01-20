@@ -1,6 +1,6 @@
 use std::rc::Rc;
 
-use asset_id::TextureID;
+use asset_id::{GizmoID, TextureID};
 use cgmath::{Matrix4, Transform as CgMathTransform};
 
 use crate::data::{gizmo, line, solid, transform::Transform};
@@ -48,6 +48,6 @@ pub struct LineObject {
 
 #[derive(Clone)]
 pub struct GizmoObject {
-    pub mesh: Rc<gizmo::Mesh>,
+    pub id: GizmoID,
     pub instances: Rc<gizmo::Instances>,
 }
