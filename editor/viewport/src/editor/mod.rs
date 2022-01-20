@@ -2,6 +2,7 @@ mod camera;
 mod scene;
 
 use anyhow::Result;
+use asset_id::TextureID;
 use cgmath::{vec3, Vector3};
 use renderer::{
     scene::{LineObject, Scene as RenderScene, SolidObject},
@@ -71,8 +72,7 @@ impl Editor {
         }
 
         if ctx.input.is_key_down_once(VirtualKeyCode::M) {
-            self.scene
-                .act(Action::MovePoints(Vector3::new(-10, 0, 0)));
+            self.scene.act(Action::MoveFaces(Vector3::new(-10, 0, 0)));
             self.regen_meshes(ctx.renderer)?;
         }
 
@@ -85,18 +85,21 @@ impl Editor {
 
         if ctx.input.is_key_down_once(VirtualKeyCode::O) {
             if let Some(RaycastHit::Solid {
-                solid_id,
-                point_id: Some(point_id),
-                ..
+                solid_id, face_id, ..
             }) = self.scene.raycast()
             {
                 self.scene
-                    .act(Action::SelectPoints(vec![(solid_id, point_id)]));
+                    .act(Action::SelectFaces(vec![(solid_id, face_id)]));
             }
         }
 
         if ctx.input.is_key_down_once(VirtualKeyCode::P) {
-            self.scene.act(Action::DeselectPoints);
+            self.scene.act(Action::DeselectFaces);
+        }
+
+        if ctx.input.is_key_down_once(VirtualKeyCode::T) {
+            self.scene.act(Action::AssignTexture(TextureID(1)));
+            self.regen_meshes(ctx.renderer)?;
         }
 
         if ctx.input.is_key_down(VirtualKeyCode::LControl) {

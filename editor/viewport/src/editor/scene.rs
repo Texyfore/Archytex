@@ -330,6 +330,34 @@ impl Scene {
 
                 Action::MovePoints(-delta)
             }
+
+            Action::AssignTexture(texture_id) => {
+                let mut old_texture_ids = Vec::new();
+
+                for (solid_id, solid) in &mut self.solids {
+                    for (face_id, face) in solid.faces.iter_mut().enumerate() {
+                        if face.selected {
+                            old_texture_ids.push((*solid_id, FaceID(face_id), face.texture_id));
+                            face.texture_id = texture_id;
+                        }
+                    }
+                }
+
+                Action::AssignTextures(old_texture_ids)
+            }
+
+            Action::AssignTextures(ids) => {
+                let mut old_texture_ids = Vec::new();
+
+                for (solid_id, face_id, texture_id) in ids {
+                    let solid = self.solids.get_mut(&solid_id).unwrap();
+                    let face = &mut solid.faces[face_id.0];
+                    old_texture_ids.push((solid_id, face_id, face.texture_id));
+                    face.texture_id = texture_id;
+                }
+
+                Action::AssignTextures(old_texture_ids)
+            }
         }
     }
 }
@@ -351,6 +379,9 @@ pub enum Action {
     MoveSolids(Vector3<i32>),
     MoveFaces(Vector3<i32>),
     MovePoints(Vector3<i32>),
+
+    AssignTexture(TextureID),
+    AssignTextures(Vec<(SolidID, FaceID, TextureID)>),
 }
 
 pub struct Solid {

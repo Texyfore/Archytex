@@ -28,6 +28,7 @@ impl MainLoop {
         let mut editor = Editor::default();
 
         renderer.load_texture(TextureID(0), include_bytes!("nodraw.png"))?;
+        renderer.load_texture(TextureID(1), include_bytes!("bricks.png"))?;
 
         {
             let (width, height) = window.inner_size().into();
