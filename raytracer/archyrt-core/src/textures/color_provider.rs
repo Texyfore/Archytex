@@ -7,7 +7,7 @@ pub trait ColorProvider {
     fn get_material(&self) -> Material;
 }
 
-#[derive(Default)]
+#[derive(Default, Clone)]
 pub struct SolidColor(pub Vec3, pub Material);
 
 impl ColorProvider for SolidColor {

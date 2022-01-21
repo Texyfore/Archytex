@@ -77,7 +77,7 @@ impl Default for Triangle {
     }
 }
 
-#[derive(Default)]
+#[derive(Default, Clone)]
 pub struct TriangleColor {
     pub uv: [Vec2; 3],
     pub barycentric: Vec3,

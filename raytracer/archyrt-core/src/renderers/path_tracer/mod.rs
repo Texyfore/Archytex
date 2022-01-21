@@ -17,7 +17,7 @@ use crate::{
 #[derive(Clone, Copy, Debug)]
 pub enum Material {
     Diffuse,
-    Emissive { power: Vec3 },
+    Emissive { power: f64 },
 }
 
 impl Default for Material{
@@ -59,7 +59,7 @@ impl Material {
                 (*diffusive) *= intersection.get_color(repo);
             }
             Material::Emissive { power } => {
-                (*emissive) += intersection.get_color(repo) * power;
+                (*emissive) += intersection.get_color(repo) * power * (*diffusive);
             }
         }
     }
@@ -84,6 +84,7 @@ impl<T: Camera, K: Intersectable> FragmentRender for PathTracer<T, K> {
                     material.color(&intersection, &ctx.repo, &mut emissive, &mut diffusive);
                     ray = match material.reflect(intersection) {
                         Some(ray) => {
+                            diffusive *= ray.direction.dot(normal);
                             let mut ray = ray;
                             ray.origin += normal * EPSILON;
                             ray
@@ -99,7 +100,7 @@ impl<T: Camera, K: Intersectable> FragmentRender for PathTracer<T, K> {
                             0xe6 as f64 / 255.0,
                             0xff as f64 / 255.0,
                         ))
-                        * 1.0;
+                        * 3.0;
                     break;
                 }
             }
