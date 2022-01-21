@@ -258,7 +258,7 @@ impl Scene {
                             vec2(position.x, position.y)
                         } / 4.0,
                         tint: if face.selected {
-                            [0.04, 0.36, 0.85, 0.2]
+                            [0.04, 0.36, 0.85, 0.5]
                         } else {
                             [0.0; 4]
                         },

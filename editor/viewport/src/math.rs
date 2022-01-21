@@ -125,7 +125,7 @@ mod tests {
     mod ray {
         use cgmath::{assert_relative_eq, vec3};
 
-        use crate::math::{Intersection, Intersects, Plane, Ray, Sphere, Triangle};
+        use crate::math::{Intersects, Plane, Ray, Sphere, Triangle};
 
         #[test]
         fn vector() {

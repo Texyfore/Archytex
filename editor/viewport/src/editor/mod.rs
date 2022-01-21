@@ -4,8 +4,8 @@ mod scene;
 use std::rc::Rc;
 
 use anyhow::Result;
-use asset_id::GizmoID;
-use cgmath::{vec3, Vector3, Zero};
+use asset_id::{GizmoID, TextureID};
+use cgmath::vec3;
 use renderer::{
     data::gizmo,
     scene::{GizmoObject, LineObject, Scene as RenderScene, SolidObject},
@@ -18,7 +18,10 @@ use crate::{
     input::Input,
 };
 
-use self::{camera::Camera, scene::Scene};
+use self::{
+    camera::Camera,
+    scene::{RaycastEndpointKind, Scene},
+};
 
 #[derive(Default)]
 pub struct Editor {
@@ -42,12 +45,17 @@ impl Editor {
                     hit.endpoint.point.map(|e| (e * 100.0) as i32),
                     vec3(100, 100, 100),
                 )));
-            } else {
-                self.scene.act(Action::SelectPoints(hit.points));
+            } else if let RaycastEndpointKind::Face { solid_id, face_id } = hit.endpoint.kind {
+                self.scene
+                    .act(Action::SelectFaces(vec![(solid_id, face_id)]));
             }
 
-            self.scene
-                .gen_meshes(ctx.renderer, &mut self.graphics, GraphicsMask::Points);
+            self.regen(ctx.renderer);
+        }
+
+        if ctx.input.is_key_down_once(VirtualKeyCode::T) {
+            self.scene.act(Action::AssignTexture(TextureID(1)));
+            self.regen(ctx.renderer);
         }
 
         Ok(())
@@ -119,14 +127,17 @@ impl Editor {
         if input.is_key_down(VirtualKeyCode::LControl) {
             if input.is_key_down_once(VirtualKeyCode::Z) {
                 self.scene.undo();
-                self.scene
-                    .gen_meshes(renderer, &mut self.graphics, GraphicsMask::Points)
+                self.regen(renderer);
             } else if input.is_key_down_once(VirtualKeyCode::Y) {
                 self.scene.redo();
-                self.scene
-                    .gen_meshes(renderer, &mut self.graphics, GraphicsMask::Points)
+                self.regen(renderer);
             }
         }
+    }
+
+    fn regen(&mut self, renderer: &Renderer) {
+        self.scene
+            .gen_meshes(renderer, &mut self.graphics, GraphicsMask::Faces);
     }
 }
 
