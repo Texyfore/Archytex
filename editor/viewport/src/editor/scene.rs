@@ -332,8 +332,8 @@ impl Scene {
                     gen_solid(solid);
                 }
                 WorkInProgress::MoveSolids(solids) => {
-                    for (_, solid) in solids {
-                        gen_solid(solid);
+                    for moving_solid in solids {
+                        gen_solid(&moving_solid.solid);
                     }
                 }
             }
@@ -691,14 +691,6 @@ pub enum GraphicsMask {
 }
 
 impl GraphicsMask {
-    fn show_solid_tint(&self) -> bool {
-        matches!(self, Self::Solids)
-    }
-
-    fn show_face_tint(&self) -> bool {
-        matches!(self, Self::Faces)
-    }
-
     fn show_points(&self) -> bool {
         matches!(self, Self::Points)
     }
@@ -706,5 +698,22 @@ impl GraphicsMask {
 
 pub enum WorkInProgress {
     NewSolid(Solid),
-    MoveSolids(Vec<(SolidID, Solid)>),
+    MoveSolids(Vec<MovingSolid>),
+}
+
+pub struct MovingSolid {
+    id: SolidID,
+    solid: Solid,
+    original_positions: [Vector3<i32>; 8],
+}
+
+impl MovingSolid {
+    pub fn new(id: SolidID, solid: Solid) -> Self {
+        let original_positions = solid.points.clone().map(|point| point.position);
+        Self {
+            id,
+            solid,
+            original_positions,
+        }
+    }
 }
