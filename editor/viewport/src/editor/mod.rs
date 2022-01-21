@@ -14,7 +14,7 @@ use renderer::{
 use winit::event::{MouseButton, VirtualKeyCode};
 
 use crate::{
-    editor::scene::{Action, Solid},
+    editor::scene::{Action, GraphicsMask, Solid},
     input::Input,
 };
 
@@ -37,13 +37,17 @@ impl Editor {
                 .scene
                 .raycast(&self.camera.screen_ray(ctx.input.mouse_pos()));
 
-            self.scene.act(Action::AddSolid(Solid::new(
-                hit.endpoint.point.map(|e| (e * 100.0) as i32),
-                vec3(100, 100, 100),
-            )));
-            self.scene.gen_meshes(ctx.renderer, &mut self.graphics);
+            if ctx.input.is_key_down(VirtualKeyCode::LControl) {
+                self.scene.act(Action::AddSolid(Solid::new(
+                    hit.endpoint.point.map(|e| (e * 100.0) as i32),
+                    vec3(100, 100, 100),
+                )));
+            } else {
+                self.scene.act(Action::SelectPoints(hit.points));
+            }
 
-            println!("{:?}", hit);
+            self.scene
+                .gen_meshes(ctx.renderer, &mut self.graphics, GraphicsMask::Points);
         }
 
         Ok(())
@@ -115,10 +119,12 @@ impl Editor {
         if input.is_key_down(VirtualKeyCode::LControl) {
             if input.is_key_down_once(VirtualKeyCode::Z) {
                 self.scene.undo();
-                self.scene.gen_meshes(renderer, &mut self.graphics)
+                self.scene
+                    .gen_meshes(renderer, &mut self.graphics, GraphicsMask::Points)
             } else if input.is_key_down_once(VirtualKeyCode::Y) {
                 self.scene.redo();
-                self.scene.gen_meshes(renderer, &mut self.graphics)
+                self.scene
+                    .gen_meshes(renderer, &mut self.graphics, GraphicsMask::Points)
             }
         }
     }

@@ -151,7 +151,7 @@ impl Scene {
 
                 let sphere = Sphere {
                     origin,
-                    radius: dist * 0.01,
+                    radius: dist * 0.1,
                 };
 
                 if let Some(intersection) = ray.intersects(&sphere) {
@@ -206,7 +206,12 @@ impl Scene {
         }
     }
 
-    pub(super) fn gen_meshes(&self, renderer: &Renderer, graphics: &mut Option<Graphics>) {
+    pub(super) fn gen_meshes(
+        &self,
+        renderer: &Renderer,
+        graphics: &mut Option<Graphics>,
+        mask: GraphicsMask,
+    ) {
         let transform = Rc::new(renderer.create_transform());
 
         let old_texture_ids = graphics.as_ref().map(|graphics| {
@@ -253,7 +258,7 @@ impl Scene {
                             vec2(position.x, position.y)
                         } / 4.0,
                         tint: if face.selected {
-                            [1.0, 1.0, 0.5, 0.2]
+                            [0.04, 0.36, 0.85, 0.2]
                         } else {
                             [0.0; 4]
                         },
@@ -308,20 +313,25 @@ impl Scene {
                 transform,
                 lines: Rc::new(renderer.create_lines(&lines)),
             },
-            point_gizmo_instances: Rc::new(
-                renderer.create_gizmo_instances(
-                    &self
-                        .solids
+            point_gizmo_instances: Rc::new(renderer.create_gizmo_instances(
+                &if mask.show_points() {
+                    self.solids
                         .values()
                         .map(|solid| solid.points.iter())
                         .flatten()
                         .map(|point| gizmo::Instance {
                             matrix: Matrix4::from_translation(point.meters()).into(),
-                            color: [0.0; 4],
+                            color: if point.selected {
+                                [0.04, 0.36, 0.85, 0.0]
+                            } else {
+                                [0.0; 4]
+                            },
                         })
-                        .collect::<Vec<_>>(),
-                ),
-            ),
+                        .collect::<Vec<_>>()
+                } else {
+                    Vec::new()
+                },
+            )),
         });
     }
 
@@ -330,7 +340,7 @@ impl Scene {
             Action::AddSolid(solid) => {
                 let id = SolidID(self.next_solid_id);
                 self.next_solid_id += 1;
-                
+
                 self.solids.insert(id, solid);
                 Action::RemoveSolids(vec![id])
             }
@@ -585,4 +595,24 @@ pub enum RaycastEndpointKind {
     Face { solid_id: SolidID, face_id: FaceID },
     Prop(PropID),
     Ground,
+}
+
+pub enum GraphicsMask {
+    Solids,
+    Faces,
+    Points,
+}
+
+impl GraphicsMask {
+    fn show_solid_tint(&self) -> bool {
+        matches!(self, Self::Solids)
+    }
+
+    fn show_face_tint(&self) -> bool {
+        matches!(self, Self::Faces)
+    }
+
+    fn show_points(&self) -> bool {
+        matches!(self, Self::Points)
+    }
 }
