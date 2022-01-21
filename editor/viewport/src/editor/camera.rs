@@ -90,8 +90,7 @@ impl Camera {
         ) - vec2(0.5, 0.5))
             * 2.0;
 
-        let view = self.matrix().inverse_transform().unwrap();
-        let unproject = view * self.projection.invert().unwrap();
+        let unproject = self.matrix() * self.projection.invert().unwrap();
 
         let a = unproject * Vector4::new(coords.x, coords.y, 0.0, 1.0);
         let b = unproject * Vector4::new(coords.x, coords.y, 1.0, 1.0);

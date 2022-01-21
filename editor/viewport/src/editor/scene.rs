@@ -39,7 +39,7 @@ macro_rules! point {
 
 macro_rules! entity_id {
     ($name:ident, $ty:ty) => {
-        #[derive(Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash)]
+        #[derive(Debug, Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash)]
         pub struct $name($ty);
     };
 }
@@ -327,13 +327,10 @@ impl Scene {
 
     fn execute_action(&mut self, action: Action) -> Action {
         match action {
-            Action::AddSolid(id, solid) => {
-                let id = id.unwrap_or_else(|| {
-                    let id = SolidID(self.next_solid_id);
-                    self.next_solid_id += 1;
-                    id
-                });
-
+            Action::AddSolid(solid) => {
+                let id = SolidID(self.next_solid_id);
+                self.next_solid_id += 1;
+                
                 self.solids.insert(id, solid);
                 Action::RemoveSolids(vec![id])
             }
@@ -500,7 +497,7 @@ impl Scene {
 }
 
 pub enum Action {
-    AddSolid(Option<SolidID>, Solid),
+    AddSolid(Solid),
     AddSolids(Vec<(SolidID, Solid)>),
     RemoveSolids(Vec<SolidID>),
 
@@ -570,17 +567,20 @@ impl Point {
     }
 }
 
+#[derive(Debug)]
 pub struct RaycastHit {
     pub endpoint: RaycastEndpoint,
     pub points: Vec<(SolidID, PointID)>,
 }
 
+#[derive(Debug)]
 pub struct RaycastEndpoint {
     pub point: Vector3<f32>,
     pub normal: Vector3<f32>,
     pub kind: RaycastEndpointKind,
 }
 
+#[derive(Debug)]
 pub enum RaycastEndpointKind {
     Face { solid_id: SolidID, face_id: FaceID },
     Prop(PropID),

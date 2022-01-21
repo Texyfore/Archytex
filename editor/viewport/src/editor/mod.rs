@@ -5,6 +5,7 @@ use std::rc::Rc;
 
 use anyhow::Result;
 use asset_id::GizmoID;
+use cgmath::{vec3, Vector3, Zero};
 use renderer::{
     data::gizmo,
     scene::{GizmoObject, LineObject, Scene as RenderScene, SolidObject},
@@ -12,7 +13,10 @@ use renderer::{
 };
 use winit::event::{MouseButton, VirtualKeyCode};
 
-use crate::input::Input;
+use crate::{
+    editor::scene::{Action, Solid},
+    input::Input,
+};
 
 use self::{camera::Camera, scene::Scene};
 
@@ -25,50 +29,21 @@ pub struct Editor {
 
 impl Editor {
     pub fn process(&mut self, ctx: OuterContext) -> Result<()> {
-        if ctx.input.is_key_down(VirtualKeyCode::W) {
-            self.camera.move_forward(ctx.delta);
-        }
+        self.control_camera(ctx.input, ctx.delta);
+        self.undo_redo(ctx.input, ctx.renderer);
 
-        if ctx.input.is_key_down(VirtualKeyCode::S) {
-            self.camera.move_backward(ctx.delta);
-        }
+        if ctx.input.is_button_down_once(MouseButton::Left) {
+            let hit = self
+                .scene
+                .raycast(&self.camera.screen_ray(ctx.input.mouse_pos()));
 
-        if ctx.input.is_key_down(VirtualKeyCode::A) {
-            self.camera.move_left(ctx.delta);
-        }
+            self.scene.act(Action::AddSolid(Solid::new(
+                hit.endpoint.point.map(|e| (e * 100.0) as i32),
+                vec3(100, 100, 100),
+            )));
+            self.scene.gen_meshes(ctx.renderer, &mut self.graphics);
 
-        if ctx.input.is_key_down(VirtualKeyCode::D) {
-            self.camera.move_right(ctx.delta);
-        }
-
-        if ctx.input.is_key_down(VirtualKeyCode::Q) {
-            self.camera.move_down(ctx.delta);
-        }
-
-        if ctx.input.is_key_down(VirtualKeyCode::E) {
-            self.camera.move_up(ctx.delta);
-        }
-
-        if ctx.input.is_button_down(MouseButton::Right) {
-            self.camera.look(ctx.input.mouse_delta(), ctx.delta);
-        }
-
-        if ctx.input.mouse_wheel().abs() > 0.1 {
-            if ctx.input.mouse_wheel().signum() > 0.0 {
-                self.camera.increase_speed();
-            } else {
-                self.camera.decrease_speed();
-            }
-        }
-
-        if ctx.input.is_key_down(VirtualKeyCode::LControl) {
-            if ctx.input.is_key_down_once(VirtualKeyCode::Z) {
-                self.scene.undo();
-                self.regen_meshes(ctx.renderer)?;
-            } else if ctx.input.is_key_down_once(VirtualKeyCode::Y) {
-                self.scene.redo();
-                self.regen_meshes(ctx.renderer)?;
-            }
+            println!("{:?}", hit);
         }
 
         Ok(())
@@ -98,9 +73,54 @@ impl Editor {
         self.camera.recreate_projection(width, height);
     }
 
-    fn regen_meshes(&mut self, renderer: &Renderer) -> Result<()> {
-        self.scene.gen_meshes(renderer, &mut self.graphics);
-        Ok(())
+    fn control_camera(&mut self, input: &Input, delta: f32) {
+        if input.is_key_down(VirtualKeyCode::W) {
+            self.camera.move_forward(delta);
+        }
+
+        if input.is_key_down(VirtualKeyCode::S) {
+            self.camera.move_backward(delta);
+        }
+
+        if input.is_key_down(VirtualKeyCode::A) {
+            self.camera.move_left(delta);
+        }
+
+        if input.is_key_down(VirtualKeyCode::D) {
+            self.camera.move_right(delta);
+        }
+
+        if input.is_key_down(VirtualKeyCode::Q) {
+            self.camera.move_down(delta);
+        }
+
+        if input.is_key_down(VirtualKeyCode::E) {
+            self.camera.move_up(delta);
+        }
+
+        if input.is_button_down(MouseButton::Right) {
+            self.camera.look(input.mouse_delta(), delta);
+        }
+
+        if input.mouse_wheel().abs() > 0.1 {
+            if input.mouse_wheel().signum() > 0.0 {
+                self.camera.increase_speed();
+            } else {
+                self.camera.decrease_speed();
+            }
+        }
+    }
+
+    fn undo_redo(&mut self, input: &Input, renderer: &Renderer) {
+        if input.is_key_down(VirtualKeyCode::LControl) {
+            if input.is_key_down_once(VirtualKeyCode::Z) {
+                self.scene.undo();
+                self.scene.gen_meshes(renderer, &mut self.graphics)
+            } else if input.is_key_down_once(VirtualKeyCode::Y) {
+                self.scene.redo();
+                self.scene.gen_meshes(renderer, &mut self.graphics)
+            }
+        }
     }
 }
 
