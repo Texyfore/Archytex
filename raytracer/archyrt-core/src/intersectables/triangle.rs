@@ -1,3 +1,4 @@
+use crate::renderers::path_tracer::Material;
 use crate::textures::color_provider::ColorProvider;
 use crate::textures::samplers::nearest::NearestSampler;
 use crate::textures::samplers::TextureSampler;
@@ -24,10 +25,11 @@ pub struct Triangle {
     pub normal: Vec3,
     pub uv: [Vec2; 3],
     pub texture: TextureID,
+    pub material: Material
 }
 
 impl Triangle {
-    pub fn new(vertices: [Vec3; 3], uv: [Vec2; 3], texture: TextureID) -> Self {
+    pub fn new(vertices: [Vec3; 3], uv: [Vec2; 3], texture: TextureID, material: Material) -> Self {
         let [a, b, c] = vertices;
         let normal = (b - a).cross(c - a).normalized();
         Self {
@@ -37,6 +39,7 @@ impl Triangle {
             normal,
             uv,
             texture,
+            material,
         }
     }
     pub fn bounds(&self) -> AABB {
@@ -70,7 +73,7 @@ impl Default for Triangle {
         let b = Vec3::new(1.0, -1.0, 3.0);
         let c = Vec3::new(-1.0, -1.0, 3.0);
         let uv = [vector![0.0, 0.0], vector![0.0, 1.0], vector![1.0, 0.0]];
-        Self::new([a, b, c], uv, TextureID(1))
+        Self::new([a, b, c], uv, TextureID(1), Material::Diffuse)
     }
 }
 
@@ -79,6 +82,7 @@ pub struct TriangleColor {
     pub uv: [Vec2; 3],
     pub barycentric: Vec3,
     pub texture: TextureID,
+    pub material: Material
 }
 
 impl ColorProvider for TriangleColor {
@@ -88,6 +92,10 @@ impl ColorProvider for TriangleColor {
             + self.uv[2] * self.barycentric[1]
             + self.uv[0] * self.barycentric[2];
         sampler.sample(repo, self.texture, coords)
+    }
+
+    fn get_material(&self) -> Material {
+        self.material
     }
 }
 
@@ -115,6 +123,7 @@ impl Intersectable for Triangle {
                     uv: self.uv,
                     barycentric: Vec3::new(u, v, 1.0 - u - v),
                     texture: self.texture,
+                    material: self.material
                 },
                 ..Default::default()
             }

@@ -44,7 +44,7 @@ fn main() {
     };
     let renderer = SamplingRenderer{
         inner: renderer,
-        samples: 10
+        samples: 1
     };
     let collector = ImageCollector {};
     let image = collector.collect(&renderer, &repo, 1920/2, 1080/2).unwrap();

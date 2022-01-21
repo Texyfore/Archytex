@@ -16,6 +16,7 @@ pub fn sphere_ray_intersection(c: &mut Criterion) {
         origin: Vec3::new(0.0, 0.0, 2.0),
         radius: 1.0,
         color: Vec3::ones(),
+        ..Default::default()
     };
     c.bench_function("sphere-ray", |b| {
         b.iter(|| {

@@ -4,13 +4,14 @@ use crate::{
         math::{solve_quadratic, QuadraticResult, Vec3},
         ray::{Intersectable, Intersection, IntersectionBuilder, Ray},
     },
-    vector,
+    vector, renderers::path_tracer::Material,
 };
 
 pub struct Sphere {
     pub origin: Vec3,
     pub radius: f64,
     pub color: Vec3,
+    pub material: Material
 }
 
 impl Default for Sphere {
@@ -19,6 +20,7 @@ impl Default for Sphere {
             origin: vector!(0.0, 0.0, 0.0),
             radius: 1.0,
             color: vector!(1.0, 1.0, 1.0),
+            material: Material::default()
         }
     }
 }
@@ -71,6 +73,7 @@ impl Intersectable for Sphere {
                 pos: Some(pos),
                 ray,
                 normal,
+                color_provider: SolidColor(self.color, self.material),
                 ..Default::default()
             }
             .build(),

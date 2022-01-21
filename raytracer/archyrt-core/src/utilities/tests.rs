@@ -249,7 +249,7 @@ mod rays {
             math::Vec3,
             ray::{IntersectionBuilder, Ray},
         },
-        vector,
+        vector, renderers::path_tracer::Material,
     };
 
     #[test]
@@ -265,12 +265,13 @@ mod rays {
             direction: vector!(0.4, 0.5, 0.5),
         };
         let intersection = IntersectionBuilder {
-            color_provider: SolidColor(color),
+            color_provider: SolidColor(color, Material::default()),
             normal,
             distance,
             distance_squared,
             pos,
             ray,
+            ..Default::default()
         }
         .build();
         assert_eq!(color, intersection.get_color(&dummy_textures));

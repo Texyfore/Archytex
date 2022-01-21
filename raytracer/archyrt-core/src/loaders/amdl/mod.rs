@@ -3,6 +3,7 @@ pub mod amdl_textures;
 use crate::intersectables::triangle::Triangle;
 use crate::loaders::Loader;
 
+use crate::renderers::path_tracer::Material;
 use crate::textures::TextureID;
 use crate::utilities::math::{Vec2, Vec3};
 use crate::{cameras::perspective::PerspectiveCamera, vector};
@@ -130,11 +131,13 @@ impl AMDLLoader {
                     [point0, point2, point1],
                     [uv0, uv2, uv1],
                     TextureID(face.texture_id.0),
+                    Material::Diffuse
                 );
                 let triangle2 = Triangle::new(
                     [point0, point3, point2],
                     [uv0, uv3, uv2],
                     TextureID(face.texture_id.0),
+                    Material::Diffuse
                 );
                 triangles.push(triangle1);
                 triangles.push(triangle2);

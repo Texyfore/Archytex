@@ -1,4 +1,4 @@
-use crate::textures::{color_provider::ColorProvider, texture_repo::TextureRepository};
+use crate::{textures::{color_provider::ColorProvider, texture_repo::TextureRepository}, renderers::path_tracer::Material};
 
 use super::math::Vec3;
 
@@ -73,6 +73,9 @@ impl<C: ColorProvider> Intersection<C> {
     }
     pub fn get_color<R: TextureRepository>(&self, repo: &R) -> Vec3 {
         self.0.color_provider.get_color(repo)
+    }
+    pub fn get_material(&self) -> Material {
+        self.0.color_provider.get_material()
     }
 }
 

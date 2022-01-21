@@ -26,6 +26,7 @@ impl Default for BasicRenderer<PerspectiveCamera, Sphere> {
                 origin: Vec3::new(0.0, 0.0, 3.0),
                 radius: 0.5,
                 color: Vec3::new(0.0, 1.0, 0.0),
+                ..Default::default()
             },
             lamp: Vec3::new(5.0, 5.0, 0.0),
         }
