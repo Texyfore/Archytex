@@ -120,6 +120,39 @@ impl Triangle {
     }
 }
 
+pub trait MinMax {
+    fn min(self, other: Self) -> Self;
+    fn max(self, other: Self) -> Self;
+}
+
+impl MinMax for Vector3<i32> {
+    fn min(self, other: Self) -> Self {
+        Self::new(
+            self.x.min(other.x),
+            self.y.min(other.y),
+            self.z.min(other.z),
+        )
+    }
+
+    fn max(self, other: Self) -> Self {
+        Self::new(
+            self.x.max(other.x),
+            self.y.max(other.y),
+            self.z.max(other.z),
+        )
+    }
+}
+
+pub trait Snap {
+    fn snap(self, step: i32) -> Vector3<i32>;
+}
+
+impl Snap for Vector3<f32> {
+    fn snap(self, step: i32) -> Vector3<i32> {
+        self.map(|e| (e / step as f32).floor() as i32)
+    }
+}
+
 #[cfg(test)]
 mod tests {
     mod ray {

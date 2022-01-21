@@ -1,11 +1,11 @@
 mod camera;
 mod scene;
 
-use std::rc::Rc;
+use std::{default, rc::Rc};
 
 use anyhow::Result;
 use asset_id::{GizmoID, TextureID};
-use cgmath::vec3;
+use cgmath::{vec3, MetricSpace, Vector2, Vector3, Zero};
 use renderer::{
     data::gizmo,
     scene::{GizmoObject, LineObject, Scene as RenderScene, SolidObject},
@@ -16,45 +16,89 @@ use winit::event::{MouseButton, VirtualKeyCode};
 use crate::{
     editor::scene::{Action, GraphicsMask, Solid},
     input::Input,
+    math::{MinMax, Snap},
 };
 
 use self::{
     camera::Camera,
-    scene::{RaycastEndpointKind, Scene},
+    scene::{Scene, WorkInProgress},
 };
 
 #[derive(Default)]
 pub struct Editor {
     camera: Camera,
     scene: Scene,
+    mode: Mode,
     graphics: Option<Graphics>,
 }
 
 impl Editor {
     pub fn process(&mut self, ctx: OuterContext) -> Result<()> {
-        self.control_camera(ctx.input, ctx.delta);
-        self.undo_redo(ctx.input, ctx.renderer);
+        let mut needs_regen = false;
+        let mut can_move = true;
 
-        if ctx.input.is_button_down_once(MouseButton::Left) {
-            let hit = self
-                .scene
-                .raycast(&self.camera.screen_ray(ctx.input.mouse_pos()));
+        match &mut self.mode {
+            Mode::Solid(state) => {
+                if ctx.input.is_button_down_once(MouseButton::Left) {
+                    state.last_click_pos = Some(ctx.input.mouse_pos());
+                }
 
-            if ctx.input.is_key_down(VirtualKeyCode::LControl) {
-                self.scene.act(Action::AddSolid(Solid::new(
-                    hit.endpoint.point.map(|e| (e * 100.0) as i32),
-                    vec3(100, 100, 100),
-                )));
-            } else if let RaycastEndpointKind::Face { solid_id, face_id } = hit.endpoint.kind {
-                self.scene
-                    .act(Action::SelectFaces(vec![(solid_id, face_id)]));
+                if let Some(last_click_pos) = state.last_click_pos {
+                    can_move = false;
+
+                    if ctx.input.mouse_pos().distance2(last_click_pos) > 100.0 {
+                        let hit = self.scene.raycast(&self.camera.screen_ray(last_click_pos));
+
+                        state.new_solid_start =
+                            Some(hit.endpoint.point + hit.endpoint.normal * 0.001);
+
+                        *self.scene.wip() = Some(WorkInProgress::NewSolid(Solid::new(
+                            Vector3::zero(),
+                            Vector3::zero(),
+                        )));
+
+                        state.last_click_pos = None;
+                    }
+                }
+
+                if let Some(start) = state.new_solid_start {
+                    can_move = false;
+
+                    let hit = self
+                        .scene
+                        .raycast(&self.camera.screen_ray(ctx.input.mouse_pos()));
+
+                    let end = hit.endpoint.point + hit.endpoint.normal * 0.001;
+
+                    let start = (start * 100.0).snap(100) * 100;
+                    let end = (end * 100.0).snap(100) * 100;
+
+                    let min = start.min(end);
+                    let max = start.max(end) + vec3(100, 100, 100);
+
+                    if let Some(WorkInProgress::NewSolid(solid)) = self.scene.wip() {
+                        solid.set_min_max(min, max);
+                        needs_regen = true;
+                    }
+                }
+
+                if ctx.input.was_button_down_once(MouseButton::Left) {
+                    self.scene.confirm_wip();
+                    state.new_solid_start = None;
+                }
             }
-
-            self.regen(ctx.renderer);
+            Mode::Face => todo!(),
+            Mode::Point => todo!(),
+            Mode::Prop => todo!(),
         }
 
-        if ctx.input.is_key_down_once(VirtualKeyCode::T) {
-            self.scene.act(Action::AssignTexture(TextureID(1)));
+        self.undo_redo(ctx.input, ctx.renderer);
+
+        if can_move {
+            self.control_camera(ctx.input, ctx.delta);
+        }
+
+        if needs_regen {
             self.regen(ctx.renderer);
         }
 
@@ -86,6 +130,10 @@ impl Editor {
     }
 
     fn control_camera(&mut self, input: &Input, delta: f32) {
+        if !input.is_button_down(MouseButton::Right) {
+            return;
+        }
+
         if input.is_key_down(VirtualKeyCode::W) {
             self.camera.move_forward(delta);
         }
@@ -110,10 +158,6 @@ impl Editor {
             self.camera.move_up(delta);
         }
 
-        if input.is_button_down(MouseButton::Right) {
-            self.camera.look(input.mouse_delta(), delta);
-        }
-
         if input.mouse_wheel().abs() > 0.1 {
             if input.mouse_wheel().signum() > 0.0 {
                 self.camera.increase_speed();
@@ -121,6 +165,8 @@ impl Editor {
                 self.camera.decrease_speed();
             }
         }
+
+        self.camera.look(input.mouse_delta(), delta);
     }
 
     fn undo_redo(&mut self, input: &Input, renderer: &Renderer) {
@@ -151,4 +197,23 @@ struct Graphics {
     solid_objects: Vec<SolidObject>,
     line_object: LineObject,
     point_gizmo_instances: Rc<gizmo::Instances>,
+}
+
+enum Mode {
+    Solid(SolidState),
+    Face,
+    Point,
+    Prop,
+}
+
+impl Default for Mode {
+    fn default() -> Self {
+        Self::Solid(SolidState::default())
+    }
+}
+
+#[derive(Default)]
+struct SolidState {
+    last_click_pos: Option<Vector2<f32>>,
+    new_solid_start: Option<Vector3<f32>>,
 }

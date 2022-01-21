@@ -50,11 +50,12 @@ entity_id!(PointID, usize);
 entity_id!(PropID, u32);
 
 #[derive(Default)]
-pub struct Scene {
+pub(super) struct Scene {
     solids: HashMap<SolidID, Solid>,
     next_solid_id: u32,
     undo_stack: Vec<Action>,
     redo_stack: Vec<Action>,
+    wip: Option<WorkInProgress>,
 }
 
 impl Scene {
@@ -78,24 +79,44 @@ impl Scene {
         }
     }
 
-    pub fn get_all_solids(&self) -> Vec<SolidID> {
-        self.solids.keys().copied().collect()
+    pub fn take(&mut self, ids: &[SolidID]) -> Vec<(SolidID, Solid)> {
+        let mut vec = Vec::new();
+        for id in ids {
+            vec.push((*id, self.solids.remove(id).unwrap()));
+        }
+        vec
     }
 
-    pub fn get_all_faces(&self) -> Vec<(SolidID, FaceID)> {
-        self.solids
-            .keys()
-            .map(|solid_id| (0..6).map(|i| (*solid_id, FaceID(i))))
-            .flatten()
-            .collect()
+    pub fn clone(&mut self, ids: &[SolidID]) -> Vec<(SolidID, Solid)> {
+        let mut vec = Vec::new();
+        for id in ids {
+            vec.push((*id, self.solids.get(id).unwrap().clone()));
+        }
+        vec
     }
 
-    pub fn get_all_points(&self) -> Vec<(SolidID, PointID)> {
-        self.solids
-            .keys()
-            .map(|solid_id| (0..8).map(|i| (*solid_id, PointID(i))))
-            .flatten()
-            .collect()
+    pub fn wip(&mut self) -> &mut Option<WorkInProgress> {
+        &mut self.wip
+    }
+
+    pub fn confirm_wip(&mut self) {
+        if let Some(wip) = self.wip.take() {
+            match wip {
+                WorkInProgress::NewSolid(solid) => {
+                    self.act(Action::AddSolid(solid));
+                }
+                WorkInProgress::MoveSolids(_) => todo!(),
+            }
+        }
+    }
+
+    pub fn cancel_wip(&mut self) {
+        if let Some(wip) = self.wip.take() {
+            match wip {
+                WorkInProgress::NewSolid(_) => {}
+                WorkInProgress::MoveSolids(_) => todo!(),
+            }
+        }
     }
 
     pub fn raycast(&self, ray: &Ray) -> RaycastHit {
@@ -206,7 +227,7 @@ impl Scene {
         }
     }
 
-    pub(super) fn gen_meshes(
+    pub fn gen_meshes(
         &self,
         renderer: &Renderer,
         graphics: &mut Option<Graphics>,
@@ -224,7 +245,20 @@ impl Scene {
 
         let mut batches = HashMap::<TextureID, (Vec<solid::Vertex>, Vec<[u16; 3]>)>::new();
 
-        for solid in self.solids.values() {
+        let mut lines = Vec::new();
+
+        let mut add_line = |solid: &Solid, a: usize, b: usize| {
+            lines.push(line::Vertex {
+                position: solid.points[a].meters(),
+                color: [0.0; 3],
+            });
+            lines.push(line::Vertex {
+                position: solid.points[b].meters(),
+                color: [0.0; 3],
+            });
+        };
+
+        let mut gen_solid = |solid: &Solid| {
             for face in &solid.faces {
                 let (vertices, triangles) = batches.entry(face.texture_id).or_default();
                 let t0 = vertices.len() as u16;
@@ -265,28 +299,7 @@ impl Scene {
                     });
                 }
             }
-        }
 
-        if let Some(old_texture_ids) = old_texture_ids {
-            for old_texture_id in old_texture_ids {
-                batches.entry(old_texture_id).or_default();
-            }
-        }
-
-        let mut lines = Vec::new();
-
-        let mut add_line = |solid: &Solid, a: usize, b: usize| {
-            lines.push(line::Vertex {
-                position: solid.points[a].meters(),
-                color: [0.0; 3],
-            });
-            lines.push(line::Vertex {
-                position: solid.points[b].meters(),
-                color: [0.0; 3],
-            });
-        };
-
-        for solid in self.solids.values() {
             for face in [0, 1] {
                 let disp = face * 4;
                 add_line(solid, disp, disp + 1);
@@ -297,6 +310,29 @@ impl Scene {
 
             for segment in 0..4 {
                 add_line(solid, segment, segment + 4);
+            }
+        };
+
+        for solid in self.solids.values() {
+            gen_solid(solid);
+        }
+
+        if let Some(wip) = &self.wip {
+            match wip {
+                WorkInProgress::NewSolid(solid) => {
+                    gen_solid(solid);
+                }
+                WorkInProgress::MoveSolids(solids) => {
+                    for (_, solid) in solids {
+                        gen_solid(solid);
+                    }
+                }
+            }
+        }
+
+        if let Some(old_texture_ids) = old_texture_ids {
+            for old_texture_id in old_texture_ids {
+                batches.entry(old_texture_id).or_default();
             }
         }
 
@@ -528,6 +564,7 @@ pub enum Action {
     AssignTextures(Vec<(SolidID, FaceID, TextureID)>),
 }
 
+#[derive(Clone)]
 pub struct Solid {
     faces: [Face; 6],
     points: [Point; 8],
@@ -558,14 +595,27 @@ impl Solid {
             selected: false,
         }
     }
+
+    pub fn set_min_max(&mut self, min: Vector3<i32>, max: Vector3<i32>) {
+        self.points[0].position = vec3(min.x, min.y, min.z);
+        self.points[1].position = vec3(max.x, min.y, min.z);
+        self.points[2].position = vec3(max.x, max.y, min.z);
+        self.points[3].position = vec3(min.x, max.y, min.z);
+        self.points[4].position = vec3(min.x, min.y, max.z);
+        self.points[5].position = vec3(max.x, min.y, max.z);
+        self.points[6].position = vec3(max.x, max.y, max.z);
+        self.points[7].position = vec3(min.x, max.y, max.z);
+    }
 }
 
+#[derive(Clone)]
 pub struct Face {
     texture_id: TextureID,
     points: [PointID; 4],
     selected: bool,
 }
 
+#[derive(Clone)]
 pub struct Point {
     position: Vector3<i32>,
     selected: bool,
@@ -615,4 +665,9 @@ impl GraphicsMask {
     fn show_points(&self) -> bool {
         matches!(self, Self::Points)
     }
+}
+
+pub enum WorkInProgress {
+    NewSolid(Solid),
+    MoveSolids(Vec<(SolidID, Solid)>),
 }
