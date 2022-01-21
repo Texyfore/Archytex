@@ -13,6 +13,8 @@ cgmath = "0.18.0"
 mdl = {path="../../mdl"}
 serde_json = "1.0.74"
 serde = "1.0.133"
+rand = "0.8.4"
+rand_distr = "0.4.3"
 
 [dev-dependencies]
 criterion = "0.3.5"

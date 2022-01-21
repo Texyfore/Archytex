@@ -12,3 +12,9 @@ pub struct FragmentContext<R: TextureRepository> {
 pub trait FragmentRender {
     fn render_fragment<R: TextureRepository>(&self, ctx: &FragmentContext<R>, pos: Vec2) -> Vec3;
 }
+
+impl<T: FragmentRender> FragmentRender for &T{
+    fn render_fragment<R: TextureRepository>(&self, ctx: &FragmentContext<R>, pos: Vec2) -> Vec3 {
+        (*self).render_fragment(ctx, pos)
+    }
+}
