@@ -4,8 +4,7 @@ mod scene;
 use std::rc::Rc;
 
 use anyhow::Result;
-use asset_id::{GizmoID, TextureID};
-use cgmath::{vec3, Vector3};
+use asset_id::GizmoID;
 use renderer::{
     data::gizmo,
     scene::{GizmoObject, LineObject, Scene as RenderScene, SolidObject},
@@ -15,10 +14,7 @@ use winit::event::{MouseButton, VirtualKeyCode};
 
 use crate::input::Input;
 
-use self::{
-    camera::Camera,
-    scene::{Action, RaycastHit, Scene, Solid},
-};
+use self::{camera::Camera, scene::Scene};
 
 #[derive(Default)]
 pub struct Editor {
@@ -63,47 +59,6 @@ impl Editor {
             } else {
                 self.camera.decrease_speed();
             }
-        }
-
-        if ctx.input.is_button_down_once(MouseButton::Left) {
-            self.scene.act(Action::AddSolid(
-                None,
-                Solid::new(vec3(0, 0, 0), vec3(100, 100, 100)),
-            ));
-            self.regen_meshes(ctx.renderer)?;
-        }
-
-        if ctx.input.is_key_down_once(VirtualKeyCode::M) {
-            self.scene.act(Action::MoveFaces(Vector3::new(-10, 0, 0)));
-            self.regen_meshes(ctx.renderer)?;
-        }
-
-        if ctx.input.is_key_down_once(VirtualKeyCode::R) {
-            if let Some(RaycastHit::Solid { solid_id, .. }) = self.scene.raycast(todo!()) {
-                self.scene.act(Action::RemoveSolids(vec![solid_id]));
-                self.regen_meshes(ctx.renderer)?;
-            }
-        }
-
-        if ctx.input.is_key_down_once(VirtualKeyCode::O) {
-            if let Some(RaycastHit::Solid {
-                solid_id, face_id, ..
-            }) = self.scene.raycast(todo!())
-            {
-                self.scene
-                    .act(Action::SelectFaces(vec![(solid_id, face_id)]));
-                self.regen_meshes(ctx.renderer)?;
-            }
-        }
-
-        if ctx.input.is_key_down_once(VirtualKeyCode::P) {
-            self.scene.act(Action::DeselectFaces);
-            self.regen_meshes(ctx.renderer)?;
-        }
-
-        if ctx.input.is_key_down_once(VirtualKeyCode::T) {
-            self.scene.act(Action::AssignTexture(TextureID(1)));
-            self.regen_meshes(ctx.renderer)?;
         }
 
         if ctx.input.is_key_down(VirtualKeyCode::LControl) {

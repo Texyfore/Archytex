@@ -1,14 +1,14 @@
 use std::{collections::HashMap, rc::Rc};
 
 use asset_id::TextureID;
-use cgmath::{vec2, vec3, ElementWise, InnerSpace, Matrix4, Vector3};
+use cgmath::{vec2, vec3, ElementWise, InnerSpace, Matrix4, MetricSpace, Vector3, Zero};
 use renderer::{
     data::{gizmo, line, solid},
     scene::{LineObject, SolidObject},
     Renderer,
 };
 
-use crate::math::Ray;
+use crate::math::{Intersects, Plane, Ray, Sphere, Triangle};
 
 use super::Graphics;
 
@@ -98,18 +98,112 @@ impl Scene {
             .collect()
     }
 
-    pub fn raycast(&self, ray: &Ray) -> Option<RaycastHit> {
+    pub fn raycast(&self, ray: &Ray) -> RaycastHit {
+        struct HitFace {
+            solid_id: SolidID,
+            face_id: FaceID,
+            point: Vector3<f32>,
+            normal: Vector3<f32>,
+        }
+
+        struct HitPoint {
+            solid_id: SolidID,
+            point_id: PointID,
+            point: Vector3<f32>,
+        }
+
+        let mut hit_faces = Vec::new();
+        let mut hit_points = Vec::new();
+
         for (solid_id, solid) in &self.solids {
             for (i, face) in solid.faces.iter().enumerate() {
                 let face_id = FaceID(i);
-                
+
+                let triangles = [
+                    Triangle {
+                        a: solid.points[face.points[0].0].meters(),
+                        b: solid.points[face.points[1].0].meters(),
+                        c: solid.points[face.points[2].0].meters(),
+                    },
+                    Triangle {
+                        a: solid.points[face.points[0].0].meters(),
+                        b: solid.points[face.points[2].0].meters(),
+                        c: solid.points[face.points[3].0].meters(),
+                    },
+                ];
+
+                for triangle in triangles {
+                    if let Some(intersection) = ray.intersects(&triangle) {
+                        hit_faces.push(HitFace {
+                            solid_id: *solid_id,
+                            face_id,
+                            point: intersection.point,
+                            normal: intersection.normal,
+                        });
+                        break;
+                    }
+                }
             }
 
             for (i, point) in solid.points.iter().enumerate() {
-                let point_id = PointID(i);
+                let origin = point.meters();
+                let dist = origin.distance(ray.start);
+
+                let sphere = Sphere {
+                    origin,
+                    radius: dist * 0.01,
+                };
+
+                if let Some(intersection) = ray.intersects(&sphere) {
+                    hit_points.push(HitPoint {
+                        solid_id: *solid_id,
+                        point_id: PointID(i),
+                        point: intersection.point,
+                    });
+                }
             }
         }
-        None
+
+        hit_faces.sort_unstable_by(|a, b| {
+            let dist_a = a.point.distance2(ray.start);
+            let dist_b = b.point.distance2(ray.start);
+            dist_a.partial_cmp(&dist_b).unwrap()
+        });
+
+        let endpoint = if let Some(hit_face) = hit_faces.first() {
+            RaycastEndpoint {
+                point: hit_face.point,
+                normal: hit_face.normal,
+                kind: RaycastEndpointKind::Face {
+                    solid_id: hit_face.solid_id,
+                    face_id: hit_face.face_id,
+                },
+            }
+        } else {
+            let plane = Plane {
+                origin: Vector3::zero(),
+                normal: vec3(0.0, 1.0, 0.0),
+            };
+
+            let intersection = ray.intersects(&plane).unwrap();
+
+            RaycastEndpoint {
+                point: intersection.point,
+                normal: intersection.normal,
+                kind: RaycastEndpointKind::Ground,
+            }
+        };
+
+        let dist_endpoint = endpoint.point.distance2(ray.start);
+        hit_points.retain(|hit_point| hit_point.point.distance2(ray.start) < dist_endpoint);
+
+        RaycastHit {
+            endpoint,
+            points: hit_points
+                .into_iter()
+                .map(|hit_point| (hit_point.solid_id, hit_point.point_id))
+                .collect(),
+        }
     }
 
     pub(super) fn gen_meshes(&self, renderer: &Renderer, graphics: &mut Option<Graphics>) {
@@ -476,11 +570,19 @@ impl Point {
     }
 }
 
-pub enum RaycastHit {
-    Solid {
-        solid_id: SolidID,
-        face_id: FaceID,
-        point_id: Option<PointID>,
-    },
+pub struct RaycastHit {
+    pub endpoint: RaycastEndpoint,
+    pub points: Vec<(SolidID, PointID)>,
+}
+
+pub struct RaycastEndpoint {
+    pub point: Vector3<f32>,
+    pub normal: Vector3<f32>,
+    pub kind: RaycastEndpointKind,
+}
+
+pub enum RaycastEndpointKind {
+    Face { solid_id: SolidID, face_id: FaceID },
     Prop(PropID),
+    Ground,
 }
