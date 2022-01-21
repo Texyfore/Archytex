@@ -4,6 +4,7 @@ mod input;
 mod main_loop;
 mod winit_loop;
 mod editor;
+mod math;
 
 use self::{ipc::IpcHost, winit_loop::WinitLoop};
 

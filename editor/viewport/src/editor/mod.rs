@@ -79,7 +79,7 @@ impl Editor {
         }
 
         if ctx.input.is_key_down_once(VirtualKeyCode::R) {
-            if let Some(RaycastHit::Solid { solid_id, .. }) = self.scene.raycast() {
+            if let Some(RaycastHit::Solid { solid_id, .. }) = self.scene.raycast(todo!()) {
                 self.scene.act(Action::RemoveSolids(vec![solid_id]));
                 self.regen_meshes(ctx.renderer)?;
             }
@@ -88,7 +88,7 @@ impl Editor {
         if ctx.input.is_key_down_once(VirtualKeyCode::O) {
             if let Some(RaycastHit::Solid {
                 solid_id, face_id, ..
-            }) = self.scene.raycast()
+            }) = self.scene.raycast(todo!())
             {
                 self.scene
                     .act(Action::SelectFaces(vec![(solid_id, face_id)]));

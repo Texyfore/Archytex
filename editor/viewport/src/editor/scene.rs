@@ -8,6 +8,8 @@ use renderer::{
     Renderer,
 };
 
+use crate::math::Ray;
+
 use super::Graphics;
 
 macro_rules! points {
@@ -96,13 +98,16 @@ impl Scene {
             .collect()
     }
 
-    pub fn raycast(&self) -> Option<RaycastHit> {
-        if let Some(solid_id) = self.solids.keys().copied().next() {
-            return Some(RaycastHit::Solid {
-                solid_id,
-                face_id: FaceID(0),
-                point_id: Some(PointID(0)),
-            });
+    pub fn raycast(&self, ray: &Ray) -> Option<RaycastHit> {
+        for (solid_id, solid) in &self.solids {
+            for (i, face) in solid.faces.iter().enumerate() {
+                let face_id = FaceID(i);
+                
+            }
+
+            for (i, point) in solid.points.iter().enumerate() {
+                let point_id = PointID(i);
+            }
         }
         None
     }
