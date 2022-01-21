@@ -60,22 +60,25 @@ pub(super) struct Scene {
 
 impl Scene {
     pub fn act(&mut self, action: Action) {
-        let inverse = self.execute_action(action);
-        self.undo_stack.push(inverse);
-        self.redo_stack.clear();
+        if let Some(inverse) = self.execute_action(action) {
+            self.undo_stack.push(inverse);
+            self.redo_stack.clear();
+        }
     }
 
     pub fn undo(&mut self) {
         if let Some(action) = self.undo_stack.pop() {
-            let inverse = self.execute_action(action);
-            self.redo_stack.push(inverse);
+            if let Some(inverse) = self.execute_action(action) {
+                self.redo_stack.push(inverse);
+            }
         }
     }
 
     pub fn redo(&mut self) {
         if let Some(action) = self.redo_stack.pop() {
-            let inverse = self.execute_action(action);
-            self.undo_stack.push(inverse);
+            if let Some(inverse) = self.execute_action(action) {
+                self.undo_stack.push(inverse);
+            }
         }
     }
 
@@ -227,7 +230,7 @@ impl Scene {
         }
     }
 
-    pub fn gen_meshes(
+    pub fn gen_graphics(
         &self,
         renderer: &Renderer,
         graphics: &mut Option<Graphics>,
@@ -277,6 +280,12 @@ impl Scene {
                 for point in points {
                     let position = point.meters();
 
+                    let has_tint = match mask {
+                        GraphicsMask::Solids => solid.selected,
+                        GraphicsMask::Faces => face.selected,
+                        GraphicsMask::Points => false,
+                    };
+
                     vertices.push(solid::Vertex {
                         position: point.meters(),
                         normal,
@@ -291,7 +300,7 @@ impl Scene {
                         } else {
                             vec2(position.x, position.y)
                         } / 4.0,
-                        tint: if face.selected {
+                        tint: if has_tint {
                             [0.04, 0.36, 0.85, 0.5]
                         } else {
                             [0.0; 4]
@@ -371,14 +380,14 @@ impl Scene {
         });
     }
 
-    fn execute_action(&mut self, action: Action) -> Action {
+    fn execute_action(&mut self, action: Action) -> Option<Action> {
         match action {
             Action::AddSolid(solid) => {
                 let id = SolidID(self.next_solid_id);
                 self.next_solid_id += 1;
 
                 self.solids.insert(id, solid);
-                Action::RemoveSolids(vec![id])
+                Some(Action::RemoveSolids(vec![id]))
             }
 
             Action::AddSolids(solids) => {
@@ -389,7 +398,7 @@ impl Scene {
                     solid_ids.push(solid_id);
                 }
 
-                Action::RemoveSolids(solid_ids)
+                (!solid_ids.is_empty()).then(|| Action::RemoveSolids(solid_ids))
             }
 
             Action::RemoveSolids(ids) => {
@@ -399,7 +408,23 @@ impl Scene {
                     solids.push((solid_id, solid));
                 }
 
-                Action::AddSolids(solids)
+                (!solids.is_empty()).then(|| Action::AddSolids(solids))
+            }
+
+            Action::RemoveSelectedSolids => {
+                let ids = self
+                    .solids
+                    .iter()
+                    .filter(|(_, solid)| solid.selected)
+                    .map(|(solid_id, _)| *solid_id)
+                    .collect::<Vec<_>>();
+
+                let mut solids = Vec::new();
+                for id in ids {
+                    solids.push((id, self.solids.remove(&id).unwrap()));
+                }
+
+                (!solids.is_empty()).then(|| Action::AddSolids(solids))
             }
 
             Action::SelectSolids(solid_ids) => {
@@ -408,7 +433,7 @@ impl Scene {
                     solid.selected = !solid.selected;
                 }
 
-                Action::SelectSolids(solid_ids)
+                (!solid_ids.is_empty()).then(|| Action::SelectSolids(solid_ids))
             }
 
             Action::DeselectSolids => {
@@ -421,7 +446,7 @@ impl Scene {
                     }
                 }
 
-                Action::SelectSolids(solid_ids)
+                (!solid_ids.is_empty()).then(|| Action::SelectSolids(solid_ids))
             }
 
             Action::SelectFaces(ids) => {
@@ -431,7 +456,7 @@ impl Scene {
                     face.selected = !face.selected;
                 }
 
-                Action::SelectFaces(ids)
+                (!ids.is_empty()).then(|| Action::SelectFaces(ids))
             }
 
             Action::DeselectFaces => {
@@ -446,7 +471,7 @@ impl Scene {
                     }
                 }
 
-                Action::SelectFaces(ids)
+                (!ids.is_empty()).then(|| Action::SelectFaces(ids))
             }
 
             Action::SelectPoints(ids) => {
@@ -456,7 +481,7 @@ impl Scene {
                     point.selected = !point.selected;
                 }
 
-                Action::SelectPoints(ids)
+                (!ids.is_empty()).then(|| Action::SelectPoints(ids))
             }
 
             Action::DeselectPoints => {
@@ -471,7 +496,7 @@ impl Scene {
                     }
                 }
 
-                Action::SelectPoints(ids)
+                (!ids.is_empty()).then(|| Action::SelectPoints(ids))
             }
 
             Action::MoveSolids(delta) => {
@@ -481,7 +506,7 @@ impl Scene {
                     }
                 }
 
-                Action::MoveSolids(-delta)
+                (delta.magnitude2() != 0).then(|| Action::MoveSolids(-delta))
             }
 
             Action::MoveFaces(delta) => {
@@ -496,7 +521,7 @@ impl Scene {
                     }
                 }
 
-                Action::MoveFaces(-delta)
+                (delta.magnitude2() != 0).then(|| Action::MoveFaces(-delta))
             }
 
             Action::MovePoints(delta) => {
@@ -508,7 +533,7 @@ impl Scene {
                     }
                 }
 
-                Action::MovePoints(-delta)
+                (delta.magnitude2() != 0).then(|| Action::MovePoints(-delta))
             }
 
             Action::AssignTexture(texture_id) => {
@@ -523,7 +548,7 @@ impl Scene {
                     }
                 }
 
-                Action::AssignTextures(old_texture_ids)
+                (!old_texture_ids.is_empty()).then(|| Action::AssignTextures(old_texture_ids))
             }
 
             Action::AssignTextures(ids) => {
@@ -536,7 +561,7 @@ impl Scene {
                     face.texture_id = texture_id;
                 }
 
-                Action::AssignTextures(old_texture_ids)
+                (!old_texture_ids.is_empty()).then(|| Action::AssignTextures(old_texture_ids))
             }
         }
     }
@@ -546,6 +571,7 @@ pub enum Action {
     AddSolid(Solid),
     AddSolids(Vec<(SolidID, Solid)>),
     RemoveSolids(Vec<SolidID>),
+    RemoveSelectedSolids,
 
     SelectSolids(Vec<SolidID>),
     DeselectSolids,
@@ -596,15 +622,26 @@ impl Solid {
         }
     }
 
-    pub fn set_min_max(&mut self, min: Vector3<i32>, max: Vector3<i32>) {
-        self.points[0].position = vec3(min.x, min.y, min.z);
-        self.points[1].position = vec3(max.x, min.y, min.z);
-        self.points[2].position = vec3(max.x, max.y, min.z);
-        self.points[3].position = vec3(min.x, max.y, min.z);
-        self.points[4].position = vec3(min.x, min.y, max.z);
-        self.points[5].position = vec3(max.x, min.y, max.z);
-        self.points[6].position = vec3(max.x, max.y, max.z);
-        self.points[7].position = vec3(min.x, max.y, max.z);
+    pub fn set_min_max(&mut self, min: Vector3<i32>, max: Vector3<i32>) -> bool {
+        let mut changed = false;
+
+        let mut change = |index: usize, value: Vector3<i32>| {
+            if self.points[index].position != value {
+                self.points[index].position = value;
+                changed = true;
+            }
+        };
+
+        change(0, vec3(min.x, min.y, min.z));
+        change(1, vec3(max.x, min.y, min.z));
+        change(2, vec3(max.x, max.y, min.z));
+        change(3, vec3(min.x, max.y, min.z));
+        change(4, vec3(min.x, min.y, max.z));
+        change(5, vec3(max.x, min.y, max.z));
+        change(6, vec3(max.x, max.y, max.z));
+        change(7, vec3(min.x, max.y, max.z));
+
+        changed
     }
 }
 

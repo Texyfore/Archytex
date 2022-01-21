@@ -14,7 +14,7 @@ use renderer::{
 use winit::event::{MouseButton, VirtualKeyCode};
 
 use crate::{
-    editor::scene::{Action, GraphicsMask, Solid},
+    editor::scene::{Action, GraphicsMask, RaycastEndpointKind, Solid},
     input::Input,
     math::{MinMax, Snap},
 };
@@ -77,14 +77,39 @@ impl Editor {
                     let max = start.max(end) + vec3(100, 100, 100);
 
                     if let Some(WorkInProgress::NewSolid(solid)) = self.scene.wip() {
-                        solid.set_min_max(min, max);
-                        needs_regen = true;
+                        if solid.set_min_max(min, max) {
+                            needs_regen = true;
+                        }
                     }
                 }
 
                 if ctx.input.was_button_down_once(MouseButton::Left) {
-                    self.scene.confirm_wip();
-                    state.new_solid_start = None;
+                    state.last_click_pos = None;
+
+                    if self.scene.wip().is_some() {
+                        self.scene.confirm_wip();
+                        state.new_solid_start = None;
+                        needs_regen = true;
+                    } else {
+                        if !ctx.input.is_key_down(VirtualKeyCode::LShift) {
+                            self.scene.act(Action::DeselectSolids);
+                            needs_regen = true;
+                        }
+
+                        let hit = self
+                            .scene
+                            .raycast(&self.camera.screen_ray(ctx.input.mouse_pos()));
+
+                        if let RaycastEndpointKind::Face { solid_id, .. } = hit.endpoint.kind {
+                            self.scene.act(Action::SelectSolids(vec![solid_id]));
+                            needs_regen = true;
+                        }
+                    }
+                }
+
+                if ctx.input.is_key_down_once(VirtualKeyCode::Delete) {
+                    self.scene.act(Action::RemoveSelectedSolids);
+                    needs_regen = true;
                 }
             }
             Mode::Face => todo!(),
@@ -183,7 +208,7 @@ impl Editor {
 
     fn regen(&mut self, renderer: &Renderer) {
         self.scene
-            .gen_meshes(renderer, &mut self.graphics, GraphicsMask::Faces);
+            .gen_graphics(renderer, &mut self.graphics, self.mode.graphics_mask());
     }
 }
 
@@ -209,6 +234,17 @@ enum Mode {
 impl Default for Mode {
     fn default() -> Self {
         Self::Solid(SolidState::default())
+    }
+}
+
+impl Mode {
+    fn graphics_mask(&self) -> GraphicsMask {
+        match self {
+            Mode::Solid(_) => GraphicsMask::Solids,
+            Mode::Face => GraphicsMask::Faces,
+            Mode::Point => GraphicsMask::Points,
+            Mode::Prop => todo!(),
+        }
     }
 }
 
