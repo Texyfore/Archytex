@@ -12,7 +12,7 @@ pub struct ImageCollector {}
 impl<T: FragmentRender> FragmentCollector<T> for ImageCollector {
     type Output = Option<RgbImage>;
 
-    fn collect<R: TextureRepository>(
+    fn collect<R: TextureRepository + Sync>(
         &self,
         fragment_render: T,
         texture_repo: R,

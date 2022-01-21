@@ -18,22 +18,23 @@ use archyrt_core::{
     textures::{texture_repo::png::PngTextureRepo, TextureID},
     utilities::math::Vec3,
 };
+use rayon::prelude::*;
 
-struct SamplingRenderer<Renderer: FragmentRender>{
+struct SamplingRenderer<Renderer: FragmentRender + Sync + Send>{
     pub inner: Renderer,
     pub samples: usize,
 }
 
-impl<Renderer: FragmentRender> FragmentRender for SamplingRenderer<Renderer>{
-    fn render_fragment<R: TextureRepository>(&self, ctx: &FragmentContext<R>, pos: Vec2) -> Vec3 {
-        (0..self.samples).map(|_|self.inner.render_fragment(ctx, pos)).fold(Vec3::default(), |a, b|a+b) / (self.samples as f64)
+impl<Renderer: FragmentRender + Sync + Send> FragmentRender for SamplingRenderer<Renderer>{
+    fn render_fragment<R: TextureRepository + Sync>(&self, ctx: &FragmentContext<R>, pos: Vec2) -> Vec3 {
+        (0..self.samples).into_par_iter().map(|_|self.inner.render_fragment(ctx, pos)).reduce(||Vec3::default(), |a, b|a+b) / (self.samples as f64)
     }
 }
 
 struct TonemappingRenderer<Renderer: FragmentRender>{pub inner: Renderer}
 
 impl<Renderer: FragmentRender> FragmentRender for TonemappingRenderer<Renderer>{
-    fn render_fragment<R: TextureRepository>(&self, ctx: &FragmentContext<R>, pos: Vec2) -> Vec3 {
+    fn render_fragment<R: TextureRepository + Sync>(&self, ctx: &FragmentContext<R>, pos: Vec2) -> Vec3 {
         let c = self.inner.render_fragment(ctx, pos);
         c.to_srgb()
     }
@@ -57,7 +58,7 @@ fn main() {
         radius: radius,
         material: Material::Emissive{power: 1.0}
     };
-    let object = object.union(sphere);
+    //let object = object.union(sphere);
     println!("Render");
     let renderer = PathTracer {
         object,
