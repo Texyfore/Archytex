@@ -82,19 +82,35 @@ impl Scene {
         }
     }
 
-    pub fn take(&mut self, ids: &[SolidID]) -> Vec<(SolidID, Solid)> {
+    pub fn take_selected(&mut self) -> Vec<(SolidID, Solid)> {
         let mut vec = Vec::new();
+        let ids = self
+            .solids
+            .iter()
+            .filter(|(_, solid)| solid.selected)
+            .map(|(solid_id, _)| *solid_id)
+            .collect::<Vec<_>>();
+
         for id in ids {
-            vec.push((*id, self.solids.remove(id).unwrap()));
+            vec.push((id, self.solids.remove(&id).unwrap()));
         }
+
         vec
     }
 
-    pub fn clone(&mut self, ids: &[SolidID]) -> Vec<(SolidID, Solid)> {
+    pub fn clone_selected(&mut self, ids: &[SolidID]) -> Vec<(SolidID, Solid)> {
         let mut vec = Vec::new();
+        let ids = self
+            .solids
+            .iter()
+            .filter(|(_, solid)| solid.selected)
+            .map(|(solid_id, _)| *solid_id)
+            .collect::<Vec<_>>();
+
         for id in ids {
-            vec.push((*id, self.solids.get(id).unwrap().clone()));
+            vec.push((id, self.solids.get(&id).unwrap().clone()));
         }
+
         vec
     }
 
@@ -117,7 +133,14 @@ impl Scene {
         if let Some(wip) = self.wip.take() {
             match wip {
                 WorkInProgress::NewSolid(_) => {}
-                WorkInProgress::MoveSolids(_) => todo!(),
+                WorkInProgress::MoveSolids(moving) => {
+                    for mut moving in moving {
+                        for i in 0..8 {
+                            moving.solid.points[i].position = moving.original_positions[i];
+                        }
+                        self.solids.insert(moving.id, moving.solid);
+                    }
+                }
             }
         }
     }
@@ -699,6 +722,18 @@ impl GraphicsMask {
 pub enum WorkInProgress {
     NewSolid(Solid),
     MoveSolids(Vec<MovingSolid>),
+}
+
+impl WorkInProgress {
+    pub fn displace(&mut self, delta: Vector3<i32>) {
+        if let Self::MoveSolids(solids) = self {
+            for moving in solids {
+                for point in &mut moving.solid.points {
+                    point.position += delta;
+                }
+            }
+        }
+    }
 }
 
 pub struct MovingSolid {
