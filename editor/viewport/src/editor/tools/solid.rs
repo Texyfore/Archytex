@@ -51,16 +51,20 @@ impl Tool for Select {
 }
 
 impl GenericSelect for Select {
-    fn deselect_action(&self) -> Action {
-        Action::DeselectSolids
-    }
-
     fn select_action(&self, hit: RaycastHit) -> Option<Action> {
         if let RaycastEndpointKind::Face { solid_id, .. } = hit.endpoint.kind {
             Some(Action::SelectSolids(vec![solid_id]))
         } else {
             None
         }
+    }
+
+    fn deselect_action(&self) -> Action {
+        Action::DeselectSolids
+    }
+
+    fn delete_action(&self) -> Action {
+        Action::RemoveSelectedSolids
     }
 }
 
