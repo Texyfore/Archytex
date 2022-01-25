@@ -156,7 +156,8 @@ impl Snap for Vector3<f32> {
     fn snap(self, step: i32) -> Vector3<i32> {
         self.map(|e| {
             let step = step as f32 / 100.0;
-            ((e / step).floor() * step * 100.0) as i32
+            let res = ((e / step).floor() * step * 100.0) as i32;
+            res.clamp(-10000, 10000)
         })
     }
 }

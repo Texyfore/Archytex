@@ -124,17 +124,20 @@ impl Scene {
             WorkInProgress::NewSolid(solid) => {
                 self.act(Action::AddSolid(solid));
             }
-            WorkInProgress::MoveSolids(moving) => self.act(Action::AddSolids(
-                moving
-                    .into_iter()
-                    .map(|moving| (moving.id, moving.solid))
-                    .collect(),
-            )),
+            WorkInProgress::MoveSolids { delta, moving } => {
+                for moving in moving {
+                    self.solids.insert(moving.id, moving.solid);
+                }
+
+                if delta.magnitude2() > 0 {
+                    self.undo_stack.push(Action::MoveSolids(-delta))
+                }
+            }
         }
     }
 
     pub fn cancel_wip(&mut self) {
-        if let WorkInProgress::MoveSolids(moving) = self.wip.take() {
+        if let WorkInProgress::MoveSolids { moving, .. } = self.wip.take() {
             for mut moving in moving {
                 for i in 0..8 {
                     moving.solid.points[i].position = moving.original_positions[i];
@@ -353,9 +356,9 @@ impl Scene {
             WorkInProgress::NewSolid(solid) => {
                 gen_solid(solid);
             }
-            WorkInProgress::MoveSolids(solids) => {
-                for moving_solid in solids {
-                    gen_solid(&moving_solid.solid);
+            WorkInProgress::MoveSolids { moving, .. } => {
+                for moving in moving {
+                    gen_solid(&moving.solid);
                 }
             }
         }
@@ -530,33 +533,6 @@ impl Scene {
                 (delta.magnitude2() != 0).then(|| Action::MoveSolids(-delta))
             }
 
-            Action::MoveFaces(delta) => {
-                for solid in self.solids.values_mut() {
-                    for face in &solid.faces {
-                        if face.selected {
-                            for point in face.points {
-                                let point = &mut solid.points[point.0];
-                                point.position += delta;
-                            }
-                        }
-                    }
-                }
-
-                (delta.magnitude2() != 0).then(|| Action::MoveFaces(-delta))
-            }
-
-            Action::MovePoints(delta) => {
-                for solid in self.solids.values_mut() {
-                    for point in &mut solid.points {
-                        if point.selected {
-                            point.position += delta;
-                        }
-                    }
-                }
-
-                (delta.magnitude2() != 0).then(|| Action::MovePoints(-delta))
-            }
-
             Action::AssignTexture(texture_id) => {
                 let mut old_texture_ids = Vec::new();
 
@@ -604,8 +580,6 @@ pub enum Action {
     DeselectPoints,
 
     MoveSolids(Vector3<i32>),
-    MoveFaces(Vector3<i32>),
-    MovePoints(Vector3<i32>),
 
     AssignTexture(TextureID),
     AssignTextures(Vec<(SolidID, FaceID, TextureID)>),
@@ -720,7 +694,10 @@ impl GraphicsMask {
 pub enum WorkInProgress {
     None,
     NewSolid(Solid),
-    MoveSolids(Vec<MovingSolid>),
+    MoveSolids {
+        delta: Vector3<i32>,
+        moving: Vec<MovingSolid>,
+    },
 }
 
 impl Default for WorkInProgress {
@@ -739,10 +716,19 @@ impl WorkInProgress {
     }
 
     pub fn displace(&mut self, delta: Vector3<i32>) {
-        if let Self::MoveSolids(solids) = self {
-            for moving in solids {
-                for point in &mut moving.solid.points {
-                    point.position += delta;
+        if let Self::MoveSolids {
+            delta: delta2,
+            moving,
+        } = self
+        {
+            *delta2 = delta;
+            for moving in moving {
+                for (original, point) in moving
+                    .original_positions
+                    .iter()
+                    .zip(moving.solid.points.iter_mut())
+                {
+                    point.position = original + delta;
                 }
             }
         }
@@ -756,11 +742,32 @@ impl WorkInProgress {
                 *self = Self::None;
                 ret
             }
-            Self::MoveSolids(solids) => {
-                let ret = Self::MoveSolids(solids.drain(..).collect());
+            Self::MoveSolids { delta, moving } => {
+                let ret = Self::MoveSolids {
+                    delta: *delta,
+                    moving: moving.drain(..).collect(),
+                };
                 *self = Self::None;
                 ret
             }
+        }
+    }
+
+    pub fn center(&self) -> Option<Vector3<f32>> {
+        if let Self::MoveSolids { moving, .. } = self {
+            let mut center = Vector3::zero();
+            let mut num = 0.0;
+
+            for moving in moving {
+                for point in &moving.solid.points {
+                    center += point.meters();
+                    num += 1.0;
+                }
+            }
+
+            Some(center / num)
+        } else {
+            None
         }
     }
 }
