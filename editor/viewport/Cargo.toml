@@ -5,7 +5,6 @@ edition = "2021"
 
 [dependencies]
 winit = "=0.26.1"
-anyhow = "=1.0.52"
 cgmath = "=0.18.0"
 instant = "=0.1.12"
 renderer = { path = "../tools/renderer" }

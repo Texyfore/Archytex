@@ -4,7 +4,6 @@ mod tools;
 
 use std::rc::Rc;
 
-use anyhow::Result;
 use asset_id::GizmoID;
 use renderer::{
     data::gizmo,
@@ -15,43 +14,19 @@ use winit::event::{MouseButton, VirtualKeyCode};
 
 use crate::input::Input;
 
-use self::{camera::Camera, scene::Scene, tools::ToolManager};
+use self::{camera::Camera, scene::Scene};
 
 #[derive(Default)]
 pub struct Editor {
     camera: Camera,
     scene: Scene,
-    tool_mgr: ToolManager,
     graphics: Option<Graphics>,
 }
 
 impl Editor {
-    pub fn process(&mut self, ctx: OuterContext) -> Result<()> {
-        let output = self.tool_mgr.process(tools::OuterContext {
-            input: ctx.input,
-            camera: &self.camera,
-            scene: &mut self.scene,
-        });
+    pub fn process(&mut self, ctx: Context) {}
 
-        if output.can_move {
-            self.control_camera(ctx.input, ctx.delta);
-        }
-
-        let regen = self.undo_redo(ctx.input);
-
-        if regen || output.regen {
-            self.scene.gen_graphics(
-                ctx.renderer,
-                &mut self.graphics,
-                self.tool_mgr.graphics_mask(),
-            );
-        }
-
-        Ok(())
-    }
-
-    pub fn render(&self, renderer: &Renderer) -> Result<()> {
-        let mut scene = RenderScene::default();
+    pub fn render(&self, scene: &mut RenderScene) {
         scene.set_camera_matrices(self.camera.matrix(), self.camera.projection());
 
         if let Some(graphics) = &self.graphics {
@@ -65,9 +40,6 @@ impl Editor {
                 instances: graphics.point_gizmo_instances.clone(),
             });
         }
-
-        renderer.render(&scene)?;
-        Ok(())
     }
 
     pub fn window_resized(&mut self, width: u32, height: u32) {
@@ -129,7 +101,7 @@ impl Editor {
     }
 }
 
-pub struct OuterContext<'a> {
+pub struct Context<'a> {
     pub delta: f32,
     pub input: &'a Input,
     pub renderer: &'a Renderer,

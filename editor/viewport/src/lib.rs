@@ -1,25 +1,14 @@
 pub mod ipc;
 
+mod editor;
 mod input;
 mod main_loop;
-mod winit_loop;
-mod editor;
 mod math;
+mod winit_loop;
 
 use self::{ipc::IpcHost, winit_loop::WinitLoop};
 
 pub fn main<H: IpcHost + 'static>(host: H) {
-    let winit_loop = match WinitLoop::new() {
-        Ok(ok) => ok,
-        Err(err) => {
-            host.error(format!(
-                "Error: {}\n\nCaused by:\n    {}",
-                err,
-                err.root_cause()
-            ));
-            return;
-        }
-    };
-
+    let winit_loop = WinitLoop::new();
     winit_loop.run(host);
 }
