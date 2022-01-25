@@ -84,11 +84,22 @@ impl Intersects<Triangle> for Ray {
 
 impl Intersects<Plane> for Ray {
     fn intersects(&self, other: &Plane) -> Option<Intersection> {
-        let t = (other.origin - self.start).dot(other.normal) / self.vector().dot(other.normal);
-        Some(Intersection {
-            point: self.start + self.vector() * t,
-            normal: other.normal,
-        })
+        // let t = (other.origin - self.start).dot(other.normal) / self.vector().dot(other.normal);
+        // Some(Intersection {
+        //     point: self.start + self.vector() * t,
+        //     normal: other.normal,
+        // })
+
+        let denom = other.normal.dot(self.direction());
+        if denom.abs() > 0.0001 {
+            let t = (other.origin - self.start).dot(other.normal) / denom;
+            (t >= 0.0).then(|| Intersection {
+                point: self.start + self.direction() * t,
+                normal: other.normal,
+            })
+        } else {
+            None
+        }
     }
 }
 

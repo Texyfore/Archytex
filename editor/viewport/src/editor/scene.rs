@@ -55,7 +55,7 @@ pub(super) struct Scene {
     next_solid_id: u32,
     undo_stack: Vec<Action>,
     redo_stack: Vec<Action>,
-    wip: Option<WorkInProgress>,
+    wip: WorkInProgress,
 }
 
 impl Scene {
@@ -114,38 +114,37 @@ impl Scene {
         vec
     }
 
-    pub fn wip(&mut self) -> &mut Option<WorkInProgress> {
+    pub fn wip(&mut self) -> &mut WorkInProgress {
         &mut self.wip
     }
 
     pub fn confirm_wip(&mut self) {
-        if let Some(wip) = self.wip.take() {
-            match wip {
-                WorkInProgress::NewSolid(solid) => {
-                    self.act(Action::AddSolid(solid));
-                }
-                WorkInProgress::MoveSolids(_) => todo!(),
+        match self.wip.take() {
+            WorkInProgress::None => {}
+            WorkInProgress::NewSolid(solid) => {
+                self.act(Action::AddSolid(solid));
             }
+            WorkInProgress::MoveSolids(moving) => self.act(Action::AddSolids(
+                moving
+                    .into_iter()
+                    .map(|moving| (moving.id, moving.solid))
+                    .collect(),
+            )),
         }
     }
 
     pub fn cancel_wip(&mut self) {
-        if let Some(wip) = self.wip.take() {
-            match wip {
-                WorkInProgress::NewSolid(_) => {}
-                WorkInProgress::MoveSolids(moving) => {
-                    for mut moving in moving {
-                        for i in 0..8 {
-                            moving.solid.points[i].position = moving.original_positions[i];
-                        }
-                        self.solids.insert(moving.id, moving.solid);
-                    }
+        if let WorkInProgress::MoveSolids(moving) = self.wip.take() {
+            for mut moving in moving {
+                for i in 0..8 {
+                    moving.solid.points[i].position = moving.original_positions[i];
                 }
+                self.solids.insert(moving.id, moving.solid);
             }
         }
     }
 
-    pub fn raycast(&self, ray: &Ray) -> RaycastHit {
+    pub fn raycast(&self, ray: &Ray) -> Option<RaycastHit> {
         struct HitFace {
             solid_id: SolidID,
             face_id: FaceID,
@@ -218,39 +217,39 @@ impl Scene {
         });
 
         let endpoint = if let Some(hit_face) = hit_faces.first() {
-            RaycastEndpoint {
+            Some(RaycastEndpoint {
                 point: hit_face.point,
                 normal: hit_face.normal,
                 kind: RaycastEndpointKind::Face {
                     solid_id: hit_face.solid_id,
                     face_id: hit_face.face_id,
                 },
-            }
+            })
         } else {
             let plane = Plane {
                 origin: Vector3::zero(),
                 normal: vec3(0.0, 1.0, 0.0),
             };
 
-            let intersection = ray.intersects(&plane).unwrap();
-
-            RaycastEndpoint {
+            ray.intersects(&plane).map(|intersection| RaycastEndpoint {
                 point: intersection.point,
                 normal: intersection.normal,
                 kind: RaycastEndpointKind::Ground,
-            }
+            })
         };
 
-        let dist_endpoint = endpoint.point.distance2(ray.start);
-        hit_points.retain(|hit_point| hit_point.point.distance2(ray.start) < dist_endpoint);
+        endpoint.map(|endpoint| {
+            let dist_endpoint = endpoint.point.distance2(ray.start);
+            hit_points.retain(|hit_point| hit_point.point.distance2(ray.start) < dist_endpoint);
 
-        RaycastHit {
-            endpoint,
-            points: hit_points
-                .into_iter()
-                .map(|hit_point| (hit_point.solid_id, hit_point.point_id))
-                .collect(),
-        }
+            RaycastHit {
+                endpoint,
+                points: hit_points
+                    .into_iter()
+                    .map(|hit_point| (hit_point.solid_id, hit_point.point_id))
+                    .collect(),
+            }
+        })
     }
 
     pub fn gen_graphics(
@@ -349,15 +348,14 @@ impl Scene {
             gen_solid(solid);
         }
 
-        if let Some(wip) = &self.wip {
-            match wip {
-                WorkInProgress::NewSolid(solid) => {
-                    gen_solid(solid);
-                }
-                WorkInProgress::MoveSolids(solids) => {
-                    for moving_solid in solids {
-                        gen_solid(&moving_solid.solid);
-                    }
+        match &self.wip {
+            WorkInProgress::None => {}
+            WorkInProgress::NewSolid(solid) => {
+                gen_solid(solid);
+            }
+            WorkInProgress::MoveSolids(solids) => {
+                for moving_solid in solids {
+                    gen_solid(&moving_solid.solid);
                 }
             }
         }
@@ -720,8 +718,15 @@ impl GraphicsMask {
 }
 
 pub enum WorkInProgress {
+    None,
     NewSolid(Solid),
     MoveSolids(Vec<MovingSolid>),
+}
+
+impl Default for WorkInProgress {
+    fn default() -> Self {
+        Self::None
+    }
 }
 
 impl WorkInProgress {
@@ -731,6 +736,22 @@ impl WorkInProgress {
                 for point in &mut moving.solid.points {
                     point.position += delta;
                 }
+            }
+        }
+    }
+
+    pub fn take(&mut self) -> Self {
+        match self {
+            Self::None => Self::None,
+            Self::NewSolid(solid) => {
+                let ret = Self::NewSolid(solid.clone());
+                *self = Self::None;
+                ret
+            }
+            Self::MoveSolids(solids) => {
+                let ret = Self::MoveSolids(solids.drain(..).collect());
+                *self = Self::None;
+                ret
             }
         }
     }
