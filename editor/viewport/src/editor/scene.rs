@@ -643,7 +643,7 @@ impl Solid {
         }
     }
 
-    pub fn set_min_max(&mut self, min: Vector3<i32>, max: Vector3<i32>) -> bool {
+    fn set_min_max(&mut self, min: Vector3<i32>, max: Vector3<i32>) -> bool {
         let mut changed = false;
 
         let mut change = |index: usize, value: Vector3<i32>| {
@@ -730,6 +730,14 @@ impl Default for WorkInProgress {
 }
 
 impl WorkInProgress {
+    pub fn set_min_max(&mut self, min: Vector3<i32>, max: Vector3<i32>) -> bool {
+        if let Self::NewSolid(solid) = self {
+            solid.set_min_max(min, max)
+        } else {
+            false
+        }
+    }
+
     pub fn displace(&mut self, delta: Vector3<i32>) {
         if let Self::MoveSolids(solids) = self {
             for moving in solids {

@@ -108,10 +108,8 @@ impl Tool for Place {
                 let min = start.min(end);
                 let max = start.max(end) + vec3(100, 100, 100);
 
-                if let WorkInProgress::NewSolid(solid) = ctx.scene.wip() {
-                    if solid.set_min_max(min, max) {
-                        regen = true;
-                    }
+                if ctx.scene.wip().set_min_max(min, max) {
+                    regen = true;
                 }
             }
         }
