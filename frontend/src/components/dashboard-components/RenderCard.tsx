@@ -12,15 +12,25 @@ import {
   Tooltip,
   Typography,
 } from "@mui/material";
-import { Close, Download, InfoOutlined, Share } from "@mui/icons-material";
+import {
+  Close,
+  Delete,
+  Download,
+  InfoOutlined,
+  Share,
+} from "@mui/icons-material";
 import CircularProgressWithLabel from "../CircularProgressWithLabel";
 import { Render } from "../../services/projects";
+import { useTranslation } from "react-i18next";
+import Environment from "../../env";
 
 interface RenderCardProps {
   render: Render;
 }
 
 export default function RenderCard({ render }: RenderCardProps) {
+  const { t } = useTranslation();
+
   //Enlarge render image modal
   const [openEnlargeRenderModal, setOpenEnlargeRenderModal] = useState<
     undefined | Render
@@ -30,6 +40,12 @@ export default function RenderCard({ render }: RenderCardProps) {
   };
   const handleCloseEnlargeRenderModal = () =>
     setOpenEnlargeRenderModal(undefined);
+
+  const downloadTooltipText = t("download");
+  const shareTooltipText = t("share");
+  const detailsTooltipText = t("details");
+  const deleteTooltipText = t("delete");
+  const closeImageTooltipText = t("close_image");
 
   return (
     <React.Fragment>
@@ -43,7 +59,7 @@ export default function RenderCard({ render }: RenderCardProps) {
             sx={{
               height: { xs: "150px", sm: "200px", md: "250px" },
             }}
-            image={render.icon}
+            image={`${Environment.base_url}render/${render.icon}`}
             alt='green iguana'
           />
           {/* Image overlay for progress information */}
@@ -69,7 +85,7 @@ export default function RenderCard({ render }: RenderCardProps) {
                 <CircularProgressWithLabel
                   size={80}
                   thickness={1}
-                  value={render.status*100}
+                  value={render.status * 100}
                 />
               </Box>
             </Box>
@@ -83,27 +99,46 @@ export default function RenderCard({ render }: RenderCardProps) {
           </Tooltip>
         </CardActionArea>
         <CardActions>
-          <Tooltip title='Download' arrow>
-            <span>
-              <IconButton size='small' disabled={render.status*100 < 100}>
-                <Download />
-              </IconButton>
-            </span>
-          </Tooltip>
-          <Tooltip title='Share' arrow>
-            <span>
-              <IconButton size='small' disabled={render.status*100 < 100}>
-                <Share />
-              </IconButton>
-            </span>
-          </Tooltip>
-          <Tooltip title='Details' arrow>
-            <span>
-              <IconButton size='small'>
-                <InfoOutlined />
-              </IconButton>
-            </span>
-          </Tooltip>
+          <Box display='flex' justifyContent='space-between' width='100%'>
+            <Box>
+              <Tooltip title={downloadTooltipText} arrow>
+                <span>
+                  <IconButton
+                    size='small'
+                    disabled={render.status * 100 < 100}
+                    color='success'
+                  >
+                    <Download />
+                  </IconButton>
+                </span>
+              </Tooltip>
+              <Tooltip title={shareTooltipText} arrow>
+                <span>
+                  <IconButton
+                    size='small'
+                    disabled={render.status * 100 < 100}
+                    color='primary'
+                  >
+                    <Share />
+                  </IconButton>
+                </span>
+              </Tooltip>
+              <Tooltip title={detailsTooltipText} arrow>
+                <span>
+                  <IconButton size='small'>
+                    <InfoOutlined />
+                  </IconButton>
+                </span>
+              </Tooltip>
+            </Box>
+            <Tooltip title={deleteTooltipText} arrow>
+              <span>
+                <IconButton size='small' color='error'>
+                  <Delete />
+                </IconButton>
+              </span>
+            </Tooltip>
+          </Box>
         </CardActions>
       </Card>
 
@@ -145,7 +180,7 @@ export default function RenderCard({ render }: RenderCardProps) {
             </Box>
           </Grow>
           <Box position='absolute' top='5px' right='5px'>
-            <Tooltip title='Close image'>
+            <Tooltip title={closeImageTooltipText}>
               <IconButton
                 sx={{ color: "#f5f0f6" }}
                 onClick={handleCloseEnlargeRenderModal}

@@ -36,6 +36,7 @@ import MoveTransformModeIcon from "../components/icons/MoveTransformModeIcon";
 import RotateTransformModeIcon from "../components/icons/RotateTransformModeIcon";
 import ScaleTransformModeIcon from "../components/icons/ScaleTransformModeIcon";
 import { useApi } from "../services/user/api";
+import { useTranslation } from "react-i18next";
 
 const appBarHeight = 48;
 let editorHandle: EditorHandle;
@@ -47,6 +48,9 @@ type libraryType = "textureLibrary" | "propLibrary";
 let saveType: "export" | "save" | "render" = "save";
 
 export default function Editor() {
+  // Use i18n
+  const { t } = useTranslation();
+
   // Use API
   const api = useApi();
 
@@ -163,10 +167,17 @@ export default function Editor() {
       const assets = await res.json();
       editorHandle.loadTextures(assets.textures);
       editorHandle.loadProps(assets.props);
+      if (projectId !== null && api?.state === "logged-in") {
+        const project = await api.load(projectId);
+        if(project){
+          console.log("Loading scene... " + project.length)
+          editorHandle.loadScene(project);
+        }
+      }
     })();
 
     return editorHandle.destroy;
-  }, [api]);
+  }, [api, projectId]);
 
   // Viewport mode change
   const [viewportMode, setViewportMode] = useState<viewportMode>("solid");
@@ -284,6 +295,16 @@ export default function Editor() {
     }
   };
 
+  const meshTooltipText = t("mesh_select_mode");
+  const faceTooltipText = t("face_select_mode");
+  const vertexTooltipText = t("vertex_select_mode");
+  const selectTooltipText = t("select_translate_mode");
+  const moveTooltipText = t("move_translate_mode");
+  const rotateTooltipText = t("rotate_translate_mode");
+  const scaleTooltipText = t("scale_translate_mode");
+  const cameraSettingsTooltipText = t("camera_settings");
+  const gridSettingsTooltipText = t("grid_settings");
+
   return (
     <React.Fragment>
       <EditorAppBar onSave={handleAppBarButtonClick} />
@@ -332,12 +353,12 @@ export default function Editor() {
           >
             <MenuItem value='prop'>
               <Box display='flex' alignItems='center' gap={2}>
-                <Chair fontSize='small' /> Prop mode
+                <Chair fontSize='small' /> {t("prop_mode")}
               </Box>
             </MenuItem>
             <MenuItem value='solid'>
               <Box display='flex' alignItems='center' gap={2}>
-                <ViewCompact fontSize='small' /> Solid mode
+                <ViewCompact fontSize='small' /> {t("solid_mode")}
               </Box>
             </MenuItem>
           </Select>
@@ -359,21 +380,21 @@ export default function Editor() {
             sx={{ height: 30.75 }}
           >
             <ToggleButton value='mesh'>
-              <Tooltip title='Mesh select mode'>
+              <Tooltip title={meshTooltipText}>
                 <Box marginTop={0.8}>
                   <MeshSelectIcon />
                 </Box>
               </Tooltip>
             </ToggleButton>
             <ToggleButton value='face'>
-              <Tooltip title='Face select mode'>
+              <Tooltip title={faceTooltipText}>
                 <Box marginTop={0.8}>
                   <FaceSelectIcon />
                 </Box>
               </Tooltip>
             </ToggleButton>
             <ToggleButton value='vertex'>
-              <Tooltip title='Vertex select mode'>
+              <Tooltip title={vertexTooltipText}>
                 <Box marginTop={0.8}>
                   <VertexSelectIcon />
                 </Box>
@@ -393,28 +414,28 @@ export default function Editor() {
             orientation='vertical'
           >
             <ToggleButton value='select'>
-              <Tooltip title='Select' placement='right'>
+              <Tooltip title={selectTooltipText} placement='right'>
                 <Box marginTop={0.8} width={36} height={30}>
                   <SelectTransformModeIcon />
                 </Box>
               </Tooltip>
             </ToggleButton>
             <ToggleButton value='move'>
-              <Tooltip title='Move' placement='right'>
+              <Tooltip title={moveTooltipText} placement='right'>
                 <Box marginTop={0.8} width={36} height={30}>
                   <MoveTransformModeIcon />
                 </Box>
               </Tooltip>
             </ToggleButton>
             <ToggleButton value='rotate'>
-              <Tooltip title='Rotate' placement='right'>
+              <Tooltip title={rotateTooltipText} placement='right'>
                 <Box marginTop={0.8} width={36} height={30}>
                   <RotateTransformModeIcon />
                 </Box>
               </Tooltip>
             </ToggleButton>
             <ToggleButton value='scale'>
-              <Tooltip title='Scale' placement='right'>
+              <Tooltip title={scaleTooltipText} placement='right'>
                 <Box marginTop={0.8} width={36} height={30}>
                   <ScaleTransformModeIcon />
                 </Box>
@@ -429,7 +450,7 @@ export default function Editor() {
           top={appBarHeight + 10}
           left='calc(100% - 400px)'
         >
-          <Tooltip title='Camera settings'>
+          <Tooltip title={cameraSettingsTooltipText}>
             <IconButton onClick={handleCameraMenuClick}>
               <VideoCameraBack />
             </IconButton>
@@ -467,7 +488,7 @@ export default function Editor() {
           <List dense>
             <ListItem>
               <Box>
-                <Typography gutterBottom>Camera speed</Typography>
+                <Typography gutterBottom>{t("camera_speed")}</Typography>
                 <Box width={150}>
                   <Slider
                     size='small'
@@ -490,7 +511,7 @@ export default function Editor() {
           top={appBarHeight + 10}
           left='calc(100% - 450px)'
         >
-          <Tooltip title='Grid settings'>
+          <Tooltip title={gridSettingsTooltipText}>
             <IconButton onClick={handleGridMenuClick}>
               <Grid3x3Rounded />
             </IconButton>
@@ -528,7 +549,7 @@ export default function Editor() {
           <List dense>
             <ListItem>
               <Box>
-                <Typography gutterBottom>Grid resolution</Typography>
+                <Typography gutterBottom>{t("grid_resolution")}</Typography>
                 <Box width={150}>
                   <Stack
                     spacing={2}

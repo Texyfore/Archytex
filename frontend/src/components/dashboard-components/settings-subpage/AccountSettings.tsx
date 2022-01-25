@@ -16,8 +16,11 @@ import {
   TextField,
   Typography,
 } from "@mui/material";
+import { useTranslation } from "react-i18next";
 
 export default function AccountSettings() {
+  const { t } = useTranslation();
+
   return (
     <Box marginBottom={2} marginTop={5}>
       <Box
@@ -30,8 +33,10 @@ export default function AccountSettings() {
           <ManageAccounts fontSize='large' />
         </Box>
         <Box>
-          <Typography variant='h6'>Account</Typography>
-          <Typography variant='caption'>Your personal settings</Typography>
+          <Typography variant='h6'>{t("account")}</Typography>
+          <Typography variant='caption'>
+            {t("your_personal_settings")}
+          </Typography>
         </Box>
       </Box>
       <Divider />
@@ -46,8 +51,8 @@ export default function AccountSettings() {
               <AccountBox />
             </ListItemIcon>
             <ListItemText
-              primary='Username'
-              secondary='Your name, that everyone will see.'
+              primary={t("username")}
+              secondary={t("your_name_that_everyone_will_see")}
             />
           </ListItem>
           <Box
@@ -63,7 +68,7 @@ export default function AccountSettings() {
               margin='none'
             />
             <Button disableElevation variant='contained'>
-              Update
+              {t("update")}
             </Button>
           </Box>
         </Box>
@@ -77,8 +82,8 @@ export default function AccountSettings() {
               <Email />
             </ListItemIcon>
             <ListItemText
-              primary='Email'
-              secondary='The email we use to contact you.'
+              primary={t("email")}
+              secondary={t("the_email_we_use_to_contact_you")}
             />
           </ListItem>
           <Box
@@ -94,7 +99,7 @@ export default function AccountSettings() {
               margin='none'
             />
             <Button disableElevation variant='contained'>
-              Update
+              {t("update")}
             </Button>
           </Box>
         </Box>
@@ -108,8 +113,8 @@ export default function AccountSettings() {
               <Password />
             </ListItemIcon>
             <ListItemText
-              primary='Password'
-              secondary='Change your password.'
+              primary={t("password")}
+              secondary={t("change_your_password")}
             />
           </ListItem>
           <Box
@@ -125,7 +130,7 @@ export default function AccountSettings() {
               margin='none'
             />
             <Button disableElevation variant='contained'>
-              Update
+              {t("update")}
             </Button>
           </Box>
         </Box>

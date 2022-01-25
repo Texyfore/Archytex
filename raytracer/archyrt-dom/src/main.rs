@@ -137,7 +137,7 @@ async fn handle_job(
         .join(s)
         .with_extension("png");
     output.save(path)?;
-    users.update_many(doc! {"_id": user}, doc!{"$set":{"projects.$[project].renders.$[render].status": 1.0}}, UpdateOptions::builder().array_filters(vec![doc!{"render._id": render_id}, doc!{"project._id": project_id}]).build()).await?;
+    users.update_many(doc! {"_id": user}, doc!{"$set":{"projects.$[project].renders.$[render].status": 1.0, "projects.$[project].renders.$[render].icon": render_id.to_hex()}}, UpdateOptions::builder().array_filters(vec![doc!{"render._id": render_id}, doc!{"project._id": project_id}]).build()).await?;
     redis::Cmd::del(&image_key).query(&mut redis_client)?;
     Ok(())
 }

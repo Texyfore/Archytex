@@ -2,12 +2,15 @@ import React, { useState } from "react";
 import { Box, List, ListItem, ListItemButton, Typography } from "@mui/material";
 import { Category, Settings } from "@mui/icons-material";
 import LibraryDialog from "./library/LibraryDialog";
+import { useTranslation } from "react-i18next";
 
 type libraryType = "textureLibrary" | "propLibrary";
 interface EditorMenuProps {
   libraryType: libraryType;
 }
 export default function EditorMenu({ libraryType }: EditorMenuProps) {
+  const { t } = useTranslation();
+
   const objects = [
     {
       name: "Object",
@@ -39,7 +42,7 @@ export default function EditorMenu({ libraryType }: EditorMenuProps) {
             }}
           />
           <Typography marginY={1} marginLeft={1}>
-            Outliner
+            {t("outliner")}
           </Typography>
         </Box>
         <Box
@@ -71,16 +74,16 @@ export default function EditorMenu({ libraryType }: EditorMenuProps) {
             }}
           />
           <Typography marginY={1} marginLeft={1}>
-            Settings
+            {t("settings")}
           </Typography>
         </Box>
         <Box sx={{ overflowY: "scroll" }}>
           <List>
             <ListItem onClick={handleLibraryClickOpen}>
               {libraryType === "textureLibrary"
-                ? "Choose texture"
+                ? t("choose_texture")
                 : libraryType === "propLibrary"
-                ? "Choose prop"
+                ? t("choose_prop")
                 : ""}
             </ListItem>
           </List>
