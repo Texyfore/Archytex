@@ -1,6 +1,7 @@
 pub mod solid;
 
 mod context;
+mod generic;
 
 use winit::event::{MouseButton, VirtualKeyCode};
 
@@ -17,8 +18,10 @@ pub trait Tool {
         if ctx.input().is_key_down(VirtualKeyCode::LControl) {
             if ctx.input().is_key_down_once(VirtualKeyCode::Z) {
                 ctx.scene().undo();
+                ctx.set_regen();
             } else if ctx.input().is_key_down_once(VirtualKeyCode::Y) {
                 ctx.scene().redo();
+                ctx.set_regen();
             }
         }
     }
