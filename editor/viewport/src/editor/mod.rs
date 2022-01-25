@@ -14,17 +14,47 @@ use winit::event::{MouseButton, VirtualKeyCode};
 
 use crate::input::Input;
 
-use self::{camera::Camera, scene::Scene};
+use self::{
+    camera::Camera,
+    scene::Scene,
+    tools::{solid, Tool},
+};
 
-#[derive(Default)]
 pub struct Editor {
     camera: Camera,
     scene: Scene,
+    tool: Box<dyn Tool>,
     graphics: Option<Graphics>,
 }
 
+impl Default for Editor {
+    fn default() -> Self {
+        Self {
+            camera: Camera::default(),
+            scene: Scene::default(),
+            tool: Box::new(solid::Select::default()),
+            graphics: None,
+        }
+    }
+}
+
 impl Editor {
-    pub fn process(&mut self, ctx: Context) {}
+    pub fn process(&mut self, ctx: Context) {
+        let mut tool_ctx =
+            tools::Context::new(ctx.delta, ctx.input, &mut self.camera, &mut self.scene);
+
+        self.tool.process(&mut tool_ctx);
+
+        if let Some(next_tool) = tool_ctx.take_next_tool() {
+            self.tool.cancelled(&mut tool_ctx);
+            self.tool = next_tool;
+        }
+
+        if tool_ctx.regen() {
+            self.scene
+                .gen_graphics(ctx.renderer, &mut self.graphics, self.tool.graphics_mask());
+        }
+    }
 
     pub fn render(&self, scene: &mut RenderScene) {
         scene.set_camera_matrices(self.camera.matrix(), self.camera.projection());
@@ -107,7 +137,7 @@ pub struct Context<'a> {
     pub renderer: &'a Renderer,
 }
 
-struct Graphics {
+pub struct Graphics {
     solid_objects: Vec<SolidObject>,
     line_object: LineObject,
     point_gizmo_instances: Rc<gizmo::Instances>,

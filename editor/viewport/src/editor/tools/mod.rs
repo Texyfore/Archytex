@@ -1,73 +1,68 @@
-use winit::event::VirtualKeyCode;
+pub mod solid;
 
-use crate::input::Input;
+mod context;
 
-use super::{
-    camera::Camera,
-    scene::{GraphicsMask, Scene},
-};
+use winit::event::{MouseButton, VirtualKeyCode};
 
-mod solid;
+pub use self::context::Context;
 
-pub(super) struct ToolManager {
-    tool: Box<dyn Tool>,
-}
+use super::scene::GraphicsMask;
 
-impl Default for ToolManager {
-    fn default() -> Self {
-        Self {
-            tool: Box::new(solid::Select::default()),
-        }
-    }
-}
-
-impl ToolManager {
-    pub fn process(&mut self, mut ctx: OuterContext) -> Output {
-        let mut regen = false;
-
-        if ctx.input.is_key_down_once(VirtualKeyCode::Key1) {
-            self.tool.cancelled(&mut ctx);
-            self.tool = Box::new(solid::Select::default());
-            regen = true;
-        }
-
-        let output = self.tool.process(&mut ctx);
-        if let Some(switch_to) = output.switch_to {
-            self.tool.cancelled(&mut ctx);
-            self.tool = switch_to;
-            regen = true;
-        }
-
-        Output {
-            can_move: output.can_move,
-            regen: output.regen || regen,
-        }
-    }
-
-    pub fn graphics_mask(&self) -> GraphicsMask {
-        self.tool.graphics_mask()
-    }
-}
-
-pub(super) struct OuterContext<'a> {
-    pub input: &'a Input,
-    pub camera: &'a Camera,
-    pub scene: &'a mut Scene,
-}
-
-pub(super) struct Output {
-    pub can_move: bool,
-    pub regen: bool,
-}
-
-trait Tool {
-    fn process(&mut self, ctx: &mut OuterContext) -> ToolOutput;
-    fn cancelled(&mut self, ctx: &mut OuterContext);
+pub trait Tool {
+    fn process(&mut self, ctx: &mut Context);
+    fn cancelled(&mut self, ctx: &mut Context);
     fn graphics_mask(&self) -> GraphicsMask;
-}
 
-struct ToolOutput {
-    switch_to: Option<Box<dyn Tool>>,
-    can_move: bool,
-    regen: bool,
+    fn process_undo_redo(&mut self, ctx: &mut Context) {
+        if ctx.input().is_key_down(VirtualKeyCode::LControl) {
+            if ctx.input().is_key_down_once(VirtualKeyCode::Z) {
+                ctx.scene().undo();
+            } else if ctx.input().is_key_down_once(VirtualKeyCode::Y) {
+                ctx.scene().redo();
+            }
+        }
+    }
+
+    fn process_camera(&mut self, ctx: &mut Context) {
+        if !ctx.input().is_button_down(MouseButton::Right) {
+            return;
+        }
+
+        let delta = ctx.delta();
+
+        if ctx.input().is_key_down(VirtualKeyCode::W) {
+            ctx.camera().move_forward(delta);
+        }
+
+        if ctx.input().is_key_down(VirtualKeyCode::S) {
+            ctx.camera().move_backward(delta);
+        }
+
+        if ctx.input().is_key_down(VirtualKeyCode::A) {
+            ctx.camera().move_left(delta);
+        }
+
+        if ctx.input().is_key_down(VirtualKeyCode::D) {
+            ctx.camera().move_right(delta);
+        }
+
+        if ctx.input().is_key_down(VirtualKeyCode::Q) {
+            ctx.camera().move_down(delta);
+        }
+
+        if ctx.input().is_key_down(VirtualKeyCode::E) {
+            ctx.camera().move_up(delta);
+        }
+
+        if ctx.input().mouse_wheel().abs() > 0.1 {
+            if ctx.input().mouse_wheel().signum() > 0.0 {
+                ctx.camera().increase_speed();
+            } else {
+                ctx.camera().decrease_speed();
+            }
+        }
+
+        let mouse_delta = ctx.input().mouse_delta();
+        ctx.camera().look(mouse_delta, delta);
+    }
 }

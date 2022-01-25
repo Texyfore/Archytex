@@ -50,7 +50,7 @@ entity_id!(PointID, usize);
 entity_id!(PropID, u32);
 
 #[derive(Default)]
-pub(super) struct Scene {
+pub struct Scene {
     solids: HashMap<SolidID, Solid>,
     next_solid_id: u32,
     undo_stack: Vec<Action>,
