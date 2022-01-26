@@ -7,7 +7,7 @@ use winit::event::{MouseButton, VirtualKeyCode};
 
 pub use self::context::Context;
 
-use super::scene::GraphicsMask;
+use super::graphics::GraphicsMask;
 
 pub trait Tool {
     fn process(&mut self, ctx: &mut Context);

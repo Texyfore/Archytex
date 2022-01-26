@@ -1,16 +1,11 @@
-use std::{collections::HashMap, rc::Rc};
+use std::collections::HashMap;
 
 use asset_id::TextureID;
-use cgmath::{vec2, vec3, ElementWise, InnerSpace, Matrix4, MetricSpace, Vector3, Zero};
-use renderer::{
-    data::{gizmo, line, solid},
-    scene::{LineObject, SolidObject},
-    Renderer,
-};
+use cgmath::{vec3, ElementWise, InnerSpace, MetricSpace, Vector3, Zero};
 
 use crate::math::{Intersects, Plane, Ray, Sphere, Triangle};
 
-use super::Graphics;
+use super::graphics::{DrawableFace, DrawablePoint, DrawableSolid};
 
 macro_rules! points {
     [$($p:literal),* $(,)?] => {[
@@ -40,7 +35,7 @@ macro_rules! point {
 macro_rules! entity_id {
     ($name:ident, $ty:ty) => {
         #[derive(Debug, Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash)]
-        pub struct $name($ty);
+        pub struct $name(pub $ty);
     };
 }
 
@@ -55,10 +50,13 @@ pub struct Scene {
     next_solid_id: u32,
     undo_stack: Vec<Action>,
     redo_stack: Vec<Action>,
-    wip: WorkInProgress,
 }
 
 impl Scene {
+    pub fn iter_solids(&self) -> std::collections::hash_map::Values<SolidID, Solid> {
+        self.solids.values()
+    }
+
     pub fn act(&mut self, action: Action) {
         if let Some(inverse) = self.execute_action(action) {
             self.undo_stack.push(inverse);
@@ -78,71 +76,6 @@ impl Scene {
         if let Some(action) = self.redo_stack.pop() {
             if let Some(inverse) = self.execute_action(action) {
                 self.undo_stack.push(inverse);
-            }
-        }
-    }
-
-    pub fn take_selected(&mut self) -> Vec<(SolidID, Solid)> {
-        let mut vec = Vec::new();
-        let ids = self
-            .solids
-            .iter()
-            .filter(|(_, solid)| solid.selected)
-            .map(|(solid_id, _)| *solid_id)
-            .collect::<Vec<_>>();
-
-        for id in ids {
-            vec.push((id, self.solids.remove(&id).unwrap()));
-        }
-
-        vec
-    }
-
-    pub fn clone_selected(&mut self, ids: &[SolidID]) -> Vec<(SolidID, Solid)> {
-        let mut vec = Vec::new();
-        let ids = self
-            .solids
-            .iter()
-            .filter(|(_, solid)| solid.selected)
-            .map(|(solid_id, _)| *solid_id)
-            .collect::<Vec<_>>();
-
-        for id in ids {
-            vec.push((id, self.solids.get(&id).unwrap().clone()));
-        }
-
-        vec
-    }
-
-    pub fn wip(&mut self) -> &mut WorkInProgress {
-        &mut self.wip
-    }
-
-    pub fn confirm_wip(&mut self) {
-        match self.wip.take() {
-            WorkInProgress::None => {}
-            WorkInProgress::NewSolid(solid) => {
-                self.act(Action::AddSolid(solid));
-            }
-            WorkInProgress::MoveSolids { delta, moving } => {
-                for moving in moving {
-                    self.solids.insert(moving.id, moving.solid);
-                }
-
-                if delta.magnitude2() > 0 {
-                    self.undo_stack.push(Action::MoveSolids(-delta))
-                }
-            }
-        }
-    }
-
-    pub fn cancel_wip(&mut self) {
-        if let WorkInProgress::MoveSolids { moving, .. } = self.wip.take() {
-            for mut moving in moving {
-                for i in 0..8 {
-                    moving.solid.points[i].position = moving.original_positions[i];
-                }
-                self.solids.insert(moving.id, moving.solid);
             }
         }
     }
@@ -253,155 +186,6 @@ impl Scene {
                     .collect(),
             }
         })
-    }
-
-    pub fn gen_graphics(
-        &self,
-        renderer: &Renderer,
-        graphics: &mut Option<Graphics>,
-        mask: GraphicsMask,
-    ) {
-        let transform = Rc::new(renderer.create_transform());
-
-        let old_texture_ids = graphics.as_ref().map(|graphics| {
-            graphics
-                .solid_objects
-                .iter()
-                .map(|solid_object| solid_object.texture_id)
-                .collect::<Vec<_>>()
-        });
-
-        let mut batches = HashMap::<TextureID, (Vec<solid::Vertex>, Vec<[u16; 3]>)>::new();
-
-        let mut lines = Vec::new();
-
-        let mut add_line = |solid: &Solid, a: usize, b: usize| {
-            lines.push(line::Vertex {
-                position: solid.points[a].meters(),
-                color: [0.0; 3],
-            });
-            lines.push(line::Vertex {
-                position: solid.points[b].meters(),
-                color: [0.0; 3],
-            });
-        };
-
-        let mut gen_solid = |solid: &Solid| {
-            for face in &solid.faces {
-                let (vertices, triangles) = batches.entry(face.texture_id).or_default();
-                let t0 = vertices.len() as u16;
-
-                triangles.push([t0, t0 + 1, t0 + 2]);
-                triangles.push([t0, t0 + 2, t0 + 3]);
-
-                let points = face.points.map(|point_id| &solid.points[point_id.0]);
-
-                let normal = {
-                    let edge0 = points[1].meters() - points[0].meters();
-                    let edge1 = points[3].meters() - points[0].meters();
-                    edge0.cross(edge1).normalize()
-                };
-
-                for point in points {
-                    let position = point.meters();
-
-                    let has_tint = match mask {
-                        GraphicsMask::Solids => solid.selected,
-                        GraphicsMask::Faces => face.selected,
-                        GraphicsMask::Points => false,
-                    };
-
-                    vertices.push(solid::Vertex {
-                        position: point.meters(),
-                        normal,
-                        texcoord: if normal.x.abs() > normal.y.abs() {
-                            if normal.x.abs() > normal.z.abs() {
-                                vec2(position.y, position.z)
-                            } else {
-                                vec2(position.x, position.y)
-                            }
-                        } else if normal.y.abs() > normal.z.abs() {
-                            vec2(position.x, position.z)
-                        } else {
-                            vec2(position.x, position.y)
-                        } / 4.0,
-                        tint: if has_tint {
-                            [0.04, 0.36, 0.85, 0.5]
-                        } else {
-                            [0.0; 4]
-                        },
-                    });
-                }
-            }
-
-            for face in [0, 1] {
-                let disp = face * 4;
-                add_line(solid, disp, disp + 1);
-                add_line(solid, disp + 1, disp + 2);
-                add_line(solid, disp + 2, disp + 3);
-                add_line(solid, disp + 3, disp);
-            }
-
-            for segment in 0..4 {
-                add_line(solid, segment, segment + 4);
-            }
-        };
-
-        for solid in self.solids.values() {
-            gen_solid(solid);
-        }
-
-        match &self.wip {
-            WorkInProgress::None => {}
-            WorkInProgress::NewSolid(solid) => {
-                gen_solid(solid);
-            }
-            WorkInProgress::MoveSolids { moving, .. } => {
-                for moving in moving {
-                    gen_solid(&moving.solid);
-                }
-            }
-        }
-
-        if let Some(old_texture_ids) = old_texture_ids {
-            for old_texture_id in old_texture_ids {
-                batches.entry(old_texture_id).or_default();
-            }
-        }
-
-        *graphics = Some(Graphics {
-            solid_objects: batches
-                .into_iter()
-                .map(|(texture_id, (vertices, triangles))| SolidObject {
-                    texture_id,
-                    transform: transform.clone(),
-                    mesh: Rc::new(renderer.create_mesh(&vertices, &triangles)),
-                })
-                .collect(),
-            line_object: LineObject {
-                transform,
-                lines: Rc::new(renderer.create_lines(&lines)),
-            },
-            point_gizmo_instances: Rc::new(renderer.create_gizmo_instances(
-                &if mask.show_points() {
-                    self.solids
-                        .values()
-                        .map(|solid| solid.points.iter())
-                        .flatten()
-                        .map(|point| gizmo::Instance {
-                            matrix: Matrix4::from_translation(point.meters()).into(),
-                            color: if point.selected {
-                                [0.04, 0.36, 0.85, 0.0]
-                            } else {
-                                [0.0; 4]
-                            },
-                        })
-                        .collect::<Vec<_>>()
-                } else {
-                    Vec::new()
-                },
-            )),
-        });
     }
 
     fn execute_action(&mut self, action: Action) -> Option<Action> {
@@ -640,11 +424,39 @@ impl Solid {
     }
 }
 
+impl DrawableSolid<Face, Point> for Solid {
+    fn faces(&self) -> &[Face; 6] {
+        &self.faces
+    }
+
+    fn points(&self) -> &[Point; 8] {
+        &self.points
+    }
+
+    fn selected(&self) -> bool {
+        self.selected
+    }
+}
+
 #[derive(Clone)]
 pub struct Face {
     texture_id: TextureID,
     points: [PointID; 4],
     selected: bool,
+}
+
+impl DrawableFace for Face {
+    fn points(&self) -> &[PointID; 4] {
+        &self.points
+    }
+
+    fn texture(&self) -> TextureID {
+        self.texture_id
+    }
+
+    fn selected(&self) -> bool {
+        self.selected
+    }
 }
 
 #[derive(Clone)]
@@ -653,9 +465,13 @@ pub struct Point {
     selected: bool,
 }
 
-impl Point {
+impl DrawablePoint for Point {
     fn meters(&self) -> Vector3<f32> {
         self.position.cast().unwrap() * 0.01
+    }
+
+    fn selected(&self) -> bool {
+        self.selected
     }
 }
 
@@ -677,114 +493,4 @@ pub enum RaycastEndpointKind {
     Face { solid_id: SolidID, face_id: FaceID },
     Prop(PropID),
     Ground,
-}
-
-pub enum GraphicsMask {
-    Solids,
-    Faces,
-    Points,
-}
-
-impl GraphicsMask {
-    fn show_points(&self) -> bool {
-        matches!(self, Self::Points)
-    }
-}
-
-pub enum WorkInProgress {
-    None,
-    NewSolid(Solid),
-    MoveSolids {
-        delta: Vector3<i32>,
-        moving: Vec<MovingSolid>,
-    },
-}
-
-impl Default for WorkInProgress {
-    fn default() -> Self {
-        Self::None
-    }
-}
-
-impl WorkInProgress {
-    pub fn set_min_max(&mut self, min: Vector3<i32>, max: Vector3<i32>) -> bool {
-        if let Self::NewSolid(solid) = self {
-            solid.set_min_max(min, max)
-        } else {
-            false
-        }
-    }
-
-    pub fn displace(&mut self, delta: Vector3<i32>) {
-        if let Self::MoveSolids {
-            delta: delta2,
-            moving,
-        } = self
-        {
-            *delta2 = delta;
-            for moving in moving {
-                for (original, point) in moving
-                    .original_positions
-                    .iter()
-                    .zip(moving.solid.points.iter_mut())
-                {
-                    point.position = original + delta;
-                }
-            }
-        }
-    }
-
-    pub fn take(&mut self) -> Self {
-        match self {
-            Self::None => Self::None,
-            Self::NewSolid(solid) => {
-                let ret = Self::NewSolid(solid.clone());
-                *self = Self::None;
-                ret
-            }
-            Self::MoveSolids { delta, moving } => {
-                let ret = Self::MoveSolids {
-                    delta: *delta,
-                    moving: moving.drain(..).collect(),
-                };
-                *self = Self::None;
-                ret
-            }
-        }
-    }
-
-    pub fn center(&self) -> Option<Vector3<f32>> {
-        if let Self::MoveSolids { moving, .. } = self {
-            let mut center = Vector3::zero();
-            let mut num = 0.0;
-
-            for moving in moving {
-                for point in &moving.solid.points {
-                    center += point.meters();
-                    num += 1.0;
-                }
-            }
-
-            Some(center / num)
-        } else {
-            None
-        }
-    }
-}
-
-pub struct MovingSolid {
-    id: SolidID,
-    solid: Solid,
-    original_positions: [Vector3<i32>; 8],
-}
-
-impl MovingSolid {
-    pub fn new(id: SolidID, solid: Solid) -> Self {
-        let original_positions = solid.points.clone().map(|point| point.position);
-        Self {
-            id,
-            solid,
-            original_positions,
-        }
-    }
 }

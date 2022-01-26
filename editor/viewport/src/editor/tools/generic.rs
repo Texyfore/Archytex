@@ -1,9 +1,9 @@
-use cgmath::{InnerSpace, Vector3, Zero};
+use cgmath::Vector3;
 use winit::event::{MouseButton, VirtualKeyCode};
 
 use crate::{
-    editor::scene::{Action, MovingSolid, RaycastHit, Scene, WorkInProgress},
-    math::{Intersects, Plane, Ray, Snap},
+    editor::scene::{Action, RaycastHit, Scene},
+    math::{Plane, Ray},
 };
 
 use super::Context;
@@ -55,62 +55,70 @@ pub struct Move {
 
 impl Move {
     pub fn new(scene: &mut Scene, ray: &Ray) -> Self {
-        let moving = scene
-            .take_selected()
-            .into_iter()
-            .map(|(id, solid)| MovingSolid::new(id, solid))
-            .collect::<Vec<_>>();
+        // let moving = scene
+        //     .take_selected()
+        //     .into_iter()
+        //     .map(|(id, solid)| MovingSolid::new(id, solid))
+        //     .collect::<Vec<_>>();
 
-        *scene.wip() = WorkInProgress::MoveSolids {
-            delta: Vector3::zero(),
-            moving,
-        };
+        // *scene.wip() = WorkInProgress::MoveSolids {
+        //     delta: Vector3::zero(),
+        //     moving,
+        // };
 
-        let dir = ray.direction();
+        // let dir = ray.direction();
 
-        let plane = Plane {
-            origin: scene.wip().center().unwrap(),
-            normal: if dir.x.abs() > dir.y.abs() {
-                if dir.x.abs() > dir.z.abs() {
-                    Vector3::unit_x() * dir.x.signum()
-                } else {
-                    Vector3::unit_z() * dir.z.signum()
-                }
-            } else if dir.y.abs() > dir.z.abs() {
-                Vector3::unit_y() * dir.y.signum()
-            } else {
-                Vector3::unit_z() * dir.z.signum()
-            },
-        };
+        // let plane = Plane {
+        //     origin: scene.wip().center().unwrap(),
+        //     normal: if dir.x.abs() > dir.y.abs() {
+        //         if dir.x.abs() > dir.z.abs() {
+        //             Vector3::unit_x() * dir.x.signum()
+        //         } else {
+        //             Vector3::unit_z() * dir.z.signum()
+        //         }
+        //     } else if dir.y.abs() > dir.z.abs() {
+        //         Vector3::unit_y() * dir.y.signum()
+        //     } else {
+        //         Vector3::unit_z() * dir.z.signum()
+        //     },
+        // };
 
-        let start = ray.intersects(&plane).unwrap().point;
+        // let start = ray.intersects(&plane).unwrap().point;
 
-        Self { plane, start }
+        // Self { plane, start }
+
+        todo!()
     }
 
     pub fn process(&mut self, ctx: &mut Context) {
-        let mouse_pos = ctx.input().mouse_pos();
-        let ray = ctx.camera().screen_ray(mouse_pos);
+        // let mouse_pos = ctx.input().mouse_pos();
+        // let ray = ctx.camera().screen_ray(mouse_pos);
 
-        if let Some(intersection) = ray.intersects(&self.plane) {
-            let start = self.start.snap(100);
-            let end = intersection.point.snap(100);
-            let delta = end - start;
+        // if let Some(intersection) = ray.intersects(&self.plane) {
+        //     let start = self.start.snap(100);
+        //     let end = intersection.point.snap(100);
+        //     let delta = end - start;
 
-            if delta.magnitude2() > 0 {
-                ctx.scene().wip().displace(delta);
-                ctx.set_regen();
-            }
-        }
+        //     if delta.magnitude2() > 0 {
+        //         ctx.scene().wip().displace(delta);
+        //         ctx.set_regen();
+        //     }
+        // }
+
+        todo!()
     }
 
     pub fn confirm(&mut self, ctx: &mut Context) {
-        ctx.scene().confirm_wip();
-        ctx.set_regen();
+        // ctx.scene().confirm_wip();
+        // ctx.set_regen();
+
+        todo!()
     }
 
     pub fn cancel(&mut self, ctx: &mut Context) {
-        ctx.scene().cancel_wip();
-        ctx.set_regen();
+        // ctx.scene().cancel_wip();
+        // ctx.set_regen();
+
+        todo!()
     }
 }

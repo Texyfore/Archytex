@@ -1,13 +1,13 @@
 mod camera;
+mod graphics;
 mod scene;
 mod tools;
 
-use std::rc::Rc;
+use std::marker::PhantomData;
 
 use asset_id::GizmoID;
 use renderer::{
-    data::gizmo,
-    scene::{GizmoObject, LineObject, Scene as RenderScene, SolidObject},
+    scene::{GizmoObject, Scene as RenderScene},
     Renderer,
 };
 use winit::event::{MouseButton, VirtualKeyCode};
@@ -16,6 +16,7 @@ use crate::input::Input;
 
 use self::{
     camera::Camera,
+    graphics::{mesh_gen, Graphics, MeshGenInput},
     scene::Scene,
     tools::{solid, Tool},
 };
@@ -51,8 +52,16 @@ impl Editor {
         }
 
         if tool_ctx.regen() {
-            self.scene
-                .gen_graphics(ctx.renderer, &mut self.graphics, self.tool.graphics_mask());
+            mesh_gen(
+                MeshGenInput {
+                    renderer: ctx.renderer,
+                    mask: self.tool.graphics_mask(),
+                    solids: self.scene.iter_solids(),
+                    _f: PhantomData,
+                    _p: PhantomData,
+                },
+                &mut self.graphics,
+            );
         }
     }
 
@@ -67,7 +76,7 @@ impl Editor {
             scene.push_line_object(graphics.line_object.clone());
             scene.push_gizmo_object(GizmoObject {
                 id: GizmoID(0),
-                instances: graphics.point_gizmo_instances.clone(),
+                instances: graphics.point_gizmos.clone(),
             });
         }
     }
@@ -135,10 +144,4 @@ pub struct Context<'a> {
     pub delta: f32,
     pub input: &'a Input,
     pub renderer: &'a Renderer,
-}
-
-pub struct Graphics {
-    solid_objects: Vec<SolidObject>,
-    line_object: LineObject,
-    point_gizmo_instances: Rc<gizmo::Instances>,
 }
