@@ -54,7 +54,7 @@ impl<'a> Context<'a> {
         self.next_tool.take()
     }
 
-    pub fn switch_to<T: Tool + 'static>(&mut self, tool: T) {
-        self.next_tool = Some(Box::new(tool))
+    pub fn switch_to(&mut self, tool: Box<dyn Tool>) {
+        self.next_tool = Some(tool)
     }
 }

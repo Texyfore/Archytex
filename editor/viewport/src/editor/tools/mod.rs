@@ -1,7 +1,9 @@
 pub mod solid;
 
 mod context;
+mod generic;
 
+use renderer::scene::Scene;
 use winit::event::{MouseButton, VirtualKeyCode};
 
 pub use self::context::Context;
@@ -10,8 +12,10 @@ use super::graphics::GraphicsMask;
 
 pub trait Tool {
     fn process(&mut self, ctx: &mut Context);
-    fn cancelled(&mut self, ctx: &mut Context);
     fn graphics_mask(&self) -> GraphicsMask;
+    
+    fn cancelled(&mut self, _ctx: &mut Context) {}
+    fn render(&self, _scene: &mut Scene) {}
 
     fn process_undo_redo(&mut self, ctx: &mut Context) {
         if ctx.input().is_key_down(VirtualKeyCode::LControl) {

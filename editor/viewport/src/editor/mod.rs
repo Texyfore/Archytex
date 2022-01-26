@@ -32,7 +32,7 @@ impl Default for Editor {
         Self {
             camera: Camera::default(),
             scene: Scene::default(),
-            tool: Box::new(solid::Select::default()),
+            tool: Box::new(solid::Hub::default()),
             graphics: None,
         }
     }
@@ -55,7 +55,7 @@ impl Editor {
                 MeshGenInput {
                     renderer: ctx.renderer,
                     mask: self.tool.graphics_mask(),
-                    solids: self.scene.iter_solids(),
+                    solids: self.scene.iter_solids().map(|(_, solid)| solid),
                     _f: PhantomData,
                     _p: PhantomData,
                 },

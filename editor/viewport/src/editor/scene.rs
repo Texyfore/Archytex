@@ -53,8 +53,8 @@ pub struct Scene {
 }
 
 impl Scene {
-    pub fn iter_solids(&self) -> std::collections::hash_map::Values<SolidID, Solid> {
-        self.solids.values()
+    pub fn iter_solids(&self) -> std::collections::hash_map::Iter<SolidID, Solid> {
+        self.solids.iter()
     }
 
     pub fn act(&mut self, action: Action) {
