@@ -5,7 +5,7 @@ use cgmath::{vec3, ElementWise, MetricSpace, Vector3, Zero};
 
 use crate::math::{Intersects, Plane, Ray, Sphere, Triangle};
 
-use super::graphics::{DrawableFace, DrawablePoint, DrawableSolid};
+use super::graphics::{DrawableSolid, FaceData, PointData};
 
 macro_rules! points {
     [$($p:literal),* $(,)?] => {[
@@ -403,17 +403,26 @@ impl Solid {
     }
 }
 
-impl DrawableSolid<Face, Point> for Solid {
-    fn faces(&self) -> &[Face; 6] {
-        &self.faces
-    }
-
-    fn points(&self) -> &[Point; 8] {
-        &self.points
-    }
-
+impl DrawableSolid for Solid {
     fn selected(&self) -> bool {
-        self.selected
+        todo!()
+    }
+
+    fn face(&self, face: FaceID) -> FaceData {
+        let face = &self.faces[face.0];
+        FaceData {
+            texture: face.texture_id,
+            points: face.points,
+            selected: face.selected,
+        }
+    }
+
+    fn point(&self, point: PointID) -> PointData {
+        let point = &self.points[point.0];
+        PointData {
+            position: point.meters(),
+            selected: point.selected,
+        }
     }
 }
 
@@ -424,33 +433,15 @@ pub struct Face {
     selected: bool,
 }
 
-impl DrawableFace for Face {
-    fn points(&self) -> &[PointID; 4] {
-        &self.points
-    }
-
-    fn texture(&self) -> TextureID {
-        self.texture_id
-    }
-
-    fn selected(&self) -> bool {
-        self.selected
-    }
-}
-
 #[derive(Clone)]
 pub struct Point {
     position: Vector3<i32>,
     selected: bool,
 }
 
-impl DrawablePoint for Point {
+impl Point {
     fn meters(&self) -> Vector3<f32> {
-        self.position.cast().unwrap() * 0.01
-    }
-
-    fn selected(&self) -> bool {
-        self.selected
+        self.position.map(|e| e as f32 * 0.001)
     }
 }
 

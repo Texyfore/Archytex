@@ -1,4 +1,4 @@
-use std::{collections::HashMap, marker::PhantomData, rc::Rc};
+use std::{collections::HashMap, rc::Rc};
 
 use asset_id::TextureID;
 use cgmath::{vec2, InnerSpace, Matrix4, Vector3};
@@ -8,20 +8,16 @@ use renderer::{
     Renderer,
 };
 
-use super::scene::PointID;
+use super::scene::{FaceID, PointID};
 
-pub struct MeshGenInput<'a, I, S: 'a, F, P>
+pub struct MeshGenInput<'a, I, S: 'a>
 where
     I: Iterator<Item = &'a S>,
-    S: DrawableSolid<F, P>,
-    F: DrawableFace,
-    P: DrawablePoint,
+    S: DrawableSolid,
 {
     pub renderer: &'a Renderer,
     pub mask: GraphicsMask,
     pub solids: I,
-    pub _f: PhantomData<F>,
-    pub _p: PhantomData<P>,
 }
 
 pub struct Graphics {
@@ -30,25 +26,21 @@ pub struct Graphics {
     pub point_gizmos: Rc<gizmo::Instances>,
 }
 
-pub trait DrawableSolid<F, P>
-where
-    F: DrawableFace,
-    P: DrawablePoint,
-{
-    fn faces(&self) -> &[F; 6];
-    fn points(&self) -> &[P; 8];
+pub trait DrawableSolid {
     fn selected(&self) -> bool;
+    fn face(&self, face: FaceID) -> FaceData;
+    fn point(&self, point: PointID) -> PointData;
 }
 
-pub trait DrawableFace {
-    fn points(&self) -> &[PointID; 4];
-    fn texture(&self) -> TextureID;
-    fn selected(&self) -> bool;
+pub struct FaceData {
+    pub texture: TextureID,
+    pub points: [PointID; 4],
+    pub selected: bool,
 }
 
-pub trait DrawablePoint {
-    fn meters(&self) -> Vector3<f32>;
-    fn selected(&self) -> bool;
+pub struct PointData {
+    pub position: Vector3<f32>,
+    pub selected: bool,
 }
 
 pub enum GraphicsMask {
@@ -57,14 +49,10 @@ pub enum GraphicsMask {
     Points,
 }
 
-pub fn mesh_gen<'a, I, S, F, P>(
-    input: MeshGenInput<'a, I, S, F, P>,
-    graphics: &mut Option<Graphics>,
-) where
+pub fn mesh_gen<'a, I, S>(input: MeshGenInput<'a, I, S>, graphics: &mut Option<Graphics>)
+where
     I: Iterator<Item = &'a S>,
-    S: DrawableSolid<F, P> + 'a,
-    F: DrawableFace,
-    P: DrawablePoint,
+    S: DrawableSolid + 'a,
 {
     let transform = Rc::new(input.renderer.create_transform());
 
@@ -82,42 +70,43 @@ pub fn mesh_gen<'a, I, S, F, P>(
 
     let mut add_line = |solid: &S, a: usize, b: usize| {
         lines.push(line::Vertex {
-            position: solid.points()[a].meters(),
+            position: solid.point(PointID(a)).position,
             color: [0.0; 3],
         });
         lines.push(line::Vertex {
-            position: solid.points()[b].meters(),
+            position: solid.point(PointID(b)).position,
             color: [0.0; 3],
         });
     };
 
     for solid in input.solids {
-        for face in solid.faces() {
-            let (vertices, triangles) = batches.entry(face.texture()).or_default();
+        for face in 0..6 {
+            let face = solid.face(FaceID(face));
+
+            let (vertices, triangles) = batches.entry(face.texture).or_default();
             let t0 = vertices.len() as u16;
 
             triangles.push([t0, t0 + 1, t0 + 2]);
             triangles.push([t0, t0 + 2, t0 + 3]);
 
-            let points = face.points().map(|point_id| &solid.points()[point_id.0]);
+            let points = face.points.map(|point| solid.point(point));
 
             let normal = {
-                let edge0 = points[1].meters() - points[0].meters();
-                let edge1 = points[3].meters() - points[0].meters();
+                let edge0 = points[1].position - points[0].position;
+                let edge1 = points[3].position - points[0].position;
                 edge0.cross(edge1).normalize()
             };
 
             for point in points {
-                let position = point.meters();
-
+                let position = point.position;
                 let has_tint = match input.mask {
                     GraphicsMask::Solids => solid.selected(),
-                    GraphicsMask::Faces => face.selected(),
+                    GraphicsMask::Faces => face.selected,
                     GraphicsMask::Points => false,
                 };
 
                 vertices.push(solid::Vertex {
-                    position: point.meters(),
+                    position,
                     normal,
                     texcoord: if normal.x.abs() > normal.y.abs() {
                         if normal.x.abs() > normal.z.abs() {
@@ -139,8 +128,7 @@ pub fn mesh_gen<'a, I, S, F, P>(
             }
         }
 
-        for face in [0, 1] {
-            let disp = face * 4;
+        for disp in [0, 4] {
             add_line(solid, disp, disp + 1);
             add_line(solid, disp + 1, disp + 2);
             add_line(solid, disp + 2, disp + 3);
@@ -152,10 +140,11 @@ pub fn mesh_gen<'a, I, S, F, P>(
         }
 
         if matches!(input.mask, GraphicsMask::Points) {
-            for point in solid.points() {
+            for point in 0..8 {
+                let point = solid.point(PointID(point));
                 point_gizmos.push(gizmo::Instance {
-                    matrix: Matrix4::from_translation(point.meters()).into(),
-                    color: if point.selected() {
+                    matrix: Matrix4::from_translation(point.position).into(),
+                    color: if point.selected {
                         [0.04, 0.36, 0.85, 0.0]
                     } else {
                         [0.0; 4]

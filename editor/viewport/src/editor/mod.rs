@@ -3,8 +3,6 @@ mod graphics;
 mod scene;
 mod tools;
 
-use std::marker::PhantomData;
-
 use asset_id::GizmoID;
 use renderer::{
     scene::{GizmoObject, Scene as RenderScene},
@@ -56,8 +54,6 @@ impl Editor {
                     renderer: ctx.renderer,
                     mask: self.tool.graphics_mask(),
                     solids: self.scene.iter_solids().map(|(_, solid)| solid),
-                    _f: PhantomData,
-                    _p: PhantomData,
                 },
                 &mut self.graphics,
             );
