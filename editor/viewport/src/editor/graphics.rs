@@ -151,15 +151,17 @@ pub fn mesh_gen<'a, I, S, F, P>(
             add_line(solid, segment, segment + 4);
         }
 
-        for point in solid.points() {
-            point_gizmos.push(gizmo::Instance {
-                matrix: Matrix4::from_translation(point.meters()).into(),
-                color: if point.selected() {
-                    [0.04, 0.36, 0.85, 0.0]
-                } else {
-                    [0.0; 4]
-                },
-            });
+        if matches!(input.mask, GraphicsMask::Points) {
+            for point in solid.points() {
+                point_gizmos.push(gizmo::Instance {
+                    matrix: Matrix4::from_translation(point.meters()).into(),
+                    color: if point.selected() {
+                        [0.04, 0.36, 0.85, 0.0]
+                    } else {
+                        [0.0; 4]
+                    },
+                });
+            }
         }
     }
 
