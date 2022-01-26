@@ -1,5 +1,5 @@
 use cgmath::vec3;
-use winit::event::MouseButton;
+use winit::event::{MouseButton, VirtualKeyCode};
 
 use crate::editor::{
     graphics::GraphicsMask,
@@ -15,6 +15,10 @@ impl Tool for Hub {
     fn process(&mut self, ctx: &mut Context) {
         if ctx.input().was_button_down_once(MouseButton::Left) {
             ctx.switch_to(Box::new(generic::Select::<SelectProvider>::default()));
+        }
+
+        if ctx.input().is_key_down_once(VirtualKeyCode::Delete) {
+            ctx.switch_to(Box::new(generic::Delete::<DeleteProvider>::default()));
         }
 
         if ctx.input().is_button_down_once(MouseButton::Middle) {
@@ -48,6 +52,23 @@ impl generic::SelectProvider for SelectProvider {
         } else {
             None
         }
+    }
+
+    fn parent_tool() -> Box<dyn Tool> {
+        Box::new(Hub::default())
+    }
+
+    fn graphics_mask() -> GraphicsMask {
+        GraphicsMask::Solids
+    }
+}
+
+#[derive(Default)]
+struct DeleteProvider;
+
+impl generic::DeleteProvider for DeleteProvider {
+    fn action() -> Action {
+        Action::RemoveSelectedSolids
     }
 
     fn parent_tool() -> Box<dyn Tool> {

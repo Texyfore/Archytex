@@ -45,3 +45,26 @@ pub trait SelectProvider {
     fn parent_tool() -> Box<dyn Tool>;
     fn graphics_mask() -> GraphicsMask;
 }
+
+#[derive(Default)]
+pub struct Delete<P: DeleteProvider> {
+    _p: PhantomData<P>,
+}
+
+impl<P: DeleteProvider> Tool for Delete<P> {
+    fn process(&mut self, ctx: &mut Context) {
+        ctx.scene().act(P::action());
+        ctx.set_regen();
+        ctx.switch_to(P::parent_tool());
+    }
+
+    fn graphics_mask(&self) -> GraphicsMask {
+        P::graphics_mask()
+    }
+}
+
+pub trait DeleteProvider {
+    fn action() -> Action;
+    fn parent_tool() -> Box<dyn Tool>;
+    fn graphics_mask() -> GraphicsMask;
+}
