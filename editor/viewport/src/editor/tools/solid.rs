@@ -131,27 +131,8 @@ impl Tool for Add {
 }
 
 struct DummySolid {
-    faces: [FaceData; 6],
-}
-
-impl DummySolid {
-    fn new(min: Vector3<i32>, max: Vector3<i32>) -> Self {
-        Self {
-            faces: [
-                [1, 2, 6, 5],
-                [0, 4, 7, 3],
-                [2, 3, 7, 6],
-                [0, 1, 5, 4],
-                [4, 5, 6, 7],
-                [0, 3, 2, 1],
-            ]
-            .map(|points| FaceData {
-                points: points.map(|point| PointID(point)),
-                texture: TextureID(0),
-                selected: false,
-            }),
-        }
-    }
+    min: Vector3<i32>,
+    max: Vector3<i32>,
 }
 
 impl DrawableSolid for DummySolid {
@@ -160,10 +141,37 @@ impl DrawableSolid for DummySolid {
     }
 
     fn face(&self, face: FaceID) -> FaceData {
-        self.faces[face.0]
+        FaceData {
+            texture: TextureID(0),
+            points: [
+                [1, 2, 6, 5],
+                [0, 4, 7, 3],
+                [2, 3, 7, 6],
+                [0, 1, 5, 4],
+                [4, 5, 6, 7],
+                [0, 3, 2, 1],
+            ][face.0]
+                .map(PointID),
+            selected: false,
+        }
     }
 
     fn point(&self, point: PointID) -> PointData {
-        todo!()
+        PointData {
+            position: Into::<Vector3<i32>>::into(
+                [
+                    [0, 0, 0],
+                    [1, 0, 0],
+                    [1, 1, 0],
+                    [0, 1, 0],
+                    [0, 0, 1],
+                    [1, 0, 1],
+                    [1, 1, 1],
+                    [0, 1, 1],
+                ][point.0],
+            )
+            .map(|e| e as f32 * 0.001),
+            selected: false,
+        }
     }
 }
