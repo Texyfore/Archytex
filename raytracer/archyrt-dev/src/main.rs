@@ -1,5 +1,14 @@
+use std::marker::PhantomData;
+
+use archyrt_core::api::fragment_render::{FragmentRender, FragmentContext};
+use archyrt_core::collector::array_collector::ArrayCollector;
 use archyrt_core::intersectables::bvh::BVH;
-use archyrt_core::loaders::amdl::{AMDLLoader, amdl_textures};
+use archyrt_core::intersectables::sphere::Sphere;
+use archyrt_core::loaders::amdl::{amdl_textures, AMDLLoader};
+use archyrt_core::renderers::path_tracer::{PathTracer, Material};
+use archyrt_core::textures::texture_repo::TextureRepository;
+use archyrt_core::utilities::math::{Vector, Vec2};
+use archyrt_core::utilities::ray::{Intersectable, Ray};
 use archyrt_core::{
     api::fragment_collector::FragmentCollector,
     cameras::perspective::PerspectiveCamera,
@@ -9,26 +18,61 @@ use archyrt_core::{
     textures::{texture_repo::png::PngTextureRepo, TextureID},
     utilities::math::Vec3,
 };
+use rayon::prelude::*;
+
+struct SamplingRenderer<Renderer: FragmentRender + Sync + Send>{
+    pub inner: Renderer,
+    pub samples: usize,
+}
+
+impl<Renderer: FragmentRender + Sync + Send> FragmentRender for SamplingRenderer<Renderer>{
+    fn render_fragment<R: TextureRepository + Sync>(&self, ctx: &FragmentContext<R>, pos: Vec2) -> Vec3 {
+        (0..self.samples).into_par_iter().map(|_|self.inner.render_fragment(ctx, pos)).reduce(||Vec3::default(), |a, b|a+b) / (self.samples as f64)
+    }
+}
+
+struct TonemappingRenderer<Renderer: FragmentRender>{pub inner: Renderer}
+
+impl<Renderer: FragmentRender> FragmentRender for TonemappingRenderer<Renderer>{
+    fn render_fragment<R: TextureRepository + Sync>(&self, ctx: &FragmentContext<R>, pos: Vec2) -> Vec3 {
+        let c = self.inner.render_fragment(ctx, pos);
+        c.to_srgb()
+    }
+}
 
 fn main() {
     println!("Load file");
-    let pos = Vec3::new(7.0, 1.0, 1.0) * 2.0;
-    let target = Vec3::new(0.0, 0.0, 0.0);
     let repo = amdl_textures::load("../assets").unwrap();
-    let loader = AMDLLoader::from_path("test.amdl").unwrap();
-    let camera = PerspectiveCamera::new(pos, (target - pos).normalized(), 0.595877);
+    let loader = AMDLLoader::from_path("../assets/house_inside.ascn").unwrap();
+    let camera = loader.get_camera();
     let object = loader.get_triangles();
     let object = BVH::from_triangles(object).unwrap();
-    //let camera = loader.get_camera()
+    let sphere_intersection = object.intersect(Ray{
+        origin: camera.position,
+        direction: camera.matrix.inner[2]
+    }).unwrap();
+    let radius = 1.0;
+    let sphere = Sphere{
+        origin: sphere_intersection.get_pos() + Vec3::new(0.0, radius, 0.0),
+        color: Vec3::new(0.0, 1.0, 0.0),
+        radius: radius,
+        material: Material::Emissive{power: 1.0}
+    };
+    //let object = object.union(sphere);
     println!("Render");
-    let renderer = BasicRenderer {
+    let renderer = PathTracer {
         object,
         camera,
-        lamp: pos,
+        bounces: 5,
+    };
+    let renderer = SamplingRenderer{
+        inner: renderer,
+        samples: 20
+    };
+    let renderer = TonemappingRenderer{
+        inner: renderer
     };
     let collector = ImageCollector {};
-    let image = collector
-        .collect(renderer, repo, 1920 / 2, 1080 / 2)
-        .unwrap();
+    let image = collector.collect(&renderer, &repo, 1920/2, 1080/2).unwrap();
     image.save("image.png").unwrap();
 }

@@ -8,3 +8,4 @@ edition = "2021"
 [dependencies]
 archyrt_core = {path="../archyrt-core"}
 anyhow = "1.0.44"
+rayon = "1.5.1"

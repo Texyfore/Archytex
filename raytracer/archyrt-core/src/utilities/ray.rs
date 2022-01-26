@@ -1,4 +1,4 @@
-use crate::textures::{color_provider::ColorProvider, texture_repo::TextureRepository};
+use crate::{textures::{color_provider::ColorProvider, texture_repo::TextureRepository}, renderers::path_tracer::Material, intersectables::union::UnionIntersector};
 
 use super::math::Vec3;
 
@@ -35,6 +35,21 @@ impl<C: ColorProvider> IntersectionBuilder<C> {
 pub struct Intersection<C: ColorProvider>(IntersectionBuilder<C>);
 
 impl<C: ColorProvider> Intersection<C> {
+    pub fn with_color_provider<K: ColorProvider>(&self, provider: K) -> Intersection<K>{
+        let a = Intersection::<K>(IntersectionBuilder{
+            ray: self.0.ray,
+            pos: self.0.pos,
+            distance: self.0.distance,
+            distance_squared: self.0.distance_squared,
+            normal: self.0.normal,
+            color_provider: provider,
+        });
+
+        a
+    }
+    pub fn get_color_provider(&self) -> C where C: Clone{
+        self.0.color_provider.clone()
+    }
     pub fn get_ray(&self) -> Ray {
         self.0.ray
     }
@@ -74,11 +89,17 @@ impl<C: ColorProvider> Intersection<C> {
     pub fn get_color<R: TextureRepository>(&self, repo: &R) -> Vec3 {
         self.0.color_provider.get_color(repo)
     }
+    pub fn get_material(&self) -> Material {
+        self.0.color_provider.get_material()
+    }
 }
 
 pub trait Intersectable {
     type C: ColorProvider;
     fn intersect(&self, ray: Ray) -> Option<Intersection<Self::C>>;
+    fn union<O: Intersectable>(self, other: O) -> UnionIntersector<Self, O> where Self: Sized, O: Sized{
+        UnionIntersector(self, other)
+    }
 }
 
 impl<T> Intersectable for Vec<T>

@@ -40,7 +40,7 @@ impl PngTextureRepo {
                     a.0[0] as f64 / 255.0,
                     a.0[1] as f64 / 255.0,
                     a.0[2] as f64 / 255.0
-                ]
+                ].from_srgb()
             })
             .collect();
         Ok(Texture {
