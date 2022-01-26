@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 
 use asset_id::TextureID;
-use cgmath::{vec3, ElementWise, InnerSpace, MetricSpace, Vector3, Zero};
+use cgmath::{vec3, ElementWise, MetricSpace, Vector3, Zero};
 
 use crate::math::{Intersects, Plane, Ray, Sphere, Triangle};
 
@@ -307,16 +307,6 @@ impl Scene {
                 (!ids.is_empty()).then(|| Action::SelectPoints(ids))
             }
 
-            Action::MoveSolids(delta) => {
-                for solid in self.solids.values_mut().filter(|solid| solid.selected) {
-                    for point in &mut solid.points {
-                        point.position += delta;
-                    }
-                }
-
-                (delta.magnitude2() != 0).then(|| Action::MoveSolids(-delta))
-            }
-
             Action::AssignTexture(texture_id) => {
                 let mut old_texture_ids = Vec::new();
 
@@ -344,6 +334,10 @@ impl Scene {
 
                 (!old_texture_ids.is_empty()).then(|| Action::AssignTextures(old_texture_ids))
             }
+
+            Action::MoveSelected { .. } => {
+                todo!()
+            }
         }
     }
 }
@@ -363,10 +357,17 @@ pub enum Action {
     SelectPoints(Vec<(SolidID, PointID)>),
     DeselectPoints,
 
-    MoveSolids(Vector3<i32>),
-
     AssignTexture(TextureID),
     AssignTextures(Vec<(SolidID, FaceID, TextureID)>),
+
+    MoveSelected { kind: MoveKind, delta: Vector3<i32> },
+}
+
+pub enum MoveKind {
+    Solids,
+    Faces,
+    Points,
+    Props,
 }
 
 #[derive(Clone)]
@@ -399,28 +400,6 @@ impl Solid {
             ],
             selected: false,
         }
-    }
-
-    fn set_min_max(&mut self, min: Vector3<i32>, max: Vector3<i32>) -> bool {
-        let mut changed = false;
-
-        let mut change = |index: usize, value: Vector3<i32>| {
-            if self.points[index].position != value {
-                self.points[index].position = value;
-                changed = true;
-            }
-        };
-
-        change(0, vec3(min.x, min.y, min.z));
-        change(1, vec3(max.x, min.y, min.z));
-        change(2, vec3(max.x, max.y, min.z));
-        change(3, vec3(min.x, max.y, min.z));
-        change(4, vec3(min.x, min.y, max.z));
-        change(5, vec3(max.x, min.y, max.z));
-        change(6, vec3(max.x, max.y, max.z));
-        change(7, vec3(min.x, max.y, max.z));
-
-        changed
     }
 }
 

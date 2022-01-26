@@ -1,7 +1,6 @@
 pub mod solid;
 
 mod context;
-mod generic;
 
 use winit::event::{MouseButton, VirtualKeyCode};
 
