@@ -1,13 +1,16 @@
 use std::iter::once;
 
 use asset_id::GizmoID;
-use cgmath::{MetricSpace, Vector2, Vector3};
-use renderer::scene::{GizmoObject, Scene};
+use cgmath::{MetricSpace, Vector2, Vector3, Zero};
+use renderer::{
+    scene::{GizmoObject, Scene},
+    Renderer,
+};
 use winit::event::{MouseButton, VirtualKeyCode};
 
 use crate::{
     editor::{
-        elements::{ElementKind, Solid},
+        elements::{ElementKind, Solid, SolidID},
         graphics::{self, Graphics, MeshGenInput},
         scene::{Action, RaycastEndpointKind, RaycastHit},
     },
@@ -44,10 +47,23 @@ impl Tool for Hub {
         if ctx.input().was_button_down_once(MouseButton::Left) {
             self.last_click_pos = None;
             ctx.switch_to(Box::new(generic::Select::<SelectProvider>::default()));
+            return;
+        }
+
+        if ctx.input().is_key_down_once(VirtualKeyCode::G) {
+            let mouse_pos = ctx.input().mouse_pos();
+            let ray = ctx.camera().screen_ray(mouse_pos);
+            let elements = ctx.scene().clone_and_hide_solids(ElementKind::Solid);
+
+            if let Some(tool) = generic::Move::<MoveProvider>::new(&ray, elements) {
+                ctx.switch_to(Box::new(tool));
+                return;
+            }
         }
 
         if ctx.input().is_key_down_once(VirtualKeyCode::Delete) {
             ctx.switch_to(Box::new(generic::Delete::<DeleteProvider>::default()));
+            return;
         }
 
         self.process_undo_redo(ctx);
@@ -98,6 +114,44 @@ impl generic::DeleteProvider for DeleteProvider {
 
     fn element_mask() -> ElementKind {
         ElementKind::Solid
+    }
+}
+
+struct MoveProvider;
+
+impl generic::MoveProvider for MoveProvider {
+    type ElementID = SolidID;
+
+    type Element = Solid;
+
+    fn action(delta: Vector3<i32>) -> Action {
+        Action::Move {
+            kind: ElementKind::Solid,
+            delta,
+        }
+    }
+
+    fn parent_tool() -> Box<dyn Tool> {
+        Box::new(Hub::default())
+    }
+
+    fn element_kind() -> ElementKind {
+        ElementKind::Solid
+    }
+
+    fn regen(
+        renderer: &Renderer,
+        elements: &[(Self::ElementID, Self::Element)],
+        graphics: &mut Option<Graphics>,
+    ) {
+        graphics::generate(
+            MeshGenInput {
+                renderer,
+                mask: ElementKind::Solid,
+                solids: elements.iter().map(|(_, solid)| solid),
+            },
+            graphics,
+        );
     }
 }
 

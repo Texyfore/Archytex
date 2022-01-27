@@ -1,5 +1,5 @@
 use asset_id::TextureID;
-use cgmath::{vec3, ElementWise, Vector3};
+use cgmath::{vec3, ElementWise, Vector3, Zero};
 
 macro_rules! points {
     [$($p:literal),* $(,)?] => {[
@@ -38,6 +38,7 @@ entity_id!(FaceID, usize);
 entity_id!(PointID, usize);
 entity_id!(PropID, u32);
 
+#[derive(Clone, Copy)]
 pub enum ElementKind {
     Solid,
     Face,
@@ -78,6 +79,49 @@ impl Solid {
     }
 }
 
+impl Movable for Solid {
+    fn center(&self) -> Vector3<f32> {
+        let mut center = Vector3::zero();
+
+        for point in &self.points {
+            center += point.meters();
+        }
+
+        center / self.points.len() as f32
+    }
+
+    fn displace(&mut self, mask: ElementKind, delta: Vector3<i32>) -> bool {
+        let mut modified = false;
+
+        match mask {
+            ElementKind::Solid => {
+                for point in &mut self.points {
+                    point.position += delta;
+                    modified = true;
+                }
+            }
+            ElementKind::Face => {
+                for face in self.faces.iter().filter(|face| face.selected) {
+                    for point in face.points {
+                        let point = &mut self.points[point.0];
+                        point.position += delta;
+                        modified = true;
+                    }
+                }
+            }
+            ElementKind::Point => {
+                for point in self.points.iter_mut().filter(|point| point.selected) {
+                    point.position += delta;
+                    modified = true;
+                }
+            }
+            ElementKind::Prop => {}
+        }
+
+        modified
+    }
+}
+
 #[derive(Clone)]
 pub struct Face {
     pub texture: TextureID,
@@ -95,4 +139,9 @@ impl Point {
     pub fn meters(&self) -> Vector3<f32> {
         self.position.map(|e| e as f32 * 0.01)
     }
+}
+
+pub trait Movable {
+    fn center(&self) -> Vector3<f32>;
+    fn displace(&mut self, mask: ElementKind, delta: Vector3<i32>) -> bool;
 }

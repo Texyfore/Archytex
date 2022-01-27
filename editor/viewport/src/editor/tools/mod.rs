@@ -13,9 +13,8 @@ use super::elements::ElementKind;
 
 pub trait Tool {
     fn process(&mut self, ctx: &mut Context);
-    fn element_mask(&self) -> ElementKind;
-    
     fn render(&self, _scene: &mut Scene) {}
+    fn element_mask(&self) -> ElementKind;
 
     fn process_undo_redo(&mut self, ctx: &mut Context) {
         if ctx.input().is_key_down(VirtualKeyCode::LControl) {

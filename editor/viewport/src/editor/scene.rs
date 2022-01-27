@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 
 use asset_id::TextureID;
 use cgmath::{vec3, MetricSpace, Vector3, Zero};
@@ -7,7 +7,7 @@ use renderer::Renderer;
 use crate::math::{Intersects, Plane, Ray, Sphere, Triangle};
 
 use super::{
-    elements::{ElementKind, FaceID, PointID, PropID, Solid, SolidID},
+    elements::{ElementKind, FaceID, Movable, PointID, PropID, Solid, SolidID},
     graphics::{self, Graphics, MeshGenInput},
 };
 
@@ -17,6 +17,7 @@ pub struct Scene {
     next_solid_id: u32,
     undo_stack: Vec<Action>,
     redo_stack: Vec<Action>,
+    hidden_solids: HashSet<SolidID>,
 }
 
 impl Scene {
@@ -43,7 +44,7 @@ impl Scene {
         }
     }
 
-    pub fn clone_selected(&self, mask: ElementKind) -> Vec<(SolidID, Solid)> {
+    pub fn clone_and_hide_solids(&mut self, mask: ElementKind) -> Vec<(SolidID, Solid)> {
         self.solids
             .iter()
             .filter(|(_, solid)| match mask {
@@ -52,8 +53,15 @@ impl Scene {
                 ElementKind::Point => solid.points.iter().any(|point| point.selected),
                 ElementKind::Prop => false,
             })
-            .map(|(id, solid)| (*id, solid.clone()))
+            .map(|(id, solid)| {
+                self.hidden_solids.insert(*id);
+                (*id, solid.clone())
+            })
             .collect()
+    }
+
+    pub fn unhide_all(&mut self) {
+        self.hidden_solids.clear();
     }
 
     pub fn raycast(&self, ray: &Ray) -> Option<RaycastHit> {
@@ -169,7 +177,11 @@ impl Scene {
             MeshGenInput {
                 renderer,
                 mask,
-                solids: self.solids.values(),
+                solids: self
+                    .solids
+                    .iter()
+                    .filter(|(id, _)| !self.hidden_solids.contains(id))
+                    .map(|(_, solid)| solid),
             },
             graphics,
         );
@@ -322,8 +334,19 @@ impl Scene {
                 (!old_texture_ids.is_empty()).then(|| Action::AssignTextures(old_texture_ids))
             }
 
-            Action::Move { .. } => {
-                todo!()
+            Action::Move { kind, delta } => {
+                let mut modified = false;
+
+                for solid in self.solids.values_mut().filter(|solid| solid.selected) {
+                    if solid.displace(kind, delta) {
+                        modified = true;
+                    }
+                }
+
+                modified.then(|| Action::Move {
+                    kind,
+                    delta: -delta,
+                })
             }
         }
     }

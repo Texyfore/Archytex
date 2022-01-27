@@ -1,12 +1,16 @@
 use std::marker::PhantomData;
 
+use asset_id::GizmoID;
 use cgmath::{Vector3, Zero};
-use renderer::Renderer;
+use renderer::{
+    scene::{GizmoObject, Scene},
+    Renderer,
+};
 use winit::event::{MouseButton, VirtualKeyCode};
 
 use crate::{
     editor::{
-        elements::ElementKind,
+        elements::{ElementKind, Movable},
         graphics::Graphics,
         scene::{Action, RaycastHit},
     },
@@ -81,6 +85,7 @@ pub struct Move<P: MoveProvider> {
     delta: Vector3<i32>,
     elements: Vec<(P::ElementID, P::Element)>,
     graphics: Option<Graphics>,
+    regen: bool,
     _p: PhantomData<P>,
 }
 
@@ -115,6 +120,7 @@ impl<P: MoveProvider> Move<P> {
             delta: Vector3::zero(),
             elements,
             graphics: None,
+            regen: false,
             _p: PhantomData,
         })
     }
@@ -122,6 +128,12 @@ impl<P: MoveProvider> Move<P> {
 
 impl<P: MoveProvider> Tool for Move<P> {
     fn process(&mut self, ctx: &mut Context) {
+        if !self.regen {
+            ctx.set_regen();
+            P::regen(ctx.renderer(), &self.elements, &mut self.graphics);
+            self.regen = true;
+        }
+
         let mouse_pos = ctx.input().mouse_pos();
         let ray = ctx.camera().screen_ray(mouse_pos);
 
@@ -133,25 +145,44 @@ impl<P: MoveProvider> Tool for Move<P> {
             if delta != self.delta {
                 let delta2 = delta - self.delta;
                 for (_, element) in self.elements.iter_mut() {
-                    element.displace(delta2);
+                    element.displace(P::element_kind(), delta2);
                 }
 
-                P::regen(ctx.renderer(), &mut self.graphics);
+                P::regen(ctx.renderer(), &self.elements, &mut self.graphics);
                 self.delta = delta;
             }
         }
 
-        if ctx.input().is_button_down(MouseButton::Left) {
-            ctx.switch_to(P::parent_tool())
+        if ctx.input().was_button_down_once(MouseButton::Left) {
+            ctx.scene().act(P::action(self.delta));
+            ctx.scene().unhide_all();
+            ctx.set_regen();
+            ctx.switch_to(P::parent_tool());
+            return;
         }
 
-        if ctx.input().is_button_down(MouseButton::Right) {
-            ctx.switch_to(P::parent_tool())
+        if ctx.input().was_button_down_once(MouseButton::Right) {
+            ctx.scene().unhide_all();
+            ctx.switch_to(P::parent_tool());
+        }
+    }
+
+    fn render(&self, scene: &mut Scene) {
+        if let Some(graphics) = &self.graphics {
+            for solid_object in &graphics.solid_objects {
+                scene.push_solid_object(solid_object.clone());
+            }
+
+            scene.push_line_object(graphics.line_object.clone());
+            scene.push_gizmo_object(GizmoObject {
+                id: GizmoID(0),
+                instances: graphics.point_gizmos.clone(),
+            })
         }
     }
 
     fn element_mask(&self) -> ElementKind {
-        P::element_mask()
+        P::element_kind()
     }
 }
 
@@ -159,12 +190,13 @@ pub trait MoveProvider {
     type ElementID;
     type Element: Movable;
 
-    fn regen(renderer: &Renderer, graphics: &mut Option<Graphics>);
+    fn action(delta: Vector3<i32>) -> Action;
     fn parent_tool() -> Box<dyn Tool>;
-    fn element_mask() -> ElementKind;
-}
+    fn element_kind() -> ElementKind;
 
-pub trait Movable {
-    fn center(&self) -> Vector3<f32>;
-    fn displace(&mut self, delta: Vector3<i32>);
+    fn regen(
+        renderer: &Renderer,
+        elements: &[(Self::ElementID, Self::Element)],
+        graphics: &mut Option<Graphics>,
+    );
 }
