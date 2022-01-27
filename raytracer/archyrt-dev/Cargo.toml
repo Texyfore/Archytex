@@ -9,3 +9,5 @@ edition = "2021"
 archyrt_core = {path="../archyrt-core"}
 anyhow = "1.0.44"
 rayon = "1.5.1"
+oidn = "1.4.1"
+image = "0.23.14"
