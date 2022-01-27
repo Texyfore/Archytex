@@ -162,6 +162,17 @@ impl Scene {
             let dist_endpoint = endpoint.point.distance2(ray.start);
             hit_points.retain(|hit_point| hit_point.point.distance2(ray.start) < dist_endpoint);
 
+            hit_points.sort_unstable_by(|a, b| {
+                let dist_a = a.point.distance2(ray.start);
+                let dist_b = b.point.distance2(ray.start);
+                dist_a.partial_cmp(&dist_b).unwrap()
+            });
+
+            if !hit_points.is_empty() {
+                let first_pos = hit_points[0].point;
+                hit_points.retain(|hit_point| hit_point.point.distance2(first_pos) < 0.005 * 0.005);
+            }
+
             RaycastHit {
                 endpoint,
                 points: hit_points
