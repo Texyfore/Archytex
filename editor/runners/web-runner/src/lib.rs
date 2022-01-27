@@ -75,5 +75,6 @@ impl IpcHost for WasmEndpoint {
 
 #[wasm_bindgen]
 pub fn run(host: WasmEndpoint) {
+    console_error_panic_hook::set_once();
     viewport::main(host);
 }

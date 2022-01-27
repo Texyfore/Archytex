@@ -29,7 +29,8 @@ struct VertexOut {
 };
 
 struct CameraBlock {
-    matrix: mat4x4<f32>;
+    world: mat4x4<f32>;
+    clip: mat4x4<f32>;
 };
 
 [[group(0), binding(0)]]
@@ -44,8 +45,12 @@ fn vs_main(in: VertexIn, instance: InstanceIn) -> VertexOut {
         instance.mat3,
     );
 
+    var world_origin = transform_matrix * vec4<f32>(0.0, 0.0, 0.0, 1.0);
+    var camera_position = camera.world * vec4<f32>(0.0, 0.0, 0.0, 1.0);
+    var scale = length(world_origin - camera_position) * 0.006;
+
     var out: VertexOut;
-    out.clip_position = camera.matrix * transform_matrix * vec4<f32>(in.position, 1.0);
+    out.clip_position = camera.clip * transform_matrix * vec4<f32>(in.position * scale, 1.0);
     out.color = instance.color;
     return out;
 }
@@ -62,6 +67,6 @@ struct FragmentOut {
 [[stage(fragment)]]
 fn fs_main(in: VertexOut) -> FragmentOut {
     var out: FragmentOut;
-    out.color = in.color;
+    out.color = vec4<f32>(in.color.xyz, 1.0);
     return out;
 }

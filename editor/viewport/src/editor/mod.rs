@@ -1,67 +1,97 @@
 mod camera;
+mod elements;
+mod graphics;
 mod scene;
+mod tools;
 
-use anyhow::Result;
-use renderer::{scene::Scene as RenderScene, Renderer};
-use winit::event::{MouseButton, VirtualKeyCode};
+use asset_id::GizmoID;
+use renderer::{
+    scene::{GizmoObject, Scene as RenderScene},
+    Renderer,
+};
 
 use crate::input::Input;
 
-use self::{camera::Camera, scene::Scene};
+use self::{
+    camera::Camera,
+    graphics::Graphics,
+    scene::Scene,
+    tools::{face, point, solid, Tool},
+};
 
-#[derive(Default)]
 pub struct Editor {
     camera: Camera,
     scene: Scene,
+    tool: Box<dyn Tool>,
+    graphics: Option<Graphics>,
+}
+
+impl Default for Editor {
+    fn default() -> Self {
+        Self {
+            camera: Camera::default(),
+            scene: Scene::default(),
+            tool: Box::new(solid::Hub::default()),
+            graphics: None,
+        }
+    }
 }
 
 impl Editor {
-    pub fn process(&mut self, ctx: OuterContext) -> Result<()> {
-        if ctx.input.is_key_down(VirtualKeyCode::W) {
-            self.camera.move_forward(ctx.delta);
+    pub fn process(&mut self, ctx: Context) {
+        let mut tool_ctx = tools::Context::new(
+            ctx.delta,
+            ctx.input,
+            ctx.renderer,
+            &mut self.camera,
+            &mut self.scene,
+        );
+
+        if ctx
+            .input
+            .is_key_down_once(winit::event::VirtualKeyCode::Key1)
+        {
+            self.tool = Box::new(solid::Hub::default());
+        } else if ctx
+            .input
+            .is_key_down_once(winit::event::VirtualKeyCode::Key2)
+        {
+            self.tool = Box::new(face::Hub::default());
+        } else if ctx
+            .input
+            .is_key_down_once(winit::event::VirtualKeyCode::Key3)
+        {
+            self.tool = Box::new(point::Hub::default());
         }
 
-        if ctx.input.is_key_down(VirtualKeyCode::S) {
-            self.camera.move_backward(ctx.delta);
+        self.tool.process(&mut tool_ctx);
+
+        if let Some(next_tool) = tool_ctx.take_next_tool() {
+            self.tool = next_tool;
         }
 
-        if ctx.input.is_key_down(VirtualKeyCode::A) {
-            self.camera.move_left(ctx.delta);
+        if tool_ctx.regen() {
+            self.scene
+                .regen(ctx.renderer, &mut self.graphics, self.tool.element_mask());
         }
-
-        if ctx.input.is_key_down(VirtualKeyCode::D) {
-            self.camera.move_right(ctx.delta);
-        }
-
-        if ctx.input.is_key_down(VirtualKeyCode::Q) {
-            self.camera.move_down(ctx.delta);
-        }
-
-        if ctx.input.is_key_down(VirtualKeyCode::E) {
-            self.camera.move_up(ctx.delta);
-        }
-
-        if ctx.input.is_button_down(MouseButton::Right) {
-            self.camera.look(ctx.input.mouse_delta(), ctx.delta);
-        }
-
-        if ctx.input.mouse_wheel().abs() > 0.1 {
-            if ctx.input.mouse_wheel().signum() > 0.0 {
-                self.camera.increase_speed();
-            } else {
-                self.camera.decrease_speed();
-            }
-        }
-
-        Ok(())
     }
 
-    pub fn render(&self, renderer: &Renderer) -> Result<()> {
-        let mut scene = RenderScene::default();
-        scene.set_camera_matrix(self.camera.matrix());
-        renderer.render(&scene)?;
+    pub fn render(&self, scene: &mut RenderScene) {
+        scene.set_camera_matrices(self.camera.matrix(), self.camera.projection());
 
-        Ok(())
+        if let Some(graphics) = &self.graphics {
+            for mesh_object in &graphics.solid_objects {
+                scene.push_solid_object(mesh_object.clone());
+            }
+
+            scene.push_line_object(graphics.line_object.clone());
+            scene.push_gizmo_object(GizmoObject {
+                id: GizmoID(0),
+                instances: graphics.point_gizmos.clone(),
+            });
+        }
+
+        self.tool.render(scene);
     }
 
     pub fn window_resized(&mut self, width: u32, height: u32) {
@@ -69,7 +99,8 @@ impl Editor {
     }
 }
 
-pub struct OuterContext<'a> {
+pub struct Context<'a> {
     pub delta: f32,
     pub input: &'a Input,
+    pub renderer: &'a Renderer,
 }

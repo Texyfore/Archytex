@@ -44,7 +44,7 @@ fn run(subcommand: &str, matches: &ArgMatches) -> Result<()> {
 }
 
 fn build_amdl(matches: &ArgMatches) -> Result<Vec<u8>> {
-    use amdl::*;
+    use formats::amdl::*;
 
     let src = matches.value_of("src").unwrap();
     let texture: u32 = matches
@@ -147,7 +147,7 @@ fn build_amdl(matches: &ArgMatches) -> Result<Vec<u8>> {
 }
 
 fn build_agzm(matches: &ArgMatches) -> Result<Vec<u8>> {
-    use agzm::*;
+    use formats::agzm::*;
 
     let src = matches.value_of("src").unwrap();
 
@@ -186,11 +186,9 @@ fn build_agzm(matches: &ArgMatches) -> Result<Vec<u8>> {
         .map(|w| w.try_into().unwrap())
         .collect();
 
-    Gizmo {
-        mesh: Mesh {
-            vertices,
-            triangles,
-        },
+    Mesh {
+        vertices,
+        triangles,
     }
     .encode()
     .context("couldn't encode mesh")

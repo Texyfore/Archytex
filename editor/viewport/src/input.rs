@@ -166,7 +166,7 @@ impl ActionState {
 
 #[cfg(test)]
 mod tests {
-    use cgmath::{Vector2, Zero};
+    use cgmath::{assert_relative_eq, Vector2, Zero};
     use winit::event::{ElementState, MouseButton, VirtualKeyCode};
 
     use super::Input;
@@ -245,32 +245,32 @@ mod tests {
     fn mouse_pos() {
         let mut input = Input::default();
 
-        assert_eq!(input.mouse_pos(), Vector2::zero());
+        assert_relative_eq!(input.mouse_pos(), Vector2::zero());
         input.mouse_movement(Vector2::new(1.0, 1.0));
-        assert_eq!(input.mouse_pos(), Vector2::new(1.0, 1.0));
+        assert_relative_eq!(input.mouse_pos(), Vector2::new(1.0, 1.0));
         input.process();
-        assert_eq!(input.mouse_pos(), Vector2::new(1.0, 1.0));
+        assert_relative_eq!(input.mouse_pos(), Vector2::new(1.0, 1.0));
     }
 
     #[test]
     fn mouse_delta() {
         let mut input = Input::default();
 
-        assert_eq!(input.mouse_delta(), Vector2::zero());
+        assert_relative_eq!(input.mouse_delta(), Vector2::zero());
         input.mouse_movement(Vector2::new(1.0, 1.0));
-        assert_eq!(input.mouse_delta(), Vector2::new(1.0, 1.0));
+        assert_relative_eq!(input.mouse_delta(), Vector2::new(1.0, 1.0));
         input.process();
-        assert_eq!(input.mouse_delta(), Vector2::zero());
+        assert_relative_eq!(input.mouse_delta(), Vector2::zero());
     }
 
     #[test]
     fn mouse_wheel() {
         let mut input = Input::default();
 
-        assert_eq!(input.mouse_wheel(), 0.0);
+        assert_relative_eq!(input.mouse_wheel(), 0.0);
         input.mouse_wheel_movement(1.0);
-        assert_eq!(input.mouse_wheel(), 1.0);
+        assert_relative_eq!(input.mouse_wheel(), 1.0);
         input.process();
-        assert_eq!(input.mouse_wheel(), 0.0);
+        assert_relative_eq!(input.mouse_wheel(), 0.0);
     }
 }

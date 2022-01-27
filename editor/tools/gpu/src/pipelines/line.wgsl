@@ -15,7 +15,8 @@ struct VertexOut {
 };
 
 struct CameraBlock {
-    matrix: mat4x4<f32>;
+    world: mat4x4<f32>;
+    clip: mat4x4<f32>;
 };
 
 struct TransformBlock {
@@ -31,7 +32,9 @@ var<uniform> transform: TransformBlock;
 [[stage(vertex)]]
 fn vs_main(in: VertexIn) -> VertexOut {
     var out: VertexOut;
-    out.clip_position = camera.matrix * transform.matrix * vec4<f32>(in.position, 1.0);
+    
+    out.clip_position = camera.clip * transform.matrix * vec4<f32>(in.position, 1.0);
+    out.clip_position.z = out.clip_position.z - 0.001;
     out.color = in.color;
 
     return out;

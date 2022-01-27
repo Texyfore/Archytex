@@ -1,8 +1,7 @@
-use std::time::Instant;
-
-use anyhow::Result;
+use asset_id::{GizmoID, TextureID};
 use cgmath::Vector2;
-use renderer::Renderer;
+use instant::Instant;
+use renderer::{data::gizmo, scene::Scene, Renderer};
 use winit::{
     event::{ElementState, MouseButton, VirtualKeyCode},
     window::Window,
@@ -22,40 +21,65 @@ pub struct MainLoop {
 }
 
 impl MainLoop {
-    pub fn new(window: &Window) -> Result<Self> {
-        let mut renderer = Renderer::new(window)?;
+    pub fn new(window: &Window) -> Self {
+        let mut renderer = Renderer::new(window).unwrap();
         let input = Input::default();
-        let editor = Editor::default();
+        let mut editor = Editor::default();
+
+        renderer
+            .load_texture(TextureID(0), include_bytes!("nodraw.png"))
+            .unwrap();
+        renderer
+            .load_texture(TextureID(1), include_bytes!("bricks.png"))
+            .unwrap();
+
+        {
+            use formats::agzm;
+            let mesh = agzm::Mesh::decode(include_bytes!("gizmo.agzm")).unwrap();
+
+            let vertices = mesh
+                .vertices
+                .into_iter()
+                .map(|vertex| gizmo::Vertex {
+                    position: vertex.position,
+                })
+                .collect::<Vec<_>>();
+
+            renderer.load_gizmo(GizmoID(0), &vertices, &mesh.triangles);
+        }
 
         {
             let (width, height) = window.inner_size().into();
             renderer.resize(width, height);
+            editor.window_resized(width, height);
         }
 
-        Ok(Self {
+        Self {
             renderer,
             input,
             editor,
             before: Instant::now(),
-        })
+        }
     }
 
-    pub fn process<H: IpcHost>(&mut self, _host: &H) -> Result<()> {
+    pub fn process<H: IpcHost>(&mut self, _host: &H) {
         let after = Instant::now();
         let delta = (after - self.before).as_secs_f32();
         self.before = after;
 
-        self.editor.process(editor::OuterContext {
+        self.editor.process(editor::Context {
             delta,
             input: &self.input,
-        })?;
+            renderer: &self.renderer,
+        });
+
         self.input.process();
-        Ok(())
     }
 
-    pub fn render(&self) -> Result<()> {
-        self.editor.render(&self.renderer)?;
-        Ok(())
+    pub fn render(&self) {
+        let mut scene = Scene::default();
+        self.editor.render(&mut scene);
+        self.renderer.render(&scene).unwrap();
     }
 
     pub fn window_resized(&mut self, width: u32, height: u32) {

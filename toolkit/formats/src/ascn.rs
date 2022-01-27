@@ -1,6 +1,3 @@
-#[cfg(feature = "mesh-gen")]
-mod mesh_gen_impl;
-
 use asset_id::{PropID, TextureID};
 use bincode::ErrorKind;
 use cgmath::{Vector2, Vector3};
@@ -28,13 +25,21 @@ pub struct Model {
 #[derive(Serialize, Deserialize)]
 pub struct Solid {
     pub faces: [Face; 6],
-    pub points: [Vector3<f32>; 8],
+    pub points: [Point; 8],
 }
 
 #[derive(Serialize, Deserialize)]
 pub struct Face {
     pub texture_id: TextureID,
-    pub points: [usize; 4],
+    pub points: [PointID; 4],
+}
+
+#[derive(Clone, Copy, Serialize, Deserialize)]
+pub struct PointID(u8);
+
+#[derive(Serialize, Deserialize)]
+pub struct Point {
+    pub position: Vector3<f32>,
 }
 
 #[derive(Serialize, Deserialize)]
@@ -51,6 +56,22 @@ impl Scene {
 
     pub fn decode(&self, buf: &[u8]) -> Result<Self, DecodeError> {
         Ok(bincode::deserialize(buf)?)
+    }
+}
+
+impl PointID {
+    pub fn new(value: u8) -> Option<Self> {
+        if value < 8 {
+            Some(Self(value))
+        } else {
+            None
+        }
+    }
+}
+
+impl From<PointID> for usize {
+    fn from(value: PointID) -> Self {
+        value.0 as Self
     }
 }
 

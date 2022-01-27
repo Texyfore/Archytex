@@ -1,4 +1,3 @@
-use anyhow::Result;
 use cgmath::vec2;
 use winit::{
     dpi::{PhysicalPosition, PhysicalSize},
@@ -9,22 +8,6 @@ use winit::{
 
 use crate::{ipc::IpcHost, main_loop::MainLoop};
 
-macro_rules! check {
-    ($h:ident, $f:ident, $e:expr) => {
-        match $e {
-            Ok(_) => {}
-            Err(err) => {
-                $h.error(format!(
-                    "Error: {}\n\nCaused by:\n    {}",
-                    err,
-                    err.root_cause()
-                ));
-                *$f = ControlFlow::Exit;
-            }
-        }
-    };
-}
-
 pub struct WinitLoop {
     event_loop: EventLoop<()>,
     window: Window,
@@ -32,19 +15,14 @@ pub struct WinitLoop {
 
 impl WinitLoop {
     #[cfg(not(target_arch = "wasm32"))]
-    pub fn new() -> Result<Self> {
-        use anyhow::Context;
-
+    pub fn new() -> Self {
         let event_loop = EventLoop::new();
-        let window = WindowBuilder::default()
-            .build(&event_loop)
-            .context("couldn't create window")?;
-
-        Ok(Self { event_loop, window })
+        let window = WindowBuilder::default().build(&event_loop).unwrap();
+        Self { event_loop, window }
     }
 
     #[cfg(target_arch = "wasm32")]
-    pub fn new() -> Result<Self> {
+    pub fn new() -> Self {
         use wasm_bindgen::JsCast;
         use web_sys::HtmlCanvasElement;
         use winit::platform::web::WindowBuilderExtWebSys;
@@ -62,23 +40,13 @@ impl WinitLoop {
                     .unwrap(),
             ))
             .build(&event_loop)
-            .context("couldn't create window")?;
+            .unwrap();
 
-        Ok(Self { event_loop, window })
+        Self { event_loop, window }
     }
 
     pub fn run<H: IpcHost + 'static>(self, host: H) {
-        let mut main_loop = match MainLoop::new(&self.window) {
-            Ok(ok) => ok,
-            Err(err) => {
-                host.error(format!(
-                    "Error: {}\n\nCaused by:\n    {}",
-                    err,
-                    err.root_cause()
-                ));
-                return;
-            }
-        };
+        let mut main_loop = MainLoop::new(&self.window);
 
         self.event_loop.run(move |event, _, flow| {
             *flow = ControlFlow::Poll;
@@ -127,8 +95,8 @@ impl WinitLoop {
                 },
 
                 Event::MainEventsCleared => {
-                    check!(host, flow, main_loop.process(&host));
-                    check!(host, flow, main_loop.render());
+                    main_loop.process(&host);
+                    main_loop.render();
                 }
 
                 _ => {}

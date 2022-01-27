@@ -1,17 +1,21 @@
 use bytemuck::{Pod, Zeroable};
-use cgmath::Matrix4;
+use cgmath::{Matrix4, Vector3};
 use gpu::{data::Buffer, BufferUsages};
 
 use crate::Renderer;
 
-#[repr(C)]
-#[derive(Clone, Copy, Pod, Zeroable)]
-pub struct GizmoInstance {
-    matrix: [[f32; 4]; 4],
-    color: [f32; 4],
+pub struct Instances {
+    pub(crate) buffer: Buffer<Instance>,
 }
 
-impl GizmoInstance {
+#[repr(C)]
+#[derive(Clone, Copy, Pod, Zeroable)]
+pub struct Instance {
+    pub matrix: [[f32; 4]; 4],
+    pub color: [f32; 4],
+}
+
+impl Instance {
     pub fn new(matrix: Matrix4<f32>, color: [f32; 3]) -> Self {
         Self {
             matrix: matrix.into(),
@@ -20,26 +24,24 @@ impl GizmoInstance {
     }
 }
 
-pub struct GizmoInstances {
-    pub(crate) buffer: Buffer<GizmoInstance>,
-}
-
-pub struct GizmoMesh {
-    pub(crate) vertices: Buffer<gizmo::Vertex>,
+pub struct Mesh {
+    pub(crate) vertices: Buffer<Vertex>,
     pub(crate) triangles: Buffer<[u16; 3]>,
 }
 
-impl Renderer {
-    pub fn create_gizmo_instances(&self, instances: &[GizmoInstance]) -> GizmoInstances {
-        GizmoInstances {
-            buffer: self.gpu.create_buffer(instances, BufferUsages::VERTEX),
-        }
-    }
+#[repr(C)]
+#[derive(Clone, Copy)]
+pub struct Vertex {
+    pub position: Vector3<f32>,
+}
 
-    pub fn create_gizmo_mesh(&self, mesh: &gizmo::Mesh) -> GizmoMesh {
-        GizmoMesh {
-            vertices: self.gpu.create_buffer(&mesh.vertices, BufferUsages::VERTEX),
-            triangles: self.gpu.create_buffer(&mesh.triangles, BufferUsages::INDEX),
+unsafe impl Zeroable for Vertex {}
+unsafe impl Pod for Vertex {}
+
+impl Renderer {
+    pub fn create_gizmo_instances(&self, instances: &[Instance]) -> Instances {
+        Instances {
+            buffer: self.gpu.create_buffer(instances, BufferUsages::VERTEX),
         }
     }
 }

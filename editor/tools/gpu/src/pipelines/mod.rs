@@ -1,7 +1,7 @@
 mod gizmo;
 mod line;
-mod mesh;
+mod solid;
 
 pub use gizmo::GizmoPipeline;
 pub use line::LinePipeline;
-pub use mesh::MeshPipeline;
+pub use solid::SolidPipeline;
