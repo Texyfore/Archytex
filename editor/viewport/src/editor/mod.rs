@@ -1,4 +1,5 @@
 mod camera;
+mod elements;
 mod graphics;
 mod scene;
 mod tools;
@@ -13,7 +14,7 @@ use crate::input::Input;
 
 use self::{
     camera::Camera,
-    graphics::{mesh_gen, Graphics, MeshGenInput},
+    graphics::Graphics,
     scene::Scene,
     tools::{solid, Tool},
 };
@@ -38,8 +39,13 @@ impl Default for Editor {
 
 impl Editor {
     pub fn process(&mut self, ctx: Context) {
-        let mut tool_ctx =
-            tools::Context::new(ctx.delta, ctx.input, &mut self.camera, &mut self.scene);
+        let mut tool_ctx = tools::Context::new(
+            ctx.delta,
+            ctx.input,
+            ctx.renderer,
+            &mut self.camera,
+            &mut self.scene,
+        );
 
         self.tool.process(&mut tool_ctx);
 
@@ -49,14 +55,8 @@ impl Editor {
         }
 
         if tool_ctx.regen() {
-            mesh_gen(
-                MeshGenInput {
-                    renderer: ctx.renderer,
-                    mask: self.tool.graphics_mask(),
-                    solids: self.scene.iter_solids().map(|(_, solid)| solid),
-                },
-                &mut self.graphics,
-            );
+            self.scene
+                .regen(ctx.renderer, &mut self.graphics, self.tool.graphics_mask());
         }
     }
 
@@ -74,6 +74,8 @@ impl Editor {
                 instances: graphics.point_gizmos.clone(),
             });
         }
+
+        self.tool.render(scene);
     }
 
     pub fn window_resized(&mut self, width: u32, height: u32) {

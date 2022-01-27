@@ -1,11 +1,15 @@
-use asset_id::TextureID;
-use cgmath::{vec3, MetricSpace, Vector2, Vector3};
+use std::iter::once;
+
+use asset_id::GizmoID;
+use cgmath::{MetricSpace, Vector2, Vector3};
+use renderer::scene::{GizmoObject, Scene};
 use winit::event::{MouseButton, VirtualKeyCode};
 
 use crate::{
     editor::{
-        graphics::{DrawableSolid, FaceData, GraphicsMask, PointData},
-        scene::{Action, FaceID, PointID, RaycastEndpointKind, RaycastHit},
+        elements::Solid,
+        graphics::{self, Graphics, GraphicsMask, MeshGenInput},
+        scene::{Action, RaycastEndpointKind, RaycastHit},
     },
     math::{MinMax, Snap},
 };
@@ -27,6 +31,8 @@ impl Tool for Hub {
             if ctx.input().mouse_pos().distance2(last_click_pos) > 100.0 {
                 let ray = ctx.camera().screen_ray(last_click_pos);
                 if let Some(hit) = ctx.scene().raycast(&ray) {
+                    ctx.scene().act(Action::DeselectSolids);
+                    ctx.set_regen();
                     ctx.switch_to(Box::new(Add::new(
                         hit.endpoint.point + hit.endpoint.normal * 0.0001,
                     )));
@@ -97,11 +103,15 @@ impl generic::DeleteProvider for DeleteProvider {
 
 struct Add {
     start: Vector3<f32>,
+    graphics: Option<Graphics>,
 }
 
 impl Add {
     fn new(start: Vector3<f32>) -> Self {
-        Self { start }
+        Self {
+            start,
+            graphics: None,
+        }
     }
 }
 
@@ -118,60 +128,46 @@ impl Tool for Add {
 
             let min = start.min(end);
             let max = start.max(end).map(|e| e + 100);
-        }
 
-        if ctx.input().was_button_down_once(MouseButton::Left) {
-            ctx.switch_to(Box::new(Hub::default()));
+            let solid = Solid::new(min, max - min);
+
+            graphics::generate(
+                MeshGenInput {
+                    renderer: ctx.renderer(),
+                    mask: GraphicsMask::Solids,
+                    solids: once(&solid),
+                },
+                &mut self.graphics,
+            );
+
+            if ctx.input().was_button_down_once(MouseButton::Left) {
+                ctx.scene().act(Action::AddSolid(solid));
+                ctx.set_regen();
+                ctx.switch_to(Box::new(Hub::default()));
+            }
+        } else {
+            self.graphics.take();
+            if !ctx.input().is_button_down(MouseButton::Left) {
+                ctx.switch_to(Box::new(Hub::default()));
+            }
+        }
+    }
+
+    fn render(&self, scene: &mut Scene) {
+        if let Some(graphics) = &self.graphics {
+            for solid_object in &graphics.solid_objects {
+                scene.push_solid_object(solid_object.clone());
+            }
+
+            scene.push_line_object(graphics.line_object.clone());
+            scene.push_gizmo_object(GizmoObject {
+                id: GizmoID(0),
+                instances: graphics.point_gizmos.clone(),
+            });
         }
     }
 
     fn graphics_mask(&self) -> GraphicsMask {
         GraphicsMask::Solids
-    }
-}
-
-struct DummySolid {
-    min: Vector3<i32>,
-    max: Vector3<i32>,
-}
-
-impl DrawableSolid for DummySolid {
-    fn selected(&self) -> bool {
-        false
-    }
-
-    fn face(&self, face: FaceID) -> FaceData {
-        FaceData {
-            texture: TextureID(0),
-            points: [
-                [1, 2, 6, 5],
-                [0, 4, 7, 3],
-                [2, 3, 7, 6],
-                [0, 1, 5, 4],
-                [4, 5, 6, 7],
-                [0, 3, 2, 1],
-            ][face.0]
-                .map(PointID),
-            selected: false,
-        }
-    }
-
-    fn point(&self, point: PointID) -> PointData {
-        PointData {
-            position: Into::<Vector3<i32>>::into(
-                [
-                    [0, 0, 0],
-                    [1, 0, 0],
-                    [1, 1, 0],
-                    [0, 1, 0],
-                    [0, 0, 1],
-                    [1, 0, 1],
-                    [1, 1, 1],
-                    [0, 1, 1],
-                ][point.0],
-            )
-            .map(|e| e as f32 * 0.001),
-            selected: false,
-        }
     }
 }

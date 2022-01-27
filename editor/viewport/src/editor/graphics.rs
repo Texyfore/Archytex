@@ -1,19 +1,18 @@
 use std::{collections::HashMap, rc::Rc};
 
 use asset_id::TextureID;
-use cgmath::{vec2, InnerSpace, Matrix4, Vector3};
+use cgmath::{vec2, InnerSpace, Matrix4};
 use renderer::{
     data::{gizmo, line, solid},
     scene::{LineObject, SolidObject},
     Renderer,
 };
 
-use super::scene::{FaceID, PointID};
+use super::elements::Solid;
 
-pub struct MeshGenInput<'a, I, S: 'a>
+pub struct MeshGenInput<'a, I>
 where
-    I: Iterator<Item = &'a S>,
-    S: DrawableSolid,
+    I: Iterator<Item = &'a Solid>,
 {
     pub renderer: &'a Renderer,
     pub mask: GraphicsMask,
@@ -26,33 +25,15 @@ pub struct Graphics {
     pub point_gizmos: Rc<gizmo::Instances>,
 }
 
-pub trait DrawableSolid {
-    fn selected(&self) -> bool;
-    fn face(&self, face: FaceID) -> FaceData;
-    fn point(&self, point: PointID) -> PointData;
-}
-
-pub struct FaceData {
-    pub texture: TextureID,
-    pub points: [PointID; 4],
-    pub selected: bool,
-}
-
-pub struct PointData {
-    pub position: Vector3<f32>,
-    pub selected: bool,
-}
-
 pub enum GraphicsMask {
     Solids,
     Faces,
     Points,
 }
 
-pub fn mesh_gen<'a, I, S>(input: MeshGenInput<'a, I, S>, graphics: &mut Option<Graphics>)
+pub fn generate<'a, I>(input: MeshGenInput<'a, I>, graphics: &mut Option<Graphics>)
 where
-    I: Iterator<Item = &'a S>,
-    S: DrawableSolid + 'a,
+    I: Iterator<Item = &'a Solid>,
 {
     let transform = Rc::new(input.renderer.create_transform());
 
@@ -66,41 +47,38 @@ where
 
     let mut batches = HashMap::<TextureID, (Vec<solid::Vertex>, Vec<[u16; 3]>)>::new();
     let mut point_gizmos = Vec::new();
-    let mut lines = Vec::new();
+    let mut line_vertices = Vec::new();
 
-    let mut add_line = |solid: &S, a: usize, b: usize| {
-        lines.push(line::Vertex {
-            position: solid.point(PointID(a)).position,
+    let mut add_line = |solid: &Solid, a: usize, b: usize| {
+        line_vertices.push(line::Vertex {
+            position: solid.points[a].meters(),
             color: [0.0; 3],
         });
-        lines.push(line::Vertex {
-            position: solid.point(PointID(b)).position,
+        line_vertices.push(line::Vertex {
+            position: solid.points[b].meters(),
             color: [0.0; 3],
         });
     };
 
     for solid in input.solids {
-        for face in 0..6 {
-            let face = solid.face(FaceID(face));
-
+        for face in &solid.faces {
             let (vertices, triangles) = batches.entry(face.texture).or_default();
             let t0 = vertices.len() as u16;
 
             triangles.push([t0, t0 + 1, t0 + 2]);
             triangles.push([t0, t0 + 2, t0 + 3]);
 
-            let points = face.points.map(|point| solid.point(point));
+            let points = face.points.map(|point| solid.points[point.0].meters());
 
             let normal = {
-                let edge0 = points[1].position - points[0].position;
-                let edge1 = points[3].position - points[0].position;
+                let edge0 = points[1] - points[0];
+                let edge1 = points[3] - points[0];
                 edge0.cross(edge1).normalize()
             };
 
-            for point in points {
-                let position = point.position;
+            for position in points {
                 let has_tint = match input.mask {
-                    GraphicsMask::Solids => solid.selected(),
+                    GraphicsMask::Solids => solid.selected,
                     GraphicsMask::Faces => face.selected,
                     GraphicsMask::Points => false,
                 };
@@ -140,10 +118,9 @@ where
         }
 
         if matches!(input.mask, GraphicsMask::Points) {
-            for point in 0..8 {
-                let point = solid.point(PointID(point));
+            for point in &solid.points {
                 point_gizmos.push(gizmo::Instance {
-                    matrix: Matrix4::from_translation(point.position).into(),
+                    matrix: Matrix4::from_translation(point.meters()).into(),
                     color: if point.selected {
                         [0.04, 0.36, 0.85, 0.0]
                     } else {
@@ -171,7 +148,7 @@ where
             .collect(),
         line_object: LineObject {
             transform,
-            lines: Rc::new(input.renderer.create_lines(&lines)),
+            lines: Rc::new(input.renderer.create_lines(&line_vertices)),
         },
         point_gizmos: Rc::new(input.renderer.create_gizmo_instances(&point_gizmos)),
     });

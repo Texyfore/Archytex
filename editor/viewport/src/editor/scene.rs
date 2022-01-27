@@ -1,48 +1,15 @@
 use std::collections::HashMap;
 
 use asset_id::TextureID;
-use cgmath::{vec3, ElementWise, MetricSpace, Vector3, Zero};
+use cgmath::{vec3, MetricSpace, Vector3, Zero};
+use renderer::Renderer;
 
 use crate::math::{Intersects, Plane, Ray, Sphere, Triangle};
 
-use super::graphics::{DrawableSolid, FaceData, PointData};
-
-macro_rules! points {
-    [$($p:literal),* $(,)?] => {[
-        $(PointID($p)),*
-    ]};
-}
-
-macro_rules! face {
-    ($t:literal: $p0:literal $p1:literal $p2:literal $p3:literal) => {
-        Face {
-            texture_id: TextureID($t),
-            points: points![$p0, $p1, $p2, $p3],
-            selected: false,
-        }
-    };
-}
-
-macro_rules! point {
-    ($o:ident $e:ident [$x:literal $y:literal $z:literal]) => {
-        Point {
-            position: $o + $e.mul_element_wise(vec3($x, $y, $z)),
-            selected: false,
-        }
-    };
-}
-
-macro_rules! entity_id {
-    ($name:ident, $ty:ty) => {
-        #[derive(Debug, Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash)]
-        pub struct $name(pub $ty);
-    };
-}
-
-entity_id!(SolidID, u32);
-entity_id!(FaceID, usize);
-entity_id!(PointID, usize);
-entity_id!(PropID, u32);
+use super::{
+    elements::{FaceID, PointID, PropID, Solid, SolidID},
+    graphics::{self, Graphics, GraphicsMask, MeshGenInput},
+};
 
 #[derive(Default)]
 pub struct Scene {
@@ -53,10 +20,6 @@ pub struct Scene {
 }
 
 impl Scene {
-    pub fn iter_solids(&self) -> std::collections::hash_map::Iter<SolidID, Solid> {
-        self.solids.iter()
-    }
-
     pub fn act(&mut self, action: Action) {
         if let Some(inverse) = self.execute_action(action) {
             self.undo_stack.push(inverse);
@@ -188,6 +151,17 @@ impl Scene {
         })
     }
 
+    pub fn regen(&self, renderer: &Renderer, graphics: &mut Option<Graphics>, mask: GraphicsMask) {
+        graphics::generate(
+            MeshGenInput {
+                renderer,
+                mask,
+                solids: self.solids.values(),
+            },
+            graphics,
+        );
+    }
+
     fn execute_action(&mut self, action: Action) -> Option<Action> {
         match action {
             Action::AddSolid(solid) => {
@@ -307,14 +281,14 @@ impl Scene {
                 (!ids.is_empty()).then(|| Action::SelectPoints(ids))
             }
 
-            Action::AssignTexture(texture_id) => {
+            Action::AssignTexture(texture) => {
                 let mut old_texture_ids = Vec::new();
 
                 for (solid_id, solid) in &mut self.solids {
                     for (face_id, face) in solid.faces.iter_mut().enumerate() {
                         if face.selected {
-                            old_texture_ids.push((*solid_id, FaceID(face_id), face.texture_id));
-                            face.texture_id = texture_id;
+                            old_texture_ids.push((*solid_id, FaceID(face_id), face.texture));
+                            face.texture = texture;
                         }
                     }
                 }
@@ -325,11 +299,11 @@ impl Scene {
             Action::AssignTextures(ids) => {
                 let mut old_texture_ids = Vec::new();
 
-                for (solid_id, face_id, texture_id) in ids {
+                for (solid_id, face_id, texture) in ids {
                     let solid = self.solids.get_mut(&solid_id).unwrap();
                     let face = &mut solid.faces[face_id.0];
-                    old_texture_ids.push((solid_id, face_id, face.texture_id));
-                    face.texture_id = texture_id;
+                    old_texture_ids.push((solid_id, face_id, face.texture));
+                    face.texture = texture;
                 }
 
                 (!old_texture_ids.is_empty()).then(|| Action::AssignTextures(old_texture_ids))
@@ -368,81 +342,6 @@ pub enum MoveKind {
     Faces,
     Points,
     Props,
-}
-
-#[derive(Clone)]
-pub struct Solid {
-    faces: [Face; 6],
-    points: [Point; 8],
-    selected: bool,
-}
-
-impl Solid {
-    pub fn new(origin: Vector3<i32>, extent: Vector3<i32>) -> Self {
-        Self {
-            faces: [
-                face!(0: 1 2 6 5),
-                face!(0: 0 4 7 3),
-                face!(0: 2 3 7 6),
-                face!(0: 0 1 5 4),
-                face!(0: 4 5 6 7),
-                face!(0: 0 3 2 1),
-            ],
-            points: [
-                point!(origin extent [0 0 0]),
-                point!(origin extent [1 0 0]),
-                point!(origin extent [1 1 0]),
-                point!(origin extent [0 1 0]),
-                point!(origin extent [0 0 1]),
-                point!(origin extent [1 0 1]),
-                point!(origin extent [1 1 1]),
-                point!(origin extent [0 1 1]),
-            ],
-            selected: false,
-        }
-    }
-}
-
-impl DrawableSolid for Solid {
-    fn selected(&self) -> bool {
-        todo!()
-    }
-
-    fn face(&self, face: FaceID) -> FaceData {
-        let face = &self.faces[face.0];
-        FaceData {
-            texture: face.texture_id,
-            points: face.points,
-            selected: face.selected,
-        }
-    }
-
-    fn point(&self, point: PointID) -> PointData {
-        let point = &self.points[point.0];
-        PointData {
-            position: point.meters(),
-            selected: point.selected,
-        }
-    }
-}
-
-#[derive(Clone)]
-pub struct Face {
-    texture_id: TextureID,
-    points: [PointID; 4],
-    selected: bool,
-}
-
-#[derive(Clone)]
-pub struct Point {
-    position: Vector3<i32>,
-    selected: bool,
-}
-
-impl Point {
-    fn meters(&self) -> Vector3<f32> {
-        self.position.map(|e| e as f32 * 0.001)
-    }
 }
 
 #[derive(Debug)]
