@@ -2,12 +2,13 @@ use crate::{utilities::{ray::{Intersectable, Ray, Intersection}, math::Vec3}, te
 
 pub struct UnionIntersector<A: Intersectable, B: Intersectable>(pub A, pub B);
 
-pub enum UnionColorProvider<A: ColorProvider, B: ColorProvider>{
+#[derive(Clone)]
+pub enum UnionColorProvider<A: ColorProvider + Clone, B: ColorProvider + Clone>{
     A(A),
     B(B)
 }
 
-impl<A: ColorProvider, B: ColorProvider> ColorProvider for UnionColorProvider<A, B>{
+impl<A: ColorProvider + Clone, B: ColorProvider + Clone> ColorProvider for UnionColorProvider<A, B>{
     fn get_color<R: TextureRepository>(&self, repo: &R) -> Vec3 {
         match self{
             UnionColorProvider::A(a) => a.get_color(repo),

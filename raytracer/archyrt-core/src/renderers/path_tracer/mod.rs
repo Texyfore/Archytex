@@ -93,7 +93,7 @@ impl<T: Camera, K: Intersectable> FragmentRender for PathTracer<T, K> {
                     };
                 }
                 None => {
-                    //Make background yellow
+                    //The sky is blue
                     emissive += (diffusive
                         * Vec3::new(
                             0xd4 as f64 / 255.0,

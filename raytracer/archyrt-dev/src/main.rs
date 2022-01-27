@@ -98,11 +98,18 @@ fn main() {
     let radius = 1.0;
     let sphere = Sphere {
         origin: sphere_intersection.get_pos() + Vec3::new(0.0, radius, 0.0),
-        color: Vec3::new(0.0, 1.0, 0.0),
+        color: Vec3::new(0.0, 0.0, 1.0),
+        radius: radius,
+        material: Material::Emissive { power: 10.0 },
+    };
+    let sphere2 = Sphere {
+        origin: sphere_intersection.get_pos() + Vec3::new(-radius*4.0, radius, 0.0),
+        color: Vec3::new(1.0, 0.0, 0.0),
         radius: radius,
         material: Material::Emissive { power: 10.0 },
     };
     let object = object.union(sphere);
+    let object = object.union(sphere2);
     println!("Render");
     let renderer = PathTracer {
         object: &object,
