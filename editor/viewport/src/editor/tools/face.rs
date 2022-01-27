@@ -1,4 +1,4 @@
-use cgmath::Vector3;
+use asset_id::TextureID;
 use renderer::Renderer;
 use winit::event::{MouseButton, VirtualKeyCode};
 
@@ -20,6 +20,11 @@ impl Tool for Hub {
             return;
         }
 
+        if ctx.input().is_key_down_once(VirtualKeyCode::T) {
+            ctx.switch_to(Box::new(AssignTexture::default()));
+            return;
+        }
+
         if ctx.input().is_key_down_once(VirtualKeyCode::G) {
             let mouse_pos = ctx.input().mouse_pos();
             let ray = ctx.camera().screen_ray(mouse_pos);
@@ -33,6 +38,21 @@ impl Tool for Hub {
 
         self.process_undo_redo(ctx);
         self.process_camera(ctx);
+    }
+
+    fn element_mask(&self) -> ElementKind {
+        ElementKind::Face
+    }
+}
+
+#[derive(Default)]
+struct AssignTexture;
+
+impl Tool for AssignTexture {
+    fn process(&mut self, ctx: &mut Context) {
+        ctx.scene().act(Action::AssignTexture(TextureID(1)));
+        ctx.set_regen();
+        ctx.switch_to(Box::new(Hub::default()));
     }
 
     fn element_mask(&self) -> ElementKind {
