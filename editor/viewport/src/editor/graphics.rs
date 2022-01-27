@@ -8,14 +8,14 @@ use renderer::{
     Renderer,
 };
 
-use super::elements::Solid;
+use super::elements::{ElementMask, Solid};
 
 pub struct MeshGenInput<'a, I>
 where
     I: Iterator<Item = &'a Solid>,
 {
     pub renderer: &'a Renderer,
-    pub mask: GraphicsMask,
+    pub mask: ElementMask,
     pub solids: I,
 }
 
@@ -23,12 +23,6 @@ pub struct Graphics {
     pub solid_objects: Vec<SolidObject>,
     pub line_object: LineObject,
     pub point_gizmos: Rc<gizmo::Instances>,
-}
-
-pub enum GraphicsMask {
-    Solids,
-    Faces,
-    Points,
 }
 
 pub fn generate<'a, I>(input: MeshGenInput<'a, I>, graphics: &mut Option<Graphics>)
@@ -78,9 +72,9 @@ where
 
             for position in points {
                 let has_tint = match input.mask {
-                    GraphicsMask::Solids => solid.selected,
-                    GraphicsMask::Faces => face.selected,
-                    GraphicsMask::Points => false,
+                    ElementMask::Solid => solid.selected,
+                    ElementMask::Face => face.selected,
+                    ElementMask::Point => false,
                 };
 
                 vertices.push(solid::Vertex {
@@ -117,7 +111,7 @@ where
             add_line(solid, segment, segment + 4);
         }
 
-        if matches!(input.mask, GraphicsMask::Points) {
+        if matches!(input.mask, ElementMask::Point) {
             for point in &solid.points {
                 point_gizmos.push(gizmo::Instance {
                     matrix: Matrix4::from_translation(point.meters()).into(),

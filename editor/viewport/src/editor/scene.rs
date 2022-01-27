@@ -7,8 +7,8 @@ use renderer::Renderer;
 use crate::math::{Intersects, Plane, Ray, Sphere, Triangle};
 
 use super::{
-    elements::{FaceID, PointID, PropID, Solid, SolidID},
-    graphics::{self, Graphics, GraphicsMask, MeshGenInput},
+    elements::{ElementMask, FaceID, PointID, PropID, Solid, SolidID},
+    graphics::{self, Graphics, MeshGenInput},
 };
 
 #[derive(Default)]
@@ -41,6 +41,18 @@ impl Scene {
                 self.undo_stack.push(inverse);
             }
         }
+    }
+
+    pub fn clone_selected(&self, mask: ElementMask) -> Vec<(SolidID, Solid)> {
+        self.solids
+            .iter()
+            .filter(|(_, solid)| match mask {
+                ElementMask::Solid => solid.selected,
+                ElementMask::Face => solid.faces.iter().any(|face| face.selected),
+                ElementMask::Point => solid.points.iter().any(|point| point.selected),
+            })
+            .map(|(id, solid)| (*id, solid.clone()))
+            .collect()
     }
 
     pub fn raycast(&self, ray: &Ray) -> Option<RaycastHit> {
@@ -151,7 +163,7 @@ impl Scene {
         })
     }
 
-    pub fn regen(&self, renderer: &Renderer, graphics: &mut Option<Graphics>, mask: GraphicsMask) {
+    pub fn regen(&self, renderer: &Renderer, graphics: &mut Option<Graphics>, mask: ElementMask) {
         graphics::generate(
             MeshGenInput {
                 renderer,

@@ -3,8 +3,7 @@ use std::marker::PhantomData;
 use winit::event::VirtualKeyCode;
 
 use crate::editor::{
-    graphics::GraphicsMask,
-    scene::{Action, RaycastHit},
+    scene::{Action, RaycastHit}, elements::ElementMask,
 };
 
 use super::{Context, Tool};
@@ -34,8 +33,8 @@ impl<P: SelectProvider> Tool for Select<P> {
         ctx.switch_to(P::parent_tool());
     }
 
-    fn graphics_mask(&self) -> GraphicsMask {
-        P::graphics_mask()
+    fn element_mask(&self) -> ElementMask {
+        P::element_mask()
     }
 }
 
@@ -43,7 +42,7 @@ pub trait SelectProvider {
     fn deselect_action() -> Action;
     fn select_action(hit: RaycastHit) -> Option<Action>;
     fn parent_tool() -> Box<dyn Tool>;
-    fn graphics_mask() -> GraphicsMask;
+    fn element_mask() -> ElementMask;
 }
 
 #[derive(Default)]
@@ -58,13 +57,13 @@ impl<P: DeleteProvider> Tool for Delete<P> {
         ctx.switch_to(P::parent_tool());
     }
 
-    fn graphics_mask(&self) -> GraphicsMask {
-        P::graphics_mask()
+    fn element_mask(&self) -> ElementMask {
+        P::element_mask()
     }
 }
 
 pub trait DeleteProvider {
     fn action() -> Action;
     fn parent_tool() -> Box<dyn Tool>;
-    fn graphics_mask() -> GraphicsMask;
+    fn element_mask() -> ElementMask;
 }

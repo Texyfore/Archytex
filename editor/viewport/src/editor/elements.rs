@@ -89,3 +89,9 @@ impl Point {
         self.position.map(|e| e as f32 * 0.01)
     }
 }
+
+pub enum ElementMask {
+    Solid,
+    Face,
+    Point,
+}

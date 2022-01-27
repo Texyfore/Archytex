@@ -8,11 +8,12 @@ use winit::event::{MouseButton, VirtualKeyCode};
 
 pub use self::context::Context;
 
-use super::graphics::GraphicsMask;
+use super::elements::ElementMask;
+
 
 pub trait Tool {
     fn process(&mut self, ctx: &mut Context);
-    fn graphics_mask(&self) -> GraphicsMask;
+    fn element_mask(&self) -> ElementMask;
     
     fn cancelled(&mut self, _ctx: &mut Context) {}
     fn render(&self, _scene: &mut Scene) {}

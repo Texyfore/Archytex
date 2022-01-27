@@ -56,7 +56,7 @@ impl Editor {
 
         if tool_ctx.regen() {
             self.scene
-                .regen(ctx.renderer, &mut self.graphics, self.tool.graphics_mask());
+                .regen(ctx.renderer, &mut self.graphics, self.tool.element_mask());
         }
     }
 

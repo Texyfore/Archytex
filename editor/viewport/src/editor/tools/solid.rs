@@ -7,8 +7,8 @@ use winit::event::{MouseButton, VirtualKeyCode};
 
 use crate::{
     editor::{
-        elements::Solid,
-        graphics::{self, Graphics, GraphicsMask, MeshGenInput},
+        elements::{Solid, ElementMask},
+        graphics::{self, Graphics, MeshGenInput},
         scene::{Action, RaycastEndpointKind, RaycastHit},
     },
     math::{MinMax, Snap},
@@ -54,8 +54,8 @@ impl Tool for Hub {
         self.process_camera(ctx);
     }
 
-    fn graphics_mask(&self) -> GraphicsMask {
-        GraphicsMask::Solids
+    fn element_mask(&self) -> ElementMask {
+        ElementMask::Solid
     }
 }
 
@@ -79,8 +79,8 @@ impl generic::SelectProvider for SelectProvider {
         Box::new(Hub::default())
     }
 
-    fn graphics_mask() -> GraphicsMask {
-        GraphicsMask::Solids
+    fn element_mask() -> ElementMask {
+        ElementMask::Solid
     }
 }
 
@@ -96,8 +96,8 @@ impl generic::DeleteProvider for DeleteProvider {
         Box::new(Hub::default())
     }
 
-    fn graphics_mask() -> GraphicsMask {
-        GraphicsMask::Solids
+    fn element_mask() -> ElementMask {
+        ElementMask::Solid
     }
 }
 
@@ -134,7 +134,7 @@ impl Tool for Add {
             graphics::generate(
                 MeshGenInput {
                     renderer: ctx.renderer(),
-                    mask: GraphicsMask::Solids,
+                    mask: ElementMask::Solid,
                     solids: once(&solid),
                 },
                 &mut self.graphics,
@@ -167,7 +167,7 @@ impl Tool for Add {
         }
     }
 
-    fn graphics_mask(&self) -> GraphicsMask {
-        GraphicsMask::Solids
+    fn element_mask(&self) -> ElementMask {
+        ElementMask::Solid
     }
 }
