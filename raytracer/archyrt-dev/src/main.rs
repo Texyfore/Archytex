@@ -137,8 +137,10 @@ fn main() {
     let device = oidn::Device::new();
     oidn::RayTracing::new(&device)
         .srgb(false)
+        .hdr(true)
         .image_dimensions(w, h)
         .albedo_normal(&albedo_image, &normal_image)
+        .clean_aux(true)
         .filter(&rt_image, &mut output)
         .unwrap();
     let mut image = RgbImage::new(w as u32, h as u32);
