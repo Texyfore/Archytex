@@ -337,7 +337,12 @@ impl Scene {
             Action::Move { kind, delta } => {
                 let mut modified = false;
 
-                for solid in self.solids.values_mut().filter(|solid| solid.selected) {
+                for solid in self.solids.values_mut().filter(|solid| match kind {
+                    ElementKind::Solid => solid.selected,
+                    ElementKind::Face => solid.faces.iter().any(|face| face.selected),
+                    ElementKind::Point => solid.points.iter().any(|point| point.selected),
+                    ElementKind::Prop => false,
+                }) {
                     if solid.displace(kind, delta) {
                         modified = true;
                     }

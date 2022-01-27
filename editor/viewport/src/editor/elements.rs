@@ -101,11 +101,16 @@ impl Movable for Solid {
                 }
             }
             ElementKind::Face => {
+                let mut mod_arr = [false; 8];
                 for face in self.faces.iter().filter(|face| face.selected) {
                     for point in face.points {
-                        let point = &mut self.points[point.0];
-                        point.position += delta;
-                        modified = true;
+                        let index = point.0;
+                        if !mod_arr[index] {
+                            let point = &mut self.points[point.0];
+                            point.position += delta;
+                            mod_arr[index] = true;
+                            modified = true;
+                        }
                     }
                 }
             }

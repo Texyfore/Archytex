@@ -16,7 +16,7 @@ use self::{
     camera::Camera,
     graphics::Graphics,
     scene::Scene,
-    tools::{solid, Tool},
+    tools::{face, solid, Tool},
 };
 
 pub struct Editor {
@@ -46,6 +46,13 @@ impl Editor {
             &mut self.camera,
             &mut self.scene,
         );
+
+        if ctx
+            .input
+            .is_key_down_once(winit::event::VirtualKeyCode::Key1)
+        {
+            self.tool = Box::new(face::Hub::default());
+        }
 
         self.tool.process(&mut tool_ctx);
 

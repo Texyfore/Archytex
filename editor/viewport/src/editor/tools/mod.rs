@@ -1,4 +1,5 @@
 pub mod solid;
+pub mod face;
 
 mod context;
 mod generic;

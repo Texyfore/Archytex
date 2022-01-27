@@ -1,7 +1,7 @@
 use std::iter::once;
 
 use asset_id::GizmoID;
-use cgmath::{MetricSpace, Vector2, Vector3, Zero};
+use cgmath::{MetricSpace, Vector2, Vector3};
 use renderer::{
     scene::{GizmoObject, Scene},
     Renderer,
@@ -75,86 +75,6 @@ impl Tool for Hub {
     }
 }
 
-#[derive(Default)]
-struct SelectProvider;
-
-impl generic::SelectProvider for SelectProvider {
-    fn deselect_action() -> Action {
-        Action::DeselectSolids
-    }
-
-    fn select_action(hit: RaycastHit) -> Option<Action> {
-        if let RaycastEndpointKind::Face { solid_id, .. } = hit.endpoint.kind {
-            Some(Action::SelectSolids(vec![solid_id]))
-        } else {
-            None
-        }
-    }
-
-    fn parent_tool() -> Box<dyn Tool> {
-        Box::new(Hub::default())
-    }
-
-    fn element_mask() -> ElementKind {
-        ElementKind::Solid
-    }
-}
-
-#[derive(Default)]
-struct DeleteProvider;
-
-impl generic::DeleteProvider for DeleteProvider {
-    fn action() -> Action {
-        Action::RemoveSelectedSolids
-    }
-
-    fn parent_tool() -> Box<dyn Tool> {
-        Box::new(Hub::default())
-    }
-
-    fn element_mask() -> ElementKind {
-        ElementKind::Solid
-    }
-}
-
-struct MoveProvider;
-
-impl generic::MoveProvider for MoveProvider {
-    type ElementID = SolidID;
-
-    type Element = Solid;
-
-    fn action(delta: Vector3<i32>) -> Action {
-        Action::Move {
-            kind: ElementKind::Solid,
-            delta,
-        }
-    }
-
-    fn parent_tool() -> Box<dyn Tool> {
-        Box::new(Hub::default())
-    }
-
-    fn element_kind() -> ElementKind {
-        ElementKind::Solid
-    }
-
-    fn regen(
-        renderer: &Renderer,
-        elements: &[(Self::ElementID, Self::Element)],
-        graphics: &mut Option<Graphics>,
-    ) {
-        graphics::generate(
-            MeshGenInput {
-                renderer,
-                mask: ElementKind::Solid,
-                solids: elements.iter().map(|(_, solid)| solid),
-            },
-            graphics,
-        );
-    }
-}
-
 struct Add {
     start: Vector3<f32>,
     graphics: Option<Graphics>,
@@ -223,5 +143,78 @@ impl Tool for Add {
 
     fn element_mask(&self) -> ElementKind {
         ElementKind::Solid
+    }
+}
+
+#[derive(Default)]
+struct SelectProvider;
+
+impl generic::SelectProvider for SelectProvider {
+    fn deselect_action() -> Action {
+        Action::DeselectSolids
+    }
+
+    fn select_action(hit: RaycastHit) -> Option<Action> {
+        if let RaycastEndpointKind::Face { solid_id, .. } = hit.endpoint.kind {
+            Some(Action::SelectSolids(vec![solid_id]))
+        } else {
+            None
+        }
+    }
+
+    fn parent_tool() -> Box<dyn Tool> {
+        Box::new(Hub::default())
+    }
+
+    fn element_mask() -> ElementKind {
+        ElementKind::Solid
+    }
+}
+
+#[derive(Default)]
+struct DeleteProvider;
+
+impl generic::DeleteProvider for DeleteProvider {
+    fn action() -> Action {
+        Action::RemoveSelectedSolids
+    }
+
+    fn parent_tool() -> Box<dyn Tool> {
+        Box::new(Hub::default())
+    }
+
+    fn element_mask() -> ElementKind {
+        ElementKind::Solid
+    }
+}
+
+struct MoveProvider;
+
+impl generic::MoveProvider for MoveProvider {
+    type ElementID = SolidID;
+
+    type Element = Solid;
+
+    fn parent_tool() -> Box<dyn Tool> {
+        Box::new(Hub::default())
+    }
+
+    fn element_kind() -> ElementKind {
+        ElementKind::Solid
+    }
+
+    fn regen(
+        renderer: &Renderer,
+        elements: &[(Self::ElementID, Self::Element)],
+        graphics: &mut Option<Graphics>,
+    ) {
+        graphics::generate(
+            MeshGenInput {
+                renderer,
+                mask: ElementKind::Solid,
+                solids: elements.iter().map(|(_, solid)| solid),
+            },
+            graphics,
+        );
     }
 }

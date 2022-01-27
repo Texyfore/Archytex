@@ -154,7 +154,10 @@ impl<P: MoveProvider> Tool for Move<P> {
         }
 
         if ctx.input().was_button_down_once(MouseButton::Left) {
-            ctx.scene().act(P::action(self.delta));
+            ctx.scene().act(Action::Move {
+                kind: P::element_kind(),
+                delta: self.delta,
+            });
             ctx.scene().unhide_all();
             ctx.set_regen();
             ctx.switch_to(P::parent_tool());
@@ -163,6 +166,7 @@ impl<P: MoveProvider> Tool for Move<P> {
 
         if ctx.input().was_button_down_once(MouseButton::Right) {
             ctx.scene().unhide_all();
+            ctx.set_regen();
             ctx.switch_to(P::parent_tool());
         }
     }
@@ -190,7 +194,6 @@ pub trait MoveProvider {
     type ElementID;
     type Element: Movable;
 
-    fn action(delta: Vector3<i32>) -> Action;
     fn parent_tool() -> Box<dyn Tool>;
     fn element_kind() -> ElementKind;
 
