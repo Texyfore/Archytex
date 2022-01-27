@@ -83,7 +83,7 @@ where
                     normal,
                     texcoord: if normal.x.abs() > normal.y.abs() {
                         if normal.x.abs() > normal.z.abs() {
-                            vec2(position.y, position.z)
+                            vec2(position.z, position.y)
                         } else {
                             vec2(position.x, position.y)
                         }
