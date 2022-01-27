@@ -8,7 +8,6 @@ winit = "=0.26.1"
 cgmath = "=0.18.0"
 instant = "=0.1.12"
 renderer = { path = "../tools/renderer" }
-pin-vec = { path = "../tools/pin-vec" }
 asset-id = { path = "../../toolkit/asset-id" }
 formats = { path = "../../toolkit/formats" }
 
