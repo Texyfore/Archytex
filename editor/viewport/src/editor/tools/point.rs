@@ -1,11 +1,10 @@
-use asset_id::TextureID;
 use renderer::Renderer;
 use winit::event::{MouseButton, VirtualKeyCode};
 
 use crate::editor::{
     elements::{ElementKind, Solid, SolidID},
     graphics::{self, Graphics, MeshGenInput},
-    scene::{Action, RaycastEndpointKind, RaycastHit},
+    scene::{Action, RaycastHit},
 };
 
 use super::{generic, Context, Tool};
@@ -27,15 +26,10 @@ impl Tool for Hub {
             return;
         }
 
-        if ctx.input().is_key_down_once(VirtualKeyCode::T) {
-            ctx.switch_to(Box::new(AssignTexture::default()));
-            return;
-        }
-
         if ctx.input().is_key_down_once(VirtualKeyCode::G) {
             let mouse_pos = ctx.input().mouse_pos();
             let ray = ctx.camera().screen_ray(mouse_pos);
-            let elements = ctx.scene().clone_and_hide_solids(ElementKind::Face);
+            let elements = ctx.scene().clone_and_hide_solids(ElementKind::Point);
 
             if let Some(tool) = generic::Move::<MoveProvider>::new(&ray, elements) {
                 ctx.switch_to(Box::new(tool));
@@ -48,22 +42,7 @@ impl Tool for Hub {
     }
 
     fn element_mask(&self) -> ElementKind {
-        ElementKind::Face
-    }
-}
-
-#[derive(Default)]
-struct AssignTexture;
-
-impl Tool for AssignTexture {
-    fn process(&mut self, ctx: &mut Context) {
-        ctx.scene().act(Action::AssignTexture(TextureID(1)));
-        ctx.set_regen();
-        ctx.switch_to(Box::new(Hub::default()));
-    }
-
-    fn element_mask(&self) -> ElementKind {
-        ElementKind::Face
+        ElementKind::Point
     }
 }
 
@@ -72,16 +51,11 @@ struct SelectProvider;
 
 impl generic::SelectProvider for SelectProvider {
     fn deselect_action() -> Action {
-        Action::DeselectFaces
+        Action::DeselectPoints
     }
 
     fn select_action(hit: RaycastHit) -> Option<Action> {
-        match hit.endpoint.kind {
-            RaycastEndpointKind::Face { solid_id, face_id } => {
-                Some(Action::SelectFaces(vec![(solid_id, face_id)]))
-            }
-            _ => None,
-        }
+        (!hit.points.is_empty()).then(|| Action::SelectPoints(hit.points))
     }
 
     fn parent_tool() -> Box<dyn Tool> {
@@ -89,7 +63,7 @@ impl generic::SelectProvider for SelectProvider {
     }
 
     fn element_mask() -> ElementKind {
-        ElementKind::Face
+        ElementKind::Point
     }
 }
 
@@ -105,7 +79,7 @@ impl generic::MoveProvider for MoveProvider {
     }
 
     fn element_kind() -> ElementKind {
-        ElementKind::Face
+        ElementKind::Point
     }
 
     fn regen(
@@ -116,7 +90,7 @@ impl generic::MoveProvider for MoveProvider {
         graphics::generate(
             MeshGenInput {
                 renderer,
-                mask: ElementKind::Face,
+                mask: ElementKind::Point,
                 solids: elements.iter().map(|(_, solid)| solid),
             },
             graphics,

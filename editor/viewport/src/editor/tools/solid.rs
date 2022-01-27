@@ -21,11 +21,17 @@ use super::{generic, Context, Tool};
 
 #[derive(Default)]
 pub struct Hub {
+    regen: bool,
     last_click_pos: Option<Vector2<f32>>,
 }
 
 impl Tool for Hub {
     fn process(&mut self, ctx: &mut Context) {
+        if !self.regen {
+            ctx.set_regen();
+            self.regen = true;
+        }
+
         if ctx.input().is_button_down_once(MouseButton::Left) {
             self.last_click_pos = Some(ctx.input().mouse_pos());
         }

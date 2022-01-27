@@ -116,7 +116,7 @@ impl<P: MoveProvider> Move<P> {
 
         ray.intersects(&plane).map(|intersection| Self {
             plane,
-            start: intersection.point,
+            start: intersection.point + intersection.normal * 0.0001,
             delta: Vector3::zero(),
             elements,
             graphics: None,
@@ -139,7 +139,7 @@ impl<P: MoveProvider> Tool for Move<P> {
 
         if let Some(intersection) = ray.intersects(&self.plane) {
             let start = self.start.snap(100);
-            let end = intersection.point.snap(100);
+            let end = (intersection.point + intersection.normal * 0.0001).snap(100);
             let delta = end - start;
 
             if delta != self.delta {
