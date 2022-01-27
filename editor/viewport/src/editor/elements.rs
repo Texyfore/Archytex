@@ -38,6 +38,13 @@ entity_id!(FaceID, usize);
 entity_id!(PointID, usize);
 entity_id!(PropID, u32);
 
+pub enum ElementKind {
+    Solid,
+    Face,
+    Point,
+    Prop,
+}
+
 #[derive(Clone)]
 pub struct Solid {
     pub faces: [Face; 6],
@@ -88,10 +95,4 @@ impl Point {
     pub fn meters(&self) -> Vector3<f32> {
         self.position.map(|e| e as f32 * 0.01)
     }
-}
-
-pub enum ElementMask {
-    Solid,
-    Face,
-    Point,
 }

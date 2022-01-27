@@ -7,7 +7,7 @@ use renderer::Renderer;
 use crate::math::{Intersects, Plane, Ray, Sphere, Triangle};
 
 use super::{
-    elements::{ElementMask, FaceID, PointID, PropID, Solid, SolidID},
+    elements::{ElementKind, FaceID, PointID, PropID, Solid, SolidID},
     graphics::{self, Graphics, MeshGenInput},
 };
 
@@ -43,13 +43,14 @@ impl Scene {
         }
     }
 
-    pub fn clone_selected(&self, mask: ElementMask) -> Vec<(SolidID, Solid)> {
+    pub fn clone_selected(&self, mask: ElementKind) -> Vec<(SolidID, Solid)> {
         self.solids
             .iter()
             .filter(|(_, solid)| match mask {
-                ElementMask::Solid => solid.selected,
-                ElementMask::Face => solid.faces.iter().any(|face| face.selected),
-                ElementMask::Point => solid.points.iter().any(|point| point.selected),
+                ElementKind::Solid => solid.selected,
+                ElementKind::Face => solid.faces.iter().any(|face| face.selected),
+                ElementKind::Point => solid.points.iter().any(|point| point.selected),
+                ElementKind::Prop => false,
             })
             .map(|(id, solid)| (*id, solid.clone()))
             .collect()
@@ -163,7 +164,7 @@ impl Scene {
         })
     }
 
-    pub fn regen(&self, renderer: &Renderer, graphics: &mut Option<Graphics>, mask: ElementMask) {
+    pub fn regen(&self, renderer: &Renderer, graphics: &mut Option<Graphics>, mask: ElementKind) {
         graphics::generate(
             MeshGenInput {
                 renderer,
@@ -321,7 +322,7 @@ impl Scene {
                 (!old_texture_ids.is_empty()).then(|| Action::AssignTextures(old_texture_ids))
             }
 
-            Action::MoveSelected { .. } => {
+            Action::Move { .. } => {
                 todo!()
             }
         }
@@ -346,14 +347,10 @@ pub enum Action {
     AssignTexture(TextureID),
     AssignTextures(Vec<(SolidID, FaceID, TextureID)>),
 
-    MoveSelected { kind: MoveKind, delta: Vector3<i32> },
-}
-
-pub enum MoveKind {
-    Solids,
-    Faces,
-    Points,
-    Props,
+    Move {
+        kind: ElementKind,
+        delta: Vector3<i32>,
+    },
 }
 
 #[derive(Debug)]

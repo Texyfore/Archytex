@@ -50,7 +50,6 @@ impl Editor {
         self.tool.process(&mut tool_ctx);
 
         if let Some(next_tool) = tool_ctx.take_next_tool() {
-            self.tool.cancelled(&mut tool_ctx);
             self.tool = next_tool;
         }
 

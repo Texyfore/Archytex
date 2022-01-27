@@ -8,14 +8,13 @@ use winit::event::{MouseButton, VirtualKeyCode};
 
 pub use self::context::Context;
 
-use super::elements::ElementMask;
+use super::elements::ElementKind;
 
 
 pub trait Tool {
     fn process(&mut self, ctx: &mut Context);
-    fn element_mask(&self) -> ElementMask;
+    fn element_mask(&self) -> ElementKind;
     
-    fn cancelled(&mut self, _ctx: &mut Context) {}
     fn render(&self, _scene: &mut Scene) {}
 
     fn process_undo_redo(&mut self, ctx: &mut Context) {

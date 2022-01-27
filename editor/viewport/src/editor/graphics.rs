@@ -8,14 +8,14 @@ use renderer::{
     Renderer,
 };
 
-use super::elements::{ElementMask, Solid};
+use super::elements::{ElementKind, Solid};
 
 pub struct MeshGenInput<'a, I>
 where
     I: Iterator<Item = &'a Solid>,
 {
     pub renderer: &'a Renderer,
-    pub mask: ElementMask,
+    pub mask: ElementKind,
     pub solids: I,
 }
 
@@ -72,9 +72,10 @@ where
 
             for position in points {
                 let has_tint = match input.mask {
-                    ElementMask::Solid => solid.selected,
-                    ElementMask::Face => face.selected,
-                    ElementMask::Point => false,
+                    ElementKind::Solid => solid.selected,
+                    ElementKind::Face => face.selected,
+                    ElementKind::Point => false,
+                    ElementKind::Prop => false,
                 };
 
                 vertices.push(solid::Vertex {
@@ -111,7 +112,7 @@ where
             add_line(solid, segment, segment + 4);
         }
 
-        if matches!(input.mask, ElementMask::Point) {
+        if matches!(input.mask, ElementKind::Point) {
             for point in &solid.points {
                 point_gizmos.push(gizmo::Instance {
                     matrix: Matrix4::from_translation(point.meters()).into(),
