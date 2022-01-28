@@ -10,7 +10,7 @@ use winit::event::{MouseButton, VirtualKeyCode};
 
 use crate::{
     editor::{
-        elements::{ElementKind, Movable},
+        elements::ElementKind,
         graphics::Graphics,
         scene::{Action, RaycastHit},
     },
@@ -83,22 +83,14 @@ pub struct Move<P: MoveProvider> {
     plane: Plane,
     start: Vector3<f32>,
     delta: Vector3<i32>,
-    elements: Vec<(P::ElementID, P::Element)>,
+    elements: Vec<P::Element>,
     graphics: Option<Graphics>,
     regen: bool,
     _p: PhantomData<P>,
 }
 
 impl<P: MoveProvider> Move<P> {
-    pub fn new(ray: &Ray, elements: Vec<(P::ElementID, P::Element)>) -> Option<Self> {
-        let mut center = Vector3::zero();
-
-        for (_, element) in &elements {
-            center += element.center();
-        }
-
-        let origin = center / elements.len() as f32;
-
+    pub fn new(ray: &Ray, elements: Vec<P::Element>) -> Option<Self> {
         let dir = ray.direction();
         let normal = if dir.x.abs() > dir.y.abs() {
             if dir.x.abs() > dir.z.abs() {
@@ -112,7 +104,10 @@ impl<P: MoveProvider> Move<P> {
             Vector3::unit_z() * dir.z.signum()
         };
 
-        let plane = Plane { origin, normal };
+        let plane = Plane {
+            origin: P::center(&elements),
+            normal,
+        };
 
         ray.intersects(&plane).map(|intersection| Self {
             plane,
@@ -144,20 +139,14 @@ impl<P: MoveProvider> Tool for Move<P> {
 
             if delta != self.delta {
                 let delta2 = delta - self.delta;
-                for (_, element) in self.elements.iter_mut() {
-                    element.displace(P::element_kind(), delta2);
-                }
-
+                P::displace(&mut self.elements, delta2);
                 P::regen(ctx.renderer(), &self.elements, &mut self.graphics);
                 self.delta = delta;
             }
         }
 
         if ctx.input().was_button_down_once(MouseButton::Left) {
-            ctx.scene().act(Action::Move {
-                kind: P::element_kind(),
-                delta: self.delta,
-            });
+            ctx.scene().act(P::action(&self.elements, self.delta));
             ctx.scene().unhide_all();
             ctx.set_regen();
             ctx.switch_to(P::parent_tool());
@@ -191,15 +180,13 @@ impl<P: MoveProvider> Tool for Move<P> {
 }
 
 pub trait MoveProvider {
-    type ElementID;
-    type Element: Movable;
+    type Element;
 
+    fn center(elements: &[Self::Element]) -> Vector3<f32>;
+    fn displace(elements: &mut [Self::Element], delta: Vector3<i32>);
+    fn action(elements: &[Self::Element], delta: Vector3<i32>) -> Action;
     fn parent_tool() -> Box<dyn Tool>;
     fn element_kind() -> ElementKind;
 
-    fn regen(
-        renderer: &Renderer,
-        elements: &[(Self::ElementID, Self::Element)],
-        graphics: &mut Option<Graphics>,
-    );
+    fn regen(renderer: &Renderer, elements: &[Self::Element], graphics: &mut Option<Graphics>);
 }
