@@ -29,7 +29,12 @@ impl Default for Camera {
 impl Camera {
     pub fn recreate_projection(&mut self, width: u32, height: u32) {
         let (width, height) = (width as f32, height as f32);
-        self.projection = perspective(Deg(80.0), width / height, 0.1, 100.0);
+        self.projection = perspective(
+            Deg(80.0),
+            width / height,
+            0.1 * self.speed / 4.0,
+            100.0 * self.speed / 4.0,
+        );
         self.viewport_size = Vector2::new(width, height)
     }
 
@@ -76,10 +81,12 @@ impl Camera {
 
     pub fn increase_speed(&mut self) {
         self.speed *= SPEED_MULTIPLIER;
+        self.recreate_projection(self.viewport_size.x as u32, self.viewport_size.y as u32);
     }
-
+    
     pub fn decrease_speed(&mut self) {
         self.speed /= SPEED_MULTIPLIER;
+        self.recreate_projection(self.viewport_size.x as u32, self.viewport_size.y as u32);
     }
 
     pub fn screen_ray(&self, coords: Vector2<f32>) -> Ray {
