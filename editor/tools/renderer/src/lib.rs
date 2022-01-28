@@ -5,19 +5,23 @@ use std::{collections::HashMap, rc::Rc};
 
 use asset_id::{GizmoID, TextureID};
 use bytemuck::{Pod, Zeroable};
+use cgmath::vec3;
 use gpu::{
     data::{
         DepthBuffer, TextureLayout, {Uniform, UniformLayout},
     },
     handle::GpuHandle,
-    pipelines::{GizmoPipeline, LinePipeline, SolidPipeline},
+    pipelines::{GizmoPipeline, GridPipeline, LinePipeline, SolidPipeline},
     BufferUsages, Sampler,
 };
 use image::{EncodableLayout, ImageError};
 use raw_window_handle::HasRawWindowHandle;
 use thiserror::Error;
 
-use self::{data::gizmo, scene::Scene};
+use self::{
+    data::gizmo,
+    scene::{GizmoObject, Scene},
+};
 
 pub struct Renderer {
     gpu: GpuHandle,
@@ -28,6 +32,7 @@ pub struct Renderer {
 
     mesh_pipeline: SolidPipeline,
     line_pipeline: LinePipeline,
+    grid_pipeline: GridPipeline,
     gizmo_pipeline: GizmoPipeline,
 
     camera_uniform: Uniform<CameraBlock>,
@@ -35,6 +40,7 @@ pub struct Renderer {
 
     textures: HashMap<TextureID, Texture>,
     gizmos: HashMap<GizmoID, Rc<gizmo::Mesh>>,
+    grid: gizmo::Mesh,
 }
 
 impl Renderer {
@@ -47,6 +53,7 @@ impl Renderer {
 
         let mesh_pipeline = gpu.create_mesh_pipeline(&uniform_layout, &texture_layout);
         let line_pipeline = gpu.create_line_pipeline(&uniform_layout);
+        let grid_pipeline = gpu.create_grid_pipeline(&uniform_layout);
         let gizmo_pipeline = gpu.create_gizmo_pipeline(&uniform_layout);
 
         let camera_uniform = gpu.create_uniform(&uniform_layout);
@@ -54,6 +61,26 @@ impl Renderer {
 
         let textures = HashMap::new();
         let gizmos = HashMap::new();
+        let grid = gizmo::Mesh {
+            vertices: gpu.create_buffer(
+                &[
+                    gizmo::Vertex {
+                        position: vec3(-1.0, 0.0, 1.0),
+                    },
+                    gizmo::Vertex {
+                        position: vec3(1.0, 0.0, 1.0),
+                    },
+                    gizmo::Vertex {
+                        position: vec3(1.0, 0.0, -1.0),
+                    },
+                    gizmo::Vertex {
+                        position: vec3(-1.0, 0.0, -1.0),
+                    },
+                ],
+                BufferUsages::VERTEX,
+            ),
+            triangles: gpu.create_buffer(&[[0, 1, 2], [0, 2, 3]], BufferUsages::INDEX),
+        };
 
         Ok(Self {
             gpu,
@@ -62,11 +89,13 @@ impl Renderer {
             texture_layout,
             mesh_pipeline,
             line_pipeline,
+            grid_pipeline,
             gizmo_pipeline,
             camera_uniform,
             sampler,
             textures,
             gizmos,
+            grid,
         })
     }
 
@@ -104,6 +133,9 @@ impl Renderer {
                 pass.set_uniform(1, &line_object.transform.uniform);
                 pass.draw(&line_object.lines.vertices);
             }
+
+            pass.set_grid_pipeline(&self.grid_pipeline);
+            pass.draw_indexed(&self.grid.vertices, &self.grid.triangles);
 
             pass.set_gizmo_pipeline(&self.gizmo_pipeline);
             for gizmo_object in &scene.gizmo_objects {
