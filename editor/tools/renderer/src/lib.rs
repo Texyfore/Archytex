@@ -18,10 +18,7 @@ use image::{EncodableLayout, ImageError};
 use raw_window_handle::HasRawWindowHandle;
 use thiserror::Error;
 
-use self::{
-    data::gizmo,
-    scene::{GizmoObject, Scene},
-};
+use self::{data::gizmo, scene::Scene};
 
 pub struct Renderer {
     gpu: GpuHandle,
