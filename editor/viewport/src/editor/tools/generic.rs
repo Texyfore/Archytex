@@ -153,7 +153,10 @@ impl<P: MoveProvider> Tool for Move<P> {
             return;
         }
 
-        if ctx.input().was_button_down_once(MouseButton::Right) {
+        if ctx.input().was_button_down_once(MouseButton::Right)
+            || ctx.input().is_key_down_once(VirtualKeyCode::G)
+            || ctx.input().is_key_down_once(VirtualKeyCode::Escape)
+        {
             ctx.scene().unhide_all();
             ctx.set_regen();
             ctx.switch_to(P::parent_tool());
