@@ -5,7 +5,6 @@ use std::{collections::HashMap, rc::Rc};
 
 use asset_id::{GizmoID, TextureID};
 use bytemuck::{Pod, Zeroable};
-use cgmath::vec3;
 use formats::agzm;
 use gpu::{
     data::{
@@ -38,7 +37,6 @@ pub struct Renderer {
 
     textures: HashMap<TextureID, Texture>,
     gizmos: HashMap<GizmoID, Rc<gizmo::Mesh>>,
-    grid: gizmo::Mesh,
 }
 
 impl Renderer {
@@ -59,26 +57,6 @@ impl Renderer {
 
         let textures = HashMap::new();
         let gizmos = HashMap::new();
-        let grid = gizmo::Mesh {
-            vertices: gpu.create_buffer(
-                &[
-                    gizmo::Vertex {
-                        position: vec3(-1.0, 0.0, 1.0),
-                    },
-                    gizmo::Vertex {
-                        position: vec3(1.0, 0.0, 1.0),
-                    },
-                    gizmo::Vertex {
-                        position: vec3(1.0, 0.0, -1.0),
-                    },
-                    gizmo::Vertex {
-                        position: vec3(-1.0, 0.0, -1.0),
-                    },
-                ],
-                BufferUsages::VERTEX,
-            ),
-            triangles: gpu.create_buffer(&[[0, 1, 2], [0, 2, 3]], BufferUsages::INDEX),
-        };
 
         Ok(Self {
             gpu,
@@ -93,7 +71,6 @@ impl Renderer {
             sampler,
             textures,
             gizmos,
-            grid,
         })
     }
 
@@ -131,9 +108,6 @@ impl Renderer {
                 pass.set_uniform(1, &line_object.transform.uniform);
                 pass.draw(&line_object.lines.vertices);
             }
-
-            pass.set_grid_pipeline(&self.grid_pipeline);
-            pass.draw_indexed(&self.grid.vertices, &self.grid.triangles);
 
             pass.set_gizmo_pipeline(&self.gizmo_pipeline);
             for gizmo_object in &scene.gizmo_objects {

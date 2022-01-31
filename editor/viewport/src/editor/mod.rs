@@ -3,6 +3,7 @@ mod elements;
 mod graphics;
 mod scene;
 mod tools;
+mod grid;
 
 use asset_id::{GizmoID, PropID, TextureID};
 use renderer::{

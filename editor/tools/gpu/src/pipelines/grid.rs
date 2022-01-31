@@ -1,7 +1,7 @@
 use wgpu::{
-    vertex_attr_array, CompareFunction, DepthStencilState, Face, FragmentState, FrontFace,
-    MultisampleState, PipelineLayoutDescriptor, PolygonMode, PrimitiveState, PrimitiveTopology,
-    RenderPipeline, RenderPipelineDescriptor, ShaderModuleDescriptor, ShaderSource, TextureFormat,
+    vertex_attr_array, CompareFunction, DepthStencilState, FragmentState, MultisampleState,
+    PipelineLayoutDescriptor, PrimitiveState, PrimitiveTopology, RenderPipeline,
+    RenderPipelineDescriptor, ShaderModuleDescriptor, ShaderSource, TextureFormat,
     VertexBufferLayout, VertexState, VertexStepMode,
 };
 
@@ -28,31 +28,25 @@ impl GpuHandle {
                             .device
                             .create_pipeline_layout(&PipelineLayoutDescriptor {
                                 label: None,
-                                bind_group_layouts: &[&uniform_layout.inner],
+                                bind_group_layouts: &[&uniform_layout.inner, &uniform_layout.inner],
                                 push_constant_ranges: &[],
                             }),
                     ),
                     vertex: VertexState {
                         module: &module,
                         entry_point: "vs_main",
-                        buffers: &[
-                            VertexBufferLayout {
-                                array_stride: 12,
-                                step_mode: VertexStepMode::Vertex,
-                                attributes: &vertex_attr_array![
-                                    0 => Float32x3,
-                                ],
-                            },
-                        ],
+                        buffers: &[VertexBufferLayout {
+                            array_stride: 24,
+                            step_mode: VertexStepMode::Vertex,
+                            attributes: &vertex_attr_array![
+                                0 => Float32x3,
+                                1 => Float32x3,
+                            ],
+                        }],
                     },
                     primitive: PrimitiveState {
-                        topology: PrimitiveTopology::TriangleList,
-                        strip_index_format: None,
-                        front_face: FrontFace::Ccw,
-                        cull_mode: Some(Face::Back),
-                        unclipped_depth: false,
-                        polygon_mode: PolygonMode::Fill,
-                        conservative: false,
+                        topology: PrimitiveTopology::LineList,
+                        ..Default::default()
                     },
                     depth_stencil: Some(DepthStencilState {
                         format: TextureFormat::Depth32Float,
