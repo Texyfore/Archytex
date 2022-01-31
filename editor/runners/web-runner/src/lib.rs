@@ -60,18 +60,22 @@ pub struct BrowserEndpoint {
 
 #[wasm_bindgen]
 impl BrowserEndpoint {
+    #[wasm_bindgen(js_name = "addTexture")]
     pub fn add_texture(&mut self, id: u32, buf: Vec<u8>) {
         self.textures.push((id, buf));
     }
 
-    pub fn add_props(&mut self, id: u32, buf: Vec<u8>) {
+    #[wasm_bindgen(js_name = "addProp")]
+    pub fn add_prop(&mut self, id: u32, buf: Vec<u8>) {
         self.props.push((id, buf));
     }
 
-    pub fn add_gizmos(&mut self, id: u32, buf: Vec<u8>) {
+    #[wasm_bindgen(js_name = "addGizmo")]
+    pub fn add_gizmo(&mut self, id: u32, buf: Vec<u8>) {
         self.gizmos.push((id, buf));
     }
 
+    #[wasm_bindgen(js_name = "sendResources")]
     pub fn send_resources(&mut self) {
         self.sender
             .send(IpcMessage::Resources {
@@ -94,6 +98,14 @@ impl BrowserEndpoint {
             .ok();
     }
 
+    #[wasm_bindgen(js_name = "setResolution")]
+    pub fn set_resolution(&self, width: u32, height: u32) {
+        self.sender
+            .send(IpcMessage::Resolution { width, height })
+            .ok();
+    }
+
+    #[wasm_bindgen(js_name = "setEditorMode")]
     pub fn set_editor_mode(&self, mode: i32) {
         self.sender
             .send(IpcMessage::EditorMode(match mode {
@@ -106,24 +118,29 @@ impl BrowserEndpoint {
             .ok();
     }
 
+    #[wasm_bindgen(js_name = "setGridStep")]
     pub fn set_grid_step(&self, step: i32) {
         self.sender.send(IpcMessage::GridStep(step)).ok();
     }
 
+    #[wasm_bindgen(js_name = "setCurrentTexture")]
     pub fn set_current_texture(&self, id: u32) {
         self.sender
             .send(IpcMessage::CurrentTexture(TextureID(id)))
             .ok();
     }
 
+    #[wasm_bindgen(js_name = "setCurrentProp")]
     pub fn set_current_prop(&self, id: u32) {
         self.sender.send(IpcMessage::CurrentProp(PropID(id))).ok();
     }
 
+    #[wasm_bindgen(js_name = "requestCameraSpeed")]
     pub fn request_camera_speed(&self) {
         self.sender.send(IpcMessage::RequestCameraSpeed).ok();
     }
 
+    #[wasm_bindgen(js_name = "requestGridStep")]
     pub fn request_grid_step(&self) {
         self.sender.send(IpcMessage::RequestGridStep).ok();
     }
@@ -141,7 +158,7 @@ impl IpcHost for WasmEndpoint {
     fn recv(&self) -> Option<IpcMessage> {
         self.receiver.try_recv().ok()
     }
-    
+
     fn send_editor_mode(&self, mode: i32) {
         self.editor_mode_changed
             .call1(&JsValue::NULL, &JsValue::from(mode))

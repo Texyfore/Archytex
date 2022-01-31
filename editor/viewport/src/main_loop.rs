@@ -2,6 +2,7 @@ use cgmath::Vector2;
 use instant::Instant;
 use renderer::{scene::Scene, Renderer};
 use winit::{
+    dpi::PhysicalSize,
     event::{ElementState, MouseButton, VirtualKeyCode},
     window::Window,
 };
@@ -13,6 +14,7 @@ use crate::{
 };
 
 pub struct MainLoop {
+    window: Window,
     renderer: Renderer,
     input: Input,
     editor: Editor,
@@ -20,8 +22,8 @@ pub struct MainLoop {
 }
 
 impl MainLoop {
-    pub fn new(window: &Window) -> Self {
-        let mut renderer = Renderer::new(window).unwrap();
+    pub fn new(window: Window) -> Self {
+        let mut renderer = Renderer::new(&window).unwrap();
         let input = Input::default();
         let mut editor = Editor::default();
 
@@ -32,6 +34,7 @@ impl MainLoop {
         }
 
         Self {
+            window,
             renderer,
             input,
             editor,
@@ -56,6 +59,9 @@ impl MainLoop {
                     for (id, buf) in gizmos {
                         self.renderer.load_gizmo(id, &buf).unwrap();
                     }
+                }
+                IpcMessage::Resolution { width, height } => {
+                    self.window.set_inner_size(PhysicalSize::new(width, height));
                 }
                 IpcMessage::EditorMode(mode) => {
                     match mode {

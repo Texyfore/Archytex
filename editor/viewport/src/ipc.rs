@@ -13,6 +13,10 @@ pub enum IpcMessage {
         props: Vec<(PropID, Vec<u8>)>,
         gizmos: Vec<(GizmoID, Vec<u8>)>,
     },
+    Resolution {
+        width: u32,
+        height: u32,
+    },
     EditorMode(EditorMode),
     GridStep(i32),
     CameraSpeed(i32),
