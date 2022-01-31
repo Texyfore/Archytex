@@ -109,6 +109,12 @@ impl Renderer {
                 pass.draw(&line_object.lines.vertices);
             }
 
+            pass.set_grid_pipeline(&self.grid_pipeline);
+            for grid_object in &scene.grid_objects {
+                pass.set_uniform(1, &grid_object.info.uniform);
+                pass.draw(&grid_object.lines.vertices);
+            }
+
             pass.set_gizmo_pipeline(&self.gizmo_pipeline);
             for gizmo_object in &scene.gizmo_objects {
                 if let Some(mesh) = self.gizmos.get(&gizmo_object.id) {

@@ -1,9 +1,9 @@
 mod camera;
 mod elements;
 mod graphics;
+mod grid;
 mod scene;
 mod tools;
-mod grid;
 
 use asset_id::{GizmoID, PropID, TextureID};
 use renderer::{
@@ -17,6 +17,7 @@ use crate::{input::Input, ipc::IpcHost};
 use self::{
     camera::Camera,
     graphics::Graphics,
+    grid::Grid,
     scene::Scene,
     tools::{face, point, solid, Tool},
 };
@@ -24,9 +25,9 @@ use self::{
 pub struct Editor {
     camera: Camera,
     scene: Scene,
+    grid: Grid,
     tool: Box<dyn Tool>,
     graphics: Option<Graphics>,
-    grid_step: i32,
     current_texture: TextureID,
     current_prop: PropID,
 }
@@ -36,9 +37,9 @@ impl Default for Editor {
         Self {
             camera: Camera::default(),
             scene: Scene::default(),
+            grid: Grid::default(),
             tool: Box::new(solid::Hub::default()),
             graphics: None,
-            grid_step: 100,
             current_texture: TextureID(0),
             current_prop: PropID(0),
         }
@@ -76,10 +77,14 @@ impl Editor {
             self.scene
                 .regen(ctx.renderer, &mut self.graphics, self.tool.element_mask());
         }
+
+        self.grid.regen(ctx.renderer);
     }
 
     pub fn render(&self, scene: &mut RenderScene) {
         scene.set_camera_matrices(self.camera.matrix(), self.camera.projection());
+        self.grid.render(scene);
+        self.tool.render(scene);
 
         if let Some(graphics) = &self.graphics {
             for mesh_object in &graphics.solid_objects {
@@ -92,8 +97,6 @@ impl Editor {
                 instances: graphics.point_gizmos.clone(),
             });
         }
-
-        self.tool.render(scene);
     }
 
     pub fn window_resized(&mut self, width: u32, height: u32) {
@@ -118,7 +121,7 @@ impl Editor {
     }
 
     pub fn set_grid_step(&mut self, step: i32) {
-        self.grid_step = step;
+        self.grid.set_step(step);
     }
 
     pub fn set_camera_speed(&mut self, speed: i32) {
@@ -138,7 +141,7 @@ impl Editor {
     }
 
     pub fn request_grid_step(&self) -> i32 {
-        self.grid_step
+        self.grid.step()
     }
 }
 
