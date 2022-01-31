@@ -4,13 +4,14 @@ mod graphics;
 mod scene;
 mod tools;
 
-use asset_id::GizmoID;
+use asset_id::{GizmoID, PropID, TextureID};
 use renderer::{
     scene::{GizmoObject, Scene as RenderScene},
     Renderer,
 };
+use winit::event::VirtualKeyCode;
 
-use crate::input::Input;
+use crate::{input::Input, ipc::IpcHost};
 
 use self::{
     camera::Camera,
@@ -24,6 +25,9 @@ pub struct Editor {
     scene: Scene,
     tool: Box<dyn Tool>,
     graphics: Option<Graphics>,
+    grid_step: i32,
+    current_texture: TextureID,
+    current_prop: PropID,
 }
 
 impl Default for Editor {
@@ -33,12 +37,26 @@ impl Default for Editor {
             scene: Scene::default(),
             tool: Box::new(solid::Hub::default()),
             graphics: None,
+            grid_step: 100,
+            current_texture: TextureID(0),
+            current_prop: PropID(0),
         }
     }
 }
 
 impl Editor {
-    pub fn process(&mut self, ctx: Context) {
+    pub fn process<H: IpcHost>(&mut self, ctx: Context<H>) {
+        if ctx.input.is_key_down_once(VirtualKeyCode::Key1) {
+            self.change_tool(0);
+            ctx.host.send_editor_mode(0);
+        } else if ctx.input.is_key_down_once(VirtualKeyCode::Key2) {
+            self.change_tool(1);
+            ctx.host.send_editor_mode(1);
+        } else if ctx.input.is_key_down_once(VirtualKeyCode::Key3) {
+            self.change_tool(2);
+            ctx.host.send_editor_mode(2);
+        }
+
         let mut tool_ctx = tools::Context::new(
             ctx.delta,
             ctx.input,
@@ -46,23 +64,6 @@ impl Editor {
             &mut self.camera,
             &mut self.scene,
         );
-
-        if ctx
-            .input
-            .is_key_down_once(winit::event::VirtualKeyCode::Key1)
-        {
-            self.tool = Box::new(solid::Hub::default());
-        } else if ctx
-            .input
-            .is_key_down_once(winit::event::VirtualKeyCode::Key2)
-        {
-            self.tool = Box::new(face::Hub::default());
-        } else if ctx
-            .input
-            .is_key_down_once(winit::event::VirtualKeyCode::Key3)
-        {
-            self.tool = Box::new(point::Hub::default());
-        }
 
         self.tool.process(&mut tool_ctx);
 
@@ -97,10 +98,52 @@ impl Editor {
     pub fn window_resized(&mut self, width: u32, height: u32) {
         self.camera.recreate_projection(width, height);
     }
+
+    pub fn change_tool(&mut self, tool_id: i32) {
+        if self.tool.cancellable() {
+            match tool_id {
+                0 => {
+                    self.tool = Box::new(solid::Hub::default());
+                }
+                1 => {
+                    self.tool = Box::new(face::Hub::default());
+                }
+                2 => {
+                    self.tool = Box::new(point::Hub::default());
+                }
+                _ => {}
+            }
+        }
+    }
+
+    pub fn set_grid_step(&mut self, step: i32) {
+        self.grid_step = step;
+    }
+
+    pub fn set_camera_speed(&mut self, speed: i32) {
+        self.camera.set_speed(speed);
+    }
+
+    pub fn set_current_texture(&mut self, texture: TextureID) {
+        self.current_texture = texture;
+    }
+
+    pub fn set_current_prop(&mut self, prop: PropID) {
+        self.current_prop = prop
+    }
+
+    pub fn request_camera_speed(&self) -> i32 {
+        self.camera.speed()
+    }
+
+    pub fn request_grid_step(&self) -> i32 {
+        self.grid_step
+    }
 }
 
-pub struct Context<'a> {
+pub struct Context<'a, H: IpcHost> {
     pub delta: f32,
+    pub host: &'a H,
     pub input: &'a Input,
     pub renderer: &'a Renderer,
 }

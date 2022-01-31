@@ -90,6 +90,10 @@ impl Tool for Hub {
     fn element_mask(&self) -> ElementKind {
         ElementKind::Solid
     }
+
+    fn cancellable(&self) -> bool {
+        true
+    }
 }
 
 struct Add {

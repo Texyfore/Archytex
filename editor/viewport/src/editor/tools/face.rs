@@ -51,6 +51,10 @@ impl Tool for Hub {
     fn element_mask(&self) -> ElementKind {
         ElementKind::Face
     }
+
+    fn cancellable(&self) -> bool {
+        true
+    }
 }
 
 #[derive(Default)]

@@ -45,6 +45,10 @@ impl Tool for Hub {
     fn element_mask(&self) -> ElementKind {
         ElementKind::Point
     }
+
+    fn cancellable(&self) -> bool {
+        true
+    }
 }
 
 #[derive(Default)]

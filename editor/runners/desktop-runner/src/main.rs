@@ -11,11 +11,9 @@ impl IpcHost for DummyIpcHost {
         None
     }
 
-    fn log(&self, message: String) {
-        println!("{}", message);
-    }
+    fn send_editor_mode(&self, _mode: i32) {}
 
-    fn error(&self, message: String) {
-        panic!("{}", message)
-    }
+    fn send_camera_speed(&self, _speed: i32) {}
+
+    fn send_grid_step(&self, _step: i32) {}
 }

@@ -6,6 +6,7 @@ use std::{collections::HashMap, rc::Rc};
 use asset_id::{GizmoID, TextureID};
 use bytemuck::{Pod, Zeroable};
 use cgmath::vec3;
+use formats::agzm;
 use gpu::{
     data::{
         DepthBuffer, TextureLayout, {Uniform, UniformLayout},
@@ -171,14 +172,28 @@ impl Renderer {
         Ok(())
     }
 
-    pub fn load_gizmo(&mut self, id: GizmoID, vertices: &[gizmo::Vertex], triangles: &[[u16; 3]]) {
+    pub fn load_gizmo(&mut self, id: GizmoID, buf: &[u8]) -> Result<(), LoadGizmoError> {
+        let gizmo = agzm::Mesh::decode(buf)?;
+
+        let vertices = gizmo
+            .vertices
+            .iter()
+            .map(|vertex| gizmo::Vertex {
+                position: vertex.position,
+            })
+            .collect::<Vec<_>>();
+
         self.gizmos.insert(
             id,
             Rc::new(gizmo::Mesh {
-                vertices: self.gpu.create_buffer(vertices, BufferUsages::VERTEX),
-                triangles: self.gpu.create_buffer(triangles, BufferUsages::INDEX),
+                vertices: self.gpu.create_buffer(&vertices, BufferUsages::VERTEX),
+                triangles: self
+                    .gpu
+                    .create_buffer(&gizmo.triangles, BufferUsages::INDEX),
             }),
         );
+
+        Ok(())
     }
 }
 
@@ -198,6 +213,12 @@ pub enum RenderError {
 pub enum LoadTextureError {
     #[error("Couldn't load texture: {0}")]
     BadBuffer(#[from] ImageError),
+}
+
+#[derive(Error, Debug)]
+pub enum LoadGizmoError {
+    #[error("Couldn't load gizmo: {0}")]
+    BadBuffer(#[from] agzm::DecodeError),
 }
 
 struct Texture {
