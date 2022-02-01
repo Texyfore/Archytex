@@ -1,6 +1,6 @@
-pub mod solid;
 pub mod face;
 pub mod point;
+pub mod solid;
 
 mod context;
 mod generic;
@@ -12,11 +12,14 @@ pub use self::context::Context;
 
 use super::elements::ElementKind;
 
-
 pub trait Tool {
     fn process(&mut self, ctx: &mut Context);
     fn render(&self, _scene: &mut Scene) {}
     fn element_mask(&self) -> ElementKind;
+
+    fn cancellable(&self) -> bool {
+        false
+    }
 
     fn process_undo_redo(&mut self, ctx: &mut Context) {
         if ctx.input().is_key_down(VirtualKeyCode::LControl) {

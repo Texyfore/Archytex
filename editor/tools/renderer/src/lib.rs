@@ -5,12 +5,13 @@ use std::{collections::HashMap, rc::Rc};
 
 use asset_id::{GizmoID, TextureID};
 use bytemuck::{Pod, Zeroable};
+use formats::agzm;
 use gpu::{
     data::{
         DepthBuffer, TextureLayout, {Uniform, UniformLayout},
     },
     handle::GpuHandle,
-    pipelines::{GizmoPipeline, LinePipeline, SolidPipeline},
+    pipelines::{GizmoPipeline, GridPipeline, LinePipeline, SolidPipeline},
     BufferUsages, Sampler,
 };
 use image::{EncodableLayout, ImageError};
@@ -28,6 +29,7 @@ pub struct Renderer {
 
     mesh_pipeline: SolidPipeline,
     line_pipeline: LinePipeline,
+    grid_pipeline: GridPipeline,
     gizmo_pipeline: GizmoPipeline,
 
     camera_uniform: Uniform<CameraBlock>,
@@ -47,6 +49,7 @@ impl Renderer {
 
         let mesh_pipeline = gpu.create_mesh_pipeline(&uniform_layout, &texture_layout);
         let line_pipeline = gpu.create_line_pipeline(&uniform_layout);
+        let grid_pipeline = gpu.create_grid_pipeline(&uniform_layout);
         let gizmo_pipeline = gpu.create_gizmo_pipeline(&uniform_layout);
 
         let camera_uniform = gpu.create_uniform(&uniform_layout);
@@ -62,6 +65,7 @@ impl Renderer {
             texture_layout,
             mesh_pipeline,
             line_pipeline,
+            grid_pipeline,
             gizmo_pipeline,
             camera_uniform,
             sampler,
@@ -105,6 +109,12 @@ impl Renderer {
                 pass.draw(&line_object.lines.vertices);
             }
 
+            pass.set_grid_pipeline(&self.grid_pipeline);
+            for grid_object in &scene.grid_objects {
+                pass.set_uniform(1, &grid_object.info.uniform);
+                pass.draw(&grid_object.lines.vertices);
+            }
+
             pass.set_gizmo_pipeline(&self.gizmo_pipeline);
             for gizmo_object in &scene.gizmo_objects {
                 if let Some(mesh) = self.gizmos.get(&gizmo_object.id) {
@@ -142,14 +152,28 @@ impl Renderer {
         Ok(())
     }
 
-    pub fn load_gizmo(&mut self, id: GizmoID, vertices: &[gizmo::Vertex], triangles: &[[u16; 3]]) {
+    pub fn load_gizmo(&mut self, id: GizmoID, buf: &[u8]) -> Result<(), LoadGizmoError> {
+        let gizmo = agzm::Mesh::decode(buf)?;
+
+        let vertices = gizmo
+            .vertices
+            .iter()
+            .map(|vertex| gizmo::Vertex {
+                position: vertex.position,
+            })
+            .collect::<Vec<_>>();
+
         self.gizmos.insert(
             id,
             Rc::new(gizmo::Mesh {
-                vertices: self.gpu.create_buffer(vertices, BufferUsages::VERTEX),
-                triangles: self.gpu.create_buffer(triangles, BufferUsages::INDEX),
+                vertices: self.gpu.create_buffer(&vertices, BufferUsages::VERTEX),
+                triangles: self
+                    .gpu
+                    .create_buffer(&gizmo.triangles, BufferUsages::INDEX),
             }),
         );
+
+        Ok(())
     }
 }
 
@@ -169,6 +193,12 @@ pub enum RenderError {
 pub enum LoadTextureError {
     #[error("Couldn't load texture: {0}")]
     BadBuffer(#[from] ImageError),
+}
+
+#[derive(Error, Debug)]
+pub enum LoadGizmoError {
+    #[error("Couldn't load gizmo: {0}")]
+    BadBuffer(#[from] agzm::DecodeError),
 }
 
 struct Texture {
