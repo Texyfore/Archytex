@@ -3,7 +3,7 @@ use std::rc::Rc;
 use asset_id::{GizmoID, TextureID};
 use cgmath::{Matrix4, Transform as CgMathTransform};
 
-use crate::data::{gizmo, line, solid, transform::Transform};
+use crate::data::{gizmo, grid, line, solid, transform::Transform};
 
 #[derive(Default)]
 pub struct Scene {
@@ -12,6 +12,7 @@ pub struct Scene {
     pub(crate) solid_objects: Vec<SolidObject>,
     pub(crate) line_objects: Vec<LineObject>,
     pub(crate) gizmo_objects: Vec<GizmoObject>,
+    pub(crate) grid_objects: Vec<GridObject>,
 }
 
 impl Scene {
@@ -30,6 +31,10 @@ impl Scene {
 
     pub fn push_gizmo_object(&mut self, gizmo_object: GizmoObject) {
         self.gizmo_objects.push(gizmo_object);
+    }
+
+    pub fn push_grid_object(&mut self, grid_object: GridObject) {
+        self.grid_objects.push(grid_object);
     }
 }
 
@@ -50,4 +55,10 @@ pub struct LineObject {
 pub struct GizmoObject {
     pub id: GizmoID,
     pub instances: Rc<gizmo::Instances>,
+}
+
+#[derive(Clone)]
+pub struct GridObject {
+    pub lines: Rc<line::Mesh>,
+    pub info: Rc<grid::InfoHolder>,
 }

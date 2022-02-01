@@ -60,6 +60,18 @@ impl Scene {
             .collect()
     }
 
+    pub fn clone_solids(&mut self) -> Vec<Solid> {
+        self.solids
+            .iter_mut()
+            .filter(|(_, solid)| solid.selected)
+            .map(|(_, solid)| {
+                let new = solid.clone();
+                solid.selected = false;
+                new
+            })
+            .collect()
+    }
+
     pub fn unhide_all(&mut self) {
         self.hidden_solids.clear();
     }
@@ -200,12 +212,18 @@ impl Scene {
 
     fn execute_action(&mut self, action: Action) -> Option<Action> {
         match action {
-            Action::AddSolid(solid) => {
-                let id = SolidID(self.next_solid_id);
-                self.next_solid_id += 1;
+            Action::NewSolids(solids) => {
+                let mut ids = Vec::new();
 
-                self.solids.insert(id, solid);
-                Some(Action::RemoveSolids(vec![id]))
+                for solid in solids {
+                    let id = SolidID(self.next_solid_id);
+                    self.next_solid_id += 1;
+
+                    self.solids.insert(id, solid);
+                    ids.push(id);
+                }
+
+                (!ids.is_empty()).then(|| Action::RemoveSolids(ids))
             }
 
             Action::AddSolids(solids) => {
@@ -369,7 +387,7 @@ impl Scene {
 }
 
 pub enum Action {
-    AddSolid(Solid),
+    NewSolids(Vec<Solid>),
     AddSolids(Vec<(SolidID, Solid)>),
     RemoveSolids(Vec<SolidID>),
     RemoveSelectedSolids,

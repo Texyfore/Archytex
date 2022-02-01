@@ -1,18 +1,15 @@
 use cgmath::{
-    perspective, vec2, vec3, Deg, Matrix3, Matrix4, SquareMatrix, Vector2, Vector3,
-    Vector4, Zero,
+    perspective, vec2, vec3, Deg, Matrix3, Matrix4, SquareMatrix, Vector2, Vector3, Vector4, Zero,
 };
 
 use crate::math::Ray;
-
-const SPEED_MULTIPLIER: f32 = 1.1;
 
 pub struct Camera {
     position: Vector3<f32>,
     rotation: Vector2<f32>,
     projection: Matrix4<f32>,
     viewport_size: Vector2<f32>,
-    speed: f32,
+    speed: i32,
 }
 
 impl Default for Camera {
@@ -22,7 +19,7 @@ impl Default for Camera {
             rotation: vec2(-45.0, 45.0),
             projection: Matrix4::identity(),
             viewport_size: Vector2::zero(),
-            speed: 8.0,
+            speed: 50,
         }
     }
 }
@@ -30,7 +27,13 @@ impl Default for Camera {
 impl Camera {
     pub fn recreate_projection(&mut self, width: u32, height: u32) {
         let (width, height) = (width as f32, height as f32);
-        self.projection = perspective(Deg(80.0), width / height, 0.1, 100.0);
+        let speed = self.speed_multiplier();
+        self.projection = perspective(
+            Deg(80.0),
+            width / height,
+            0.1 * speed / 4.0,
+            100.0 * speed / 4.0,
+        );
         self.viewport_size = Vector2::new(width, height)
     }
 
@@ -45,27 +48,27 @@ impl Camera {
     }
 
     pub fn move_forward(&mut self, delta: f32) {
-        self.position += self.forward() * self.speed * delta;
+        self.position += self.forward() * self.speed_multiplier() * delta;
     }
 
     pub fn move_backward(&mut self, delta: f32) {
-        self.position -= self.forward() * self.speed * delta;
+        self.position -= self.forward() * self.speed_multiplier() * delta;
     }
 
     pub fn move_right(&mut self, delta: f32) {
-        self.position += self.right() * self.speed * delta;
+        self.position += self.right() * self.speed_multiplier() * delta;
     }
 
     pub fn move_left(&mut self, delta: f32) {
-        self.position -= self.right() * self.speed * delta;
+        self.position -= self.right() * self.speed_multiplier() * delta;
     }
 
     pub fn move_up(&mut self, delta: f32) {
-        self.position += Vector3::unit_y() * self.speed * delta;
+        self.position += Vector3::unit_y() * self.speed_multiplier() * delta;
     }
 
     pub fn move_down(&mut self, delta: f32) {
-        self.position -= Vector3::unit_y() * self.speed * delta;
+        self.position -= Vector3::unit_y() * self.speed_multiplier() * delta;
     }
 
     pub fn look(&mut self, mouse_delta: Vector2<f32>, delta: f32) {
@@ -76,11 +79,13 @@ impl Camera {
     }
 
     pub fn increase_speed(&mut self) {
-        self.speed *= SPEED_MULTIPLIER;
+        self.speed += 1;
+        self.recreate_projection(self.viewport_size.x as u32, self.viewport_size.y as u32);
     }
 
     pub fn decrease_speed(&mut self) {
-        self.speed /= SPEED_MULTIPLIER;
+        self.speed -= 1;
+        self.recreate_projection(self.viewport_size.x as u32, self.viewport_size.y as u32);
     }
 
     pub fn screen_ray(&self, coords: Vector2<f32>) -> Ray {
@@ -101,6 +106,14 @@ impl Camera {
         Ray { start: a, end: b }
     }
 
+    pub fn set_speed(&mut self, speed: i32) {
+        self.speed = speed;
+    }
+
+    pub fn speed(&self) -> i32 {
+        self.speed
+    }
+
     fn forward(&self) -> Vector3<f32> {
         Matrix3::from_angle_y(Deg(self.rotation.y))
             * Matrix3::from_angle_x(Deg(self.rotation.x))
@@ -111,6 +124,10 @@ impl Camera {
         Matrix3::from_angle_y(Deg(self.rotation.y))
             * Matrix3::from_angle_x(Deg(self.rotation.x))
             * Vector3::unit_x()
+    }
+
+    fn speed_multiplier(&self) -> f32 {
+        8.0 * 1.1f32.powi(self.speed - 50)
     }
 }
 
