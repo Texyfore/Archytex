@@ -32,7 +32,7 @@ impl Tool for Hub {
             let ray = ctx.camera().screen_ray(mouse_pos);
             let elements = ctx.scene_mut().clone_and_hide_solids(ElementKind::Point);
 
-            if let Some(tool) = generic::Move::<MoveProvider>::new(&ray, elements) {
+            if let Some(tool) = generic::Move::<MoveProvider>::new(ray, elements) {
                 ctx.switch_to(Box::new(tool));
                 return;
             }

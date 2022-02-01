@@ -61,7 +61,7 @@ impl Tool for Hub {
             let ray = ctx.camera().screen_ray(mouse_pos);
             let elements = ctx.scene_mut().clone_and_hide_solids(ElementKind::Solid);
 
-            if let Some(tool) = generic::Move::<MoveProvider>::new(&ray, elements) {
+            if let Some(tool) = generic::Move::<MoveProvider>::new(ray, elements) {
                 ctx.switch_to(Box::new(tool));
                 return;
             }
@@ -72,7 +72,7 @@ impl Tool for Hub {
             let ray = ctx.camera().screen_ray(mouse_pos);
             let elements = ctx.scene_mut().clone_solids();
 
-            if let Some(tool) = generic::Move::<CloneProvider>::new(&ray, elements) {
+            if let Some(tool) = generic::Move::<CloneProvider>::new(ray, elements) {
                 ctx.switch_to(Box::new(tool));
                 return;
             }
