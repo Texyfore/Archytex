@@ -1,0 +1,1 @@
+wasm-pack build --debug -d ../../../pkg editor/runners/web-runner

@@ -80,14 +80,49 @@ impl Solid {
 }
 
 impl Movable for Solid {
-    fn center(&self) -> Vector3<f32> {
-        let mut center = Vector3::zero();
+    fn center(&self, mask: ElementKind) -> Vector3<f32> {
+        match mask {
+            ElementKind::Solid => {
+                let mut center = Vector3::zero();
 
-        for point in &self.points {
-            center += point.meters();
+                for point in &self.points {
+                    center += point.meters();
+                }
+
+                center / self.points.len() as f32
+            }
+            ElementKind::Face => {
+                let mut affecting = [false; 8];
+                for face in self.faces.iter().filter(|face| face.selected) {
+                    for point in face.points {
+                        affecting[point.0] = true;
+                    }
+                }
+
+                let mut center = Vector3::zero();
+                let mut div = 0.0;
+
+                (0..8).for_each(|point| {
+                    if affecting[point] {
+                        center += self.points[point].meters();
+                        div += 1.0;
+                    }
+                });
+
+                center / div
+            }
+            ElementKind::Point => {
+                let mut center = Vector3::zero();
+                let mut div = 0.0;
+                for point in self.points.iter().filter(|point| point.selected) {
+                    center += point.meters();
+                    div += 1.0;
+                }
+
+                center / div
+            }
+            ElementKind::Prop => Vector3::zero(),
         }
-
-        center / self.points.len() as f32
     }
 
     fn displace(&mut self, mask: ElementKind, delta: Vector3<i32>) -> bool {
@@ -146,7 +181,7 @@ impl Point {
     }
 }
 
-pub trait Movable {
-    fn center(&self) -> Vector3<f32>;
+pub trait Movable: Clone {
+    fn center(&self, mask: ElementKind) -> Vector3<f32>;
     fn displace(&mut self, mask: ElementKind, delta: Vector3<i32>) -> bool;
 }

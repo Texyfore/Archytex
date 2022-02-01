@@ -12296,7 +12296,7 @@ verror@1.10.0:
     core-util-is "1.0.2"
     extsprintf "^1.2.0"
 
-"viewport@file:../viewport/pkg":
+"viewport@file:../pkg":
   version "0.1.0"
 
 vm-browserify@^1.0.1:

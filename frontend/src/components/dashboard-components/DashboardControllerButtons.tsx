@@ -23,10 +23,6 @@ export default function DashboardControllerButtons() {
       icon: <Source sx={{ fontSize: { lg: 30, xl: 32 } }} />,
       id: "projects" as SubPage,
     },
-    // {
-    //   text: "Community portfolio",
-    //   icon: <ColorLens sx={{ fontSize: { lg: 30, xl: 32 } }} />,
-    // },
     {
       text: t("settings"),
       icon: <Settings sx={{ fontSize: { lg: 30, xl: 32 } }} />,
