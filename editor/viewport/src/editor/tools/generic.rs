@@ -121,10 +121,11 @@ impl<P: MoveProvider> Move<P> {
     }
 
     fn snap_to_axis(&mut self, ctx: &Context, axis: Axis) {
+        let normal = -self.ray.direction();
         self.plane = Plane {
             origin: self.center,
             normal: match axis {
-                Axis::Y => Vector3::unit_x(),
+                Axis::Y => vec3(normal.x, 0.0, normal.z),
                 _ => Vector3::unit_y(),
             },
         };
@@ -198,8 +199,7 @@ impl<P: MoveProvider> Tool for Move<P> {
 
             let delta = self.snap.snap_vec(end - start);
             if delta != self.delta {
-                let delta2 = delta - self.delta;
-                P::displace(&mut self.elements, delta2);
+                P::displace(&mut self.elements, delta - self.delta);
                 P::regen(ctx.renderer(), &self.elements, &mut self.solid_gfx);
                 self.delta = delta;
             }
