@@ -5,6 +5,7 @@ use std::{
 
 use asset_id::TextureID;
 use cgmath::{vec3, MetricSpace, Vector2, Vector3, Zero};
+use formats::ascn;
 use renderer::Renderer;
 
 use crate::math::{Intersects, Plane, Sphere, Triangle};
@@ -232,6 +233,24 @@ impl Scene {
             },
             graphics,
         );
+    }
+
+    pub fn as_ascn_model(&self) -> ascn::Model {
+        ascn::Model {
+            solids: self
+                .solids
+                .values()
+                .map(|solid| ascn::Solid {
+                    faces: solid.faces.clone().map(|face| ascn::Face {
+                        texture_id: face.texture,
+                        points: face.points.map(|point| ascn::PointID(point.0)),
+                    }),
+                    points: solid.points.clone().map(|point| ascn::Point {
+                        position: point.position,
+                    }),
+                })
+                .collect(),
+        }
     }
 
     fn execute_action(&mut self, action: Action) -> Option<Action> {

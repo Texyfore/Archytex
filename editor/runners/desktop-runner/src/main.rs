@@ -41,4 +41,6 @@ impl IpcHost for DummyIpcHost {
     fn send_camera_speed(&self, _speed: i32) {}
 
     fn send_grid_step(&self, _step: i32) {}
+
+    fn send_scene_dump(&self, _buf: &[u8]) {}
 }

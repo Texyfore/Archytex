@@ -6,6 +6,7 @@ mod scene;
 mod tools;
 
 use asset_id::{GizmoID, PropID, TextureID};
+use formats::ascn;
 use renderer::{
     scene::{GizmoObject, Scene as RenderScene},
     Renderer,
@@ -142,6 +143,16 @@ impl Editor {
 
     pub fn request_grid_step(&self) -> i32 {
         self.grid.step()
+    }
+
+    pub fn request_scene_dump(&self) -> Vec<u8> {
+        let scene = ascn::Scene {
+            camera: self.camera.as_ascn_camera(),
+            model: self.scene.as_ascn_model(),
+            props: vec![],
+        };
+
+        scene.encode().unwrap()
     }
 }
 

@@ -35,18 +35,18 @@ pub struct Face {
 }
 
 #[derive(Clone, Copy, Serialize, Deserialize)]
-pub struct PointID(u8);
+pub struct PointID(pub usize);
 
 #[derive(Serialize, Deserialize)]
 pub struct Point {
-    pub position: Vector3<f32>,
+    pub position: Vector3<i32>,
 }
 
 #[derive(Serialize, Deserialize)]
 pub struct Prop {
     pub prop_id: PropID,
-    pub position: Vector3<f32>,
-    pub rotation: Vector3<f32>,
+    pub position: Vector3<i32>,
+    pub rotation: Vector3<i32>,
 }
 
 impl Scene {
@@ -56,16 +56,6 @@ impl Scene {
 
     pub fn decode(&self, buf: &[u8]) -> Result<Self, DecodeError> {
         Ok(bincode::deserialize(buf)?)
-    }
-}
-
-impl PointID {
-    pub fn new(value: u8) -> Option<Self> {
-        if value < 8 {
-            Some(Self(value))
-        } else {
-            None
-        }
     }
 }
 

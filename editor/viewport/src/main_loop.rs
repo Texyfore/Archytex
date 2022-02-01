@@ -81,6 +81,9 @@ impl MainLoop {
                 IpcMessage::RequestGridStep => {
                     host.send_grid_step(self.editor.request_grid_step());
                 }
+                IpcMessage::RequestSceneDump => {
+                    host.send_scene_dump(&self.editor.request_scene_dump());
+                }
             }
         }
 

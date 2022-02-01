@@ -2,6 +2,7 @@ use cgmath::{
     perspective, vec2, vec3, Deg, Matrix3, Matrix4, SquareMatrix, Transform, Vector2, Vector3,
     Vector4, Zero,
 };
+use formats::ascn;
 
 use crate::math::Ray;
 
@@ -135,6 +136,13 @@ impl Camera {
 
     pub fn speed(&self) -> i32 {
         self.speed
+    }
+
+    pub fn as_ascn_camera(&self) -> ascn::Camera {
+        ascn::Camera {
+            position: self.position,
+            rotation: self.rotation,
+        }
     }
 
     fn forward(&self) -> Vector3<f32> {
