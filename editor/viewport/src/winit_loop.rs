@@ -46,7 +46,7 @@ impl WinitLoop {
     }
 
     pub fn run<H: IpcHost + 'static>(self, host: H) {
-        let mut main_loop = MainLoop::new(&self.window);
+        let mut main_loop = MainLoop::new(self.window);
 
         self.event_loop.run(move |event, _, flow| {
             *flow = ControlFlow::Poll;

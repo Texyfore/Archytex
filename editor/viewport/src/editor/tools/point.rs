@@ -1,8 +1,9 @@
+use cgmath::{Vector3, Zero};
 use renderer::Renderer;
 use winit::event::{MouseButton, VirtualKeyCode};
 
 use crate::editor::{
-    elements::{ElementKind, Solid, SolidID},
+    elements::{ElementKind, Movable, Solid, SolidID},
     graphics::{self, Graphics, MeshGenInput},
     scene::{Action, RaycastHit},
 };
@@ -44,6 +45,10 @@ impl Tool for Hub {
     fn element_mask(&self) -> ElementKind {
         ElementKind::Point
     }
+
+    fn cancellable(&self) -> bool {
+        true
+    }
 }
 
 #[derive(Default)]
@@ -70,9 +75,30 @@ impl generic::SelectProvider for SelectProvider {
 struct MoveProvider;
 
 impl generic::MoveProvider for MoveProvider {
-    type ElementID = SolidID;
+    type Element = (SolidID, Solid);
 
-    type Element = Solid;
+    fn center(elements: &[Self::Element]) -> Vector3<f32> {
+        let mut center = Vector3::zero();
+
+        for (_, solid) in elements {
+            center += solid.center(ElementKind::Point);
+        }
+
+        center / elements.len() as f32
+    }
+
+    fn displace(elements: &mut [Self::Element], delta: Vector3<i32>) {
+        for (_, solid) in elements {
+            solid.displace(ElementKind::Point, delta);
+        }
+    }
+
+    fn action(_elements: &[Self::Element], delta: Vector3<i32>) -> Action {
+        Action::Move {
+            kind: ElementKind::Point,
+            delta,
+        }
+    }
 
     fn parent_tool() -> Box<dyn Tool> {
         Box::new(Hub::default())
@@ -82,11 +108,7 @@ impl generic::MoveProvider for MoveProvider {
         ElementKind::Point
     }
 
-    fn regen(
-        renderer: &Renderer,
-        elements: &[(Self::ElementID, Self::Element)],
-        graphics: &mut Option<Graphics>,
-    ) {
+    fn regen(renderer: &Renderer, elements: &[Self::Element], graphics: &mut Option<Graphics>) {
         graphics::generate(
             MeshGenInput {
                 renderer,
