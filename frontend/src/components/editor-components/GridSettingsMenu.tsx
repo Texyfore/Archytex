@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   Menu,
   List,
@@ -27,6 +27,22 @@ export default function GridSettingsMenu({
   handleGridStepChange,
 }: GridSettingsMenuProps) {
   const { t } = useTranslation();
+
+  const [value, setValue] = useState<number>(2);
+
+  const handleChange = (e: any) => {
+    setValue(e.target.value);
+    handleGridStepChange(e);
+  };
+
+  const calculateValue = (value: number) => {
+    return 10 ** value;
+  };
+  const valueLabelFormat = (value: number) => {
+    return calculateValue(value) >= 100
+      ? `${calculateValue(value) / 100} m`
+      : `${calculateValue(value)} cm`;
+  };
 
   return (
     <Menu
@@ -71,15 +87,23 @@ export default function GridSettingsMenu({
               >
                 <Grid4x4Rounded fontSize='small' />
                 <Slider
+                  value={value}
                   size='small'
-                  defaultValue={gridStep}
-                  step={gridStep === 1 ? 9 : 10}
-                  min={1}
-                  max={10000}
-                  onChange={handleGridStepChange}
+                  step={null}
+                  min={0}
+                  max={3}
+                  // scale={calculateValue}
+                  valueLabelFormat={() => valueLabelFormat(value)}
+                  marks={[
+                    { value: 0, label: "" },
+                    { value: 1, label: "" },
+                    { value: 2, label: "" },
+                    { value: 3, label: "" },
+                  ]}
+                  onChange={handleChange}
                   valueLabelDisplay='auto'
                 />
-                <Grid3x3Rounded fontSize='small' />
+                <Grid3x3Rounded />
               </Stack>
             </Box>
           </Box>
