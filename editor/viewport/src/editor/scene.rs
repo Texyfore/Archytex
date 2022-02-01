@@ -1,12 +1,16 @@
-use std::collections::{HashMap, HashSet};
+use std::{
+    cmp::Ordering,
+    collections::{HashMap, HashSet},
+};
 
 use asset_id::TextureID;
-use cgmath::{vec3, MetricSpace, Vector3, Zero};
+use cgmath::{vec3, MetricSpace, Vector2, Vector3, Zero};
 use renderer::Renderer;
 
-use crate::math::{Intersects, Plane, Ray, Sphere, Triangle};
+use crate::math::{Intersects, Plane, Sphere, Triangle};
 
 use super::{
+    camera::Camera,
     elements::{ElementKind, FaceID, Movable, PointID, PropID, Solid, SolidID},
     graphics::{self, Graphics, MeshGenInput},
 };
@@ -76,7 +80,7 @@ impl Scene {
         self.hidden_solids.clear();
     }
 
-    pub fn raycast(&self, ray: &Ray) -> Option<RaycastHit> {
+    pub fn raycast(&self, screen_pos: Vector2<f32>, camera: &Camera) -> RaycastHit {
         struct HitFace {
             solid_id: SolidID,
             face_id: FaceID,
@@ -89,6 +93,8 @@ impl Scene {
             point_id: PointID,
             point: Vector3<f32>,
         }
+
+        let ray = camera.screen_ray(screen_pos);
 
         let mut hit_faces = Vec::new();
         let mut hit_points = Vec::new();
@@ -132,11 +138,11 @@ impl Scene {
                     radius: dist * 0.1,
                 };
 
-                if let Some(intersection) = ray.intersects(&sphere) {
+                if ray.intersects(&sphere).is_some() {
                     hit_points.push(HitPoint {
                         solid_id: *solid_id,
                         point_id: PointID(i),
-                        point: intersection.point,
+                        point: origin,
                     });
                 }
             }
@@ -149,6 +155,10 @@ impl Scene {
         });
 
         let endpoint = if let Some(hit_face) = hit_faces.first() {
+            let dist_endpoint = hit_face.point.distance2(ray.start);
+            hit_points
+                .retain(|hit_point| hit_point.point.distance2(ray.start) < dist_endpoint - 0.1);
+
             Some(RaycastEndpoint {
                 point: hit_face.point,
                 normal: hit_face.normal,
@@ -163,36 +173,50 @@ impl Scene {
                 normal: vec3(0.0, 1.0, 0.0),
             };
 
-            ray.intersects(&plane).map(|intersection| RaycastEndpoint {
-                point: intersection.point,
-                normal: intersection.normal,
-                kind: RaycastEndpointKind::Ground,
+            ray.intersects(&plane).map(|intersection| {
+                let dist_endpoint = intersection.point.distance2(ray.start);
+                hit_points
+                    .retain(|hit_point| hit_point.point.distance2(ray.start) < dist_endpoint - 0.1);
+
+                RaycastEndpoint {
+                    point: intersection.point,
+                    normal: intersection.normal,
+                    kind: RaycastEndpointKind::Ground,
+                }
             })
         };
 
-        endpoint.map(|endpoint| {
-            let dist_endpoint = endpoint.point.distance2(ray.start);
-            hit_points.retain(|hit_point| hit_point.point.distance2(ray.start) < dist_endpoint);
-
-            hit_points.sort_unstable_by(|a, b| {
-                let dist_a = a.point.distance2(ray.start);
-                let dist_b = b.point.distance2(ray.start);
-                dist_a.partial_cmp(&dist_b).unwrap()
-            });
-
-            if !hit_points.is_empty() {
-                let first_pos = hit_points[0].point;
-                hit_points.retain(|hit_point| hit_point.point.distance2(first_pos) < 0.005 * 0.005);
+        hit_points.sort_unstable_by(|a, b| {
+            if let (Some(a), Some(b)) = (camera.project(a.point), camera.project(b.point)) {
+                let a = screen_pos.distance2(a.truncate());
+                let b = screen_pos.distance2(b.truncate());
+                a.partial_cmp(&b).unwrap()
+            } else {
+                Ordering::Equal
             }
+        });
 
-            RaycastHit {
-                endpoint,
-                points: hit_points
-                    .into_iter()
-                    .map(|hit_point| (hit_point.solid_id, hit_point.point_id))
-                    .collect(),
+        if !hit_points.is_empty() {
+            if let Some(first) = camera.project(hit_points[0].point) {
+                let first = first.truncate();
+                hit_points.retain(|hit_point| {
+                    if let Some(point) = camera.project(hit_point.point) {
+                        let point = point.truncate();
+                        first.distance2(point) < 25.0
+                    } else {
+                        false
+                    }
+                });
             }
-        })
+        }
+
+        RaycastHit {
+            endpoint,
+            points: hit_points
+                .into_iter()
+                .map(|hit_point| (hit_point.solid_id, hit_point.point_id))
+                .collect(),
+        }
     }
 
     pub fn regen(&self, renderer: &Renderer, graphics: &mut Option<Graphics>, mask: ElementKind) {
@@ -412,7 +436,7 @@ pub enum Action {
 
 #[derive(Debug)]
 pub struct RaycastHit {
-    pub endpoint: RaycastEndpoint,
+    pub endpoint: Option<RaycastEndpoint>,
     pub points: Vec<(SolidID, PointID)>,
 }
 

@@ -27,18 +27,15 @@ pub struct Select<P: SelectProvider> {
 impl<P: SelectProvider> Tool for Select<P> {
     fn process(&mut self, ctx: &mut Context) {
         if !ctx.input().is_key_down(VirtualKeyCode::LShift) {
-            ctx.scene().act(P::deselect_action());
+            ctx.scene_mut().act(P::deselect_action());
             ctx.set_regen();
         }
 
-        let mouse_pos = ctx.input().mouse_pos();
-        let ray = ctx.camera().screen_ray(mouse_pos);
-
-        if let Some(hit) = ctx.scene().raycast(&ray) {
-            if let Some(action) = P::select_action(hit) {
-                ctx.scene().act(action);
-                ctx.set_regen();
-            }
+        if let Some(action) =
+            P::select_action(ctx.scene().raycast(ctx.input().mouse_pos(), ctx.camera()))
+        {
+            ctx.scene_mut().act(action);
+            ctx.set_regen();
         }
 
         ctx.switch_to(P::parent_tool());
@@ -63,7 +60,7 @@ pub struct Delete<P: DeleteProvider> {
 
 impl<P: DeleteProvider> Tool for Delete<P> {
     fn process(&mut self, ctx: &mut Context) {
-        ctx.scene().act(P::action());
+        ctx.scene_mut().act(P::action());
         ctx.set_regen();
         ctx.switch_to(P::parent_tool());
     }
@@ -146,8 +143,8 @@ impl<P: MoveProvider> Tool for Move<P> {
         }
 
         if ctx.input().was_button_down_once(MouseButton::Left) {
-            ctx.scene().act(P::action(&self.elements, self.delta));
-            ctx.scene().unhide_all();
+            ctx.scene_mut().act(P::action(&self.elements, self.delta));
+            ctx.scene_mut().unhide_all();
             ctx.set_regen();
             ctx.switch_to(P::parent_tool());
             return;
@@ -157,7 +154,7 @@ impl<P: MoveProvider> Tool for Move<P> {
             || ctx.input().is_key_down_once(VirtualKeyCode::G)
             || ctx.input().is_key_down_once(VirtualKeyCode::Escape)
         {
-            ctx.scene().unhide_all();
+            ctx.scene_mut().unhide_all();
             ctx.set_regen();
             ctx.switch_to(P::parent_tool());
         }

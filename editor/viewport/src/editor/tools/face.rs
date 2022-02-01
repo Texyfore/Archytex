@@ -36,7 +36,7 @@ impl Tool for Hub {
         if ctx.input().is_key_down_once(VirtualKeyCode::G) {
             let mouse_pos = ctx.input().mouse_pos();
             let ray = ctx.camera().screen_ray(mouse_pos);
-            let elements = ctx.scene().clone_and_hide_solids(ElementKind::Face);
+            let elements = ctx.scene_mut().clone_and_hide_solids(ElementKind::Face);
 
             if let Some(tool) = generic::Move::<MoveProvider>::new(&ray, elements) {
                 ctx.switch_to(Box::new(tool));
@@ -62,7 +62,7 @@ struct AssignTexture;
 
 impl Tool for AssignTexture {
     fn process(&mut self, ctx: &mut Context) {
-        ctx.scene().act(Action::AssignTexture(TextureID(1)));
+        ctx.scene_mut().act(Action::AssignTexture(TextureID(1)));
         ctx.set_regen();
         ctx.switch_to(Box::new(Hub::default()));
     }
@@ -81,11 +81,15 @@ impl generic::SelectProvider for SelectProvider {
     }
 
     fn select_action(hit: RaycastHit) -> Option<Action> {
-        match hit.endpoint.kind {
-            RaycastEndpointKind::Face { solid_id, face_id } => {
-                Some(Action::SelectFaces(vec![(solid_id, face_id)]))
+        if let Some(endpoint) = hit.endpoint {
+            match endpoint.kind {
+                RaycastEndpointKind::Face { solid_id, face_id } => {
+                    Some(Action::SelectFaces(vec![(solid_id, face_id)]))
+                }
+                _ => None,
             }
-            _ => None,
+        } else {
+            None
         }
     }
 
