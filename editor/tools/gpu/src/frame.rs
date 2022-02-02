@@ -11,7 +11,7 @@ use wgpu::{
 use crate::{
     data::{Buffer, DepthBuffer, Texture, Uniform},
     handle::GpuHandle,
-    pipelines::{GizmoPipeline, GridPipeline, LinePipeline, SolidPipeline},
+    pipelines::{GizmoPipeline, GridPipeline, LinePipeline, PropPipeline, SolidPipeline},
 };
 
 pub struct Frame {
@@ -83,7 +83,11 @@ pub struct RenderPass<'a> {
 }
 
 impl<'a> RenderPass<'a> {
-    pub fn set_mesh_pipeline(&mut self, pipeline: &'a SolidPipeline) {
+    pub fn set_solid_pipeline(&mut self, pipeline: &'a SolidPipeline) {
+        self.inner.set_pipeline(&pipeline.inner);
+    }
+
+    pub fn set_prop_pipeline(&mut self, pipeline: &'a PropPipeline) {
         self.inner.set_pipeline(&pipeline.inner);
     }
 

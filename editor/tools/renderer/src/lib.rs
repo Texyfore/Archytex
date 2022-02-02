@@ -3,7 +3,7 @@ pub mod scene;
 
 use std::{collections::HashMap, rc::Rc};
 
-use asset_id::{GizmoID, TextureID};
+use asset_id::{GizmoID, PropID, TextureID};
 use bytemuck::{Pod, Zeroable};
 use formats::agzm;
 use gpu::{
@@ -11,14 +11,17 @@ use gpu::{
         DepthBuffer, TextureLayout, {Uniform, UniformLayout},
     },
     handle::GpuHandle,
-    pipelines::{GizmoPipeline, GridPipeline, LinePipeline, SolidPipeline},
+    pipelines::{GizmoPipeline, GridPipeline, LinePipeline, PropPipeline, SolidPipeline},
     BufferUsages, Sampler,
 };
 use image::{EncodableLayout, ImageError};
 use raw_window_handle::HasRawWindowHandle;
 use thiserror::Error;
 
-use self::{data::gizmo, scene::Scene};
+use self::{
+    data::{gizmo, prop},
+    scene::{Scene, PropObject},
+};
 
 pub struct Renderer {
     gpu: GpuHandle,
@@ -27,7 +30,8 @@ pub struct Renderer {
     uniform_layout: UniformLayout,
     texture_layout: TextureLayout,
 
-    mesh_pipeline: SolidPipeline,
+    solid_pipeline: SolidPipeline,
+    prop_pipeline: PropPipeline,
     line_pipeline: LinePipeline,
     grid_pipeline: GridPipeline,
     gizmo_pipeline: GizmoPipeline,
@@ -36,6 +40,7 @@ pub struct Renderer {
     sampler: Sampler,
 
     textures: HashMap<TextureID, Texture>,
+    props: HashMap<PropID, Prop>,
     gizmos: HashMap<GizmoID, Rc<gizmo::Mesh>>,
 }
 
@@ -47,7 +52,8 @@ impl Renderer {
         let uniform_layout = gpu.create_uniform_layout();
         let texture_layout = gpu.create_texture_layout();
 
-        let mesh_pipeline = gpu.create_mesh_pipeline(&uniform_layout, &texture_layout);
+        let solid_pipeline = gpu.create_solid_pipeline(&uniform_layout, &texture_layout);
+        let prop_pipeline = gpu.create_prop_pipeline(&uniform_layout, &texture_layout);
         let line_pipeline = gpu.create_line_pipeline(&uniform_layout);
         let grid_pipeline = gpu.create_grid_pipeline(&uniform_layout);
         let gizmo_pipeline = gpu.create_gizmo_pipeline(&uniform_layout);
@@ -56,6 +62,7 @@ impl Renderer {
         let sampler = gpu.create_sampler();
 
         let textures = HashMap::new();
+        let props = HashMap::new();
         let gizmos = HashMap::new();
 
         Ok(Self {
@@ -63,13 +70,15 @@ impl Renderer {
             depth_buffer,
             uniform_layout,
             texture_layout,
-            mesh_pipeline,
+            solid_pipeline,
+            prop_pipeline,
             line_pipeline,
             grid_pipeline,
             gizmo_pipeline,
             camera_uniform,
             sampler,
             textures,
+            props,
             gizmos,
         })
     }
@@ -94,12 +103,23 @@ impl Renderer {
             let mut pass = frame.begin_pass(&self.depth_buffer, [0.1; 3]);
             pass.set_uniform(0, &self.camera_uniform);
 
-            pass.set_mesh_pipeline(&self.mesh_pipeline);
+            pass.set_solid_pipeline(&self.solid_pipeline);
             for mesh_object in &scene.solid_objects {
-                if let Some(texture) = self.textures.get(&mesh_object.texture_id) {
+                if let Some(texture) = self.textures.get(&mesh_object.texture) {
                     pass.set_uniform(1, &mesh_object.transform.uniform);
                     pass.set_texture(&texture.inner);
                     pass.draw_indexed(&mesh_object.mesh.vertices, &mesh_object.mesh.triangles);
+                }
+            }
+
+            pass.set_prop_pipeline(&self.prop_pipeline);
+            for prop_object in &scene.prop_objects {
+                if let Some(prop) = self.props.get(&prop_object.prop) {
+                    pass.set_uniform(1 , &prop_object.transform.uniform);
+                    for mesh in &prop.meshes {
+                        if let Some(texture) = self.textures.get(&mesh.texture) {
+                        }
+                    }
                 }
             }
 
@@ -212,4 +232,13 @@ struct Texture {
 struct CameraBlock {
     world: [[f32; 4]; 4],
     clip: [[f32; 4]; 4],
+}
+
+struct Prop {
+    meshes: Vec<PropMesh>,
+}
+
+struct PropMesh {
+    texture: TextureID,
+    mesh: prop::Mesh,
 }

@@ -1,15 +1,16 @@
 use std::rc::Rc;
 
-use asset_id::{GizmoID, TextureID};
+use asset_id::{GizmoID, PropID, TextureID};
 use cgmath::{Matrix4, Transform as CgMathTransform};
 
-use crate::data::{gizmo, grid, line, solid, transform::Transform};
+use crate::data::{gizmo, grid, line, solid, uniform::Transform};
 
 #[derive(Default)]
 pub struct Scene {
     pub(crate) camera_world: [[f32; 4]; 4],
     pub(crate) camera_clip: [[f32; 4]; 4],
     pub(crate) solid_objects: Vec<SolidObject>,
+    pub(crate) prop_objects: Vec<PropObject>,
     pub(crate) line_objects: Vec<LineObject>,
     pub(crate) gizmo_objects: Vec<GizmoObject>,
     pub(crate) grid_objects: Vec<GridObject>,
@@ -23,6 +24,10 @@ impl Scene {
 
     pub fn push_solid_object(&mut self, solid_object: SolidObject) {
         self.solid_objects.push(solid_object);
+    }
+
+    pub fn push_prop_object(&mut self, prop_object: PropObject) {
+        self.prop_objects.push(prop_object);
     }
 
     pub fn push_line_object(&mut self, line_object: LineObject) {
@@ -40,9 +45,16 @@ impl Scene {
 
 #[derive(Clone)]
 pub struct SolidObject {
-    pub texture_id: TextureID,
+    pub texture: TextureID,
     pub transform: Rc<Transform>,
     pub mesh: Rc<solid::Mesh>,
+}
+
+#[derive(Clone)]
+pub struct PropObject {
+    pub prop: PropID,
+    pub transform: Rc<Transform>,
+    pub tint: [f32; 4],
 }
 
 #[derive(Clone)]

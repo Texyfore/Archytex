@@ -35,7 +35,7 @@ where
         output
             .solid_objects
             .iter()
-            .map(|solid_object| solid_object.texture_id)
+            .map(|solid_object| solid_object.texture)
             .collect::<Vec<_>>()
     });
 
@@ -136,9 +136,9 @@ where
         solid_objects: batches
             .into_iter()
             .map(|(texture_id, (vertices, triangles))| SolidObject {
-                texture_id,
+                texture: texture_id,
                 transform: transform.clone(),
-                mesh: Rc::new(input.renderer.create_mesh(&vertices, &triangles)),
+                mesh: Rc::new(input.renderer.create_solid(&vertices, &triangles)),
             })
             .collect(),
         line_object: LineObject {
