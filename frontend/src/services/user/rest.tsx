@@ -15,7 +15,7 @@ const USER_URL = `${Environment.base_url}auth/user`;
 const LOGIN_URL = `${Environment.base_url}login`;
 
 function get_fetch(token: string) {
-  return function authenticatedFetch(
+  return async function authenticatedFetch(
     resource: RequestInfo,
     init?: RequestInit
   ) {
@@ -27,7 +27,13 @@ function get_fetch(token: string) {
       ...init,
       headers,
     };
-    return fetch(resource, _init);
+    let result;
+    result = await fetch(resource, _init);
+    let data = await result.json();
+    if (data.error) {
+      throw data.error;
+    }
+    return result;
   };
 }
 
@@ -213,12 +219,15 @@ const RestProvider = ({
           headers: { "Content-Type": "application/octet-stream" },
         });
       },
-      load: async(id: string) => {
-        const result = await internal.fetch(`${Environment.base_url}auth/project/${id}/data`, {
-          method: "GET"
-        });
+      load: async (id: string) => {
+        const result = await internal.fetch(
+          `${Environment.base_url}auth/project/${id}/data`,
+          {
+            method: "GET",
+          }
+        );
         return new Uint8Array(await result.arrayBuffer());
-      }
+      },
     });
   }, [internal]);
   return value == null ? (
