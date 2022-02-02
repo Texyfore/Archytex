@@ -5,6 +5,7 @@ import {
   Checkbox,
   FormControl,
   FormControlLabel,
+  FormHelperText,
   IconButton,
   Input,
   InputAdornment,
@@ -41,15 +42,15 @@ const MaxHeightContainer = styled(Box)(({ theme }) => ({
   },
 }));
 
+type ErrorType = "username" | "password" | "general";
+
 export default function LoginForm() {
   const { t } = useTranslation();
 
   const [showPassword, setShowPassword] = useState(false);
-
   const handleClickShowPassword = () => {
     setShowPassword(!showPassword);
   };
-
   const handleMouseDownPassword = (
     event: React.MouseEvent<HTMLButtonElement>
   ) => {
@@ -59,31 +60,86 @@ export default function LoginForm() {
   const api = useApi();
 
   const [username, setUsername] = useState("");
+  const [usernameError, setUsernameError] = useState("");
+  const handleUsernameChange = (e: any) => {
+    eraseErrors();
+    setUsername(e.target.value);
+  };
+
   const [password, setPassword] = useState("");
+  const [passwordError, setPasswordError] = useState("");
+  const handlePasswordChange = (e: any) => {
+    eraseErrors();
+    setPassword(e.target.value);
+  };
+
+  const [generalError, setGeneralError] = useState("");
+
+  const eraseErrors = () => {
+    setUsernameError("");
+    setPasswordError("");
+    setGeneralError("");
+  };
+
   const [stayLoggedIn, setStayLoggedIn] = useState(false);
+
   const history = useHistory();
   const loginClick = () => {
+    if (username === "") {
+      handleError("Username can't be empty", "username");
+      if (password !== "") {
+        return;
+      }
+    }
+    if (password === "") {
+      handleError("Password can't be empty", "password");
+      return;
+    }
+
     if (api?.state === "not-logged-in") {
       //TODO: Handle login result
-      api.logIn(username, password, stayLoggedIn).then(() => {
-        history.push("/dashboard");
-      });
+      api
+        .logIn(username, password, stayLoggedIn)
+        .then(() => {
+          history.push("/dashboard");
+        })
+        .catch((error) => {
+          handleError(error.message, "general");
+          return;
+        });
+    }
+  };
+
+  const handleError = (errorMessage: string, errorType: ErrorType) => {
+    switch (errorType) {
+      case "username":
+        setUsernameError(errorMessage);
+        break;
+      case "password":
+        setPasswordError(errorMessage);
+        break;
+      case "general":
+        setGeneralError(errorMessage);
+        break;
+
+      default:
+        break;
     }
   };
 
   return (
     <MaxHeightContainer
-      display="flex"
-      justifyContent="center"
-      alignItems="center"
+      display='flex'
+      justifyContent='center'
+      alignItems='center'
       sx={{
         backgroundColor: "background.paper",
       }}
     >
       <Box
-        display="flex"
-        flexDirection="column"
-        justifyContent="center"
+        display='flex'
+        flexDirection='column'
+        justifyContent='center'
         width={{ xs: "100%", md: "unset" }}
         height={{ xs: "100%", md: "unset" }}
         borderRadius={2}
@@ -94,76 +150,83 @@ export default function LoginForm() {
       >
         {/* Login title */}
         <Box
-          width="304px"
-          marginX="auto"
-          display="flex"
-          alignItems="center"
-          justifyContent="center"
+          width='304px'
+          marginX='auto'
+          display='flex'
+          alignItems='center'
+          justifyContent='center'
           marginTop={3}
         >
           <Box
             height={1.01}
             sx={{ backgroundColor: "primary.main" }}
-            width="100%"
+            width='100%'
           />
-          <Typography variant="h6" fontWeight={600} fontSize="1em" paddingX={2}>
+          <Typography variant='h6' fontWeight={600} fontSize='1em' paddingX={2}>
             {t("login").toUpperCase()}
           </Typography>
           <Box
             height={1.01}
             sx={{ backgroundColor: "primary.main" }}
-            width="100%"
+            width='100%'
           />
         </Box>
 
         {/* Input form */}
         <Box
-          display="flex"
-          flexDirection="column"
-          alignItems="center"
+          display='flex'
+          flexDirection='column'
+          alignItems='center'
           paddingX={{ sm: 0, md: 6 }}
           marginBottom={1}
         >
+          {/* Username */}
           <Box
             sx={{ display: "flex", alignItems: "flex-end" }}
-            display="flex"
-            alignItems="flex-end"
-            width="304px"
+            display='flex'
+            alignItems='flex-end'
+            width='304px'
           >
             <AccountCircle sx={{ mr: 1, my: 1 }} />
             <TextField
-              id="standard-required"
+              error={usernameError !== ""}
+              helperText={usernameError}
+              id='standard-required'
               label={t("username")}
-              variant="standard"
-              margin="normal"
+              variant='standard'
+              margin='normal'
               value={username}
-              onChange={(ev) => setUsername(ev.target.value)}
+              onChange={(e) => handleUsernameChange(e)}
             />
           </Box>
+          {/* Password */}
           <Box
-            display="flex"
-            alignItems="flex-end"
-            width="304px"
+            display='flex'
+            alignItems='flex-end'
+            width='304px'
             marginTop={2}
             marginBottom={1}
           >
             <VpnKey sx={{ mr: 1, my: 1 }} />
 
-            <FormControl sx={{ width: "304px" }} variant="standard">
-              <InputLabel htmlFor="adornment-password">
-                {t("password")}
+            <FormControl sx={{ width: "304px" }} variant='standard'>
+              <InputLabel htmlFor='adornment-password'>
+                <Typography color={passwordError !== "" ? "error" : "info"}>
+                  {t("password")}
+                </Typography>
               </InputLabel>
               <Input
+                error={passwordError !== ""}
                 required
-                id="adornment-password"
+                id='adornment-password'
                 type={showPassword ? "text" : "password"}
                 endAdornment={
-                  <InputAdornment position="end">
+                  <InputAdornment position='end'>
                     <IconButton
-                      aria-label="toggle password visibility"
+                      aria-label='toggle password visibility'
                       onClick={handleClickShowPassword}
                       onMouseDown={handleMouseDownPassword}
-                      edge="end"
+                      edge='end'
                       sx={{ marginRight: "0.1px" }}
                     >
                       {showPassword ? <VisibilityOff /> : <Visibility />}
@@ -171,19 +234,27 @@ export default function LoginForm() {
                   </InputAdornment>
                 }
                 value={password}
-                onChange={(ev) => setPassword(ev.target.value)}
+                onChange={(e) => handlePasswordChange(e)}
               />
+              <FormHelperText>
+                <Typography
+                  variant='caption'
+                  color={passwordError !== "" ? "error" : "info"}
+                >
+                  {passwordError}
+                </Typography>
+              </FormHelperText>
             </FormControl>
           </Box>
-
+          {/* Stay signed in */}
           <Box
-            display="flex"
-            justifyContent="start"
-            width="304px"
+            display='flex'
+            justifyContent='start'
+            width='304px'
             marginTop={2}
           >
             <FormControlLabel
-              value="end"
+              value='end'
               control={
                 <Checkbox
                   checked={stayLoggedIn}
@@ -191,57 +262,64 @@ export default function LoginForm() {
                 />
               }
               label={
-                <Typography variant="caption">{t("stay_signed_in")}</Typography>
+                <Typography variant='caption'>{t("stay_signed_in")}</Typography>
               }
-              labelPlacement="end"
+              labelPlacement='end'
             />
           </Box>
+          {/* General error */}
+          <Box marginTop={2}>
+            <Typography color='error' variant='body2'>
+              {generalError}
+            </Typography>
+          </Box>
+          {/* Submit */}
           <Button
-            variant="outlined"
+            variant='outlined'
             sx={{ width: 304, marginY: 2 }}
             onClick={loginClick}
           >
             {t("sign_in")}
           </Button>
-          <Typography variant="caption">{t("dont_have_an_account")}</Typography>
-          <Link variant="caption" href="/register">
+          <Typography variant='caption'>{t("dont_have_an_account")}</Typography>
+          <Link variant='caption' href='/register'>
             {t("sign_up_to_archytex")}
           </Link>
         </Box>
         {/* Use third-party */}
-        <Box display="flex" flexDirection="column" alignItems="center">
+        <Box display='flex' flexDirection='column' alignItems='center'>
           <Box
-            height="100%"
-            display="flex"
-            alignItems="center"
-            justifyContent="center"
+            height='100%'
+            display='flex'
+            alignItems='center'
+            justifyContent='center'
             width={304}
             marginY={2}
           >
             <Box
               height={1.01}
               sx={{ backgroundColor: "GrayText" }}
-              width="100%"
+              width='100%'
             />
             <Typography
-              variant="caption"
+              variant='caption'
               fontWeight={600}
               paddingX={2}
-              color="GrayText"
+              color='GrayText'
             >
               {t("or").toUpperCase()}
             </Typography>
             <Box
               height={1.01}
               sx={{ backgroundColor: "GrayText" }}
-              width="100%"
+              width='100%'
             />
           </Box>
-          <Button variant="contained" sx={{ width: 304, marginY: 2 }}>
+          <Button variant='contained' sx={{ width: 304, marginY: 2 }}>
             {t("sign_in_with_google")}
           </Button>
           <Button
-            variant="contained"
+            variant='contained'
             sx={{
               width: 304,
               marginTop: 2,
