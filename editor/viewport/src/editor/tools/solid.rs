@@ -38,7 +38,7 @@ impl Tool for Hub {
 
         if let Some(last_click_pos) = self.last_click_pos {
             if ctx.input().mouse_pos().distance2(last_click_pos) > 100.0 {
-                let hit = ctx.scene().raycast(ctx.input().mouse_pos(), ctx.camera());
+                let hit = ctx.scene().raycast(last_click_pos, ctx.camera());
                 if let Some(endpoint) = hit.endpoint {
                     ctx.scene_mut().act(Action::DeselectSolids);
                     ctx.set_regen();

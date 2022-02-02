@@ -4,11 +4,11 @@ use std::{
 };
 
 use asset_id::TextureID;
-use cgmath::{vec3, MetricSpace, Vector2, Vector3, Zero};
+use cgmath::{vec3, InnerSpace, MetricSpace, Vector2, Vector3, Zero};
 use formats::ascn;
 use renderer::Renderer;
 
-use crate::math::{Intersects, Plane, Sphere, Triangle};
+use crate::math::{Intersects, Plane, Ray, Sphere, Triangle};
 
 use super::{
     camera::Camera,
@@ -82,28 +82,107 @@ impl Scene {
     }
 
     pub fn raycast(&self, screen_pos: Vector2<f32>, camera: &Camera) -> RaycastHit {
-        struct HitFace {
-            solid_id: SolidID,
-            face_id: FaceID,
-            point: Vector3<f32>,
-            normal: Vector3<f32>,
-        }
-
         struct HitPoint {
             solid_id: SolidID,
             point_id: PointID,
-            point: Vector3<f32>,
+            world: Vector3<f32>,
+            screen: Vector2<f32>,
         }
 
         let ray = camera.screen_ray(screen_pos);
 
-        let mut hit_faces = Vec::new();
+        let mut hit_faces = self.raycast_faces(&ray);
         let mut hit_points = Vec::new();
+
+        for (id, solid) in &self.solids {
+            for (i, point) in solid.points.iter().enumerate() {
+                let origin = point.meters();
+                let dist = origin.distance(ray.start);
+
+                let sphere = Sphere {
+                    origin,
+                    radius: dist * 0.1,
+                };
+
+                if ray.intersects(&sphere).is_some() {
+                    hit_points.push(HitPoint {
+                        solid_id: *id,
+                        point_id: PointID(i),
+                        world: origin,
+                        screen: camera.project(origin).unwrap().truncate(),
+                    });
+                }
+            }
+        }
+
+        hit_faces.sort_unstable_by(|a, b| {
+            let dist_a = a.point.distance2(ray.start);
+            let dist_b = b.point.distance2(ray.start);
+            dist_a.partial_cmp(&dist_b).unwrap()
+        });
+
+        let endpoint = if let Some(hit_face) = hit_faces.first() {
+            Some(RaycastEndpoint {
+                point: hit_face.point,
+                normal: hit_face.normal,
+                kind: RaycastEndpointKind::Face {
+                    solid_id: hit_face.solid_id,
+                    face_id: hit_face.face_id,
+                },
+            })
+        } else {
+            let plane = Plane {
+                origin: Vector3::zero(),
+                normal: Vector3::unit_y(),
+            };
+
+            ray.intersects(&plane).map(|intersection| RaycastEndpoint {
+                point: intersection.point,
+                normal: intersection.normal,
+                kind: RaycastEndpointKind::Ground,
+            })
+        };
+
+        hit_points.sort_unstable_by(|a, b| {
+            let dist_a = screen_pos.distance2(a.screen);
+            let dist_b = screen_pos.distance2(b.screen);
+            dist_a.partial_cmp(&dist_b).unwrap()
+        });
+
+        if !hit_points.is_empty() {
+            let first = hit_points[0].screen;
+            hit_points.retain(|hit| {
+                camera
+                    .project(hit.world)
+                    .unwrap()
+                    .truncate()
+                    .distance2(first)
+                    < 25.0
+            });
+        }
+
+        hit_points.retain(|hit| {
+            let ray = camera.screen_ray(hit.screen);
+            let dist = (hit.world - ray.start).magnitude2() * 0.99;
+            self.raycast_faces(&ray)
+                .iter()
+                .all(|hit| hit.point.distance2(ray.start) > dist)
+        });
+
+        RaycastHit {
+            endpoint,
+            points: hit_points
+                .into_iter()
+                .map(|hit_point| (hit_point.solid_id, hit_point.point_id))
+                .collect(),
+        }
+    }
+
+    fn raycast_faces(&self, ray: &Ray) -> Vec<HitFace> {
+        let mut hit_faces = Vec::new();
 
         for (solid_id, solid) in &self.solids {
             for (i, face) in solid.faces.iter().enumerate() {
-                let face_id = FaceID(i);
-
                 let triangles = [
                     Triangle {
                         a: solid.points[face.points[0].0].meters(),
@@ -121,7 +200,7 @@ impl Scene {
                     if let Some(intersection) = ray.intersects(&triangle) {
                         hit_faces.push(HitFace {
                             solid_id: *solid_id,
-                            face_id,
+                            face_id: FaceID(i),
                             point: intersection.point,
                             normal: intersection.normal,
                         });
@@ -129,95 +208,9 @@ impl Scene {
                     }
                 }
             }
-
-            for (i, point) in solid.points.iter().enumerate() {
-                let origin = point.meters();
-                let dist = origin.distance(ray.start);
-
-                let sphere = Sphere {
-                    origin,
-                    radius: dist * 0.1,
-                };
-
-                if ray.intersects(&sphere).is_some() {
-                    hit_points.push(HitPoint {
-                        solid_id: *solid_id,
-                        point_id: PointID(i),
-                        point: origin,
-                    });
-                }
-            }
         }
 
-        hit_faces.sort_unstable_by(|a, b| {
-            let dist_a = a.point.distance2(ray.start);
-            let dist_b = b.point.distance2(ray.start);
-            dist_a.partial_cmp(&dist_b).unwrap()
-        });
-
-        let endpoint = if let Some(hit_face) = hit_faces.first() {
-            let dist_endpoint = hit_face.point.distance2(ray.start);
-            hit_points
-                .retain(|hit_point| hit_point.point.distance2(ray.start) < dist_endpoint - 0.1);
-
-            Some(RaycastEndpoint {
-                point: hit_face.point,
-                normal: hit_face.normal,
-                kind: RaycastEndpointKind::Face {
-                    solid_id: hit_face.solid_id,
-                    face_id: hit_face.face_id,
-                },
-            })
-        } else {
-            let plane = Plane {
-                origin: Vector3::zero(),
-                normal: vec3(0.0, 1.0, 0.0),
-            };
-
-            ray.intersects(&plane).map(|intersection| {
-                let dist_endpoint = intersection.point.distance2(ray.start);
-                hit_points
-                    .retain(|hit_point| hit_point.point.distance2(ray.start) < dist_endpoint - 0.1);
-
-                RaycastEndpoint {
-                    point: intersection.point,
-                    normal: intersection.normal,
-                    kind: RaycastEndpointKind::Ground,
-                }
-            })
-        };
-
-        hit_points.sort_unstable_by(|a, b| {
-            if let (Some(a), Some(b)) = (camera.project(a.point), camera.project(b.point)) {
-                let a = screen_pos.distance2(a.truncate());
-                let b = screen_pos.distance2(b.truncate());
-                a.partial_cmp(&b).unwrap()
-            } else {
-                Ordering::Equal
-            }
-        });
-
-        if !hit_points.is_empty() {
-            if let Some(first) = camera.project(hit_points[0].point) {
-                let first = first.truncate();
-                hit_points.retain(|hit_point| {
-                    if let Some(point) = camera.project(hit_point.point) {
-                        let point = point.truncate();
-                        first.distance2(point) < 25.0
-                    } else {
-                        false
-                    }
-                });
-            }
-        }
-
-        RaycastHit {
-            endpoint,
-            points: hit_points
-                .into_iter()
-                .map(|hit_point| (hit_point.solid_id, hit_point.point_id))
-                .collect(),
-        }
+        hit_faces
     }
 
     pub fn regen(&self, renderer: &Renderer, graphics: &mut Option<Graphics>, mask: ElementKind) {
@@ -427,6 +420,13 @@ impl Scene {
             }
         }
     }
+}
+
+struct HitFace {
+    solid_id: SolidID,
+    face_id: FaceID,
+    point: Vector3<f32>,
+    normal: Vector3<f32>,
 }
 
 pub enum Action {
