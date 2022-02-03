@@ -2,13 +2,14 @@ package logging
 
 import (
 	"encoding/json"
-	"github.com/gorilla/websocket"
 	"log"
 	"net/http"
+
+	"github.com/gorilla/websocket"
 )
 
 type errorMessage struct {
-	Message   string    `json:"message"`
+	Message   string    `json:"error"`
 	RequestId RequestId `json:"_requestId"`
 }
 
