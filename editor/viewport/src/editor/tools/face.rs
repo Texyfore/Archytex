@@ -12,17 +12,10 @@ use crate::editor::{
 use super::{generic, Context, Tool};
 
 #[derive(Default)]
-pub struct Hub {
-    regen: bool,
-}
+pub struct Hub;
 
 impl Tool for Hub {
     fn process(&mut self, ctx: &mut Context) {
-        if !self.regen {
-            ctx.set_regen();
-            self.regen = true;
-        }
-
         if ctx.input().was_button_down_once(MouseButton::Left) {
             ctx.switch_to(Box::new(generic::Select::<SelectProvider>::default()));
             return;

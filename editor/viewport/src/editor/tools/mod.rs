@@ -1,6 +1,7 @@
 pub mod face;
 pub mod point;
 pub mod solid;
+pub mod prop;
 
 mod context;
 mod generic;

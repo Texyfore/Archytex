@@ -1,10 +1,7 @@
-use std::{
-    cmp::Ordering,
-    collections::{HashMap, HashSet},
-};
+use std::collections::{HashMap, HashSet};
 
-use asset_id::TextureID;
-use cgmath::{vec3, InnerSpace, MetricSpace, Vector2, Vector3, Zero};
+use asset_id::{PropID, TextureID};
+use cgmath::{num_traits::Float, InnerSpace, MetricSpace, Vector2, Vector3, Zero};
 use formats::ascn;
 use renderer::Renderer;
 
@@ -12,14 +9,15 @@ use crate::math::{Intersects, Plane, Ray, Sphere, Triangle};
 
 use super::{
     camera::Camera,
-    elements::{ElementKind, FaceID, Movable, PointID, PropID, Solid, SolidID},
+    elements::{ElementKind, FaceID, Movable, PointID, Prop, Solid, SolidID},
     graphics::{self, Graphics, MeshGenInput},
 };
 
 #[derive(Default)]
 pub struct Scene {
     solids: HashMap<SolidID, Solid>,
-    next_solid_id: u32,
+    props: HashMap<PropID, Prop>,
+    next_entity_id: u32,
     undo_stack: Vec<Action>,
     redo_stack: Vec<Action>,
     hidden_solids: HashSet<SolidID>,
@@ -105,12 +103,15 @@ impl Scene {
                 };
 
                 if ray.intersects(&sphere).is_some() {
-                    hit_points.push(HitPoint {
-                        solid_id: *id,
-                        point_id: PointID(i),
-                        world: origin,
-                        screen: camera.project(origin).unwrap().truncate(),
-                    });
+                    if let Some(screen) = camera.project(origin) {
+                        let screen = screen.truncate();
+                        hit_points.push(HitPoint {
+                            solid_id: *id,
+                            point_id: PointID(i),
+                            world: origin,
+                            screen,
+                        });
+                    }
                 }
             }
         }
@@ -252,8 +253,8 @@ impl Scene {
                 let mut ids = Vec::new();
 
                 for solid in solids {
-                    let id = SolidID(self.next_solid_id);
-                    self.next_solid_id += 1;
+                    let id = SolidID(self.next_entity_id);
+                    self.next_entity_id += 1;
 
                     self.solids.insert(id, solid);
                     ids.push(id);
@@ -263,14 +264,39 @@ impl Scene {
             }
 
             Action::AddSolids(solids) => {
-                let mut solid_ids = Vec::new();
+                let mut ids = Vec::new();
 
-                for (solid_id, solid) in solids {
-                    self.solids.insert(solid_id, solid);
-                    solid_ids.push(solid_id);
+                for (id, solid) in solids {
+                    self.solids.insert(id, solid);
+                    ids.push(id);
                 }
 
-                (!solid_ids.is_empty()).then(|| Action::RemoveSolids(solid_ids))
+                (!ids.is_empty()).then(|| Action::RemoveSolids(ids))
+            }
+
+            Action::NewProps(props) => {
+                let mut ids = Vec::new();
+
+                for prop in props {
+                    let id = PropID(self.next_entity_id);
+                    self.next_entity_id += 1;
+
+                    self.props.insert(id, prop);
+                    ids.push(id);
+                }
+
+                (!ids.is_empty()).then(|| Action::RemoveProps(ids))
+            }
+
+            Action::AddProps(props) => {
+                let mut ids = Vec::new();
+
+                for (id, prop) in props {
+                    self.props.insert(id, prop);
+                    ids.push(id);
+                }
+
+                (!ids.is_empty()).then(|| Action::RemoveProps(ids))
             }
 
             Action::RemoveSolids(ids) => {
@@ -297,6 +323,32 @@ impl Scene {
                 }
 
                 (!solids.is_empty()).then(|| Action::AddSolids(solids))
+            }
+
+            Action::RemoveProps(ids) => {
+                let mut props = Vec::new();
+                for id in ids {
+                    let prop = self.props.remove(&id).unwrap();
+                    props.push((id, prop));
+                }
+
+                (!props.is_empty()).then(|| Action::AddProps(props))
+            }
+
+            Action::RemoveSelectedProps => {
+                let ids = self
+                    .props
+                    .iter()
+                    .filter(|(_, prop)| prop.selected)
+                    .map(|(id, _)| *id)
+                    .collect::<Vec<_>>();
+
+                let mut props = Vec::new();
+                for id in ids {
+                    props.push((id, self.props.remove(&id).unwrap()));
+                }
+
+                (!props.is_empty()).then(|| Action::AddProps(props))
             }
 
             Action::SelectSolids(solid_ids) => {
@@ -371,6 +423,28 @@ impl Scene {
                 (!ids.is_empty()).then(|| Action::SelectPoints(ids))
             }
 
+            Action::SelectProps(ids) => {
+                for id in &ids {
+                    let prop = self.props.get_mut(id).unwrap();
+                    prop.selected = !prop.selected;
+                }
+
+                (!ids.is_empty()).then(|| Action::SelectProps(ids))
+            }
+
+            Action::DeselectProps => {
+                let mut ids = Vec::new();
+
+                for (id, prop) in &mut self.props {
+                    if prop.selected {
+                        prop.selected = false;
+                        ids.push(*id);
+                    }
+                }
+
+                (!ids.is_empty()).then(|| Action::SelectProps(ids))
+            }
+
             Action::AssignTexture(texture) => {
                 let mut old_texture_ids = Vec::new();
 
@@ -432,8 +506,15 @@ struct HitFace {
 pub enum Action {
     NewSolids(Vec<Solid>),
     AddSolids(Vec<(SolidID, Solid)>),
+
+    NewProps(Vec<Prop>),
+    AddProps(Vec<(PropID, Prop)>),
+
     RemoveSolids(Vec<SolidID>),
     RemoveSelectedSolids,
+
+    RemoveProps(Vec<PropID>),
+    RemoveSelectedProps,
 
     SelectSolids(Vec<SolidID>),
     DeselectSolids,
@@ -444,6 +525,9 @@ pub enum Action {
     SelectPoints(Vec<(SolidID, PointID)>),
     DeselectPoints,
 
+    SelectProps(Vec<PropID>),
+    DeselectProps,
+
     AssignTexture(TextureID),
     AssignTextures(Vec<(SolidID, FaceID, TextureID)>),
 
@@ -453,20 +537,17 @@ pub enum Action {
     },
 }
 
-#[derive(Debug)]
 pub struct RaycastHit {
     pub endpoint: Option<RaycastEndpoint>,
     pub points: Vec<(SolidID, PointID)>,
 }
 
-#[derive(Debug)]
 pub struct RaycastEndpoint {
     pub point: Vector3<f32>,
     pub normal: Vector3<f32>,
     pub kind: RaycastEndpointKind,
 }
 
-#[derive(Debug)]
 pub enum RaycastEndpointKind {
     Face { solid_id: SolidID, face_id: FaceID },
     Prop(PropID),

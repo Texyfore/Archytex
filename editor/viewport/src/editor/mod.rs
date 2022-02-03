@@ -20,7 +20,7 @@ use self::{
     graphics::Graphics,
     grid::Grid,
     scene::Scene,
-    tools::{face, point, solid, Tool},
+    tools::{face, point, prop, solid, Tool},
 };
 
 pub struct Editor {
@@ -49,15 +49,20 @@ impl Default for Editor {
 
 impl Editor {
     pub fn process<H: IpcHost>(&mut self, ctx: Context<H>) {
-        if ctx.input.is_key_down_once(VirtualKeyCode::Key1) {
-            self.change_tool(0);
-            ctx.host.send_editor_mode(0);
-        } else if ctx.input.is_key_down_once(VirtualKeyCode::Key2) {
-            self.change_tool(1);
-            ctx.host.send_editor_mode(1);
-        } else if ctx.input.is_key_down_once(VirtualKeyCode::Key3) {
-            self.change_tool(2);
-            ctx.host.send_editor_mode(2);
+        let mut regen = false;
+
+        for (key, id) in [
+            (VirtualKeyCode::Key1, 0),
+            (VirtualKeyCode::Key2, 1),
+            (VirtualKeyCode::Key3, 2),
+            (VirtualKeyCode::Key4, 3),
+        ] {
+            if ctx.input.is_key_down_once(key) {
+                self.change_tool(id);
+                ctx.host.send_editor_mode(id);
+                regen = true;
+                break;
+            }
         }
 
         let mut tool_ctx = tools::Context::new(
@@ -74,7 +79,7 @@ impl Editor {
             self.tool = next_tool;
         }
 
-        if tool_ctx.regen() {
+        if tool_ctx.regen() | regen {
             self.scene
                 .regen(ctx.renderer, &mut self.graphics, self.tool.element_mask());
         }
@@ -115,6 +120,9 @@ impl Editor {
                 }
                 2 => {
                     self.tool = Box::new(point::Hub::default());
+                }
+                3 => {
+                    self.tool = Box::new(prop::Hub::default());
                 }
                 _ => {}
             }

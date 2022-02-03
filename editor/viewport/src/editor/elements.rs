@@ -1,4 +1,4 @@
-use asset_id::TextureID;
+use asset_id::{PropID, TextureID};
 use cgmath::{vec3, ElementWise, Vector3, Zero};
 
 macro_rules! points {
@@ -36,7 +36,6 @@ macro_rules! entity_id {
 entity_id!(SolidID, u32);
 entity_id!(FaceID, usize);
 entity_id!(PointID, usize);
-entity_id!(PropID, u32);
 
 #[derive(Clone, Copy)]
 pub enum ElementKind {
@@ -184,4 +183,22 @@ impl Point {
 pub trait Movable: Clone {
     fn center(&self, mask: ElementKind) -> Vector3<f32>;
     fn displace(&mut self, mask: ElementKind, delta: Vector3<i32>) -> bool;
+}
+
+pub struct Prop {
+    pub id: PropID,
+    pub position: Vector3<i32>,
+    pub rotation: Vector3<i32>,
+    pub selected: bool,
+}
+
+impl Prop {
+    pub fn new(id: PropID, position: Vector3<i32>) -> Self {
+        Self {
+            id,
+            position,
+            rotation: Vector3::zero(),
+            selected: false,
+        }
+    }
 }
