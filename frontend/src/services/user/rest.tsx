@@ -29,8 +29,8 @@ function get_fetch(token: string) {
     };
     let result;
     result = await fetch(resource, _init);
-    let data = await result.json();
-    if (data.error) {
+    if (result.status !== 200) {
+      let data = await result.json();
       throw data.error;
     }
     return result;
@@ -203,7 +203,10 @@ const RestProvider = ({
     setValue({
       state: "logged-in",
       user: internal.user,
-      logOut: () => setInternal(null),
+      logOut: () => {
+        setInternal(null);
+        localStorage.removeItem("token");
+      },
       subscribe: subscribe(internal),
       save: async (data: Uint8Array, id: string) => {
         internal.fetch(`${Environment.base_url}auth/project/${id}/data`, {
