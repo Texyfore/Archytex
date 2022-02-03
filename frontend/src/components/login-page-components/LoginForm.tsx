@@ -16,6 +16,8 @@ import {
 } from "@mui/material";
 import {
   AccountCircle,
+  Apple,
+  Google,
   Visibility,
   VisibilityOff,
   VpnKey,
@@ -23,6 +25,7 @@ import {
 import { styled } from "@mui/material/styles";
 import { useApi } from "../../services/user/api";
 import { useHistory } from "react-router";
+import { Link as L } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 
 const MaxHeightContainer = styled(Box)(({ theme }) => ({
@@ -85,6 +88,8 @@ export default function LoginForm() {
 
   const history = useHistory();
   const loginClick = () => {
+    //TODO: Translate errors
+
     if (username === "") {
       handleError("Username can't be empty", "username");
       if (password !== "") {
@@ -158,17 +163,17 @@ export default function LoginForm() {
           marginTop={3}
         >
           <Box
+            flexGrow={1}
             height={1.01}
             sx={{ backgroundColor: "primary.main" }}
-            width='100%'
           />
           <Typography variant='h6' fontWeight={600} fontSize='1em' paddingX={2}>
             {t("login").toUpperCase()}
           </Typography>
           <Box
+            flexGrow={1}
             height={1.01}
             sx={{ backgroundColor: "primary.main" }}
-            width='100%'
           />
         </Box>
 
@@ -282,7 +287,7 @@ export default function LoginForm() {
             {t("sign_in")}
           </Button>
           <Typography variant='caption'>{t("dont_have_an_account")}</Typography>
-          <Link variant='caption' href='/register'>
+          <Link variant='caption' component={L} to='/register'>
             {t("sign_up_to_archytex")}
           </Link>
         </Box>
@@ -299,7 +304,7 @@ export default function LoginForm() {
             <Box
               height={1.01}
               sx={{ backgroundColor: "GrayText" }}
-              width='100%'
+              flexGrow={1}
             />
             <Typography
               variant='caption'
@@ -312,13 +317,18 @@ export default function LoginForm() {
             <Box
               height={1.01}
               sx={{ backgroundColor: "GrayText" }}
-              width='100%'
+              flexGrow={1}
             />
           </Box>
-          <Button variant='contained' sx={{ width: 304, marginY: 2 }}>
+          <Button
+            variant='contained'
+            sx={{ width: 304, marginY: 2 }}
+            endIcon={<Google fontSize='large' />}
+          >
             {t("sign_in_with_google")}
           </Button>
           <Button
+            endIcon={<Apple fontSize='large' />}
             variant='contained'
             sx={{
               width: 304,
