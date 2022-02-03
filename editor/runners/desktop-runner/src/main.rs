@@ -1,6 +1,6 @@
 use std::sync::mpsc::{channel, Receiver};
 
-use asset_id::{GizmoID, TextureID};
+use asset_id::{GizmoID, PropID, TextureID};
 use viewport::ipc::{IpcHost, IpcMessage};
 
 fn main() {
@@ -17,7 +17,7 @@ fn main() {
                 include_bytes!("../assets/bricks.png").to_vec(),
             ),
         ],
-        props: vec![],
+        props: vec![(PropID(0), include_bytes!("../assets/cube.amdl").to_vec())],
         gizmos: vec![(GizmoID(0), include_bytes!("../assets/gizmo.agzm").to_vec())],
     })
     .unwrap();
@@ -41,4 +41,6 @@ impl IpcHost for DummyIpcHost {
     fn send_camera_speed(&self, _speed: i32) {}
 
     fn send_grid_step(&self, _step: i32) {}
+
+    fn send_scene_dump(&self, _buf: &[u8]) {}
 }

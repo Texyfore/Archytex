@@ -16,7 +16,7 @@ impl Model {
         Ok(bincode::serialize(self)?)
     }
 
-    pub fn decode(&self, buf: &[u8]) -> Result<Self, DecodeError> {
+    pub fn decode(buf: &[u8]) -> Result<Self, DecodeError> {
         Ok(bincode::deserialize(buf)?)
     }
 }

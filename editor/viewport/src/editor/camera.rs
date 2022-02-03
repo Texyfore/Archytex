@@ -1,6 +1,8 @@
 use cgmath::{
-    perspective, vec2, vec3, Deg, Matrix3, Matrix4, SquareMatrix, Vector2, Vector3, Vector4, Zero,
+    perspective, vec2, vec3, Deg, Matrix3, Matrix4, SquareMatrix, Transform, Vector2, Vector3,
+    Vector4, Zero,
 };
+use formats::ascn;
 
 use crate::math::Ray;
 
@@ -106,12 +108,41 @@ impl Camera {
         Ray { start: a, end: b }
     }
 
+    pub fn project(&self, point: Vector3<f32>) -> Option<Vector3<f32>> {
+        let point = point.extend(1.0);
+        let projected = self.projection * self.matrix().inverse_transform().unwrap() * point;
+
+        if projected.w.abs() > 0.00001 {
+            let clip = projected.truncate() / projected.w;
+            if (0.0..1.0).contains(&clip.z)
+                && (-1.0..=1.0).contains(&clip.x)
+                && (-1.0..=1.0).contains(&clip.y)
+            {
+                let moved = vec2(clip.x + 1.0, 2.0 - (clip.y + 1.0)) * 0.5;
+                return Some(vec3(
+                    moved.x * self.viewport_size.x,
+                    moved.y * self.viewport_size.y,
+                    clip.z,
+                ));
+            }
+        }
+
+        None
+    }
+
     pub fn set_speed(&mut self, speed: i32) {
         self.speed = speed;
     }
 
     pub fn speed(&self) -> i32 {
         self.speed
+    }
+
+    pub fn as_ascn_camera(&self) -> ascn::Camera {
+        ascn::Camera {
+            position: self.position,
+            rotation: self.rotation,
+        }
     }
 
     fn forward(&self) -> Vector3<f32> {

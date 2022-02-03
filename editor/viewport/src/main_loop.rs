@@ -50,10 +50,16 @@ impl MainLoop {
         while let Some(message) = host.recv() {
             match message {
                 IpcMessage::Resources {
-                    textures, gizmos, ..
+                    textures,
+                    props,
+                    gizmos,
                 } => {
                     for (id, buf) in textures {
                         self.renderer.load_texture(id, &buf).unwrap();
+                    }
+
+                    for (id, buf) in props {
+                        self.renderer.load_prop(id, &buf).unwrap();
                     }
 
                     for (id, buf) in gizmos {
@@ -80,6 +86,9 @@ impl MainLoop {
                 }
                 IpcMessage::RequestGridStep => {
                     host.send_grid_step(self.editor.request_grid_step());
+                }
+                IpcMessage::RequestSceneDump => {
+                    host.send_scene_dump(&self.editor.request_scene_dump());
                 }
             }
         }

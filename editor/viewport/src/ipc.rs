@@ -5,6 +5,7 @@ pub trait IpcHost {
     fn send_editor_mode(&self, mode: i32);
     fn send_camera_speed(&self, speed: i32);
     fn send_grid_step(&self, step: i32);
+    fn send_scene_dump(&self, buf: &[u8]);
 }
 
 pub enum IpcMessage {
@@ -24,6 +25,7 @@ pub enum IpcMessage {
     CurrentProp(PropID),
     RequestCameraSpeed,
     RequestGridStep,
+    RequestSceneDump,
 }
 
 pub enum EditorMode {

@@ -1,7 +1,7 @@
 use std::sync::mpsc::{channel, Receiver, Sender};
 
 use asset_id::{GizmoID, PropID, TextureID};
-use js_sys::Function;
+use js_sys::{Function, Uint8Array};
 use viewport::ipc::{EditorMode, IpcHost, IpcMessage};
 use wasm_bindgen::prelude::*;
 
@@ -39,12 +39,14 @@ impl Channel {
         editor_mode_changed: Function,
         camera_speed_changed: Function,
         grid_step_changed: Function,
+        scene_dump_received: Function,
     ) -> WasmEndpoint {
         WasmEndpoint {
             receiver: self.receiver.take().unwrap(),
             editor_mode_changed,
             camera_speed_changed,
             grid_step_changed,
+            scene_dump_received,
         }
     }
 }
@@ -152,6 +154,7 @@ pub struct WasmEndpoint {
     editor_mode_changed: Function,
     camera_speed_changed: Function,
     grid_step_changed: Function,
+    scene_dump_received: Function,
 }
 
 impl IpcHost for WasmEndpoint {
@@ -174,6 +177,15 @@ impl IpcHost for WasmEndpoint {
     fn send_grid_step(&self, step: i32) {
         self.grid_step_changed
             .call1(&JsValue::NULL, &JsValue::from(step))
+            .unwrap();
+    }
+
+    fn send_scene_dump(&self, buf: &[u8]) {
+        let array = Uint8Array::from(buf);
+        let array: JsValue = array.into();
+
+        self.scene_dump_received
+            .call1(&JsValue::NULL, &array)
             .unwrap();
     }
 }

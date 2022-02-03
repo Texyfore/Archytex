@@ -1,23 +1,27 @@
 use std::collections::{HashMap, HashSet};
 
-use asset_id::TextureID;
-use cgmath::{vec3, MetricSpace, Vector3, Zero};
+use asset_id::{PropID, TextureID};
+use cgmath::{InnerSpace, MetricSpace, Vector2, Vector3, Zero};
+use formats::ascn;
 use renderer::Renderer;
 
 use crate::math::{Intersects, Plane, Ray, Sphere, Triangle};
 
 use super::{
-    elements::{ElementKind, FaceID, Movable, PointID, PropID, Solid, SolidID},
+    camera::Camera,
+    elements::{ElementKind, FaceID, Movable, PointID, Prop, Solid, SolidID},
     graphics::{self, Graphics, MeshGenInput},
 };
 
 #[derive(Default)]
 pub struct Scene {
     solids: HashMap<SolidID, Solid>,
-    next_solid_id: u32,
+    props: HashMap<PropID, Prop>,
+    next_entity_id: u32,
     undo_stack: Vec<Action>,
     redo_stack: Vec<Action>,
     hidden_solids: HashSet<SolidID>,
+    hidden_props: HashSet<PropID>,
 }
 
 impl Scene {
@@ -76,53 +80,20 @@ impl Scene {
         self.hidden_solids.clear();
     }
 
-    pub fn raycast(&self, ray: &Ray) -> Option<RaycastHit> {
-        struct HitFace {
-            solid_id: SolidID,
-            face_id: FaceID,
-            point: Vector3<f32>,
-            normal: Vector3<f32>,
-        }
-
+    pub fn raycast(&self, screen_pos: Vector2<f32>, camera: &Camera) -> RaycastHit {
         struct HitPoint {
             solid_id: SolidID,
             point_id: PointID,
-            point: Vector3<f32>,
+            world: Vector3<f32>,
+            screen: Vector2<f32>,
         }
 
-        let mut hit_faces = Vec::new();
+        let ray = camera.screen_ray(screen_pos);
+
+        let mut hit_faces = self.raycast_faces(&ray);
         let mut hit_points = Vec::new();
 
-        for (solid_id, solid) in &self.solids {
-            for (i, face) in solid.faces.iter().enumerate() {
-                let face_id = FaceID(i);
-
-                let triangles = [
-                    Triangle {
-                        a: solid.points[face.points[0].0].meters(),
-                        b: solid.points[face.points[1].0].meters(),
-                        c: solid.points[face.points[2].0].meters(),
-                    },
-                    Triangle {
-                        a: solid.points[face.points[0].0].meters(),
-                        b: solid.points[face.points[2].0].meters(),
-                        c: solid.points[face.points[3].0].meters(),
-                    },
-                ];
-
-                for triangle in triangles {
-                    if let Some(intersection) = ray.intersects(&triangle) {
-                        hit_faces.push(HitFace {
-                            solid_id: *solid_id,
-                            face_id,
-                            point: intersection.point,
-                            normal: intersection.normal,
-                        });
-                        break;
-                    }
-                }
-            }
-
+        for (id, solid) in &self.solids {
             for (i, point) in solid.points.iter().enumerate() {
                 let origin = point.meters();
                 let dist = origin.distance(ray.start);
@@ -132,12 +103,16 @@ impl Scene {
                     radius: dist * 0.1,
                 };
 
-                if let Some(intersection) = ray.intersects(&sphere) {
-                    hit_points.push(HitPoint {
-                        solid_id: *solid_id,
-                        point_id: PointID(i),
-                        point: intersection.point,
-                    });
+                if ray.intersects(&sphere).is_some() {
+                    if let Some(screen) = camera.project(origin) {
+                        let screen = screen.truncate();
+                        hit_points.push(HitPoint {
+                            solid_id: *id,
+                            point_id: PointID(i),
+                            world: origin,
+                            screen,
+                        });
+                    }
                 }
             }
         }
@@ -160,7 +135,7 @@ impl Scene {
         } else {
             let plane = Plane {
                 origin: Vector3::zero(),
-                normal: vec3(0.0, 1.0, 0.0),
+                normal: Vector3::unit_y(),
             };
 
             ray.intersects(&plane).map(|intersection| RaycastEndpoint {
@@ -170,29 +145,74 @@ impl Scene {
             })
         };
 
-        endpoint.map(|endpoint| {
-            let dist_endpoint = endpoint.point.distance2(ray.start);
-            hit_points.retain(|hit_point| hit_point.point.distance2(ray.start) < dist_endpoint);
+        hit_points.sort_unstable_by(|a, b| {
+            let dist_a = screen_pos.distance2(a.screen);
+            let dist_b = screen_pos.distance2(b.screen);
+            dist_a.partial_cmp(&dist_b).unwrap()
+        });
 
-            hit_points.sort_unstable_by(|a, b| {
-                let dist_a = a.point.distance2(ray.start);
-                let dist_b = b.point.distance2(ray.start);
-                dist_a.partial_cmp(&dist_b).unwrap()
+        if !hit_points.is_empty() {
+            let first = hit_points[0].screen;
+            hit_points.retain(|hit| {
+                camera
+                    .project(hit.world)
+                    .unwrap()
+                    .truncate()
+                    .distance2(first)
+                    < 25.0
             });
+        }
 
-            if !hit_points.is_empty() {
-                let first_pos = hit_points[0].point;
-                hit_points.retain(|hit_point| hit_point.point.distance2(first_pos) < 0.005 * 0.005);
-            }
+        hit_points.retain(|hit| {
+            let ray = camera.screen_ray(hit.screen);
+            let dist = (hit.world - ray.start).magnitude2() * 0.99;
+            self.raycast_faces(&ray)
+                .iter()
+                .all(|hit| hit.point.distance2(ray.start) > dist)
+        });
 
-            RaycastHit {
-                endpoint,
-                points: hit_points
-                    .into_iter()
-                    .map(|hit_point| (hit_point.solid_id, hit_point.point_id))
-                    .collect(),
+        RaycastHit {
+            endpoint,
+            points: hit_points
+                .into_iter()
+                .map(|hit_point| (hit_point.solid_id, hit_point.point_id))
+                .collect(),
+        }
+    }
+
+    fn raycast_faces(&self, ray: &Ray) -> Vec<HitFace> {
+        let mut hit_faces = Vec::new();
+
+        for (solid_id, solid) in &self.solids {
+            for (i, face) in solid.faces.iter().enumerate() {
+                let triangles = [
+                    Triangle {
+                        a: solid.points[face.points[0].0].meters(),
+                        b: solid.points[face.points[1].0].meters(),
+                        c: solid.points[face.points[2].0].meters(),
+                    },
+                    Triangle {
+                        a: solid.points[face.points[0].0].meters(),
+                        b: solid.points[face.points[2].0].meters(),
+                        c: solid.points[face.points[3].0].meters(),
+                    },
+                ];
+
+                for triangle in triangles {
+                    if let Some(intersection) = ray.intersects(&triangle) {
+                        hit_faces.push(HitFace {
+                            solid_id: *solid_id,
+                            face_id: FaceID(i),
+                            point: intersection.point,
+                            normal: intersection.normal,
+                        });
+                        break;
+                    }
+                }
             }
-        })
+        }
+
+        hit_faces
     }
 
     pub fn regen(&self, renderer: &Renderer, graphics: &mut Option<Graphics>, mask: ElementKind) {
@@ -205,9 +225,32 @@ impl Scene {
                     .iter()
                     .filter(|(id, _)| !self.hidden_solids.contains(id))
                     .map(|(_, solid)| solid),
+                props: self
+                    .props
+                    .iter()
+                    .filter(|(id, _)| !self.hidden_props.contains(id))
+                    .map(|(_, prop)| prop),
             },
             graphics,
         );
+    }
+
+    pub fn as_ascn_model(&self) -> ascn::Model {
+        ascn::Model {
+            solids: self
+                .solids
+                .values()
+                .map(|solid| ascn::Solid {
+                    faces: solid.faces.clone().map(|face| ascn::Face {
+                        texture_id: face.texture,
+                        points: face.points.map(|point| ascn::PointID(point.0)),
+                    }),
+                    points: solid.points.clone().map(|point| ascn::Point {
+                        position: point.position,
+                    }),
+                })
+                .collect(),
+        }
     }
 
     fn execute_action(&mut self, action: Action) -> Option<Action> {
@@ -216,8 +259,8 @@ impl Scene {
                 let mut ids = Vec::new();
 
                 for solid in solids {
-                    let id = SolidID(self.next_solid_id);
-                    self.next_solid_id += 1;
+                    let id = SolidID(self.next_entity_id);
+                    self.next_entity_id += 1;
 
                     self.solids.insert(id, solid);
                     ids.push(id);
@@ -227,14 +270,39 @@ impl Scene {
             }
 
             Action::AddSolids(solids) => {
-                let mut solid_ids = Vec::new();
+                let mut ids = Vec::new();
 
-                for (solid_id, solid) in solids {
-                    self.solids.insert(solid_id, solid);
-                    solid_ids.push(solid_id);
+                for (id, solid) in solids {
+                    self.solids.insert(id, solid);
+                    ids.push(id);
                 }
 
-                (!solid_ids.is_empty()).then(|| Action::RemoveSolids(solid_ids))
+                (!ids.is_empty()).then(|| Action::RemoveSolids(ids))
+            }
+
+            Action::NewProps(props) => {
+                let mut ids = Vec::new();
+
+                for prop in props {
+                    let id = PropID(self.next_entity_id);
+                    self.next_entity_id += 1;
+
+                    self.props.insert(id, prop);
+                    ids.push(id);
+                }
+
+                (!ids.is_empty()).then(|| Action::RemoveProps(ids))
+            }
+
+            Action::AddProps(props) => {
+                let mut ids = Vec::new();
+
+                for (id, prop) in props {
+                    self.props.insert(id, prop);
+                    ids.push(id);
+                }
+
+                (!ids.is_empty()).then(|| Action::RemoveProps(ids))
             }
 
             Action::RemoveSolids(ids) => {
@@ -261,6 +329,32 @@ impl Scene {
                 }
 
                 (!solids.is_empty()).then(|| Action::AddSolids(solids))
+            }
+
+            Action::RemoveProps(ids) => {
+                let mut props = Vec::new();
+                for id in ids {
+                    let prop = self.props.remove(&id).unwrap();
+                    props.push((id, prop));
+                }
+
+                (!props.is_empty()).then(|| Action::AddProps(props))
+            }
+
+            Action::RemoveSelectedProps => {
+                let ids = self
+                    .props
+                    .iter()
+                    .filter(|(_, prop)| prop.selected)
+                    .map(|(id, _)| *id)
+                    .collect::<Vec<_>>();
+
+                let mut props = Vec::new();
+                for id in ids {
+                    props.push((id, self.props.remove(&id).unwrap()));
+                }
+
+                (!props.is_empty()).then(|| Action::AddProps(props))
             }
 
             Action::SelectSolids(solid_ids) => {
@@ -335,6 +429,28 @@ impl Scene {
                 (!ids.is_empty()).then(|| Action::SelectPoints(ids))
             }
 
+            Action::SelectProps(ids) => {
+                for id in &ids {
+                    let prop = self.props.get_mut(id).unwrap();
+                    prop.selected = !prop.selected;
+                }
+
+                (!ids.is_empty()).then(|| Action::SelectProps(ids))
+            }
+
+            Action::DeselectProps => {
+                let mut ids = Vec::new();
+
+                for (id, prop) in &mut self.props {
+                    if prop.selected {
+                        prop.selected = false;
+                        ids.push(*id);
+                    }
+                }
+
+                (!ids.is_empty()).then(|| Action::SelectProps(ids))
+            }
+
             Action::AssignTexture(texture) => {
                 let mut old_texture_ids = Vec::new();
 
@@ -386,11 +502,25 @@ impl Scene {
     }
 }
 
+struct HitFace {
+    solid_id: SolidID,
+    face_id: FaceID,
+    point: Vector3<f32>,
+    normal: Vector3<f32>,
+}
+
 pub enum Action {
     NewSolids(Vec<Solid>),
     AddSolids(Vec<(SolidID, Solid)>),
+
+    NewProps(Vec<Prop>),
+    AddProps(Vec<(PropID, Prop)>),
+
     RemoveSolids(Vec<SolidID>),
     RemoveSelectedSolids,
+
+    RemoveProps(Vec<PropID>),
+    RemoveSelectedProps,
 
     SelectSolids(Vec<SolidID>),
     DeselectSolids,
@@ -401,6 +531,9 @@ pub enum Action {
     SelectPoints(Vec<(SolidID, PointID)>),
     DeselectPoints,
 
+    SelectProps(Vec<PropID>),
+    DeselectProps,
+
     AssignTexture(TextureID),
     AssignTextures(Vec<(SolidID, FaceID, TextureID)>),
 
@@ -410,20 +543,17 @@ pub enum Action {
     },
 }
 
-#[derive(Debug)]
 pub struct RaycastHit {
-    pub endpoint: RaycastEndpoint,
+    pub endpoint: Option<RaycastEndpoint>,
     pub points: Vec<(SolidID, PointID)>,
 }
 
-#[derive(Debug)]
 pub struct RaycastEndpoint {
     pub point: Vector3<f32>,
     pub normal: Vector3<f32>,
     pub kind: RaycastEndpointKind,
 }
 
-#[derive(Debug)]
 pub enum RaycastEndpointKind {
     Face { solid_id: SolidID, face_id: FaceID },
     Prop(PropID),

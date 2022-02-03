@@ -18,6 +18,9 @@ struct VertexOut {
 
     [[location(2)]]
     camera_position: vec3<f32>;
+
+    [[location(3)]]
+    step: f32;
 };
 
 struct CameraBlock {
@@ -51,6 +54,8 @@ fn vs_main(in: VertexIn) -> VertexOut {
     out.clip_position = camera.clip * vec4<f32>(world_position, 1.0);
     out.world_position = world_position;
     out.camera_position = camera_position.xyz;
+    out.step = step;
+
     return out;
 }
 
@@ -67,9 +72,9 @@ struct FragmentOut {
 fn fs_main(in: VertexOut) -> FragmentOut {
     var cam_pos = vec3<f32>(in.camera_position.x, 0.0, in.camera_position.z);
 
-    var full = vec3<f32>(1.0);
+    var full = vec3<f32>(0.3);
     var clear = vec3<f32>(0.1);
-    var dist = clamp(distance(in.world_position, in.camera_position) / 30.0, 0.0, 1.0);
+    var dist = clamp(distance(in.world_position, in.camera_position) * in.step / 30.0, 0.0, 1.0);
     var color = mix(full, clear, dist);
 
     var out: FragmentOut;

@@ -48,11 +48,19 @@ impl<'a> Context<'a> {
         self.renderer
     }
 
-    pub fn camera(&mut self) -> &mut Camera {
+    pub fn camera(&self) -> &Camera {
         self.camera
     }
 
-    pub fn scene(&mut self) -> &mut Scene {
+    pub fn camera_mut(&mut self) -> &mut Camera {
+        self.camera
+    }
+
+    pub fn scene(&self) -> &Scene {
+        self.scene
+    }
+
+    pub fn scene_mut(&mut self) -> &mut Scene {
         self.scene
     }
 

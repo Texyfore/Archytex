@@ -9,6 +9,7 @@ cgmath = "=0.18.0"
 instant = "=0.1.12"
 renderer = { path = "../tools/renderer" }
 asset-id = { path = "../../toolkit/asset-id" }
+formats = { path = "../../toolkit/formats" }
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]
 web-sys = { version = "0.3.55", features = ["Document", "Window", "Node"] }

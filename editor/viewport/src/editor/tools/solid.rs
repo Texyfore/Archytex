@@ -1,4 +1,4 @@
-use std::iter::once;
+use std::iter::{empty, once};
 
 use asset_id::GizmoID;
 use cgmath::{MetricSpace, Vector2, Vector3, Zero};
@@ -21,29 +21,23 @@ use super::{generic, Context, Tool};
 
 #[derive(Default)]
 pub struct Hub {
-    regen: bool,
     last_click_pos: Option<Vector2<f32>>,
 }
 
 impl Tool for Hub {
     fn process(&mut self, ctx: &mut Context) {
-        if !self.regen {
-            ctx.set_regen();
-            self.regen = true;
-        }
-
         if ctx.input().is_button_down_once(MouseButton::Left) {
             self.last_click_pos = Some(ctx.input().mouse_pos());
         }
 
         if let Some(last_click_pos) = self.last_click_pos {
             if ctx.input().mouse_pos().distance2(last_click_pos) > 100.0 {
-                let ray = ctx.camera().screen_ray(last_click_pos);
-                if let Some(hit) = ctx.scene().raycast(&ray) {
-                    ctx.scene().act(Action::DeselectSolids);
+                let hit = ctx.scene().raycast(last_click_pos, ctx.camera());
+                if let Some(endpoint) = hit.endpoint {
+                    ctx.scene_mut().act(Action::DeselectSolids);
                     ctx.set_regen();
                     ctx.switch_to(Box::new(Add::new(
-                        hit.endpoint.point + hit.endpoint.normal * 0.0001,
+                        endpoint.point + endpoint.normal * 0.0001,
                     )));
                     return;
                 }
@@ -59,9 +53,9 @@ impl Tool for Hub {
         if ctx.input().is_key_down_once(VirtualKeyCode::G) {
             let mouse_pos = ctx.input().mouse_pos();
             let ray = ctx.camera().screen_ray(mouse_pos);
-            let elements = ctx.scene().clone_and_hide_solids(ElementKind::Solid);
+            let elements = ctx.scene_mut().clone_and_hide_solids(ElementKind::Solid);
 
-            if let Some(tool) = generic::Move::<MoveProvider>::new(&ray, elements) {
+            if let Some(tool) = generic::Move::<MoveProvider>::new(ray, elements) {
                 ctx.switch_to(Box::new(tool));
                 return;
             }
@@ -70,9 +64,9 @@ impl Tool for Hub {
         if ctx.input().is_key_down_once(VirtualKeyCode::C) {
             let mouse_pos = ctx.input().mouse_pos();
             let ray = ctx.camera().screen_ray(mouse_pos);
-            let elements = ctx.scene().clone_solids();
+            let elements = ctx.scene_mut().clone_solids();
 
-            if let Some(tool) = generic::Move::<CloneProvider>::new(&ray, elements) {
+            if let Some(tool) = generic::Move::<CloneProvider>::new(ray, elements) {
                 ctx.switch_to(Box::new(tool));
                 return;
             }
@@ -112,11 +106,9 @@ impl Add {
 
 impl Tool for Add {
     fn process(&mut self, ctx: &mut Context) {
-        let mouse_pos = ctx.input().mouse_pos();
-        let ray = ctx.camera().screen_ray(mouse_pos);
-
-        if let Some(hit) = ctx.scene().raycast(&ray) {
-            let end = hit.endpoint.point + hit.endpoint.normal * 0.0001;
+        let hit = ctx.scene().raycast(ctx.input().mouse_pos(), ctx.camera());
+        if let Some(endpoint) = hit.endpoint {
+            let end = endpoint.point + endpoint.normal * 0.0001;
 
             let start = self.start.snap(100);
             let end = end.snap(100);
@@ -131,12 +123,13 @@ impl Tool for Add {
                     renderer: ctx.renderer(),
                     mask: ElementKind::Solid,
                     solids: once(&solid),
+                    props: empty(),
                 },
                 &mut self.graphics,
             );
 
             if ctx.input().was_button_down_once(MouseButton::Left) {
-                ctx.scene().act(Action::NewSolids(vec![solid]));
+                ctx.scene_mut().act(Action::NewSolids(vec![solid]));
                 ctx.set_regen();
                 ctx.switch_to(Box::new(Hub::default()));
             }
@@ -176,11 +169,13 @@ impl generic::SelectProvider for SelectProvider {
     }
 
     fn select_action(hit: RaycastHit) -> Option<Action> {
-        if let RaycastEndpointKind::Face { solid_id, .. } = hit.endpoint.kind {
-            Some(Action::SelectSolids(vec![solid_id]))
-        } else {
-            None
+        if let Some(endpoint) = hit.endpoint {
+            if let RaycastEndpointKind::Face { solid_id, .. } = endpoint.kind {
+                return Some(Action::SelectSolids(vec![solid_id]));
+            }
         }
+
+        None
     }
 
     fn parent_tool() -> Box<dyn Tool> {
@@ -251,6 +246,7 @@ impl generic::MoveProvider for MoveProvider {
                 renderer,
                 mask: ElementKind::Solid,
                 solids: elements.iter().map(|(_, solid)| solid),
+                props: empty(),
             },
             graphics,
         );
@@ -296,6 +292,7 @@ impl generic::MoveProvider for CloneProvider {
                 renderer,
                 mask: ElementKind::Solid,
                 solids: elements.iter(),
+                props: empty(),
             },
             graphics,
         );

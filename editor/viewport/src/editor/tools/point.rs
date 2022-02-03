@@ -11,17 +11,10 @@ use crate::editor::{
 use super::{generic, Context, Tool};
 
 #[derive(Default)]
-pub struct Hub {
-    regen: bool,
-}
+pub struct Hub;
 
 impl Tool for Hub {
     fn process(&mut self, ctx: &mut Context) {
-        if !self.regen {
-            ctx.set_regen();
-            self.regen = true;
-        }
-
         if ctx.input().was_button_down_once(MouseButton::Left) {
             ctx.switch_to(Box::new(generic::Select::<SelectProvider>::default()));
             return;
@@ -30,9 +23,9 @@ impl Tool for Hub {
         if ctx.input().is_key_down_once(VirtualKeyCode::G) {
             let mouse_pos = ctx.input().mouse_pos();
             let ray = ctx.camera().screen_ray(mouse_pos);
-            let elements = ctx.scene().clone_and_hide_solids(ElementKind::Point);
+            let elements = ctx.scene_mut().clone_and_hide_solids(ElementKind::Point);
 
-            if let Some(tool) = generic::Move::<MoveProvider>::new(&ray, elements) {
+            if let Some(tool) = generic::Move::<MoveProvider>::new(ray, elements) {
                 ctx.switch_to(Box::new(tool));
                 return;
             }
@@ -114,6 +107,7 @@ impl generic::MoveProvider for MoveProvider {
                 renderer,
                 mask: ElementKind::Point,
                 solids: elements.iter().map(|(_, solid)| solid),
+                props: std::iter::empty(),
             },
             graphics,
         )

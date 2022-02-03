@@ -7,9 +7,6 @@ struct VertexIn {
 
     [[location(2)]]
     texcoord: vec2<f32>;
-
-    [[location(3)]]
-    tint: vec4<f32>;
 };
 
 struct VertexOut {
@@ -41,11 +38,18 @@ struct TransformBlock {
     matrix: mat4x4<f32>;
 };
 
+struct TintBlock {
+    tint: vec4<f32>;
+};
+
 [[group(0), binding(0)]]
 var<uniform> camera: CameraBlock;
 
 [[group(1), binding(0)]]
 var<uniform> transform: TransformBlock;
+
+[[group(2), binding(0)]]
+var<uniform> tint: TintBlock;
 
 [[stage(vertex)]]
 fn vs_main(in: VertexIn) -> VertexOut {
@@ -57,7 +61,7 @@ fn vs_main(in: VertexIn) -> VertexOut {
     out.clip_position = camera.clip * world_position;
     out.normal = normalize((world_normal - world_position).xyz);
     out.texcoord = in.texcoord;
-    out.tint = in.tint;
+    out.tint = tint.tint;
 
     out.world_position = world_position.xyz;
     out.camera_position = (camera.world * vec4<f32>(0.0, 0.0, 0.0, 1.0)).xyz;
@@ -78,10 +82,10 @@ struct FragmentOut {
     color: vec4<f32>;
 };
 
-[[group(2), binding(0)]]
+[[group(3), binding(0)]]
 var t_diffuse: texture_2d<f32>;
 
-[[group(2), binding(1)]]
+[[group(3), binding(1)]]
 var s_diffuse: sampler;
 
 [[stage(fragment)]]
