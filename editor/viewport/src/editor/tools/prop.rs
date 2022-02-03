@@ -24,6 +24,7 @@ impl Tool for Hub {
                 PropID(0),
                 Vector3::zero(),
             )]));
+            ctx.set_regen();
         }
     }
 

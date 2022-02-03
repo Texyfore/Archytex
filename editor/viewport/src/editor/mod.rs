@@ -93,8 +93,12 @@ impl Editor {
         self.tool.render(scene);
 
         if let Some(graphics) = &self.graphics {
-            for mesh_object in &graphics.solid_objects {
-                scene.push_solid_object(mesh_object.clone());
+            for solid_object in &graphics.solid_objects {
+                scene.push_solid_object(solid_object.clone());
+            }
+
+            for prop_object in &graphics.prop_objects {
+                scene.push_prop_object(prop_object.clone());
             }
 
             scene.push_line_object(graphics.line_object.clone());

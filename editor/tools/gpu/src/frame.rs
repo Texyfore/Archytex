@@ -107,8 +107,8 @@ impl<'a> RenderPass<'a> {
         self.inner.set_bind_group(slot, &uniform.group, &[]);
     }
 
-    pub fn set_texture(&mut self, texture: &'a Texture) {
-        self.inner.set_bind_group(2, &texture.group, &[]);
+    pub fn set_texture(&mut self, slot: u32, texture: &'a Texture) {
+        self.inner.set_bind_group(slot, &texture.group, &[]);
     }
 
     pub fn draw<V: Pod>(&mut self, vertices: &'a Buffer<V>) {

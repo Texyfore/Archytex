@@ -1,4 +1,4 @@
-use std::iter::once;
+use std::iter::{empty, once};
 
 use asset_id::GizmoID;
 use cgmath::{MetricSpace, Vector2, Vector3, Zero};
@@ -123,6 +123,7 @@ impl Tool for Add {
                     renderer: ctx.renderer(),
                     mask: ElementKind::Solid,
                     solids: once(&solid),
+                    props: empty(),
                 },
                 &mut self.graphics,
             );
@@ -245,6 +246,7 @@ impl generic::MoveProvider for MoveProvider {
                 renderer,
                 mask: ElementKind::Solid,
                 solids: elements.iter().map(|(_, solid)| solid),
+                props: empty(),
             },
             graphics,
         );
@@ -290,6 +292,7 @@ impl generic::MoveProvider for CloneProvider {
                 renderer,
                 mask: ElementKind::Solid,
                 solids: elements.iter(),
+                props: empty(),
             },
             graphics,
         );

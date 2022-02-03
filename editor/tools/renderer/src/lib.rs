@@ -5,7 +5,7 @@ use std::{collections::HashMap, rc::Rc};
 
 use asset_id::{GizmoID, PropID, TextureID};
 use bytemuck::{Pod, Zeroable};
-use formats::agzm;
+use formats::{agzm, amdl};
 use gpu::{
     data::{
         DepthBuffer, TextureLayout, {Uniform, UniformLayout},
@@ -20,7 +20,7 @@ use thiserror::Error;
 
 use self::{
     data::{gizmo, prop},
-    scene::{Scene, PropObject},
+    scene::Scene,
 };
 
 pub struct Renderer {
@@ -107,7 +107,7 @@ impl Renderer {
             for mesh_object in &scene.solid_objects {
                 if let Some(texture) = self.textures.get(&mesh_object.texture) {
                     pass.set_uniform(1, &mesh_object.transform.uniform);
-                    pass.set_texture(&texture.inner);
+                    pass.set_texture(2, &texture.inner);
                     pass.draw_indexed(&mesh_object.mesh.vertices, &mesh_object.mesh.triangles);
                 }
             }
@@ -115,9 +115,12 @@ impl Renderer {
             pass.set_prop_pipeline(&self.prop_pipeline);
             for prop_object in &scene.prop_objects {
                 if let Some(prop) = self.props.get(&prop_object.prop) {
-                    pass.set_uniform(1 , &prop_object.transform.uniform);
+                    pass.set_uniform(1, &prop_object.transform.uniform);
+                    pass.set_uniform(2, &prop_object.tint.uniform);
                     for mesh in &prop.meshes {
                         if let Some(texture) = self.textures.get(&mesh.texture) {
+                            pass.set_texture(3, &texture.inner);
+                            pass.draw_indexed(&mesh.mesh.vertices, &mesh.mesh.triangles);
                         }
                     }
                 }
@@ -172,6 +175,33 @@ impl Renderer {
         Ok(())
     }
 
+    pub fn load_prop(&mut self, id: PropID, buf: &[u8]) -> Result<(), LoadPropError> {
+        let prop = amdl::Model::decode(buf)?;
+
+        let vertices = prop
+            .mesh
+            .vertices
+            .iter()
+            .map(|vertex| prop::Vertex {
+                position: vertex.position,
+                normal: vertex.normal,
+                texcoord: vertex.texcoord,
+            })
+            .collect::<Vec<_>>();
+
+        self.props.insert(
+            id,
+            Prop {
+                meshes: vec![PropMesh {
+                    texture: prop.texture_id,
+                    mesh: self.create_prop(&vertices, &prop.mesh.triangles),
+                }],
+            },
+        );
+
+        Ok(())
+    }
+
     pub fn load_gizmo(&mut self, id: GizmoID, buf: &[u8]) -> Result<(), LoadGizmoError> {
         let gizmo = agzm::Mesh::decode(buf)?;
 
@@ -213,6 +243,12 @@ pub enum RenderError {
 pub enum LoadTextureError {
     #[error("Couldn't load texture: {0}")]
     BadBuffer(#[from] ImageError),
+}
+
+#[derive(Error, Debug)]
+pub enum LoadPropError {
+    #[error("Couldn't load texture: {0}")]
+    BadBuffer(#[from] amdl::DecodeError),
 }
 
 #[derive(Error, Debug)]

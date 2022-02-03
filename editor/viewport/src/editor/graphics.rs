@@ -4,31 +4,36 @@ use asset_id::TextureID;
 use cgmath::{vec2, InnerSpace, Matrix4};
 use renderer::{
     data::{gizmo, line, solid},
-    scene::{LineObject, SolidObject},
+    scene::{LineObject, PropObject, SolidObject},
     Renderer,
 };
 
-use super::elements::{ElementKind, Solid};
+use super::elements::{ElementKind, Prop, Solid};
 
-pub struct MeshGenInput<'a, I>
+pub struct MeshGenInput<'a, S, P>
 where
-    I: Iterator<Item = &'a Solid>,
+    S: Iterator<Item = &'a Solid>,
+    P: Iterator<Item = &'a Prop>,
 {
     pub renderer: &'a Renderer,
     pub mask: ElementKind,
-    pub solids: I,
+    pub solids: S,
+    pub props: P,
 }
 
 pub struct Graphics {
     pub solid_objects: Vec<SolidObject>,
     pub line_object: LineObject,
     pub point_gizmos: Rc<gizmo::Instances>,
+    pub prop_objects: Vec<PropObject>,
 }
 
-pub fn generate<'a, I>(input: MeshGenInput<'a, I>, graphics: &mut Option<Graphics>)
+pub fn generate<'a, I, P>(input: MeshGenInput<'a, I, P>, graphics: &mut Option<Graphics>)
 where
     I: Iterator<Item = &'a Solid>,
+    P: Iterator<Item = &'a Prop>,
 {
+    const SELECTED_TINT: [f32; 4] = [0.04, 0.36, 0.85, 0.5];
     let transform = Rc::new(input.renderer.create_transform());
 
     let old_texture_ids = graphics.as_ref().map(|output| {
@@ -92,11 +97,7 @@ where
                     } else {
                         vec2(position.x, position.y)
                     } / 4.0,
-                    tint: if has_tint {
-                        [0.04, 0.36, 0.85, 0.5]
-                    } else {
-                        [0.0; 4]
-                    },
+                    tint: if has_tint { SELECTED_TINT } else { [0.0; 4] },
                 });
             }
         }
@@ -139,6 +140,29 @@ where
                 texture: texture_id,
                 transform: transform.clone(),
                 mesh: Rc::new(input.renderer.create_solid(&vertices, &triangles)),
+            })
+            .collect(),
+        prop_objects: input
+            .props
+            .map(|prop| {
+                let transform = Rc::new(input.renderer.create_transform());
+                input.renderer.set_transform(&transform, prop.matrix());
+
+                let tint = Rc::new(input.renderer.create_tint());
+                input.renderer.set_tint(
+                    &tint,
+                    if prop.selected {
+                        SELECTED_TINT
+                    } else {
+                        [0.0; 4]
+                    },
+                );
+
+                PropObject {
+                    prop: prop.id,
+                    transform,
+                    tint,
+                }
             })
             .collect(),
         line_object: LineObject {

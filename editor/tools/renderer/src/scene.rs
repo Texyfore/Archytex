@@ -3,7 +3,10 @@ use std::rc::Rc;
 use asset_id::{GizmoID, PropID, TextureID};
 use cgmath::{Matrix4, Transform as CgMathTransform};
 
-use crate::data::{gizmo, grid, line, solid, uniform::Transform};
+use crate::data::{
+    gizmo, grid, line, solid,
+    uniform::{Tint, Transform},
+};
 
 #[derive(Default)]
 pub struct Scene {
@@ -54,7 +57,7 @@ pub struct SolidObject {
 pub struct PropObject {
     pub prop: PropID,
     pub transform: Rc<Transform>,
-    pub tint: [f32; 4],
+    pub tint: Rc<Tint>,
 }
 
 #[derive(Clone)]

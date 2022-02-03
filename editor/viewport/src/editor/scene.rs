@@ -1,7 +1,7 @@
 use std::collections::{HashMap, HashSet};
 
 use asset_id::{PropID, TextureID};
-use cgmath::{num_traits::Float, InnerSpace, MetricSpace, Vector2, Vector3, Zero};
+use cgmath::{InnerSpace, MetricSpace, Vector2, Vector3, Zero};
 use formats::ascn;
 use renderer::Renderer;
 
@@ -21,6 +21,7 @@ pub struct Scene {
     undo_stack: Vec<Action>,
     redo_stack: Vec<Action>,
     hidden_solids: HashSet<SolidID>,
+    hidden_props: HashSet<PropID>,
 }
 
 impl Scene {
@@ -224,6 +225,11 @@ impl Scene {
                     .iter()
                     .filter(|(id, _)| !self.hidden_solids.contains(id))
                     .map(|(_, solid)| solid),
+                props: self
+                    .props
+                    .iter()
+                    .filter(|(id, _)| !self.hidden_props.contains(id))
+                    .map(|(_, prop)| prop),
             },
             graphics,
         );

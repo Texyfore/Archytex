@@ -27,4 +27,8 @@ impl Renderer {
         self.gpu.set_uniform(&uniform, &[0.0; 4]);
         Tint { uniform }
     }
+
+    pub fn set_tint(&self, tint: &Tint, color: [f32; 4]) {
+        self.gpu.set_uniform(&tint.uniform, &color);
+    }
 }

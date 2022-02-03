@@ -137,6 +137,7 @@ impl generic::MoveProvider for MoveProvider {
                 renderer,
                 mask: ElementKind::Face,
                 solids: elements.iter().map(|(_, solid)| solid),
+                props: std::iter::empty(),
             },
             graphics,
         )

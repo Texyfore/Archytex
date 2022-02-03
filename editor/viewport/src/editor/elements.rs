@@ -1,5 +1,5 @@
 use asset_id::{PropID, TextureID};
-use cgmath::{vec3, ElementWise, Vector3, Zero};
+use cgmath::{vec3, Deg, ElementWise, Matrix4, Vector3, Zero};
 
 macro_rules! points {
     [$($p:literal),* $(,)?] => {[
@@ -200,5 +200,16 @@ impl Prop {
             rotation: Vector3::zero(),
             selected: false,
         }
+    }
+
+    pub fn meters(&self) -> Vector3<f32> {
+        self.position.map(|e| e as f32 / 100.0)
+    }
+
+    pub fn matrix(&self) -> Matrix4<f32> {
+        Matrix4::from_translation(self.meters())
+            * Matrix4::from_angle_x(Deg(self.rotation.x as f32))
+            * Matrix4::from_angle_y(Deg(self.rotation.y as f32))
+            * Matrix4::from_angle_z(Deg(self.rotation.z as f32))
     }
 }
