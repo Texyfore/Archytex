@@ -102,7 +102,6 @@ export default function LoginForm() {
     }
 
     if (api?.state === "not-logged-in") {
-      //TODO: Handle login result
       api
         .logIn(username, password, stayLoggedIn)
         .then(() => {
