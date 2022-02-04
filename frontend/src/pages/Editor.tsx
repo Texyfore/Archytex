@@ -10,6 +10,8 @@ import {
   ToggleButton,
   Stack,
   Typography,
+  Button,
+  Snackbar,
 } from "@mui/material";
 import React, { useEffect, useState } from "react";
 import EditorMenu from "../components/editor-components/EditorMenu";
@@ -33,6 +35,7 @@ import EditorModeButtons from "../components/editor-components/EditorModeButtons
 import TranslateModeButtons from "../components/editor-components/TranslateModeButtons";
 import CameraSettingsButton from "../components/editor-components/CameraSettingsButton";
 import GridSettingsButton from "../components/editor-components/GridSettingsButton";
+import MuiAlert, { AlertProps } from "@mui/material/Alert";
 
 let browserEndpoint: any;
 type EditorMode = "solid" | "face" | "vertex" | "prop";
@@ -40,6 +43,13 @@ type translateMode = "select" | "move" | "rotate" | "scale";
 type libraryType = "textureLibrary" | "propLibrary";
 
 let saveType: "export" | "save" | "render" = "save";
+
+const Alert = React.forwardRef<HTMLDivElement, AlertProps>(function Alert(
+  props,
+  ref
+) {
+  return <MuiAlert elevation={6} ref={ref} variant='filled' {...props} />;
+});
 
 export default function Editor() {
   // Use API
@@ -114,6 +124,12 @@ export default function Editor() {
     setGridStep(e.target.value);
   };
 
+  // Error snackbar
+  const [snackBarError, setSnackBarError] = useState("");
+  const handleSnackBarClose = (e: any) => {
+    setSnackBarError("");
+  };
+
   return (
     <>
       <EditorAppBar onSave={handleAppBarButtonClick} />
@@ -152,6 +168,20 @@ export default function Editor() {
         gridStep={gridStep}
         handleGridStepChange={handleGridStepChange}
       />
+
+      <Snackbar
+        open={snackBarError !== ""}
+        autoHideDuration={6000}
+        onClose={handleSnackBarClose}
+      >
+        <Alert
+          onClose={handleSnackBarClose}
+          severity='error'
+          sx={{ width: "100%" }}
+        >
+          {snackBarError}
+        </Alert>
+      </Snackbar>
     </>
   );
 }
