@@ -103,7 +103,7 @@ function ArchytexAppBar({ content }: AppBarProps) {
           <Box width='100%' height='100%' display='flex' justifyContent='end'>
             {api?.state === "not-logged-in" ? (
               <Button variant='outlined' onClick={() => history.push("/login")}>
-                Login
+                {t("login")}
               </Button>
             ) : (
               <UserIconButton />

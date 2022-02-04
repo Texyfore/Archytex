@@ -45,24 +45,46 @@ export default function ProjectNewModal({
   //i18n
   const { t } = useTranslation();
 
+  //Error display
+  const [errorMessage, setErrorMessage] = useState("");
+  const handleError = (message: string) => {
+    setErrorMessage(message);
+  };
+
   const [name, setName] = useState("");
+  const handleNameChange = (e: any) => {
+    setErrorMessage("");
+    setName(e.target.value);
+  };
+
   const { dispatch: projectsDispatch } = useProjects();
   const onCreate = () => {
-    if (name.trim() !== "") {
-      //TODO: Handle errors
-      projectsDispatch({
-        type: "create",
-        name: name,
-      });
-      setName("");
-      handleModalClose();
-      feedbackSnackbar(t("project_created_successfully"), "success");
+    if (name.trim() === "") {
+      handleError("Project name can't be empty");
+      return;
     }
+
+    projectsDispatch({
+      type: "create",
+      name: name,
+    }).catch((error) => {
+      handleError(error.message);
+      return;
+    });
+
+    setName("");
+    feedbackSnackbar(t("project_created_successfully"), "success");
   };
+
+  const handleClose = () => {
+    handleModalClose();
+    setErrorMessage("");
+  };
+
   return (
     <Modal
       open={modalOpen}
-      onClose={handleModalClose}
+      onClose={handleClose}
       closeAfterTransition
       BackdropComponent={Backdrop}
       BackdropProps={{
@@ -81,21 +103,23 @@ export default function ProjectNewModal({
             <Typography id='transition-modal-title' variant='h6' component='h2'>
               {t("create_new_project")}
             </Typography>
-            <IconButton onClick={handleModalClose}>
+            <IconButton onClick={handleClose}>
               <Close />
             </IconButton>
           </Box>
           <Box display='flex' flexDirection='column' marginBottom={3}>
             <TextField
               required
+              error={errorMessage !== ""}
+              helperText={errorMessage}
               id='standard-required'
               label={t("project_name")}
               variant='standard'
               margin='normal'
               value={name}
-              onChange={(ev) => setName(ev.target.value)}
-              onKeyPress={(ev) => {
-                if (ev.key === "Enter") {
+              onChange={(e) => handleNameChange(e)}
+              onKeyPress={(e) => {
+                if (e.key === "Enter") {
                   onCreate();
                 }
               }}
