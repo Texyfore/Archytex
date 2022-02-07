@@ -1,0 +1,6 @@
+[package]
+name = "app"
+version = "0.1.0"
+edition = "2021"
+description = "Archytex editor"
+authors = ["Gulyás Arnold"]

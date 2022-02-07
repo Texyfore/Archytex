@@ -1,0 +1,6 @@
+[package]
+name = "web-runner"
+version = "0.1.0"
+edition = "2021"
+description = "The Archytex editor's web runner"
+authors = ["Gulyás Arnold"]
