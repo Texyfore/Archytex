@@ -1,18 +1,15 @@
-use winit::{
-    event::{ElementState, MouseButton, VirtualKeyCode},
-    window::Window,
-};
+use winit::event::{ElementState, MouseButton, VirtualKeyCode};
+
+use crate::graphics::{Canvas, Renderer};
 
 pub struct Logic;
 
 impl Logic {
-    pub fn new(_window: &Window) -> Self {
+    pub fn init(_ctx: Context) -> Self {
         Self
     }
 
-    pub fn init(&mut self) {}
-
-    pub fn process(&mut self) {}
+    pub fn process(&mut self, _ctx: Context) {}
 
     pub fn resized(&mut self, _width: u32, _height: u32) {}
 
@@ -24,5 +21,9 @@ impl Logic {
 
     pub fn scroll(&mut self, _delta: f32) {}
 
-    pub fn render(&self) {}
+    pub fn render(&self, _canvas: &mut Canvas) {}
+}
+
+pub struct Context<'a> {
+    pub renderer: &'a Renderer,
 }

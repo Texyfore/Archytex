@@ -1,3 +1,4 @@
+mod graphics;
 mod logic;
 
 use logic::Logic;
@@ -8,15 +9,23 @@ use winit::{
     window::Window,
 };
 
+use self::{
+    graphics::{Canvas, Renderer},
+    logic::Context,
+};
+
 pub fn run(winit: Winit, _callbacks: Callbacks) {
-    let mut logic = Logic::new(&winit.window);
-    logic.init();
+    let mut renderer = Renderer::new(&winit.window);
+    let mut logic = Logic::init(Context {
+        renderer: &renderer,
+    });
 
     winit.event_loop.run(move |event, _, flow| {
         *flow = ControlFlow::Poll;
         match event {
             Event::WindowEvent { event, .. } => match event {
                 WindowEvent::Resized(PhysicalSize { width, height }) => {
+                    renderer.resize(width, height);
                     logic.resized(width, height);
                 }
                 WindowEvent::CloseRequested => {
@@ -52,8 +61,13 @@ pub fn run(winit: Winit, _callbacks: Callbacks) {
                 _ => (),
             },
             Event::MainEventsCleared => {
-                logic.process();
-                logic.render();
+                logic.process(Context {
+                    renderer: &renderer,
+                });
+
+                let mut canvas = Canvas;
+                logic.render(&mut canvas);
+                renderer.render(canvas);
             }
             _ => (),
         }
