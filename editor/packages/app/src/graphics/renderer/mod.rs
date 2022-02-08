@@ -1,9 +1,13 @@
+mod geometry;
+
 use std::{collections::HashMap, rc::Rc};
 
 use asset::{PropID, TextureID};
 use bytemuck::cast_slice;
-use gpu::{Buffer, BufferUsages, DepthBuffer, Gpu, Image, Pipeline, Sampler, Surface, Uniform};
+use gpu::{BufferUsages, DepthBuffer, Gpu, Image, Pipeline, Sampler, Surface, Uniform};
 use winit::window::Window;
+
+use self::geometry::PropModel;
 
 use super::{line, prop, solid, Camera, Canvas};
 
@@ -102,26 +106,9 @@ impl Renderer {
     }
 
     pub fn add_prop(&mut self, id: PropID, prop: asset::Prop) {
-        let prop = PropModel {
-            meshes: prop
-                .meshes
-                .into_iter()
-                .map(|mesh| PropMesh {
-                    texture: mesh.texture,
-                    vertices: self.gpu.create_buffer(
-                        &mesh
-                            .vertices
-                            .into_iter()
-                            .map(|vertex| vertex.into())
-                            .collect::<Vec<_>>(),
-                        BufferUsages::VERTEX,
-                    ),
-                    triangles: self.gpu.create_buffer(&mesh.triangles, BufferUsages::INDEX),
-                })
-                .collect(),
-        };
-
-        self.resources.props.insert(id, prop);
+        self.resources
+            .props
+            .insert(id, PropModel::new(&self.gpu, prop));
     }
 }
 
@@ -179,24 +166,4 @@ impl Pipelines {
 struct Resources {
     textures: HashMap<TextureID, gpu::Texture>,
     props: HashMap<PropID, PropModel>,
-}
-
-struct PropModel {
-    meshes: Vec<PropMesh>,
-}
-
-struct PropMesh {
-    texture: TextureID,
-    vertices: Buffer<prop::Vertex>,
-    triangles: Buffer<[u16; 3]>,
-}
-
-impl From<asset::prop::Vertex> for prop::Vertex {
-    fn from(vertex: asset::prop::Vertex) -> Self {
-        Self {
-            position: vertex.position,
-            normal: vertex.normal,
-            texcoord: vertex.texcoord,
-        }
-    }
 }

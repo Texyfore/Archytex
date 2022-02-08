@@ -1,12 +1,11 @@
 mod camera;
 mod input;
 
-use asset::PropID;
 use cgmath::vec2;
 use winit::event::{ElementState, MouseButton, VirtualKeyCode};
 
 use crate::{
-    graphics::{prop, Canvas, Renderer, Share},
+    graphics::{Canvas, Renderer},
     OnSave,
 };
 
@@ -15,15 +14,13 @@ use self::{camera::Camera, input::Input};
 pub struct Logic {
     input: Input,
     camera: Camera,
-    prop: prop::Object,
 }
 
 impl Logic {
-    pub fn init(ctx: Context) -> Self {
+    pub fn init(_ctx: Context) -> Self {
         Self {
             input: Input::default(),
             camera: Camera::default(),
-            prop: ctx.renderer.create_prop_object(PropID(0)),
         }
     }
 
@@ -59,7 +56,6 @@ impl Logic {
 
     pub fn render(&self, canvas: &mut Canvas) {
         canvas.set_camera(self.camera.matrices());
-        canvas.draw_prop(self.prop.share());
     }
 }
 

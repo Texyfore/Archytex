@@ -1,25 +1,14 @@
-use std::{mem::size_of, rc::Rc};
+use std::rc::Rc;
 
 use asset::PropID;
 use bytemuck::{Pod, Zeroable};
-use cgmath::{Matrix4, SquareMatrix, Vector2, Vector3};
+use cgmath::{Matrix4, SquareMatrix};
 use gpu::{
     vertex_attr_array, Gpu, Pipeline, PipelineConfig, PipelineInput, PipelineTopology, Surface,
     Uniform, VertexBufferLayout, VertexStepMode,
 };
 
 use super::Share;
-
-#[repr(C)]
-#[derive(Clone, Copy)]
-pub(super) struct Vertex {
-    pub position: Vector3<f32>,
-    pub normal: Vector3<f32>,
-    pub texcoord: Vector2<f32>,
-}
-
-unsafe impl Zeroable for Vertex {}
-unsafe impl Pod for Vertex {}
 
 pub struct Object {
     pub(super) prop: PropID,
@@ -65,7 +54,7 @@ pub(super) fn pipeline(gpu: &Gpu, surface: &Surface) -> Pipeline {
                 PipelineInput::Texture, // Texture
             ],
             vertex_buffers: &[VertexBufferLayout {
-                array_stride: size_of::<Vertex>() as u64,
+                array_stride: 32,
                 step_mode: VertexStepMode::Vertex,
                 attributes: &vertex_attr_array![
                     0 => Float32x3, // Position
