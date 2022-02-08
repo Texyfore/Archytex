@@ -2,6 +2,8 @@ mod graphics;
 mod logic;
 mod math;
 
+use std::time::Instant;
+
 use asset::{Texture, TextureID};
 use logic::Logic;
 use winit::{
@@ -34,7 +36,10 @@ pub fn run(init: Init) {
     let mut logic = Logic::init(logic::Context {
         renderer: &renderer,
         save_handler: save_handler.as_ref(),
+        delta: 0.0,
     });
+
+    let mut before = Instant::now();
 
     winit.event_loop.run(move |event, _, flow| {
         *flow = ControlFlow::Poll;
@@ -77,9 +82,14 @@ pub fn run(init: Init) {
                 _ => (),
             },
             Event::MainEventsCleared => {
+                let after = Instant::now();
+                let delta = (after - before).as_secs_f32();
+                before = after;
+
                 logic.process(logic::Context {
                     renderer: &renderer,
                     save_handler: save_handler.as_ref(),
+                    delta,
                 });
 
                 let mut canvas = Canvas::default();

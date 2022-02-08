@@ -129,14 +129,6 @@ impl Camera {
         None
     }
 
-    pub fn set_speed(&mut self, speed: i32) {
-        self.speed = speed;
-    }
-
-    pub fn speed(&self) -> i32 {
-        self.speed
-    }
-
     fn forward(&self) -> Vector3<f32> {
         Matrix3::from_angle_y(Deg(self.rotation.y))
             * Matrix3::from_angle_x(Deg(self.rotation.x))

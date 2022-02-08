@@ -63,12 +63,12 @@ impl Logic {
         }
     }
 
-    pub fn process(&mut self, _ctx: Context) {
+    pub fn process(&mut self, ctx: Context) {
         if self.input.is_key_down(VirtualKeyCode::W) {
-            self.camera.move_forward(1.0 / 60.0);
+            self.camera.move_forward(ctx.delta);
         }
         if self.input.is_key_down(VirtualKeyCode::S) {
-            self.camera.move_backward(1.0 / 60.0);
+            self.camera.move_backward(ctx.delta);
         }
         self.input.process();
     }
@@ -103,4 +103,5 @@ impl Logic {
 pub struct Context<'a> {
     pub renderer: &'a Renderer,
     pub save_handler: &'a dyn OnSave,
+    pub delta: f32,
 }
