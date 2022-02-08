@@ -18,12 +18,14 @@ pub trait Share {
 #[derive(Clone, Copy)]
 pub struct Camera {
     pub world_to_clip: Matrix4<f32>,
+    pub view_to_world: Matrix4<f32>,
 }
 
 impl Default for Camera {
     fn default() -> Self {
         Self {
             world_to_clip: Matrix4::identity(),
+            view_to_world: Matrix4::identity(),
         }
     }
 }

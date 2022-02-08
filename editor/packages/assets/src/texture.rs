@@ -12,9 +12,9 @@ impl Debug for TextureID {
 }
 
 pub struct Texture {
-    width: u32,
-    height: u32,
-    rgba8: Vec<u8>,
+    pub width: u32,
+    pub height: u32,
+    pub rgba8: Vec<u8>,
 }
 
 impl Texture {

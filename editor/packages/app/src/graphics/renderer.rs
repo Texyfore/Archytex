@@ -2,7 +2,7 @@ use std::collections::HashMap;
 
 use assets::TextureID;
 use bytemuck::cast_slice;
-use gpu::{BufferUsages, DepthBuffer, Gpu, Pipeline, Res, Surface, Uniform};
+use gpu::{BufferUsages, DepthBuffer, Gpu, Image, Pipeline, Res, Sampler, Surface, Uniform};
 use winit::window::Window;
 
 use super::{line, solid, Camera, Canvas};
@@ -13,6 +13,7 @@ pub struct Renderer {
     depth_buffer: DepthBuffer,
     pipelines: Pipelines,
     resources: Resources,
+    sampler: Res<Sampler>,
     camera: Res<Uniform<Camera>>,
 }
 
@@ -24,6 +25,7 @@ impl Renderer {
         let depth_buffer = gpu.create_depth_buffer(width, height);
         let pipelines = Pipelines::new(&gpu, &surface);
         let resources = Resources::default();
+        let sampler = gpu.create_sampler();
         let camera = gpu.create_uniform(&Camera::default());
 
         surface.configure(&gpu, width, height);
@@ -34,6 +36,7 @@ impl Renderer {
             depth_buffer,
             pipelines,
             resources,
+            sampler,
             camera,
         }
     }
@@ -57,7 +60,12 @@ impl Renderer {
             }
 
             pass.set_pipeline(&self.pipelines.solid);
-            for solid in &canvas.solids {}
+            for solid in &canvas.solids {
+                if let Some(texture) = self.resources.textures.get(&solid.texture) {
+                    pass.set_texture(1, texture);
+                    pass.draw_triangles(&solid.vertices, &solid.triangles);
+                }
+            }
         }
 
         self.gpu.end_frame(frame);
@@ -65,7 +73,21 @@ impl Renderer {
 }
 
 // add_* implementations
-impl Renderer {}
+impl Renderer {
+    pub fn add_texture(&mut self, id: TextureID, texture: assets::Texture) {
+        self.resources.textures.insert(
+            id,
+            self.gpu.create_texture(
+                &self.sampler,
+                Image {
+                    width: texture.width,
+                    height: texture.height,
+                    buf: &texture.rgba8,
+                },
+            ),
+        );
+    }
+}
 
 // create_*_object implementations
 impl Renderer {
@@ -73,15 +95,15 @@ impl Renderer {
         line::Object {
             vertices: self
                 .gpu
-                .create_buffer(cast_slice(&mesh.vertices), BufferUsages::VERTEX),
+                .create_buffer(cast_slice(mesh.vertices), BufferUsages::VERTEX),
         }
     }
 
     pub fn create_solid_object(&self, mesh: solid::Mesh) -> solid::Object {
         solid::Object {
             texture: mesh.texture,
-            vertices: self.gpu.create_buffer(&mesh.vertices, BufferUsages::VERTEX),
-            triangles: self.gpu.create_buffer(&mesh.triangles, BufferUsages::INDEX),
+            vertices: self.gpu.create_buffer(mesh.vertices, BufferUsages::VERTEX),
+            triangles: self.gpu.create_buffer(mesh.triangles, BufferUsages::INDEX),
         }
     }
 }

@@ -10,10 +10,10 @@ use gpu::{
 
 use super::Share;
 
-pub struct Mesh {
+pub struct Mesh<'v, 't> {
     pub texture: TextureID,
-    pub vertices: Vec<Vertex>,
-    pub triangles: Vec<[u16; 3]>,
+    pub vertices: &'v [Vertex],
+    pub triangles: &'t [[u16; 3]],
 }
 
 #[repr(C)]

@@ -1,10 +1,11 @@
 mod input;
 
+use assets::TextureID;
 use cgmath::{perspective, vec2, vec3, Deg, Matrix4};
 use winit::event::{ElementState, MouseButton, VirtualKeyCode};
 
 use crate::{
-    graphics::{line, Camera, Canvas, Renderer, Share},
+    graphics::{line, solid, Camera, Canvas, Renderer, Share},
     OnSave,
 };
 
@@ -13,6 +14,7 @@ use self::input::Input;
 pub struct Logic {
     input: Input,
     line: line::Object,
+    solid: solid::Object,
 }
 
 impl Logic {
@@ -20,7 +22,7 @@ impl Logic {
         Self {
             input: Input::default(),
             line: ctx.renderer.create_line_object(line::Mesh {
-                vertices: vec![
+                vertices: &[
                     line::Vertex {
                         position: vec3(0.0, 0.0, 0.0),
                         color: [1.0, 0.0, 0.0],
@@ -30,6 +32,30 @@ impl Logic {
                         color: [0.0, 1.0, 0.0],
                     },
                 ],
+            }),
+            solid: ctx.renderer.create_solid_object(solid::Mesh {
+                texture: TextureID(0),
+                vertices: &[
+                    solid::Vertex {
+                        position: vec3(0.0, 0.0, 0.0),
+                        normal: vec3(0.0, 0.0, 1.0),
+                        texcoord: vec2(0.0, 0.0),
+                        tint: [0.0; 4],
+                    },
+                    solid::Vertex {
+                        position: vec3(1.0, 0.0, 0.0),
+                        normal: vec3(0.0, 0.0, 1.0),
+                        texcoord: vec2(1.0, 0.0),
+                        tint: [0.0; 4],
+                    },
+                    solid::Vertex {
+                        position: vec3(1.0, 1.0, 0.0),
+                        normal: vec3(0.0, 0.0, 1.0),
+                        texcoord: vec2(1.0, 1.0),
+                        tint: [0.0; 4],
+                    },
+                ],
+                triangles: &[[0, 1, 2]],
             }),
         }
     }
@@ -60,8 +86,11 @@ impl Logic {
         canvas.set_camera(Camera {
             world_to_clip: perspective(Deg(80.0), 800.0 / 600.0, 0.1, 100.0)
                 * Matrix4::from_translation(vec3(0.0, 0.0, -5.0)),
+            view_to_world: Matrix4::from_translation(vec3(0.0, 0.0, 5.0)),
         });
+
         canvas.draw_lines(self.line.share());
+        canvas.draw_solid(self.solid.share());
     }
 }
 

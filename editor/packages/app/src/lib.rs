@@ -1,6 +1,7 @@
 mod graphics;
 mod logic;
 
+use assets::{Texture, TextureID};
 use logic::Logic;
 use winit::{
     dpi::{PhysicalPosition, PhysicalSize},
@@ -16,6 +17,19 @@ pub fn run(init: Init) {
     let save_handler = init.save_handler;
 
     let mut renderer = Renderer::new(&winit.window);
+
+    for resource in init.resources {
+        match resource.kind {
+            ResourceKind::Texture => {
+                let id = TextureID(resource.id);
+                let texture = Texture::new(resource.buf);
+                renderer.add_texture(id, texture);
+            }
+            ResourceKind::Prop => todo!(),
+            ResourceKind::Gizmo => todo!(),
+        }
+    }
+
     let mut logic = Logic::init(logic::Context {
         renderer: &renderer,
         save_handler: save_handler.as_ref(),
@@ -76,10 +90,10 @@ pub fn run(init: Init) {
     });
 }
 
-pub struct Init {
+pub struct Init<'b> {
     pub winit: Winit,
     pub save_handler: Box<dyn OnSave>,
-    pub resources: Vec<Resource>,
+    pub resources: Vec<Resource<'b>>,
 }
 
 pub struct Winit {
@@ -91,8 +105,9 @@ pub trait OnSave {
     fn on_save(&self, buf: &[u8]);
 }
 
-pub struct Resource {
-    pub bytes: Vec<u8>,
+pub struct Resource<'b> {
+    pub id: u32,
+    pub buf: &'b [u8],
     pub kind: ResourceKind,
 }
 

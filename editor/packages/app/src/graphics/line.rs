@@ -9,8 +9,8 @@ use gpu::{
 
 use super::Share;
 
-pub struct Mesh {
-    pub vertices: Vec<Vertex>,
+pub struct Mesh<'v> {
+    pub vertices: &'v [Vertex],
 }
 
 #[repr(C)]

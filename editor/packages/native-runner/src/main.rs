@@ -1,11 +1,15 @@
-use app::{run, Init, OnSave, Winit};
+use app::{run, Init, OnSave, Resource, ResourceKind, Winit};
 use winit::{event_loop::EventLoop, window::WindowBuilder};
 
 fn main() {
     run(Init {
         winit: winit(),
         save_handler: Box::new(IgnoreSave),
-        resources: vec![],
+        resources: vec![Resource {
+            id: 0,
+            buf: include_bytes!("../assets/nodraw.png"),
+            kind: ResourceKind::Texture,
+        }],
     });
 }
 
