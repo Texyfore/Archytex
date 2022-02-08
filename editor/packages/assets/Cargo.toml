@@ -1,0 +1,9 @@
+[package]
+name = "assets"
+version = "0.1.0"
+edition = "2021"
+description = "Asset loading library"
+authors = ["Gulyás Arnold"]
+
+[dependencies]
+image = "0"

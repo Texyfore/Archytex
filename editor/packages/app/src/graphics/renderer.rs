@@ -1,14 +1,18 @@
+use std::collections::HashMap;
+
+use assets::TextureID;
 use bytemuck::cast_slice;
 use gpu::{BufferUsages, DepthBuffer, Gpu, Pipeline, Res, Surface, Uniform};
 use winit::window::Window;
 
-use super::{line, Camera, Canvas};
+use super::{line, solid, Camera, Canvas};
 
 pub struct Renderer {
     gpu: Gpu,
     surface: Surface,
     depth_buffer: DepthBuffer,
     pipelines: Pipelines,
+    resources: Resources,
     camera: Res<Uniform<Camera>>,
 }
 
@@ -19,6 +23,7 @@ impl Renderer {
         let (gpu, surface) = gpu::init(window);
         let depth_buffer = gpu.create_depth_buffer(width, height);
         let pipelines = Pipelines::new(&gpu, &surface);
+        let resources = Resources::default();
         let camera = gpu.create_uniform(&Camera::default());
 
         surface.configure(&gpu, width, height);
@@ -28,6 +33,7 @@ impl Renderer {
             surface,
             depth_buffer,
             pipelines,
+            resources,
             camera,
         }
     }
@@ -49,11 +55,17 @@ impl Renderer {
             for line in &canvas.lines {
                 pass.draw(&line.vertices);
             }
+
+            pass.set_pipeline(&self.pipelines.solid);
+            for solid in &canvas.solids {}
         }
 
         self.gpu.end_frame(frame);
     }
 }
+
+// add_* implementations
+impl Renderer {}
 
 // create_*_object implementations
 impl Renderer {
@@ -64,16 +76,31 @@ impl Renderer {
                 .create_buffer(cast_slice(&mesh.vertices), BufferUsages::VERTEX),
         }
     }
+
+    pub fn create_solid_object(&self, mesh: solid::Mesh) -> solid::Object {
+        solid::Object {
+            texture: mesh.texture,
+            vertices: self.gpu.create_buffer(&mesh.vertices, BufferUsages::VERTEX),
+            triangles: self.gpu.create_buffer(&mesh.triangles, BufferUsages::INDEX),
+        }
+    }
 }
 
 struct Pipelines {
     line: Pipeline,
+    solid: Pipeline,
 }
 
 impl Pipelines {
     fn new(gpu: &Gpu, surface: &Surface) -> Self {
         Self {
             line: line::pipeline(gpu, surface),
+            solid: solid::pipeline(gpu, surface),
         }
     }
+}
+
+#[derive(Default)]
+struct Resources {
+    textures: HashMap<TextureID, Res<gpu::Texture>>,
 }

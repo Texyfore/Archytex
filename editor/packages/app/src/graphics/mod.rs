@@ -5,6 +5,7 @@ use bytemuck::{Pod, Zeroable};
 use cgmath::{Matrix4, SquareMatrix};
 
 pub mod line;
+pub mod solid;
 
 pub use canvas::Canvas;
 pub use renderer::Renderer;
