@@ -1,18 +1,20 @@
+mod camera;
 mod input;
 
 use asset::TextureID;
-use cgmath::{perspective, vec2, vec3, Deg, Matrix4};
+use cgmath::{vec2, vec3};
 use winit::event::{ElementState, MouseButton, VirtualKeyCode};
 
 use crate::{
-    graphics::{line, solid, Camera, Canvas, Renderer, Share},
+    graphics::{line, solid, Canvas, Renderer, Share},
     OnSave,
 };
 
-use self::input::Input;
+use self::{camera::Camera, input::Input};
 
 pub struct Logic {
     input: Input,
+    camera: Camera,
     line: line::Object,
     solid: solid::Object,
 }
@@ -21,6 +23,7 @@ impl Logic {
     pub fn init(ctx: Context) -> Self {
         Self {
             input: Input::default(),
+            camera: Camera::default(),
             line: ctx.renderer.create_line_object(line::Mesh {
                 vertices: &[
                     line::Vertex {
@@ -61,10 +64,18 @@ impl Logic {
     }
 
     pub fn process(&mut self, _ctx: Context) {
+        if self.input.is_key_down(VirtualKeyCode::W) {
+            self.camera.move_forward(1.0 / 60.0);
+        }
+        if self.input.is_key_down(VirtualKeyCode::S) {
+            self.camera.move_backward(1.0 / 60.0);
+        }
         self.input.process();
     }
 
-    pub fn resized(&mut self, _width: u32, _height: u32) {}
+    pub fn resized(&mut self, width: u32, height: u32) {
+        self.camera.recalc(width, height);
+    }
 
     pub fn key(&mut self, key: VirtualKeyCode, state: ElementState) {
         self.input.key(key, state);
@@ -83,12 +94,7 @@ impl Logic {
     }
 
     pub fn render(&self, canvas: &mut Canvas) {
-        canvas.set_camera(Camera {
-            world_to_clip: perspective(Deg(80.0), 800.0 / 600.0, 0.1, 100.0)
-                * Matrix4::from_translation(vec3(0.0, 0.0, -5.0)),
-            view_to_world: Matrix4::from_translation(vec3(0.0, 0.0, 5.0)),
-        });
-
+        canvas.set_camera(self.camera.matrices());
         canvas.draw_lines(self.line.share());
         canvas.draw_solid(self.solid.share());
     }

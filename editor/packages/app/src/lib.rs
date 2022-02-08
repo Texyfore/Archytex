@@ -1,5 +1,6 @@
 mod graphics;
 mod logic;
+mod math;
 
 use asset::{Texture, TextureID};
 use logic::Logic;
