@@ -1,10 +1,12 @@
-use app::{run, Callbacks, Winit};
+use app::{run, Init, OnSave, Winit};
 use winit::{event_loop::EventLoop, window::WindowBuilder};
 
 fn main() {
-    let winit = winit();
-    let callbacks = callbacks();
-    run(winit, callbacks);
+    run(Init {
+        winit: winit(),
+        save_handler: Box::new(IgnoreSave),
+        resources: vec![],
+    });
 }
 
 fn winit() -> Winit {
@@ -17,12 +19,10 @@ fn winit() -> Winit {
     Winit { event_loop, window }
 }
 
-fn callbacks() -> Callbacks {
-    Callbacks {
-        save: Box::new(save),
-    }
-}
+pub struct IgnoreSave;
 
-fn save(scene: &[u8]) {
-    println!("[runner] ignoring saved scene (size: {}b)", scene.len());
+impl OnSave for IgnoreSave {
+    fn on_save(&self, buf: &[u8]) {
+        println!("[runner] ignoring saved scene ({} bytes)", buf.len());
+    }
 }

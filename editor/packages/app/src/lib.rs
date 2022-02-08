@@ -9,15 +9,16 @@ use winit::{
     window::Window,
 };
 
-use self::{
-    graphics::{Canvas, Renderer},
-    logic::Context,
-};
+use self::graphics::{Canvas, Renderer};
 
-pub fn run(winit: Winit, _callbacks: Callbacks) {
+pub fn run(init: Init) {
+    let winit = init.winit;
+    let save_handler = init.save_handler;
+
     let mut renderer = Renderer::new(&winit.window);
-    let mut logic = Logic::init(Context {
+    let mut logic = Logic::init(logic::Context {
         renderer: &renderer,
+        save_handler: save_handler.as_ref(),
     });
 
     winit.event_loop.run(move |event, _, flow| {
@@ -61,8 +62,9 @@ pub fn run(winit: Winit, _callbacks: Callbacks) {
                 _ => (),
             },
             Event::MainEventsCleared => {
-                logic.process(Context {
+                logic.process(logic::Context {
                     renderer: &renderer,
+                    save_handler: save_handler.as_ref(),
                 });
 
                 let mut canvas = Canvas;
@@ -74,11 +76,28 @@ pub fn run(winit: Winit, _callbacks: Callbacks) {
     });
 }
 
+pub struct Init {
+    pub winit: Winit,
+    pub save_handler: Box<dyn OnSave>,
+    pub resources: Vec<Resource>,
+}
+
 pub struct Winit {
     pub event_loop: EventLoop<()>,
     pub window: Window,
 }
 
-pub struct Callbacks {
-    pub save: Box<dyn Fn(&[u8])>,
+pub trait OnSave {
+    fn on_save(&self, buf: &[u8]);
+}
+
+pub struct Resource {
+    pub bytes: Vec<u8>,
+    pub kind: ResourceKind,
+}
+
+pub enum ResourceKind {
+    Texture,
+    Prop,
+    Gizmo,
 }
