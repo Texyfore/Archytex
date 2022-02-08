@@ -1,4 +1,4 @@
-mod geometry;
+mod geom;
 
 use std::{collections::HashMap, rc::Rc};
 
@@ -7,7 +7,7 @@ use bytemuck::cast_slice;
 use gpu::{BufferUsages, DepthBuffer, Gpu, Image, Pipeline, Sampler, Surface, Uniform};
 use winit::window::Window;
 
-use self::geometry::PropModel;
+use self::geom::PropModel;
 
 use super::{line, prop, solid, Camera, Canvas};
 

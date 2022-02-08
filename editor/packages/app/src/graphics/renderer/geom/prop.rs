@@ -3,7 +3,7 @@ use bytemuck::{Pod, Zeroable};
 use cgmath::{Vector2, Vector3};
 use gpu::{Buffer, BufferUsages, Gpu};
 
-pub(super) struct PropModel {
+pub struct PropModel {
     pub meshes: Vec<PropMesh>,
 }
 
@@ -19,7 +19,7 @@ impl PropModel {
     }
 }
 
-pub(super) struct PropMesh {
+pub struct PropMesh {
     pub texture: TextureID,
     pub vertices: Buffer<PropVertex>,
     pub triangles: Buffer<[u16; 3]>,
@@ -43,7 +43,7 @@ impl PropMesh {
 
 #[repr(C)]
 #[derive(Clone, Copy)]
-pub(super) struct PropVertex {
+pub struct PropVertex {
     position: Vector3<f32>,
     normal: Vector3<f32>,
     texcoord: Vector2<f32>,
