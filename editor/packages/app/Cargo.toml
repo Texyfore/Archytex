@@ -8,4 +8,5 @@ authors = ["Gulyás Arnold"]
 [dependencies]
 winit = "0"
 cgmath = "0"
+bytemuck = "1"
 gpu = { path = "../gpu" }

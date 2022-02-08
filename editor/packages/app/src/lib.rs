@@ -67,7 +67,7 @@ pub fn run(init: Init) {
                     save_handler: save_handler.as_ref(),
                 });
 
-                let mut canvas = Canvas;
+                let mut canvas = Canvas::default();
                 logic.render(&mut canvas);
                 renderer.render(canvas);
             }
