@@ -1,56 +1,67 @@
 use std::{mem::size_of, rc::Rc};
 
-use asset::TextureID;
+use asset::PropID;
 use bytemuck::{Pod, Zeroable};
-use cgmath::{Vector2, Vector3};
+use cgmath::{Matrix4, SquareMatrix, Vector2, Vector3};
 use gpu::{
-    vertex_attr_array, Buffer, Gpu, Pipeline, PipelineConfig, PipelineInput, PipelineTopology,
-    Surface, VertexBufferLayout, VertexStepMode,
+    vertex_attr_array, Gpu, Pipeline, PipelineConfig, PipelineInput, PipelineTopology, Surface,
+    Uniform, VertexBufferLayout, VertexStepMode,
 };
 
 use super::Share;
 
-pub struct Mesh<'v, 't> {
-    pub texture: TextureID,
-    pub vertices: &'v [Vertex],
-    pub triangles: &'t [[u16; 3]],
-}
-
 #[repr(C)]
 #[derive(Clone, Copy)]
-pub struct Vertex {
+pub(super) struct Vertex {
     pub position: Vector3<f32>,
     pub normal: Vector3<f32>,
     pub texcoord: Vector2<f32>,
-    pub tint: [f32; 4],
 }
 
 unsafe impl Zeroable for Vertex {}
 unsafe impl Pod for Vertex {}
 
 pub struct Object {
-    pub(super) texture: TextureID,
-    pub(super) vertices: Rc<Buffer<Vertex>>,
-    pub(super) triangles: Rc<Buffer<[u16; 3]>>,
+    pub(super) prop: PropID,
+    pub(super) uniform: Rc<Uniform<Properties>>,
 }
 
 impl Share for Object {
     fn share(&self) -> Self {
         Self {
-            texture: self.texture,
-            vertices: self.vertices.clone(),
-            triangles: self.triangles.clone(),
+            prop: self.prop,
+            uniform: self.uniform.clone(),
         }
     }
 }
+
+#[repr(C)]
+#[derive(Clone, Copy)]
+pub struct Properties {
+    pub transform: Matrix4<f32>,
+    pub tint: [f32; 4],
+}
+
+impl Default for Properties {
+    fn default() -> Self {
+        Self {
+            transform: Matrix4::identity(),
+            tint: [0.0; 4],
+        }
+    }
+}
+
+unsafe impl Zeroable for Properties {}
+unsafe impl Pod for Properties {}
 
 pub(super) fn pipeline(gpu: &Gpu, surface: &Surface) -> Pipeline {
     gpu.create_pipeline(
         surface,
         &PipelineConfig {
-            shader_source: include_str!("shaders/solid.wgsl"),
+            shader_source: include_str!("shaders/prop.wgsl"),
             inputs: &[
                 PipelineInput::Uniform, // Camera
+                PipelineInput::Uniform, // Properties
                 PipelineInput::Texture, // Texture
             ],
             vertex_buffers: &[VertexBufferLayout {
@@ -60,7 +71,6 @@ pub(super) fn pipeline(gpu: &Gpu, surface: &Surface) -> Pipeline {
                     0 => Float32x3, // Position
                     1 => Float32x3, // Normal
                     2 => Float32x2, // Texcoord
-                    3 => Float32x4, // Tint
                 ],
             }],
             topology: PipelineTopology::Triangles,

@@ -7,3 +7,4 @@ authors = ["Gulyás Arnold"]
 
 [dependencies]
 image = "0"
+cgmath = "0"

@@ -1,6 +1,6 @@
 use std::marker::PhantomData;
 
-use crate::{Gpu, Res};
+use crate::Gpu;
 
 use bytemuck::{cast_slice, Pod};
 use wgpu::util::{BufferInitDescriptor, DeviceExt};
@@ -13,11 +13,11 @@ pub struct Buffer<T> {
 }
 
 impl Gpu {
-    pub fn create_buffer<T>(&self, content: &[T], usage: BufferUsages) -> Res<Buffer<T>>
+    pub fn create_buffer<T>(&self, content: &[T], usage: BufferUsages) -> Buffer<T>
     where
         T: Pod,
     {
-        Res::new(Buffer {
+        Buffer {
             buffer: self.device.create_buffer_init(&BufferInitDescriptor {
                 label: None,
                 contents: cast_slice(content),
@@ -25,7 +25,7 @@ impl Gpu {
             }),
             len: content.len(),
             _t: PhantomData,
-        })
+        }
     }
 }
 

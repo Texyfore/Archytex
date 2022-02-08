@@ -5,6 +5,7 @@ use bytemuck::{Pod, Zeroable};
 use cgmath::{Matrix4, SquareMatrix};
 
 pub mod line;
+pub mod prop;
 pub mod solid;
 
 pub use canvas::Canvas;
@@ -36,7 +37,7 @@ unsafe impl Pod for Camera {}
 /*
 
 * Colored lines
-- Textured transformless solids with vertex tint
+* Textured transformless solids with vertex tint
 - Textured, transformed, multi-meshed props with mesh tint
 - Unlit, colored gizmos that are instanced
 

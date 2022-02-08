@@ -1,9 +1,9 @@
-use std::mem::size_of;
+use std::{mem::size_of, rc::Rc};
 
 use bytemuck::{Pod, Zeroable};
 use cgmath::Vector3;
 use gpu::{
-    vertex_attr_array, Buffer, Gpu, Pipeline, PipelineConfig, PipelineInput, PipelineTopology, Res,
+    vertex_attr_array, Buffer, Gpu, Pipeline, PipelineConfig, PipelineInput, PipelineTopology,
     Surface, VertexBufferLayout, VertexStepMode,
 };
 
@@ -24,13 +24,13 @@ unsafe impl Zeroable for Vertex {}
 unsafe impl Pod for Vertex {}
 
 pub struct Object {
-    pub(super) vertices: Res<Buffer<Vertex>>,
+    pub(super) vertices: Rc<Buffer<Vertex>>,
 }
 
 impl Share for Object {
     fn share(&self) -> Self {
         Self {
-            vertices: self.vertices.share(),
+            vertices: self.vertices.clone(),
         }
     }
 }

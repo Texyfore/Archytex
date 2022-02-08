@@ -7,9 +7,6 @@ struct Attribs {
 
     [[location(2)]]
     texcoord: vec2<f32>;
-
-    [[location(3)]]
-    tint: vec4<f32>;
 };
 
 struct Vertex {
@@ -42,28 +39,36 @@ struct Camera {
     view_to_world: mat4x4<f32>;
 };
 
+struct Properties {
+    transform: mat4x4<f32>;
+    tint: vec4<f32>;
+};
+
 [[group(0), binding(0)]]
 var<uniform> camera: Camera;
+
+[[group(1), binding(0)]]
+var<uniform> properties: Properties;
 
 [[stage(vertex)]]
 fn vertex(attribs: Attribs) -> Vertex {
     var vertex: Vertex;
     
-    vertex.position = camera.world_to_clip * vec4<f32>(attribs.position, 1.0);
+    vertex.position = camera.world_to_clip * properties.transform * vec4<f32>(attribs.position, 1.0);
     vertex.normal = attribs.normal;
     vertex.texcoord = attribs.texcoord;
-    vertex.tint = attribs.tint;
+    vertex.tint = properties.tint;
     
     vertex.camera_position = (camera.view_to_world * vec4<f32>(0.0, 0.0, 0.0, 1.0)).xyz;
-    vertex.world_position = attribs.position;
+    vertex.world_position = (properties.transform * vec4<f32>(attribs.position, 1.0)).xyz;
 
     return vertex;
 }
 
-[[group(1), binding(0)]]
+[[group(2), binding(0)]]
 var t_diffuse: texture_2d<f32>;
 
-[[group(1), binding(1)]]
+[[group(2), binding(1)]]
 var s_diffuse: sampler;
 
 [[stage(fragment)]]

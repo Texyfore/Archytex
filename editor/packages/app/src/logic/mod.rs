@@ -1,12 +1,12 @@
 mod camera;
 mod input;
 
-use asset::TextureID;
-use cgmath::{vec2, vec3};
+use asset::PropID;
+use cgmath::vec2;
 use winit::event::{ElementState, MouseButton, VirtualKeyCode};
 
 use crate::{
-    graphics::{line, solid, Canvas, Renderer, Share},
+    graphics::{prop, Canvas, Renderer, Share},
     OnSave,
 };
 
@@ -15,8 +15,7 @@ use self::{camera::Camera, input::Input};
 pub struct Logic {
     input: Input,
     camera: Camera,
-    line: line::Object,
-    solid: solid::Object,
+    prop: prop::Object,
 }
 
 impl Logic {
@@ -24,42 +23,7 @@ impl Logic {
         Self {
             input: Input::default(),
             camera: Camera::default(),
-            line: ctx.renderer.create_line_object(line::Mesh {
-                vertices: &[
-                    line::Vertex {
-                        position: vec3(0.0, 0.0, 0.0),
-                        color: [1.0, 0.0, 0.0],
-                    },
-                    line::Vertex {
-                        position: vec3(1.0, 1.0, 0.0),
-                        color: [0.0, 1.0, 0.0],
-                    },
-                ],
-            }),
-            solid: ctx.renderer.create_solid_object(solid::Mesh {
-                texture: TextureID(0),
-                vertices: &[
-                    solid::Vertex {
-                        position: vec3(0.0, 0.0, 0.0),
-                        normal: vec3(0.0, 0.0, 1.0),
-                        texcoord: vec2(0.0, 0.0),
-                        tint: [0.0; 4],
-                    },
-                    solid::Vertex {
-                        position: vec3(1.0, 0.0, 0.0),
-                        normal: vec3(0.0, 0.0, 1.0),
-                        texcoord: vec2(1.0, 0.0),
-                        tint: [0.0; 4],
-                    },
-                    solid::Vertex {
-                        position: vec3(1.0, 1.0, 0.0),
-                        normal: vec3(0.0, 0.0, 1.0),
-                        texcoord: vec2(1.0, 1.0),
-                        tint: [0.0; 4],
-                    },
-                ],
-                triangles: &[[0, 1, 2]],
-            }),
+            prop: ctx.renderer.create_prop_object(PropID(0)),
         }
     }
 
@@ -95,8 +59,7 @@ impl Logic {
 
     pub fn render(&self, canvas: &mut Canvas) {
         canvas.set_camera(self.camera.matrices());
-        canvas.draw_lines(self.line.share());
-        canvas.draw_solid(self.solid.share());
+        canvas.draw_prop(self.prop.share());
     }
 }
 

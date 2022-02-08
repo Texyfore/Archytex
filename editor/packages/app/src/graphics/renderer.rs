@@ -1,11 +1,11 @@
-use std::collections::HashMap;
+use std::{collections::HashMap, rc::Rc};
 
-use asset::TextureID;
+use asset::{PropID, TextureID};
 use bytemuck::cast_slice;
-use gpu::{BufferUsages, DepthBuffer, Gpu, Image, Pipeline, Res, Sampler, Surface, Uniform};
+use gpu::{Buffer, BufferUsages, DepthBuffer, Gpu, Image, Pipeline, Sampler, Surface, Uniform};
 use winit::window::Window;
 
-use super::{line, solid, Camera, Canvas};
+use super::{line, prop, solid, Camera, Canvas};
 
 pub struct Renderer {
     gpu: Gpu,
@@ -13,8 +13,8 @@ pub struct Renderer {
     depth_buffer: DepthBuffer,
     pipelines: Pipelines,
     resources: Resources,
-    sampler: Res<Sampler>,
-    camera: Res<Uniform<Camera>>,
+    sampler: Sampler,
+    camera: Uniform<Camera>,
 }
 
 impl Renderer {
@@ -66,6 +66,19 @@ impl Renderer {
                     pass.draw_triangles(&solid.vertices, &solid.triangles);
                 }
             }
+
+            pass.set_pipeline(&self.pipelines.prop);
+            for prop in &canvas.props {
+                if let Some(model) = self.resources.props.get(&prop.prop) {
+                    pass.set_uniform(1, &prop.uniform);
+                    for mesh in &model.meshes {
+                        if let Some(texture) = self.resources.textures.get(&mesh.texture) {
+                            pass.set_texture(2, texture);
+                            pass.draw_triangles(&mesh.vertices, &mesh.triangles);
+                        }
+                    }
+                }
+            }
         }
 
         self.gpu.end_frame(frame);
@@ -87,30 +100,69 @@ impl Renderer {
             ),
         );
     }
+
+    pub fn add_prop(&mut self, id: PropID, prop: asset::Prop) {
+        let prop = PropModel {
+            meshes: prop
+                .meshes
+                .into_iter()
+                .map(|mesh| PropMesh {
+                    texture: mesh.texture,
+                    vertices: self.gpu.create_buffer(
+                        &mesh
+                            .vertices
+                            .into_iter()
+                            .map(|vertex| vertex.into())
+                            .collect::<Vec<_>>(),
+                        BufferUsages::VERTEX,
+                    ),
+                    triangles: self.gpu.create_buffer(&mesh.triangles, BufferUsages::INDEX),
+                })
+                .collect(),
+        };
+
+        self.resources.props.insert(id, prop);
+    }
 }
 
-// create_*_object implementations
+// create_* implementations
 impl Renderer {
     pub fn create_line_object(&self, mesh: line::Mesh) -> line::Object {
         line::Object {
-            vertices: self
-                .gpu
-                .create_buffer(cast_slice(mesh.vertices), BufferUsages::VERTEX),
+            vertices: Rc::new(
+                self.gpu
+                    .create_buffer(cast_slice(mesh.vertices), BufferUsages::VERTEX),
+            ),
         }
     }
 
     pub fn create_solid_object(&self, mesh: solid::Mesh) -> solid::Object {
         solid::Object {
             texture: mesh.texture,
-            vertices: self.gpu.create_buffer(mesh.vertices, BufferUsages::VERTEX),
-            triangles: self.gpu.create_buffer(mesh.triangles, BufferUsages::INDEX),
+            vertices: Rc::new(self.gpu.create_buffer(mesh.vertices, BufferUsages::VERTEX)),
+            triangles: Rc::new(self.gpu.create_buffer(mesh.triangles, BufferUsages::INDEX)),
         }
+    }
+
+    pub fn create_prop_object(&self, prop: PropID) -> prop::Object {
+        prop::Object {
+            prop,
+            uniform: Rc::new(self.gpu.create_uniform(&prop::Properties::default())),
+        }
+    }
+}
+
+// set_* implementations
+impl Renderer {
+    pub fn set_prop_properties(&self, object: &prop::Object, properties: prop::Properties) {
+        self.gpu.set_uniform(&object.uniform, &properties);
     }
 }
 
 struct Pipelines {
     line: Pipeline,
     solid: Pipeline,
+    prop: Pipeline,
 }
 
 impl Pipelines {
@@ -118,11 +170,33 @@ impl Pipelines {
         Self {
             line: line::pipeline(gpu, surface),
             solid: solid::pipeline(gpu, surface),
+            prop: prop::pipeline(gpu, surface),
         }
     }
 }
 
 #[derive(Default)]
 struct Resources {
-    textures: HashMap<TextureID, Res<gpu::Texture>>,
+    textures: HashMap<TextureID, gpu::Texture>,
+    props: HashMap<PropID, PropModel>,
+}
+
+struct PropModel {
+    meshes: Vec<PropMesh>,
+}
+
+struct PropMesh {
+    texture: TextureID,
+    vertices: Buffer<prop::Vertex>,
+    triangles: Buffer<[u16; 3]>,
+}
+
+impl From<asset::prop::Vertex> for prop::Vertex {
+    fn from(vertex: asset::prop::Vertex) -> Self {
+        Self {
+            position: vertex.position,
+            normal: vertex.normal,
+            texcoord: vertex.texcoord,
+        }
+    }
 }

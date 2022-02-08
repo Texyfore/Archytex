@@ -6,7 +6,7 @@ use wgpu::{
     TextureDescriptor, TextureDimension, TextureFormat, TextureUsages,
 };
 
-use crate::{res::Res, Gpu};
+use crate::Gpu;
 
 pub use wgpu::Sampler;
 
@@ -21,7 +21,7 @@ pub struct Image<'a> {
 }
 
 impl Gpu {
-    pub fn create_texture(&self, sampler: &Sampler, image: Image) -> Res<Texture> {
+    pub fn create_texture(&self, sampler: &Sampler, image: Image) -> Texture {
         let size = Extent3d {
             width: image.width,
             height: image.height,
@@ -71,11 +71,11 @@ impl Gpu {
             size,
         );
 
-        Res::new(Texture { group })
+        Texture { group }
     }
 
-    pub fn create_sampler(&self) -> Res<Sampler> {
-        Res::new(self.device.create_sampler(&SamplerDescriptor {
+    pub fn create_sampler(&self) -> Sampler {
+        self.device.create_sampler(&SamplerDescriptor {
             label: None,
             address_mode_u: AddressMode::Repeat,
             address_mode_v: AddressMode::Repeat,
@@ -84,6 +84,6 @@ impl Gpu {
             min_filter: FilterMode::Nearest,
             mipmap_filter: FilterMode::Nearest,
             ..Default::default()
-        }))
+        })
     }
 }

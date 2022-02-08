@@ -7,7 +7,7 @@ use wgpu::{
     BufferUsages,
 };
 
-use crate::{Gpu, Res};
+use crate::Gpu;
 
 pub struct Uniform<T> {
     pub(crate) group: BindGroup,
@@ -16,7 +16,7 @@ pub struct Uniform<T> {
 }
 
 impl Gpu {
-    pub fn create_uniform<T>(&self, content: &T) -> Res<Uniform<T>>
+    pub fn create_uniform<T>(&self, content: &T) -> Uniform<T>
     where
         T: Pod,
     {
@@ -39,11 +39,11 @@ impl Gpu {
             }],
         });
 
-        Res::new(Uniform {
+        Uniform {
             group,
             buffer,
             _t: PhantomData,
-        })
+        }
     }
 
     pub fn set_uniform<T>(&self, uniform: &Uniform<T>, content: &T)
