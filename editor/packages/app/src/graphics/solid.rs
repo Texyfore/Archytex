@@ -1,6 +1,6 @@
 use std::mem::size_of;
 
-use assets::TextureID;
+use asset::TextureID;
 use bytemuck::{Pod, Zeroable};
 use cgmath::{Vector2, Vector3};
 use gpu::{

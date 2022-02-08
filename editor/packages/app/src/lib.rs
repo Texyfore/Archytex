@@ -1,7 +1,7 @@
 mod graphics;
 mod logic;
 
-use assets::{Texture, TextureID};
+use asset::{Texture, TextureID};
 use logic::Logic;
 use winit::{
     dpi::{PhysicalPosition, PhysicalSize},

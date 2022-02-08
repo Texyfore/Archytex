@@ -1,6 +1,6 @@
 mod input;
 
-use assets::TextureID;
+use asset::TextureID;
 use cgmath::{perspective, vec2, vec3, Deg, Matrix4};
 use winit::event::{ElementState, MouseButton, VirtualKeyCode};
 

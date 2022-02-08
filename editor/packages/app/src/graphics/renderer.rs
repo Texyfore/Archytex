@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use assets::TextureID;
+use asset::TextureID;
 use bytemuck::cast_slice;
 use gpu::{BufferUsages, DepthBuffer, Gpu, Image, Pipeline, Res, Sampler, Surface, Uniform};
 use winit::window::Window;
@@ -74,7 +74,7 @@ impl Renderer {
 
 // add_* implementations
 impl Renderer {
-    pub fn add_texture(&mut self, id: TextureID, texture: assets::Texture) {
+    pub fn add_texture(&mut self, id: TextureID, texture: asset::Texture) {
         self.resources.textures.insert(
             id,
             self.gpu.create_texture(
