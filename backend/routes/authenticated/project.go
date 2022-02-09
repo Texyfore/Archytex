@@ -2,12 +2,13 @@ package authenticated
 
 import (
 	"encoding/json"
+	"net/http"
+
 	"github.com/Texyfore/Archytex/backend/database"
 	"github.com/Texyfore/Archytex/backend/database/models"
 	"github.com/Texyfore/Archytex/backend/logging"
 	"github.com/gorilla/mux"
 	"go.mongodb.org/mongo-driver/bson/primitive"
-	"net/http"
 )
 
 func Project(w http.ResponseWriter, r *http.Request) {
@@ -19,11 +20,12 @@ func Project(w http.ResponseWriter, r *http.Request) {
 			logging.Error(w, r, err, err.Error(), http.StatusBadRequest)
 			return
 		}
-		err = database.CurrentDatabase.CreateProject(session.User.Id, name)
+		id, err := database.CurrentDatabase.CreateProject(session.User.Id, name)
 		if err != nil {
 			logging.Error(w, r, err, "could not create project", http.StatusBadRequest)
 			return
 		}
+		json.NewEncoder(w).Encode(id.(primitive.ObjectID).Hex())
 	} else if r.Method == "DELETE" {
 		params := mux.Vars(r)
 		_projectId, ok := params["id"]

@@ -24,7 +24,7 @@ type Database interface {
 	GetSession(id interface{}) (*models.Session, error)
 	CreateSession(user *models.User) (string, error)
 
-	CreateProject(userId interface{}, name string) error
+	CreateProject(userId interface{}, name string) (interface{}, error)
 	RenameProject(userId interface{}, projectId interface{}, name string) error
 	DeleteProject(userId interface{}, projectId interface{}) error
 	GetProject(userId interface{}, projectId interface{}) (*models.Project, error)

@@ -115,7 +115,7 @@ func (m MongoDatabase) GetProject(userId interface{}, projectId interface{}) (*m
 	return &result.Projects[0], nil
 }
 
-func (m MongoDatabase) CreateProject(userId interface{}, name string) error {
+func (m MongoDatabase) CreateProject(userId interface{}, name string) (interface{}, error) {
 	//TODO implement me
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
 	defer cancel()
@@ -133,7 +133,7 @@ func (m MongoDatabase) CreateProject(userId interface{}, name string) error {
 			{"projects", project},
 		}},
 	})
-	return err
+	return project.Id, err
 }
 
 func (m MongoDatabase) CreateRender(userId interface{}, projectId interface{}, name string) (interface{}, error) {
