@@ -1,5 +1,7 @@
+mod gizmo;
 mod prop;
 mod texture;
 
-pub use prop::{BoundingBox, Prop, PropID, PropMesh, PropVertex};
-pub use texture::{Texture, TextureID};
+pub use gizmo::*;
+pub use prop::*;
+pub use texture::*;

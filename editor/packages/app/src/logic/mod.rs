@@ -1,11 +1,12 @@
 mod camera;
 mod input;
 
-use cgmath::vec2;
+use asset::GizmoID;
+use cgmath::{vec2, vec3, Matrix4};
 use winit::event::{ElementState, MouseButton, VirtualKeyCode};
 
 use crate::{
-    graphics::{Canvas, Graphics},
+    graphics::{structures::GizmoInstance, Canvas, GizmoGroup, GizmoInstances, Graphics, Share},
     OnSave,
 };
 
@@ -14,13 +15,28 @@ use self::{camera::Camera, input::Input};
 pub struct Logic {
     input: Input,
     camera: Camera,
+    instances: GizmoInstances,
 }
 
 impl Logic {
-    pub fn init(_ctx: Context) -> Self {
+    pub fn init(ctx: Context) -> Self {
         Self {
             input: Input::default(),
             camera: Camera::default(),
+            instances: ctx.graphics.create_gizmo_instances(&[
+                GizmoInstance {
+                    matrix: Matrix4::from_translation(vec3(0.0, 0.0, 0.0)),
+                    color: [1.0, 0.0, 0.0],
+                },
+                GizmoInstance {
+                    matrix: Matrix4::from_translation(vec3(0.0, 2.0, 0.0)),
+                    color: [0.0, 1.0, 0.0],
+                },
+                GizmoInstance {
+                    matrix: Matrix4::from_translation(vec3(0.0, 4.0, 0.0)),
+                    color: [0.0, 0.0, 1.0],
+                },
+            ]),
         }
     }
 
@@ -56,6 +72,10 @@ impl Logic {
 
     pub fn render(&self, canvas: &mut Canvas) {
         canvas.set_camera_matrices(self.camera.matrices());
+        canvas.draw_gizmos(GizmoGroup {
+            gizmo: GizmoID(0),
+            instances: self.instances.share(),
+        });
     }
 }
 

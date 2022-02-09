@@ -12,7 +12,7 @@ use winit::window::Window;
 pub use canvas::*;
 pub use renderer::Renderer;
 
-use self::structures::{LineVertex, SolidVertex, TransformTint};
+use self::structures::{GizmoInstance, LineVertex, SolidVertex, TransformTint};
 
 pub fn init(window: &Window) -> (Renderer, Graphics) {
     let (gpu, surface) = gpu::init(window);
@@ -53,6 +53,13 @@ impl Graphics {
     pub fn create_prop_data(&self, data: &TransformTint) -> PropData {
         PropData {
             uniform: Rc::new(self.gpu.create_uniform(data)),
+        }
+    }
+
+    pub fn create_gizmo_instances(&self, instances: &[GizmoInstance]) -> GizmoInstances {
+        GizmoInstances {
+            buffer: Rc::new(self.gpu.create_buffer(instances, BufferUsages::VERTEX)),
+            len: instances.len() as u32,
         }
     }
 }

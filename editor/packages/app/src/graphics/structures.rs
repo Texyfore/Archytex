@@ -40,6 +40,13 @@ impl Default for CameraMatrices {
     }
 }
 
+#[repr(C)]
+#[derive(Clone, Copy)]
+pub struct GizmoInstance {
+    pub matrix: Matrix4<f32>,
+    pub color: [f32; 3],
+}
+
 unsafe impl Zeroable for CameraMatrices {}
 unsafe impl Pod for CameraMatrices {}
 
@@ -51,3 +58,6 @@ unsafe impl Pod for SolidVertex {}
 
 unsafe impl Zeroable for TransformTint {}
 unsafe impl Pod for TransformTint {}
+
+unsafe impl Zeroable for GizmoInstance {}
+unsafe impl Pod for GizmoInstance {}

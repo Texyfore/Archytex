@@ -1,10 +1,10 @@
 use std::rc::Rc;
 
-use asset::{PropID, TextureID};
+use asset::{GizmoID, PropID, TextureID};
 use gpu::{Buffer, Uniform};
 
 use super::{
-    structures::{CameraMatrices, LineVertex, SolidVertex, TransformTint},
+    structures::{CameraMatrices, GizmoInstance, LineVertex, SolidVertex, TransformTint},
     Share,
 };
 
@@ -14,6 +14,7 @@ pub struct Canvas {
     pub(super) line_meshes: Vec<LineMesh>,
     pub(super) solid_meshes: Vec<SolidMesh>,
     pub(super) prop_instances: Vec<PropInstance>,
+    pub(super) gizmo_groups: Vec<GizmoGroup>,
 }
 
 impl Canvas {
@@ -31,6 +32,10 @@ impl Canvas {
 
     pub fn draw_prop(&mut self, instance: PropInstance) {
         self.prop_instances.push(instance);
+    }
+
+    pub fn draw_gizmos(&mut self, group: GizmoGroup) {
+        self.gizmo_groups.push(group);
     }
 }
 
@@ -75,6 +80,25 @@ impl Share for PropData {
     fn share(&self) -> Self {
         Self {
             uniform: self.uniform.clone(),
+        }
+    }
+}
+
+pub struct GizmoGroup {
+    pub gizmo: GizmoID,
+    pub instances: GizmoInstances,
+}
+
+pub struct GizmoInstances {
+    pub(super) buffer: Rc<Buffer<GizmoInstance>>,
+    pub(super) len: u32,
+}
+
+impl Share for GizmoInstances {
+    fn share(&self) -> Self {
+        Self {
+            buffer: self.buffer.clone(),
+            len: self.len,
         }
     }
 }

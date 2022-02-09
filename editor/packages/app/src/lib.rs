@@ -4,7 +4,10 @@ mod math;
 
 use std::time::Instant;
 
-use asset::{BoundingBox, Prop, PropID, PropMesh, PropVertex, Texture, TextureID};
+use asset::{
+    BoundingBox, Gizmo, GizmoID, GizmoVertex, Prop, PropID, PropMesh, PropVertex, Texture,
+    TextureID,
+};
 use cgmath::{vec2, vec3, Vector3, Zero};
 use logic::Logic;
 use winit::{
@@ -22,6 +25,27 @@ pub fn run(init: Init) {
     let save_handler = init.save_handler;
 
     let (mut renderer, graphics) = graphics::init(&init.winit.window);
+
+    renderer.add_gizmo(
+        GizmoID(0),
+        Gizmo {
+            vertices: vec![
+                GizmoVertex {
+                    position: vec3(0.0, 0.0, 0.0),
+                },
+                GizmoVertex {
+                    position: vec3(1.0, 0.0, 0.0),
+                },
+                GizmoVertex {
+                    position: vec3(1.0, 1.0, 0.0),
+                },
+                GizmoVertex {
+                    position: vec3(0.0, 1.0, 0.0),
+                },
+            ],
+            triangles: vec![[0, 1, 2], [0, 2, 3]],
+        },
+    );
 
     unsafe {
         WINDOW = Some(init.winit.window);

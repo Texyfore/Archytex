@@ -1,5 +1,6 @@
 use gpu::{Gpu, Pipeline, Surface};
 
+mod gizmo;
 mod line;
 mod prop;
 mod solid;
@@ -8,6 +9,7 @@ pub struct Pipelines {
     pub line: Pipeline,
     pub solid: Pipeline,
     pub prop: Pipeline,
+    pub gizmo: Pipeline,
 }
 
 impl Pipelines {
@@ -16,6 +18,7 @@ impl Pipelines {
             line: line::pipeline(gpu, surface),
             solid: solid::pipeline(gpu, surface),
             prop: prop::pipeline(gpu, surface),
+            gizmo: gizmo::pipeline(gpu, surface),
         }
     }
 }

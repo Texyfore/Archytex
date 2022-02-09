@@ -3,8 +3,8 @@ mod resources;
 
 use std::rc::Rc;
 
-use asset::{PropID, TextureID};
-use gpu::{DepthBuffer, Gpu, Sampler, Surface, Uniform};
+use asset::{GizmoID, PropID, TextureID};
+use gpu::{DepthBuffer, Gpu, InstanceConfig, Sampler, Surface, Uniform};
 
 use self::{pipelines::Pipelines, resources::Resources};
 
@@ -48,6 +48,10 @@ impl Renderer {
         self.resources.add_prop(&self.gpu, id, prop);
     }
 
+    pub fn add_gizmo(&mut self, id: GizmoID, gizmo: asset::Gizmo) {
+        self.resources.add_gizmo(&self.gpu, id, gizmo);
+    }
+
     pub fn resize(&mut self, width: u32, height: u32) {
         self.surface.configure(&self.gpu, width, height);
         self.depth_buffer = self.gpu.create_depth_buffer(width, height);
@@ -84,6 +88,21 @@ impl Renderer {
                             pass.draw_triangles(&mesh.vertices, &mesh.triangles);
                         }
                     }
+                }
+            }
+
+            pass.set_pipeline(&self.pipelines.gizmo);
+            for group in &canvas.gizmo_groups {
+                if let Some(mesh) = self.resources.gizmo(group.gizmo) {
+                    pass.draw_triangles_instanced(
+                        &mesh.vertices,
+                        &mesh.triangles,
+                        InstanceConfig {
+                            slot: 1,
+                            buffer: &group.instances.buffer,
+                            range: 0..group.instances.len,
+                        },
+                    );
                 }
             }
         }
