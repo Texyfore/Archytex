@@ -9,10 +9,10 @@ use asset::TextureID;
 use gpu::{BufferUsages, Gpu};
 use winit::window::Window;
 
-pub use canvas::{Canvas, LineMesh, SolidMesh};
+pub use canvas::*;
 pub use renderer::Renderer;
 
-use self::structures::{LineVertex, SolidVertex};
+use self::structures::{LineVertex, SolidVertex, TransformTint};
 
 pub fn init(window: &Window) -> (Renderer, Graphics) {
     let (gpu, surface) = gpu::init(window);
@@ -47,6 +47,12 @@ impl Graphics {
                 self.gpu
                     .create_buffer(descriptor.triangles, BufferUsages::INDEX),
             ),
+        }
+    }
+
+    pub fn create_prop_data(&self, data: &TransformTint) -> PropData {
+        PropData {
+            uniform: Rc::new(self.gpu.create_uniform(data)),
         }
     }
 }

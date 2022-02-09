@@ -1,11 +1,12 @@
 mod pipelines;
+mod resources;
 
-use std::{collections::HashMap, rc::Rc};
+use std::rc::Rc;
 
-use asset::{PropID, PropMesh, TextureID};
-use gpu::{DepthBuffer, Gpu, Image, Sampler, Surface, Uniform};
+use asset::{PropID, TextureID};
+use gpu::{DepthBuffer, Gpu, Sampler, Surface, Uniform};
 
-use self::pipelines::Pipelines;
+use self::{pipelines::Pipelines, resources::Resources};
 
 use super::{structures::CameraMatrices, Canvas};
 
@@ -39,21 +40,12 @@ impl Renderer {
     }
 
     pub fn add_texture(&mut self, id: TextureID, texture: asset::Texture) {
-        self.resources.textures.insert(
-            id,
-            self.gpu.create_texture(
-                &self.sampler,
-                Image {
-                    width: texture.width,
-                    height: texture.height,
-                    buf: &texture.rgba8,
-                },
-            ),
-        );
+        self.resources
+            .add_texture(&self.gpu, &self.sampler, id, texture);
     }
 
     pub fn add_prop(&mut self, id: PropID, prop: asset::Prop) {
-        self.resources.props.insert(id, prop.meshes);
+        self.resources.add_prop(&self.gpu, id, prop);
     }
 
     pub fn resize(&mut self, width: u32, height: u32) {
@@ -76,7 +68,7 @@ impl Renderer {
 
             pass.set_pipeline(&self.pipelines.solid);
             for mesh in &canvas.solid_meshes {
-                if let Some(texture) = self.resources.textures.get(&mesh.texture) {
+                if let Some(texture) = self.resources.texture(mesh.texture) {
                     pass.set_texture(1, texture);
                     pass.draw_triangles(&mesh.vertices, &mesh.triangles);
                 }
@@ -85,11 +77,11 @@ impl Renderer {
             pass.set_pipeline(&self.pipelines.prop);
             for instance in &canvas.prop_instances {
                 pass.set_uniform(1, &instance.data.uniform);
-                if let Some(meshes) = self.resources.props.get(&instance.prop) {
-                    for mesh in meshes {
-                        if let Some(texture) = self.resources.textures.get(&mesh.texture) {
+                if let Some(prop) = self.resources.prop(instance.prop) {
+                    for mesh in &prop.meshes {
+                        if let Some(texture) = self.resources.texture(mesh.texture) {
                             pass.set_texture(2, texture);
-                            // TODO
+                            pass.draw_triangles(&mesh.vertices, &mesh.triangles);
                         }
                     }
                 }
@@ -98,10 +90,4 @@ impl Renderer {
 
         self.gpu.end_frame(frame);
     }
-}
-
-#[derive(Default)]
-struct Resources {
-    textures: HashMap<TextureID, gpu::Texture>,
-    props: HashMap<PropID, Vec<PropMesh>>,
 }

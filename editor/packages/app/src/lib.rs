@@ -4,7 +4,8 @@ mod math;
 
 use std::time::Instant;
 
-use asset::{Texture, TextureID};
+use asset::{BoundingBox, Prop, PropID, PropMesh, PropVertex, Texture, TextureID};
+use cgmath::{vec2, vec3, Vector3, Zero};
 use logic::Logic;
 use winit::{
     dpi::{PhysicalPosition, PhysicalSize},
@@ -37,6 +38,38 @@ pub fn run(init: Init) {
             ResourceKind::Gizmo => todo!(),
         }
     }
+
+    // !HACK
+    renderer.add_prop(
+        PropID(0),
+        Prop {
+            bounds: BoundingBox {
+                min: Vector3::zero(),
+                max: Vector3::zero(),
+            },
+            meshes: vec![PropMesh {
+                texture: TextureID(0),
+                vertices: vec![
+                    PropVertex {
+                        position: vec3(0.0, 0.0, 0.0),
+                        normal: vec3(0.0, 0.0, 1.0),
+                        texcoord: vec2(0.0, 0.0),
+                    },
+                    PropVertex {
+                        position: vec3(1.0, 0.0, 0.0),
+                        normal: vec3(0.0, 0.0, 1.0),
+                        texcoord: vec2(1.0, 0.0),
+                    },
+                    PropVertex {
+                        position: vec3(1.0, 1.0, 0.0),
+                        normal: vec3(0.0, 0.0, 1.0),
+                        texcoord: vec2(1.0, 1.0),
+                    },
+                ],
+                triangles: vec![[0, 1, 2]],
+            }],
+        },
+    );
 
     let mut logic = Logic::init(logic::Context {
         graphics: &graphics,
