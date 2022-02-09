@@ -21,6 +21,7 @@ struct Fragment {
 
 struct Camera {
     world_to_clip: mat4x4<f32>;
+    view_to_world: mat4x4<f32>;
 };
 
 [[group(0), binding(0)]]

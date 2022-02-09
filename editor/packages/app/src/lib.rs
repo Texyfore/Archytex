@@ -13,13 +13,18 @@ use winit::{
     window::Window,
 };
 
-use self::graphics::{Canvas, Renderer};
+use self::graphics::Canvas;
+
+static mut WINDOW: Option<Window> = None;
 
 pub fn run(init: Init) {
-    let winit = init.winit;
     let save_handler = init.save_handler;
 
-    let mut renderer = Renderer::new(&winit.window);
+    let (mut renderer, graphics) = graphics::init(&init.winit.window);
+
+    unsafe {
+        WINDOW = Some(init.winit.window);
+    }
 
     for resource in init.resources {
         match resource.kind {
@@ -34,14 +39,14 @@ pub fn run(init: Init) {
     }
 
     let mut logic = Logic::init(logic::Context {
-        renderer: &renderer,
+        graphics: &graphics,
         save_handler: save_handler.as_ref(),
         delta: 0.0,
     });
 
     let mut before = Instant::now();
 
-    winit.event_loop.run(move |event, _, flow| {
+    init.winit.event_loop.run(move |event, _, flow| {
         *flow = ControlFlow::Poll;
         match event {
             Event::WindowEvent { event, .. } => match event {
@@ -87,7 +92,7 @@ pub fn run(init: Init) {
                 before = after;
 
                 logic.process(logic::Context {
-                    renderer: &renderer,
+                    graphics: &graphics,
                     save_handler: save_handler.as_ref(),
                     delta,
                 });
@@ -126,4 +131,12 @@ pub enum ResourceKind {
     Texture,
     Prop,
     Gizmo,
+}
+
+pub fn resize(width: u32, height: u32) {
+    unsafe {
+        if let Some(window) = WINDOW.as_mut() {
+            window.set_inner_size(PhysicalSize { width, height });
+        }
+    }
 }

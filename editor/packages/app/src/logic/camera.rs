@@ -3,7 +3,7 @@ use cgmath::{
     Vector4, Zero,
 };
 
-use crate::{graphics, math::Ray};
+use crate::{graphics::structures::CameraMatrices, math::Ray};
 
 pub struct Camera {
     position: Vector3<f32>,
@@ -38,11 +38,11 @@ impl Camera {
         self.viewport_size = Vector2::new(width, height)
     }
 
-    pub fn matrices(&self) -> graphics::Camera {
+    pub fn matrices(&self) -> CameraMatrices {
         let view_to_world = self.view_to_world();
         let world_to_clip = self.projection * view_to_world.inverse_transform().unwrap();
 
-        graphics::Camera {
+        CameraMatrices {
             world_to_clip,
             view_to_world,
         }
