@@ -1,5 +1,6 @@
 use std::fmt::Debug;
 
+use bytemuck::{Pod, Zeroable};
 use cgmath::{Vector2, Vector3};
 
 use crate::TextureID;
@@ -15,7 +16,7 @@ impl Debug for PropID {
 
 pub struct Prop {
     pub bounds: BoundingBox,
-    pub meshes: Vec<Mesh>,
+    pub meshes: Vec<PropMesh>,
 }
 
 pub struct BoundingBox {
@@ -23,14 +24,19 @@ pub struct BoundingBox {
     pub max: Vector3<f32>,
 }
 
-pub struct Mesh {
+pub struct PropMesh {
     pub texture: TextureID,
-    pub vertices: Vec<Vertex>,
+    pub vertices: Vec<PropVertex>,
     pub triangles: Vec<[u16; 3]>,
 }
 
-pub struct Vertex {
+#[repr(C)]
+#[derive(Clone, Copy)]
+pub struct PropVertex {
     pub position: Vector3<f32>,
     pub normal: Vector3<f32>,
     pub texcoord: Vector2<f32>,
 }
+
+unsafe impl Zeroable for PropVertex {}
+unsafe impl Pod for PropVertex {}

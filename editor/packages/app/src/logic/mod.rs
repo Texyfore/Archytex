@@ -98,8 +98,8 @@ impl Logic {
 
     pub fn render(&self, canvas: &mut Canvas) {
         canvas.set_camera_matrices(self.camera.matrices());
-        canvas.draw_line_mesh(self.lines.share());
-        canvas.draw_solid_mesh(self.solid.share());
+        canvas.draw_lines(self.lines.share());
+        canvas.draw_solid(self.solid.share());
     }
 }
 

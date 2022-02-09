@@ -1,9 +1,13 @@
+mod pipelines;
+
 use std::{collections::HashMap, rc::Rc};
 
-use asset::TextureID;
+use asset::{PropID, PropMesh, TextureID};
 use gpu::{DepthBuffer, Gpu, Image, Sampler, Surface, Uniform};
 
-use super::{pipelines::Pipelines, structures::CameraMatrices, Canvas};
+use self::pipelines::Pipelines;
+
+use super::{structures::CameraMatrices, Canvas};
 
 pub struct Renderer {
     gpu: Rc<Gpu>,
@@ -48,6 +52,10 @@ impl Renderer {
         );
     }
 
+    pub fn add_prop(&mut self, id: PropID, prop: asset::Prop) {
+        self.resources.props.insert(id, prop.meshes);
+    }
+
     pub fn resize(&mut self, width: u32, height: u32) {
         self.surface.configure(&self.gpu, width, height);
         self.depth_buffer = self.gpu.create_depth_buffer(width, height);
@@ -73,6 +81,19 @@ impl Renderer {
                     pass.draw_triangles(&mesh.vertices, &mesh.triangles);
                 }
             }
+
+            pass.set_pipeline(&self.pipelines.prop);
+            for instance in &canvas.prop_instances {
+                pass.set_uniform(1, &instance.data.uniform);
+                if let Some(meshes) = self.resources.props.get(&instance.prop) {
+                    for mesh in meshes {
+                        if let Some(texture) = self.resources.textures.get(&mesh.texture) {
+                            pass.set_texture(2, texture);
+                            // TODO
+                        }
+                    }
+                }
+            }
         }
 
         self.gpu.end_frame(frame);
@@ -82,4 +103,5 @@ impl Renderer {
 #[derive(Default)]
 struct Resources {
     textures: HashMap<TextureID, gpu::Texture>,
+    props: HashMap<PropID, Vec<PropMesh>>,
 }

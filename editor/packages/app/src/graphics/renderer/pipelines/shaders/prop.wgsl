@@ -39,7 +39,7 @@ struct Camera {
     view_to_world: mat4x4<f32>;
 };
 
-struct Properties {
+struct Data {
     transform: mat4x4<f32>;
     tint: vec4<f32>;
 };
@@ -48,19 +48,19 @@ struct Properties {
 var<uniform> camera: Camera;
 
 [[group(1), binding(0)]]
-var<uniform> properties: Properties;
+var<uniform> data: Data;
 
 [[stage(vertex)]]
 fn vertex(attribs: Attribs) -> Vertex {
     var vertex: Vertex;
     
-    vertex.position = camera.world_to_clip * properties.transform * vec4<f32>(attribs.position, 1.0);
+    vertex.position = camera.world_to_clip * data.transform * vec4<f32>(attribs.position, 1.0);
     vertex.normal = attribs.normal;
     vertex.texcoord = attribs.texcoord;
-    vertex.tint = properties.tint;
+    vertex.tint = data.tint;
     
     vertex.camera_position = (camera.view_to_world * vec4<f32>(0.0, 0.0, 0.0, 1.0)).xyz;
-    vertex.world_position = (properties.transform * vec4<f32>(attribs.position, 1.0)).xyz;
+    vertex.world_position = (data.transform * vec4<f32>(attribs.position, 1.0)).xyz;
 
     return vertex;
 }

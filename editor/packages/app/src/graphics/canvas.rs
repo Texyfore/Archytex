@@ -1,10 +1,10 @@
 use std::rc::Rc;
 
-use asset::TextureID;
-use gpu::Buffer;
+use asset::{PropID, TextureID};
+use gpu::{Buffer, Uniform};
 
 use super::{
-    structures::{CameraMatrices, LineVertex, SolidVertex},
+    structures::{CameraMatrices, LineVertex, SolidVertex, TransformTint},
     Share,
 };
 
@@ -13,6 +13,7 @@ pub struct Canvas {
     pub(super) camera_matrices: CameraMatrices,
     pub(super) line_meshes: Vec<LineMesh>,
     pub(super) solid_meshes: Vec<SolidMesh>,
+    pub(super) prop_instances: Vec<PropInstance>,
 }
 
 impl Canvas {
@@ -20,12 +21,16 @@ impl Canvas {
         self.camera_matrices = matrices;
     }
 
-    pub fn draw_line_mesh(&mut self, line_mesh: LineMesh) {
+    pub fn draw_lines(&mut self, line_mesh: LineMesh) {
         self.line_meshes.push(line_mesh);
     }
 
-    pub fn draw_solid_mesh(&mut self, solid_mesh: SolidMesh) {
+    pub fn draw_solid(&mut self, solid_mesh: SolidMesh) {
         self.solid_meshes.push(solid_mesh);
+    }
+
+    pub fn draw_prop(&mut self, instance: PropInstance) {
+        self.prop_instances.push(instance);
     }
 }
 
@@ -53,6 +58,23 @@ impl Share for SolidMesh {
             texture: self.texture,
             vertices: self.vertices.clone(),
             triangles: self.triangles.clone(),
+        }
+    }
+}
+
+pub struct PropInstance {
+    pub prop: PropID,
+    pub data: PropData,
+}
+
+pub struct PropData {
+    pub(super) uniform: Rc<Uniform<TransformTint>>,
+}
+
+impl Share for PropData {
+    fn share(&self) -> Self {
+        Self {
+            uniform: self.uniform.clone(),
         }
     }
 }

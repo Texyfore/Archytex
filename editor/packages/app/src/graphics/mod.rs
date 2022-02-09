@@ -1,5 +1,4 @@
 mod canvas;
-mod pipelines;
 mod renderer;
 
 pub mod structures;
@@ -7,7 +6,7 @@ pub mod structures;
 use std::rc::Rc;
 
 use asset::TextureID;
-use gpu::{BufferUsages, Gpu, Surface};
+use gpu::{BufferUsages, Gpu};
 use winit::window::Window;
 
 pub use canvas::{Canvas, LineMesh, SolidMesh};
@@ -20,15 +19,11 @@ pub fn init(window: &Window) -> (Renderer, Graphics) {
     let gpu = Rc::new(gpu);
     let surface = Rc::new(surface);
 
-    (
-        Renderer::new(gpu.clone(), surface.clone()),
-        Graphics { gpu, surface },
-    )
+    (Renderer::new(gpu.clone(), surface), Graphics { gpu })
 }
 
 pub struct Graphics {
     gpu: Rc<Gpu>,
-    surface: Rc<Surface>,
 }
 
 impl Graphics {

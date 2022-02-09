@@ -24,6 +24,13 @@ pub struct SolidVertex {
     pub tint: [f32; 4],
 }
 
+#[repr(C)]
+#[derive(Clone, Copy)]
+pub struct TransformTint {
+    pub transform: Matrix4<f32>,
+    pub tint: [f32; 4],
+}
+
 impl Default for CameraMatrices {
     fn default() -> Self {
         Self {
@@ -41,3 +48,6 @@ unsafe impl Pod for LineVertex {}
 
 unsafe impl Zeroable for SolidVertex {}
 unsafe impl Pod for SolidVertex {}
+
+unsafe impl Zeroable for TransformTint {}
+unsafe impl Pod for TransformTint {}
