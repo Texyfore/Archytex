@@ -1,23 +1,22 @@
 import React, { Suspense } from "react";
 import { BrowserRouter as Router, Switch, Route } from "react-router-dom";
+
+import { DummyProvider } from "./services/user/dummy";
+import { RestProvider } from "./services/user/rest";
+
+import CssBaseline from "@mui/material/CssBaseline";
+
+import { ColorModeProvider } from "./services/colorMode";
+
 import i18n from "i18next";
 import { initReactI18next, useTranslation } from "react-i18next";
-import "./App.css";
-import CssBaseline from "@mui/material/CssBaseline";
-import MainPage from "./pages/MainPage";
-import Dashboard from "./pages/Dashboard";
-import LoginPage from "./pages/LoginPage";
-import RegisterPage from "./pages/RegisterPage";
-import { ColorModeProvider } from "./services/colorMode";
-import { Box, CircularProgress, Typography } from "@mui/material";
-import { DummyProvider } from "./services/user/dummy";
-import Editor from "./pages/Editor";
-import { RestProvider } from "./services/user/rest";
-import PageNotFound from "./pages/PageNotFound";
-import SuccessfulRegistration from "./pages/SuccessfulRegistration";
 import translationEn from "./languages/en_us.json";
 import translationHu from "./languages/hu_hu.json";
 import translationJp from "./languages/jp_jp.json";
+
+import Main from "./pages/Main";
+import SuspenseFallback from "./components/general-components/SuspenseFallback";
+import ArchytexAppBar from "./components/app-bar-components/ArchytexAppBar";
 
 i18n.use(initReactI18next).init({
   resources: {
@@ -33,28 +32,16 @@ i18n.use(initReactI18next).init({
 function App() {
   const { t } = useTranslation();
   return (
-    <Suspense fallback={<CircularProgress color='primary' />}>
+    <Suspense fallback={<SuspenseFallback />}>
       <CssBaseline />
-      <DummyProvider
-        fallback={
-          <Box
-            display='flex'
-            height='100vh'
-            justifyContent='center'
-            alignItems='center'
-            flexDirection='column'
-          >
-            <CircularProgress color='primary' />
-            <Typography marginTop={2}>{t("just_a_moment")}</Typography>
-          </Box>
-        }
-      >
+      <ArchytexAppBar />
+      <DummyProvider fallback={<SuspenseFallback />}>
         <Router>
           <Switch>
             <Route exact path='/'>
-              <MainPage />
+              <Main />
             </Route>
-            <Route path='/dashboard'>
+            {/* <Route path='/dashboard'>
               <Dashboard />
             </Route>
             <Route path='/login'>
@@ -71,7 +58,7 @@ function App() {
             </Route>
             <Route>
               <PageNotFound />
-            </Route>
+            </Route> */}
           </Switch>
         </Router>
       </DummyProvider>
