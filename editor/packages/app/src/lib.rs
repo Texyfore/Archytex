@@ -163,6 +163,14 @@ pub fn run(init: Init) {
     });
 }
 
+pub fn resize(width: u32, height: u32) {
+    unsafe {
+        if let Some(window) = WINDOW.as_mut() {
+            window.set_inner_size(PhysicalSize { width, height });
+        }
+    }
+}
+
 pub struct Init<'b> {
     pub winit: Winit,
     pub save_handler: Box<dyn OnSave>,
@@ -188,12 +196,4 @@ pub enum ResourceKind {
     Texture,
     Prop,
     Gizmo,
-}
-
-pub fn resize(width: u32, height: u32) {
-    unsafe {
-        if let Some(window) = WINDOW.as_mut() {
-            window.set_inner_size(PhysicalSize { width, height });
-        }
-    }
 }

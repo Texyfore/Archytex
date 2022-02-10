@@ -2,10 +2,11 @@ use std::fmt::Debug;
 
 use bytemuck::{Pod, Zeroable};
 use cgmath::{Vector2, Vector3};
+use serde::{Deserialize, Serialize};
 
 use crate::TextureID;
 
-#[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
 pub struct PropID(pub u32);
 
 impl Debug for PropID {
@@ -14,16 +15,19 @@ impl Debug for PropID {
     }
 }
 
+#[derive(Serialize, Deserialize)]
 pub struct Prop {
     pub bounds: BoundingBox,
     pub meshes: Vec<PropMesh>,
 }
 
+#[derive(Serialize, Deserialize)]
 pub struct BoundingBox {
     pub min: Vector3<f32>,
     pub max: Vector3<f32>,
 }
 
+#[derive(Serialize, Deserialize)]
 pub struct PropMesh {
     pub texture: TextureID,
     pub vertices: Vec<PropVertex>,
@@ -31,7 +35,7 @@ pub struct PropMesh {
 }
 
 #[repr(C)]
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, Serialize, Deserialize)]
 pub struct PropVertex {
     pub position: Vector3<f32>,
     pub normal: Vector3<f32>,

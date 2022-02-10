@@ -2,8 +2,9 @@ use std::fmt::Debug;
 
 use bytemuck::{Pod, Zeroable};
 use cgmath::Vector3;
+use serde::{Deserialize, Serialize};
 
-#[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
 pub struct GizmoID(pub u32);
 
 impl Debug for GizmoID {
@@ -12,13 +13,14 @@ impl Debug for GizmoID {
     }
 }
 
+#[derive(Serialize, Deserialize)]
 pub struct Gizmo {
     pub vertices: Vec<GizmoVertex>,
     pub triangles: Vec<[u16; 3]>,
 }
 
 #[repr(C)]
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, Serialize, Deserialize)]
 pub struct GizmoVertex {
     pub position: Vector3<f32>,
 }

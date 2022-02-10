@@ -1,8 +1,9 @@
 use std::fmt::Debug;
 
 use image::GenericImageView;
+use serde::{Deserialize, Serialize};
 
-#[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
 pub struct TextureID(pub u32);
 
 impl Debug for TextureID {

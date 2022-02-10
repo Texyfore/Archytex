@@ -1,3 +1,4 @@
+mod file;
 mod gizmo;
 mod prop;
 mod texture;
