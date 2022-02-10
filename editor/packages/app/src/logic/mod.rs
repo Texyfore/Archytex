@@ -1,5 +1,7 @@
 mod camera;
+mod element;
 mod input;
+mod tools;
 
 use cgmath::vec2;
 use winit::event::{ElementState, MouseButton, VirtualKeyCode};
@@ -9,28 +11,37 @@ use crate::{
     OnSave,
 };
 
-use self::{camera::Camera, input::Input};
+use self::{camera::Camera, element::ElementKind, input::Input, tools::ToolHub};
 
 pub struct Logic {
     input: Input,
     camera: Camera,
+    tool_hub: ToolHub,
 }
 
 impl Logic {
-    pub fn init(_ctx: Context) -> Self {
+    pub fn init(ctx: Context) -> Self {
         Self {
             input: Input::default(),
             camera: Camera::default(),
+            tool_hub: ToolHub::init(tools::Context { up: &ctx }),
         }
     }
 
     pub fn process(&mut self, ctx: Context) {
-        if self.input.is_key_down(VirtualKeyCode::W) {
-            self.camera.move_forward(ctx.delta);
+        self.tool_hub.process(tools::Context { up: &ctx });
+
+        for (key, kind) in [
+            (VirtualKeyCode::Key1, ElementKind::Solid),
+            (VirtualKeyCode::Key2, ElementKind::Face),
+            (VirtualKeyCode::Key3, ElementKind::Point),
+            (VirtualKeyCode::Key4, ElementKind::Prop),
+        ] {
+            if self.input.is_key_down_once(key) {
+                self.tool_hub.change_logic(kind);
+            }
         }
-        if self.input.is_key_down(VirtualKeyCode::S) {
-            self.camera.move_backward(ctx.delta);
-        }
+
         self.input.process();
     }
 
