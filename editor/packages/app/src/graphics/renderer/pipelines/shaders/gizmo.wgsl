@@ -52,10 +52,10 @@ fn vertex(attribs: Attribs, instance: Instance) -> Vertex {
 
     var camera_position = (camera.view_to_world * vec4<f32>(0.0, 0.0, 0.0, 1.0)).xyz;
     var origin = (transform * vec4<f32>(0.0, 0.0, 0.0, 1.0)).xyz;
-    var scale = distance(camera_position, origin) * 100.0;
+    var scale = distance(camera_position, origin) * 0.01;
 
     var vertex: Vertex;
-    vertex.position = camera.world_to_clip * transform * vec4<f32>(attribs.position, 1.0);
+    vertex.position = camera.world_to_clip * transform * vec4<f32>(attribs.position * scale, 1.0);
     vertex.color = instance.color;
     return vertex;
 }

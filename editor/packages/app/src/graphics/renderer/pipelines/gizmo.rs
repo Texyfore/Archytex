@@ -1,11 +1,12 @@
 use std::mem::size_of;
 
+use asset::GizmoVertex;
 use gpu::{
     vertex_attr_array, Gpu, Pipeline, PipelineConfig, PipelineInput, PipelineTopology, Surface,
     VertexBufferLayout, VertexStepMode,
 };
 
-use crate::graphics::structures::{GizmoInstance, LineVertex};
+use crate::graphics::structures::GizmoInstance;
 
 pub fn pipeline(gpu: &Gpu, surface: &Surface) -> Pipeline {
     gpu.create_pipeline(
@@ -17,7 +18,7 @@ pub fn pipeline(gpu: &Gpu, surface: &Surface) -> Pipeline {
             ],
             vertex_buffers: &[
                 VertexBufferLayout {
-                    array_stride: size_of::<LineVertex>() as u64,
+                    array_stride: size_of::<GizmoVertex>() as u64,
                     step_mode: VertexStepMode::Vertex,
                     attributes: &vertex_attr_array![
                         0 => Float32x3, // Position
