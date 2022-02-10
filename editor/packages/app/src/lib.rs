@@ -4,11 +4,7 @@ mod math;
 
 use std::time::Instant;
 
-use asset::{
-    BoundingBox, Gizmo, GizmoID, GizmoVertex, Prop, PropID, PropMesh, PropVertex, Texture,
-    TextureID,
-};
-use cgmath::{vec2, vec3, Vector3, Zero};
+use asset::{Texture, TextureID};
 use logic::Logic;
 use winit::{
     dpi::{PhysicalPosition, PhysicalSize},
