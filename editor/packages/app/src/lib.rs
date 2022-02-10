@@ -26,27 +26,6 @@ pub fn run(init: Init) {
 
     let (mut renderer, graphics) = graphics::init(&init.winit.window);
 
-    renderer.add_gizmo(
-        GizmoID(0),
-        Gizmo {
-            vertices: vec![
-                GizmoVertex {
-                    position: vec3(0.0, 0.0, 0.0),
-                },
-                GizmoVertex {
-                    position: vec3(1.0, 0.0, 0.0),
-                },
-                GizmoVertex {
-                    position: vec3(1.0, 1.0, 0.0),
-                },
-                GizmoVertex {
-                    position: vec3(0.0, 1.0, 0.0),
-                },
-            ],
-            triangles: vec![[0, 1, 2], [0, 2, 3]],
-        },
-    );
-
     unsafe {
         WINDOW = Some(init.winit.window);
     }
@@ -62,38 +41,6 @@ pub fn run(init: Init) {
             ResourceKind::Gizmo => todo!(),
         }
     }
-
-    // !HACK
-    renderer.add_prop(
-        PropID(0),
-        Prop {
-            bounds: BoundingBox {
-                min: Vector3::zero(),
-                max: Vector3::zero(),
-            },
-            meshes: vec![PropMesh {
-                texture: TextureID(0),
-                vertices: vec![
-                    PropVertex {
-                        position: vec3(0.0, 0.0, 0.0),
-                        normal: vec3(0.0, 0.0, 1.0),
-                        texcoord: vec2(0.0, 0.0),
-                    },
-                    PropVertex {
-                        position: vec3(1.0, 0.0, 0.0),
-                        normal: vec3(0.0, 0.0, 1.0),
-                        texcoord: vec2(1.0, 0.0),
-                    },
-                    PropVertex {
-                        position: vec3(1.0, 1.0, 0.0),
-                        normal: vec3(0.0, 0.0, 1.0),
-                        texcoord: vec2(1.0, 1.0),
-                    },
-                ],
-                triangles: vec![[0, 1, 2]],
-            }],
-        },
-    );
 
     let mut logic = Logic::init(logic::Context {
         graphics: &graphics,
