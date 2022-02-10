@@ -21,15 +21,25 @@ pub struct Logic {
 
 impl Logic {
     pub fn init(ctx: Context) -> Self {
+        let input = Input::default();
+        let camera = Camera::default();
+        let tool_hub = ToolHub::init(tools::Context {
+            up: &ctx,
+            input: &input,
+        });
+
         Self {
-            input: Input::default(),
-            camera: Camera::default(),
-            tool_hub: ToolHub::init(tools::Context { up: &ctx }),
+            input,
+            camera,
+            tool_hub,
         }
     }
 
     pub fn process(&mut self, ctx: Context) {
-        self.tool_hub.process(tools::Context { up: &ctx });
+        self.tool_hub.process(tools::Context {
+            up: &ctx,
+            input: &self.input,
+        });
 
         for (key, kind) in [
             (VirtualKeyCode::Key1, ElementKind::Solid),

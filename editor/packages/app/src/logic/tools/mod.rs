@@ -1,4 +1,4 @@
-use super::element::ElementKind;
+use super::{element::ElementKind, input::Input};
 
 pub struct ToolHub {
     logic: Box<dyn HubLogic>,
@@ -16,11 +16,13 @@ impl ToolHub {
     pub fn change_logic(&mut self, _kind: ElementKind) {}
 }
 
-pub struct Context<'u> {
+pub struct Context<'u, 'i> {
     pub up: &'u super::Context<'u>,
+    pub input: &'i Input,
 }
 
 trait HubLogic {
+    fn process(&self, _ctx: &Context) {}
     fn tool(&self, _ctx: &Context) -> Option<Box<dyn Tool>>;
 }
 
