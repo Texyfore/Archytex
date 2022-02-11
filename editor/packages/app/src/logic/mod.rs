@@ -1,6 +1,7 @@
 mod camera;
 mod element;
 mod input;
+mod scene;
 
 use cgmath::vec2;
 use winit::event::{ElementState, MouseButton, VirtualKeyCode};
@@ -54,8 +55,8 @@ impl Logic {
     }
 }
 
-pub struct Context<'a> {
-    pub host: &'a dyn Host,
-    pub graphics: &'a Graphics,
+pub struct Context<'h, 'g> {
+    pub host: &'h dyn Host,
+    pub graphics: &'g Graphics,
     pub delta: f32,
 }

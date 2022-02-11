@@ -1,7 +1,7 @@
-use asset::TextureID;
+use asset::{PropID, TextureID};
 use cgmath::Vector3;
 
-use crate::graphics::SolidMesh;
+use crate::graphics::{Canvas, PropData, PropInstance, Share, SolidMesh};
 
 pub enum ElementKind {
     Solid,
@@ -17,6 +17,12 @@ pub struct Solid {
     mesh: SolidMesh,
 }
 
+impl Solid {
+    pub fn render(&self, canvas: &mut Canvas) {
+        canvas.draw_solid(self.mesh.share());
+    }
+}
+
 pub struct Face {
     texture: TextureID,
     indices: [usize; 4],
@@ -26,4 +32,20 @@ pub struct Face {
 pub struct Point {
     position: Vector3<i32>,
     selected: bool,
+}
+
+pub struct Prop {
+    asset: PropID,
+    position: Vector3<i32>,
+    rotation: Vector3<i32>,
+    data: PropData,
+}
+
+impl Prop {
+    pub fn render(&self, canvas: &mut Canvas) {
+        canvas.draw_prop(PropInstance {
+            prop: self.asset,
+            data: self.data.share(),
+        });
+    }
 }
