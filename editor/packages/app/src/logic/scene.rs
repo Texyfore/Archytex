@@ -50,8 +50,31 @@ impl Scene {
         }
     }
 
-    fn execute(&mut self, _ctx: Context, _action: Action) -> Option<Action> {
-        None
+    fn execute(&mut self, _ctx: Context, action: Action) -> Option<Action> {
+        match action {
+            Action::NewSolids(solids) => {
+                let ids = solids
+                    .into_iter()
+                    .map(|solid| {
+                        let id = self.next_elem_id;
+                        self.solids.insert(id, solid);
+                        id
+                    })
+                    .collect::<Vec<_>>();
+
+                (!ids.is_empty()).then(|| Action::RemoveSolids(ids))
+            }
+
+            Action::RemoveSolids(ids) => {
+                let mut solids = Vec::new();
+                for id in ids {
+                    solids.push((id, self.solids.remove(&id).unwrap()));
+                }
+
+                (!solids.is_empty()).then(|| Action::AddSolids(solids))
+            }
+            _ => todo!(),
+        }
     }
 }
 
