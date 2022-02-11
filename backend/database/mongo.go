@@ -165,7 +165,7 @@ func (m MongoDatabase) CreateRender(userId interface{}, projectId interface{}, n
 func (m MongoDatabase) RenameProject(userId interface{}, projectId interface{}, name string) error {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
 	defer cancel()
-	_, err := m.Users.UpdateOne(ctx, bson.D{
+	res, err := m.Users.UpdateOne(ctx, bson.D{
 		{"_id", userId},
 		{"projects._id", projectId},
 	}, bson.D{
@@ -173,13 +173,16 @@ func (m MongoDatabase) RenameProject(userId interface{}, projectId interface{}, 
 			{"projects.$.title", name},
 		}},
 	})
+	if res.MatchedCount == 0 {
+		return errors.New("project not found")
+	}
 	return err
 }
 
 func (m MongoDatabase) DeleteProject(userId interface{}, projectId interface{}) error {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
 	defer cancel()
-	_, err := m.Users.UpdateOne(ctx, bson.D{
+	res, err := m.Users.UpdateOne(ctx, bson.D{
 		{"_id", userId},
 	}, bson.D{
 		{"$pull", bson.D{
@@ -188,6 +191,9 @@ func (m MongoDatabase) DeleteProject(userId interface{}, projectId interface{}) 
 			}},
 		}},
 	})
+	if res.ModifiedCount == 0 {
+		return errors.New("project not found")
+	}
 	return err
 }
 

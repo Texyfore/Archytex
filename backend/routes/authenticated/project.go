@@ -63,7 +63,7 @@ func Project(w http.ResponseWriter, r *http.Request) {
 		}
 		err = database.CurrentDatabase.RenameProject(session.User.Id, projectId, name)
 		if err != nil {
-			logging.Error(w, r, err, "could not remove project", http.StatusBadRequest)
+			logging.Error(w, r, err, "could not rename project", http.StatusBadRequest)
 			return
 		}
 	}
