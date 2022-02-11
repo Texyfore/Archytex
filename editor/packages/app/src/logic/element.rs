@@ -3,6 +3,7 @@ use cgmath::Vector3;
 
 use crate::graphics::{Canvas, PropData, PropInstance, Share, SolidMesh};
 
+#[derive(Clone, Copy)]
 pub enum ElementKind {
     Solid,
     Face,

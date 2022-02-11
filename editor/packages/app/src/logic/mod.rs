@@ -1,4 +1,5 @@
 mod camera;
+mod editor;
 mod element;
 mod input;
 mod scene;
@@ -11,22 +12,45 @@ use crate::{
     Host,
 };
 
-use self::{camera::Camera, input::Input};
+use self::{camera::Camera, editor::Editor, input::Input, scene::Scene};
 
 pub struct Logic {
     input: Input,
     camera: Camera,
+    scene: Scene,
+    editor: Editor,
 }
 
 impl Logic {
-    pub fn init(_ctx: Context) -> Self {
+    pub fn init(ctx: Context) -> Self {
         let input = Input::default();
-        let camera = Camera::default();
+        let mut camera = Camera::default();
+        let mut scene = Scene::default();
 
-        Self { input, camera }
+        let editor = Editor::init(editor::Context {
+            input: &input,
+            graphics: ctx.graphics,
+            camera: &mut camera,
+            scene: &mut scene,
+            delta: ctx.delta,
+        });
+
+        Self {
+            input,
+            camera,
+            scene,
+            editor,
+        }
     }
 
-    pub fn process(&mut self, _ctx: Context) {
+    pub fn process(&mut self, ctx: Context) {
+        self.editor.process(editor::Context {
+            input: &self.input,
+            graphics: ctx.graphics,
+            camera: &mut self.camera,
+            scene: &mut self.scene,
+            delta: ctx.delta,
+        });
         self.input.process();
     }
 
@@ -52,11 +76,13 @@ impl Logic {
 
     pub fn render(&self, canvas: &mut Canvas) {
         canvas.set_camera_matrices(self.camera.matrices());
+        self.scene.render(canvas);
+        self.editor.render(canvas);
     }
 }
 
-pub struct Context<'h, 'g> {
-    pub host: &'h dyn Host,
-    pub graphics: &'g Graphics,
+pub struct Context<'a> {
+    pub host: &'a dyn Host,
+    pub graphics: &'a Graphics,
     pub delta: f32,
 }
