@@ -15,7 +15,7 @@ pub struct Scene {
 
 impl Scene {
     pub fn act(&mut self, ctx: Context, action: Action) {
-        if let Some(reaction) = self.exec(ctx, action) {
+        if let Some(reaction) = self.execute(ctx, action) {
             self.undo_stack.push(reaction);
             self.redo_stack.clear();
         }
@@ -23,7 +23,7 @@ impl Scene {
 
     pub fn undo(&mut self, ctx: Context) {
         if let Some(action) = self.undo_stack.pop() {
-            if let Some(reaction) = self.exec(ctx, action) {
+            if let Some(reaction) = self.execute(ctx, action) {
                 self.redo_stack.push(reaction);
             }
         }
@@ -31,7 +31,7 @@ impl Scene {
 
     pub fn redo(&mut self, ctx: Context) {
         if let Some(action) = self.redo_stack.pop() {
-            if let Some(reaction) = self.exec(ctx, action) {
+            if let Some(reaction) = self.execute(ctx, action) {
                 self.undo_stack.push(reaction);
             }
         }
@@ -47,7 +47,7 @@ impl Scene {
         }
     }
 
-    fn exec(&mut self, _ctx: Context, _action: Action) -> Option<Action> {
+    fn execute(&mut self, _ctx: Context, _action: Action) -> Option<Action> {
         None
     }
 }
