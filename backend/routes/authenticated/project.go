@@ -39,6 +39,10 @@ func Project(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		err = database.CurrentDatabase.DeleteProject(session.User.Id, projectId)
+		if err == database.ErrProjectNotFound {
+			logging.Error(w, r, err, "Project not found", http.StatusNotFound)
+			return
+		}
 		if err != nil {
 			logging.Error(w, r, err, "could not remove project", http.StatusBadRequest)
 			return
@@ -62,6 +66,10 @@ func Project(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		err = database.CurrentDatabase.RenameProject(session.User.Id, projectId, name)
+		if err == database.ErrProjectNotFound {
+			logging.Error(w, r, err, "Project not found", http.StatusNotFound)
+			return
+		}
 		if err != nil {
 			logging.Error(w, r, err, "could not rename project", http.StatusBadRequest)
 			return
