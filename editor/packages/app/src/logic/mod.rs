@@ -1,7 +1,6 @@
 mod camera;
 mod element;
 mod input;
-mod tools;
 
 use cgmath::vec2;
 use winit::event::{ElementState, MouseButton, VirtualKeyCode};
@@ -11,47 +10,22 @@ use crate::{
     Host,
 };
 
-use self::{camera::Camera, element::ElementKind, input::Input, tools::ToolHub};
+use self::{camera::Camera, input::Input};
 
 pub struct Logic {
     input: Input,
     camera: Camera,
-    tool_hub: ToolHub,
 }
 
 impl Logic {
-    pub fn init(ctx: Context) -> Self {
+    pub fn init(_ctx: Context) -> Self {
         let input = Input::default();
         let camera = Camera::default();
-        let tool_hub = ToolHub::init(tools::Context {
-            up: &ctx,
-            input: &input,
-        });
 
-        Self {
-            input,
-            camera,
-            tool_hub,
-        }
+        Self { input, camera }
     }
 
-    pub fn process(&mut self, ctx: Context) {
-        self.tool_hub.process(tools::Context {
-            up: &ctx,
-            input: &self.input,
-        });
-
-        for (key, kind) in [
-            (VirtualKeyCode::Key1, ElementKind::Solid),
-            (VirtualKeyCode::Key2, ElementKind::Face),
-            (VirtualKeyCode::Key3, ElementKind::Point),
-            (VirtualKeyCode::Key4, ElementKind::Prop),
-        ] {
-            if self.input.is_key_down_once(key) {
-                self.tool_hub.change_logic(kind);
-            }
-        }
-
+    pub fn process(&mut self, _ctx: Context) {
         self.input.process();
     }
 
