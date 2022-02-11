@@ -1,14 +1,13 @@
 import React from "react";
 
-import Box from "@mui/material/Box";
-
 import HomeHeader from "../components/home-components/HomeHeader";
+import HomeContent from "../components/home-components/HomeContent";
 
-export default function Main() {
+export default function Home() {
   return (
     <>
       <HomeHeader />
-      <Box height='300vh'></Box>
+      <HomeContent />
     </>
   );
 }

@@ -10,8 +10,8 @@ import Box from "@mui/material/Box";
 import Logo from "../general-components/Logo";
 import ParticleBubbles from "./ParticleBubbles";
 
-import headerImage1 from "../../img/create_together.svg";
-import headerImage2 from "../../img/building_1.svg";
+import headerImage1 from "../../img/illustrations/create_together.svg";
+import headerImage2 from "../../img/illustrations/building_1.svg";
 
 export default function HomeHeader() {
   const { t } = useTranslation();
@@ -67,7 +67,7 @@ export default function HomeHeader() {
         alignItems='center'
       >
         <Logo size={100} marginRight={0} />
-        <Typography variant='h4' component='h1' color='initial'>
+        <Typography variant='h4' component='h1' color='inherit'>
           {t("archytex").toUpperCase()}
         </Typography>
       </Box>

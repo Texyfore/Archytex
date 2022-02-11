@@ -15,7 +15,7 @@ export default function ParticleBubbles() {
           zIndex: -10,
         },
         background: {
-          color: "#f4f4f4",
+          color: "paper",
         },
         interactivity: {
           events: {

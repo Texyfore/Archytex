@@ -14,7 +14,8 @@ import translationEn from "./languages/en_us.json";
 import translationHu from "./languages/hu_hu.json";
 import translationJp from "./languages/jp_jp.json";
 
-import Main from "./pages/Main";
+import Home from "./pages/Home";
+
 import SuspenseFallback from "./components/general-components/SuspenseFallback";
 import ArchytexAppBar from "./components/app-bar-components/ArchytexAppBar";
 
@@ -39,7 +40,7 @@ function App() {
         <Router>
           <Switch>
             <Route exact path='/'>
-              <Main />
+              <Home />
             </Route>
             {/* <Route path='/dashboard'>
               <Dashboard />
