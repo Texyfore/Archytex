@@ -1,3 +1,5 @@
+#![allow(dead_code)] // TODO Remove this at some point
+
 mod graphics;
 mod logic;
 mod math;
