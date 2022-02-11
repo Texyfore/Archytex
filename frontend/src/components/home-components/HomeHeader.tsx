@@ -37,7 +37,7 @@ export default function HomeHeader() {
       </Box>
       <Box
         position='absolute'
-        top={upMd ? "121px" : "273px"}
+        top={upMd ? "120px" : "273px"}
         left='0'
         zIndex={0}
         display={{ xs: "none", sm: "inherit" }}

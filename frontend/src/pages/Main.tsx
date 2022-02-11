@@ -1,5 +1,6 @@
-import Box from "@mui/material/Box";
 import React from "react";
+
+import Box from "@mui/material/Box";
 
 import HomeHeader from "../components/home-components/HomeHeader";
 

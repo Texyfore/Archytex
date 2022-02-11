@@ -8,6 +8,7 @@ import Divider from "@mui/material/Divider";
 
 export default function AppBarNavigationButtons() {
   const { t } = useTranslation();
+
   return (
     <Stack
       direction='row'

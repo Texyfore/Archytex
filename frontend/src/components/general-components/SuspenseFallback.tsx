@@ -1,10 +1,10 @@
 import React from "react";
 
+import { useTranslation } from "react-i18next";
+
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
 import CircularProgress from "@mui/material/CircularProgress";
-
-import { useTranslation } from "react-i18next";
 
 export default function SuspenseFallback() {
   const { t } = useTranslation();
