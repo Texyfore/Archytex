@@ -1,8 +1,11 @@
 use std::collections::HashMap;
 
+use asset::TextureID;
+use cgmath::Vector3;
+
 use crate::graphics::{Canvas, Graphics};
 
-use super::element::{Prop, Solid};
+use super::element::{ElementKind, Prop, Solid};
 
 #[derive(Default)]
 pub struct Scene {
@@ -56,4 +59,28 @@ pub struct Context<'g> {
     graphics: &'g Graphics,
 }
 
-pub enum Action {}
+pub enum Action {
+    NewSolids(Vec<Solid>),
+    NewProps(Vec<Prop>),
+
+    AddSolids(Vec<(usize, Solid)>),
+    AddProps(Vec<(usize, Prop)>),
+
+    RemoveSolids(Vec<usize>),
+    RemoveProps(Vec<usize>),
+
+    Select {
+        kind: ElementKind,
+        ids: Vec<usize>,
+    },
+
+    DeselectAll(ElementKind),
+
+    Move {
+        kind: ElementKind,
+        delta: Vector3<i32>,
+    },
+
+    RotateProps(Vector3<i32>),
+    AssignTexture(TextureID),
+}
