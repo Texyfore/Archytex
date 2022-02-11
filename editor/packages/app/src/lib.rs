@@ -2,7 +2,7 @@ mod graphics;
 mod logic;
 mod math;
 
-use std::time::Instant;
+use std::{sync::mpsc::Receiver, time::Instant};
 
 use asset::{Texture, TextureID};
 use logic::Logic;
@@ -15,38 +15,38 @@ use winit::{
 
 use self::graphics::Canvas;
 
-static mut WINDOW: Option<Window> = None;
-
 pub fn run(init: Init) {
-    let save_handler = init.save_handler;
+    let window = init.winit.window;
+    let event_loop = init.winit.event_loop;
+    let host = init.host;
+    let from_host = init.receiver;
 
-    let (mut renderer, graphics) = graphics::init(&init.winit.window);
+    let (mut renderer, graphics) = graphics::init(&window);
 
-    unsafe {
-        WINDOW = Some(init.winit.window);
-    }
-
-    for resource in init.resources {
-        match resource.kind {
-            ResourceKind::Texture => {
-                let id = TextureID(resource.id);
-                let texture = Texture::new(resource.buf);
-                renderer.add_texture(id, texture);
+    {
+        let resources = init.resources;
+        for resource in resources {
+            match resource.kind {
+                ResourceKind::Texture => {
+                    let id = TextureID(resource.id);
+                    let texture = Texture::new(&resource.buf);
+                    renderer.add_texture(id, texture);
+                }
+                ResourceKind::Prop => todo!(),
+                ResourceKind::Gizmo => todo!(),
             }
-            ResourceKind::Prop => todo!(),
-            ResourceKind::Gizmo => todo!(),
         }
     }
 
     let mut logic = Logic::init(logic::Context {
+        host: host.as_ref(),
         graphics: &graphics,
-        save_handler: save_handler.as_ref(),
         delta: 0.0,
     });
 
     let mut before = Instant::now();
 
-    init.winit.event_loop.run(move |event, _, flow| {
+    event_loop.run(move |event, _, flow| {
         *flow = ControlFlow::Poll;
         match event {
             Event::WindowEvent { event, .. } => match event {
@@ -91,9 +91,17 @@ pub fn run(init: Init) {
                 let delta = (after - before).as_secs_f32();
                 before = after;
 
+                while let Ok(signal) = from_host.try_recv() {
+                    match signal {
+                        FromHost::Resolution { width, height } => {
+                            window.set_inner_size(PhysicalSize { width, height })
+                        }
+                    }
+                }
+
                 logic.process(logic::Context {
+                    host: host.as_ref(),
                     graphics: &graphics,
-                    save_handler: save_handler.as_ref(),
                     delta,
                 });
 
@@ -106,18 +114,11 @@ pub fn run(init: Init) {
     });
 }
 
-pub fn resize(width: u32, height: u32) {
-    unsafe {
-        if let Some(window) = WINDOW.as_mut() {
-            window.set_inner_size(PhysicalSize { width, height });
-        }
-    }
-}
-
-pub struct Init<'b> {
+pub struct Init {
     pub winit: Winit,
-    pub save_handler: Box<dyn OnSave>,
-    pub resources: Vec<Resource<'b>>,
+    pub resources: Vec<Resource>,
+    pub host: Box<dyn Host>,
+    pub receiver: Receiver<FromHost>,
 }
 
 pub struct Winit {
@@ -125,13 +126,9 @@ pub struct Winit {
     pub window: Window,
 }
 
-pub trait OnSave {
-    fn on_save(&self, buf: &[u8]);
-}
-
-pub struct Resource<'b> {
+pub struct Resource {
     pub id: u32,
-    pub buf: &'b [u8],
+    pub buf: Vec<u8>,
     pub kind: ResourceKind,
 }
 
@@ -139,4 +136,16 @@ pub enum ResourceKind {
     Texture,
     Prop,
     Gizmo,
+}
+
+pub trait Host {
+    fn callback(&self, data: ToHost);
+}
+
+pub enum ToHost {
+    SceneSaved(Vec<u8>),
+}
+
+pub enum FromHost {
+    Resolution { width: u32, height: u32 },
 }

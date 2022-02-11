@@ -1,15 +1,19 @@
-use app::{run, Init, OnSave, Resource, ResourceKind, Winit};
+use std::sync::mpsc::channel;
+
+use app::{run, Host, Init, Resource, ResourceKind, ToHost, Winit};
 use winit::{event_loop::EventLoop, window::WindowBuilder};
 
 fn main() {
+    let (_sender, receiver) = channel();
     run(Init {
         winit: winit(),
-        save_handler: Box::new(IgnoreSave),
         resources: vec![Resource {
             id: 0,
-            buf: include_bytes!("../assets/nodraw.png"),
+            buf: include_bytes!("../assets/nodraw.png").to_vec(),
             kind: ResourceKind::Texture,
         }],
+        host: Box::new(NativeHost),
+        receiver,
     });
 }
 
@@ -23,10 +27,10 @@ fn winit() -> Winit {
     Winit { event_loop, window }
 }
 
-pub struct IgnoreSave;
+pub struct NativeHost;
 
-impl OnSave for IgnoreSave {
-    fn on_save(&self, buf: &[u8]) {
-        println!("[runner] ignoring saved scene ({} bytes)", buf.len());
+impl Host for NativeHost {
+    fn callback(&self, _data: ToHost) {
+        println!("[native-runner] ignoring callback");
     }
 }

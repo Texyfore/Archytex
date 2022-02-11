@@ -8,7 +8,7 @@ use winit::event::{ElementState, MouseButton, VirtualKeyCode};
 
 use crate::{
     graphics::{Canvas, Graphics},
-    OnSave,
+    Host,
 };
 
 use self::{camera::Camera, element::ElementKind, input::Input, tools::ToolHub};
@@ -81,7 +81,7 @@ impl Logic {
 }
 
 pub struct Context<'a> {
+    pub host: &'a dyn Host,
     pub graphics: &'a Graphics,
-    pub save_handler: &'a dyn OnSave,
     pub delta: f32,
 }
