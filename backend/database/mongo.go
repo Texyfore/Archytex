@@ -174,7 +174,7 @@ func (m MongoDatabase) RenameProject(userId interface{}, projectId interface{}, 
 		}},
 	})
 	if res.MatchedCount == 0 {
-		return errors.New("project not found")
+		return ErrProjectNotFound
 	}
 	return err
 }
@@ -192,7 +192,7 @@ func (m MongoDatabase) DeleteProject(userId interface{}, projectId interface{}) 
 		}},
 	})
 	if res.ModifiedCount == 0 {
-		return errors.New("project not found")
+		return ErrProjectNotFound
 	}
 	return err
 }
