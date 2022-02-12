@@ -10,7 +10,12 @@ interface Props {
 
 export default function HomeParagraph({ title, text, ctaButton }: Props) {
   return (
-    <Box display='flex' flexDirection='column' alignItems='left'>
+    <Box
+      display='flex'
+      flexDirection='column'
+      alignItems='left'
+      mb={{ xs: 10, md: 0 }}
+    >
       <Typography
         variant='h5'
         maxWidth='400px'

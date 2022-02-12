@@ -1,4 +1,7 @@
-import React, { ReactElement } from "react";
+import React, { ReactElement, useEffect } from "react";
+
+import AOS from "aos";
+import "aos/dist/aos.css";
 
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
@@ -25,9 +28,19 @@ export default function HomeSection({
   ctaButton,
   flipped = false,
 }: Props) {
+  useEffect(() => {
+    AOS.init({ duration: 1000 });
+  }, []);
+
   return (
     <>
-      <Box width='100%' display='flex' justifyContent='center' my={12}>
+      <Box
+        width='100%'
+        display='flex'
+        justifyContent='center'
+        my={12}
+        data-aos='fade-up'
+      >
         <Typography
           variant='h4'
           component='h1'
@@ -49,21 +62,29 @@ export default function HomeSection({
       >
         {flipped ? (
           <>
-            <SectionImage src={imageSrc} alt={imageAlt} />
-            <HomeParagraph
-              title={subtitle}
-              text={paragraph}
-              ctaButton={ctaButton}
-            />
+            <Box data-aos='zoom-in-right'>
+              <SectionImage src={imageSrc} alt={imageAlt} />
+            </Box>
+            <Box data-aos='zoom-in-left'>
+              <HomeParagraph
+                title={subtitle}
+                text={paragraph}
+                ctaButton={ctaButton}
+              />
+            </Box>
           </>
         ) : (
           <>
-            <HomeParagraph
-              title={subtitle}
-              text={paragraph}
-              ctaButton={ctaButton}
-            />
-            <SectionImage src={imageSrc} alt={imageAlt} />
+            <Box data-aos='zoom-in-right'>
+              <HomeParagraph
+                title={subtitle}
+                text={paragraph}
+                ctaButton={ctaButton}
+              />
+            </Box>
+            <Box data-aos='zoom-in-left'>
+              <SectionImage src={imageSrc} alt={imageAlt} />
+            </Box>
           </>
         )}
       </Box>
