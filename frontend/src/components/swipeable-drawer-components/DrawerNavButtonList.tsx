@@ -1,5 +1,6 @@
 import React from "react";
-import { useHistory } from "react-router-dom";
+
+import { Link as L } from "react-router-dom";
 
 import { useTranslation } from "react-i18next";
 
@@ -17,7 +18,7 @@ import {
 
 import { useApi } from "../../services/user/api";
 
-interface navButton {
+interface NavButton {
   text: string;
   icon: JSX.Element;
   route: string;
@@ -28,57 +29,54 @@ export default function DrawerNavButtonList() {
 
   const api = useApi();
 
-  const buttonList: navButton[] =
-    api?.state === "logged-in"
-      ? [
-          {
-            text: t("home"),
-            icon: <Home />,
-            route: "/",
-          },
-          {
-            text: t("dashboard"),
-            icon: <DashboardRounded />,
-            route: "/dashboard",
-          },
-          {
-            text: t("about"),
-            icon: <InfoOutlined />,
-            route: "/about",
-          },
-        ]
-      : [
-          {
-            text: t("home"),
-            icon: <Home />,
-            route: "/",
-          },
-          {
-            text: t("login"),
-            icon: <Login />,
-            route: "/login",
-          },
-          {
-            text: t("about"),
-            icon: <InfoOutlined />,
-            route: "/about",
-          },
-        ];
+  const navButtons: NavButton[] = [
+    {
+      text: t("home"),
+      icon: <Home />,
+      route: "/",
+    },
+    {
+      text: t("login"),
+      icon: <Login />,
+      route: "/login",
+    },
+    {
+      text: t("about"),
+      icon: <InfoOutlined />,
+      route: "/about",
+    },
+  ];
+  const loggedInnavButtons: NavButton[] = [
+    {
+      text: t("home"),
+      icon: <Home />,
+      route: "/",
+    },
+    {
+      text: t("dashboard"),
+      icon: <DashboardRounded />,
+      route: "/dashboard",
+    },
+    {
+      text: t("about"),
+      icon: <InfoOutlined />,
+      route: "/about",
+    },
+  ];
 
-  const history = useHistory();
-  const handleClick = (route: string) => {
-    history.push(route);
-  };
+  const buttonList: NavButton[] =
+    api?.state === "logged-in" ? loggedInnavButtons : navButtons;
 
   return (
     <List>
       {buttonList.map((props) => (
         <ListItemButton
+          component={L}
+          to={props.route}
           sx={{
             borderRadius: "2px",
           }}
           key={props.text}
-          onClick={() => handleClick(props.route)}
         >
           <ListItemIcon>{props.icon}</ListItemIcon>
           <ListItemText primary={props.text} />
