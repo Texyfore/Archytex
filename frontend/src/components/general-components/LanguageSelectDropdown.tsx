@@ -45,11 +45,7 @@ export default function LanguageSelectDropdown() {
   return (
     <>
       <Tooltip title={tooltipText}>
-        <IconButton
-          aria-expanded={open ? "true" : undefined}
-          aria-haspopup='true'
-          onClick={handleClick}
-        >
+        <IconButton onClick={handleClick} sx={{ width: 42, height: 42 }}>
           <Language />
         </IconButton>
       </Tooltip>

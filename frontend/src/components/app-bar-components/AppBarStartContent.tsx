@@ -25,14 +25,14 @@ export default function AppBarStartContent() {
 
   return (
     <>
-      <Box display='flex'>
+      <Box display='flex' alignSelf='center'>
         {upMd ? (
           <>
             <LogoWithText />
             <AppBarNavigationButtons />
           </>
         ) : (
-          <IconButton onClick={handleDrawerToggle}>
+          <IconButton onClick={handleDrawerToggle} size='large'>
             <Menu color='primary' />
           </IconButton>
         )}
