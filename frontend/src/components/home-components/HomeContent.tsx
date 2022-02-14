@@ -18,7 +18,7 @@ export default function HomeContent() {
   const { t } = useTranslation();
 
   return (
-    <Box display='flex' flexWrap='wrap'>
+    <Box display='flex' flexWrap='wrap' overflow='hidden'>
       <HomeSection
         title={t("section1_title")}
         subtitle={t("section1_subtitle")}
