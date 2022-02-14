@@ -15,6 +15,10 @@ import translationHu from "./languages/hu_hu.json";
 import translationJp from "./languages/jp_jp.json";
 
 import Home from "./pages/Home";
+import Login from "./pages/Login";
+import Register from "./pages/Register";
+import About from "./pages/About";
+import PageNotFound from "./pages/PageNotFound";
 
 import SuspenseFallback from "./components/general-components/SuspenseFallback";
 import ArchytexAppBar from "./components/app-bar-components/ArchytexAppBar";
@@ -42,6 +46,15 @@ function App() {
             <Route exact path='/'>
               <Home />
             </Route>
+            <Route exact path='/login'>
+              <Login />
+            </Route>
+            <Route exact path='/register'>
+              <Register />
+            </Route>
+            <Route exact path='/about'>
+              <About />
+            </Route>
             {/* <Route path='/dashboard'>
               <Dashboard />
             </Route>
@@ -57,9 +70,10 @@ function App() {
             <Route path='/success'>
               <SuccessfulRegistration />
             </Route>
+             */}
             <Route>
               <PageNotFound />
-            </Route> */}
+            </Route>
           </Switch>
         </Router>
       </DummyProvider>
