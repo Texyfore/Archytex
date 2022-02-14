@@ -1,3 +1,5 @@
+mod raycast;
+
 use std::collections::HashMap;
 
 use asset::{PropID, TextureID};
@@ -8,6 +10,8 @@ use crate::graphics::{
     Canvas, Graphics, LineMesh, LineMeshDescriptor, PropData, PropInstance, Share, SolidMesh,
     SolidMeshDescriptor,
 };
+
+pub use raycast::*;
 
 #[derive(Clone, Copy)]
 pub enum ElementKind {
