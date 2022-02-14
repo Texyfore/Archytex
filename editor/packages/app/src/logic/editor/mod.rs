@@ -13,18 +13,18 @@ use super::{camera::Camera, elements::ElementKind, input::Input, scene::Scene};
 pub struct Editor {
     mode: ElementKind,
     tool: Box<dyn Tool>,
-    a: LineMesh,
+    origin: LineMesh,
 }
 
 impl Editor {
-    pub fn init(_ctx: Context) -> Self {
+    pub fn init(ctx: Context) -> Self {
         Self {
             mode: ElementKind::Solid,
             tool: Box::new(CameraTool),
-            a: _ctx.graphics.create_line_mesh(LineMeshDescriptor {
+            origin: ctx.graphics.create_line_mesh(LineMeshDescriptor {
                 vertices: &[
                     LineVertex {
-                        position: vec3(-1.0, 0.0, 0.0),
+                        position: vec3(0.0, 0.0, 0.0),
                         color: [1.0, 0.0, 0.0],
                     },
                     LineVertex {
@@ -32,7 +32,7 @@ impl Editor {
                         color: [1.0, 0.0, 0.0],
                     },
                     LineVertex {
-                        position: vec3(0.0, -1.0, 0.0),
+                        position: vec3(0.0, 0.0, 0.0),
                         color: [0.0, 1.0, 0.0],
                     },
                     LineVertex {
@@ -40,7 +40,7 @@ impl Editor {
                         color: [0.0, 1.0, 0.0],
                     },
                     LineVertex {
-                        position: vec3(0.0, 0.0, -1.0),
+                        position: vec3(0.0, 0.0, 0.0),
                         color: [0.0, 0.0, 1.0],
                     },
                     LineVertex {
@@ -53,7 +53,7 @@ impl Editor {
     }
 
     pub fn process(&mut self, ctx: Context) {
-        self.tool.process(tools::Context {
+        let new = self.tool.process(tools::Context {
             input: ctx.input,
             graphics: ctx.graphics,
             camera: ctx.camera,
@@ -61,11 +61,15 @@ impl Editor {
             delta: ctx.delta,
             mode: self.mode,
         });
+
+        if let Some(new) = new {
+            self.tool = new;
+        }
     }
 
     pub fn render(&self, canvas: &mut Canvas) {
         self.tool.render(canvas);
-        canvas.draw_lines(self.a.share());
+        canvas.draw_lines(self.origin.share());
     }
 }
 

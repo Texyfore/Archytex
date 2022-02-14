@@ -8,7 +8,9 @@ use crate::{
 pub use camera::CameraTool;
 
 pub trait Tool {
-    fn process(&mut self, _ctx: Context) {}
+    fn process(&mut self, _ctx: Context) -> Option<Box<dyn Tool>> {
+        None
+    }
 
     fn render(&self, _canvas: &mut Canvas) {}
 }
