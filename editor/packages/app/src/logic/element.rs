@@ -93,6 +93,53 @@ impl Prop {
     }
 }
 
+struct SolidGeometry {
+    points: [Point; 8],
+    faces: [Face; 6],
+}
+
+impl SolidGeometry {
+    pub fn new(origin: Vector3<i32>, extent: Vector3<i32>) -> Self {
+        let points = [
+            vec3(0, 0, 0),
+            vec3(1, 0, 0),
+            vec3(1, 0, 1),
+            vec3(0, 0, 1),
+            vec3(0, 1, 0),
+            vec3(1, 1, 0),
+            vec3(1, 1, 1),
+            vec3(0, 1, 1),
+        ]
+        .map(|point| (origin + point.mul_element_wise(extent)).into());
+
+        let faces = [
+            [1, 2, 6, 5],
+            [3, 0, 4, 7],
+            [6, 7, 4, 5],
+            [1, 0, 3, 2],
+            [2, 3, 7, 6],
+            [0, 1, 5, 4],
+        ]
+        .map(|indices| (TextureID(0), indices).into());
+
+        Self { points, faces }
+    }
+}
+
+struct SolidGraphics {
+    meshes: Vec<SolidMesh>,
+    lines: LineMesh,
+}
+
+impl SolidGraphics {
+    fn render(&self, canvas: &mut Canvas) {
+        for mesh in &self.meshes {
+            canvas.draw_solid(mesh.share());
+        }
+        canvas.draw_lines(self.lines.share());
+    }
+}
+
 fn meshgen(graphics: &Graphics, geometry: &SolidGeometry, selected: bool) -> SolidGraphics {
     let mut batches = HashMap::<TextureID, (Vec<SolidVertex>, Vec<[u16; 3]>)>::new();
     for face in &geometry.faces {
@@ -160,52 +207,5 @@ fn meshgen(graphics: &Graphics, geometry: &SolidGeometry, selected: bool) -> Sol
                 color: [0.0; 3],
             }),
         }),
-    }
-}
-
-struct SolidGeometry {
-    points: [Point; 8],
-    faces: [Face; 6],
-}
-
-impl SolidGeometry {
-    pub fn new(origin: Vector3<i32>, extent: Vector3<i32>) -> Self {
-        let points = [
-            vec3(0, 0, 0),
-            vec3(1, 0, 0),
-            vec3(1, 0, 1),
-            vec3(0, 0, 1),
-            vec3(0, 1, 0),
-            vec3(1, 1, 0),
-            vec3(1, 1, 1),
-            vec3(0, 1, 1),
-        ]
-        .map(|point| (origin + point.mul_element_wise(extent)).into());
-
-        let faces = [
-            [1, 2, 6, 5],
-            [3, 0, 4, 7],
-            [6, 7, 4, 5],
-            [1, 0, 3, 2],
-            [2, 3, 7, 6],
-            [0, 1, 5, 4],
-        ]
-        .map(|indices| (TextureID(0), indices).into());
-
-        Self { points, faces }
-    }
-}
-
-struct SolidGraphics {
-    meshes: Vec<SolidMesh>,
-    lines: LineMesh,
-}
-
-impl SolidGraphics {
-    fn render(&self, canvas: &mut Canvas) {
-        for mesh in &self.meshes {
-            canvas.draw_solid(mesh.share());
-        }
-        canvas.draw_lines(self.lines.share());
     }
 }
