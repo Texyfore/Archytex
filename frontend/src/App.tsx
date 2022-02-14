@@ -9,7 +9,7 @@ import CssBaseline from "@mui/material/CssBaseline";
 import { ColorModeProvider } from "./services/colorMode";
 
 import i18n from "i18next";
-import { initReactI18next, useTranslation } from "react-i18next";
+import { initReactI18next } from "react-i18next";
 import translationEn from "./languages/en_us.json";
 import translationHu from "./languages/hu_hu.json";
 import translationJp from "./languages/jp_jp.json";
@@ -19,6 +19,7 @@ import Login from "./pages/Login";
 import Register from "./pages/Register";
 import About from "./pages/About";
 import PageNotFound from "./pages/PageNotFound";
+import SuccessfulRegistration from "./pages/SuccessfulRegistration";
 
 import SuspenseFallback from "./components/general-components/SuspenseFallback";
 import ArchytexAppBar from "./components/app-bar-components/ArchytexAppBar";
@@ -35,13 +36,12 @@ i18n.use(initReactI18next).init({
 });
 
 function App() {
-  const { t } = useTranslation();
   return (
     <Suspense fallback={<SuspenseFallback />}>
       <CssBaseline />
-      <ArchytexAppBar />
       <DummyProvider fallback={<SuspenseFallback />}>
         <Router>
+          <ArchytexAppBar />
           <Switch>
             <Route exact path='/'>
               <Home />
@@ -55,14 +55,11 @@ function App() {
             <Route exact path='/about'>
               <About />
             </Route>
+            <Route path='/success'>
+              <SuccessfulRegistration />
+            </Route>
             {/* <Route path='/dashboard'>
               <Dashboard />
-            </Route>
-            <Route path='/login'>
-              <LoginPage />
-            </Route>
-            <Route path='/register'>
-              <RegisterPage />
             </Route>
             <Route path='/editor/:projectId'>
               <Editor />
