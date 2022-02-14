@@ -1,7 +1,12 @@
-use asset::{PropID, TextureID};
-use cgmath::{vec3, Vector3};
+use std::collections::HashMap;
 
-use crate::graphics::{Canvas, Graphics, PropData, PropInstance, Share, SolidMesh};
+use asset::{PropID, TextureID};
+use cgmath::{vec2, vec3, ElementWise, InnerSpace, Vector3};
+
+use crate::graphics::{
+    structures::SolidVertex, Canvas, Graphics, PropData, PropInstance, Share, SolidMesh,
+    SolidMeshDescriptor,
+};
 
 #[derive(Clone, Copy)]
 pub enum ElementKind {
@@ -12,40 +17,61 @@ pub enum ElementKind {
 }
 
 pub struct Solid {
-    points: [Point; 8],
-    faces: [Face; 6],
+    geometry: SolidGeometry,
     selected: bool,
-    mesh: SolidMesh,
+    meshes: Vec<SolidMesh>,
 }
 
 impl Solid {
     pub fn new(graphics: &Graphics, origin: Vector3<i32>, extent: Vector3<i32>) -> Self {
+        let geometry = SolidGeometry::new(origin, extent);
+        let selected = false;
+        let meshes = meshgen(graphics, &geometry, selected);
+
         Self {
-            points: [
-                vec3(0, 0, 0).into(),
-                vec3(1, 0, 0).into(),
-                vec3(1, 0, 1).into(),
-                vec3(0, 0, 1).into(),
-                vec3(0, 1, 0).into(),
-                vec3(1, 1, 0).into(),
-                vec3(1, 1, 1).into(),
-                vec3(0, 1, 1).into(),
-            ],
-            faces: [
-                (TextureID(0), [1, 2, 6, 5]),
-                (TextureID(0), [0, 0, 0, 0]),
-                (TextureID(0), [0, 0, 0, 0]),
-                (TextureID(0), [0, 0, 0, 0]),
-                (TextureID(0), [0, 0, 0, 0]),
-                (TextureID(0), [0, 0, 0, 0]),
-            ],
-            selected: todo!(),
-            mesh: todo!(),
+            geometry,
+            selected,
+            meshes,
         }
     }
 
     pub fn render(&self, canvas: &mut Canvas) {
-        canvas.draw_solid(self.mesh.share());
+        for mesh in &self.meshes {
+            canvas.draw_solid(mesh.share());
+        }
+    }
+}
+
+pub struct SolidGeometry {
+    points: [Point; 8],
+    faces: [Face; 6],
+}
+
+impl SolidGeometry {
+    pub fn new(origin: Vector3<i32>, extent: Vector3<i32>) -> Self {
+        let points = [
+            vec3(0, 0, 0),
+            vec3(1, 0, 0),
+            vec3(1, 0, 1),
+            vec3(0, 0, 1),
+            vec3(0, 1, 0),
+            vec3(1, 1, 0),
+            vec3(1, 1, 1),
+            vec3(0, 1, 1),
+        ]
+        .map(|point| (origin + point.mul_element_wise(extent)).into());
+
+        let faces = [
+            [1, 2, 6, 5],
+            [3, 0, 4, 7],
+            [6, 7, 4, 5],
+            [1, 0, 3, 2],
+            [2, 3, 7, 6],
+            [0, 1, 5, 4],
+        ]
+        .map(|indices| (TextureID(0), indices).into());
+
+        Self { points, faces }
     }
 }
 
@@ -60,6 +86,12 @@ impl From<Vector3<i32>> for Point {
             position,
             selected: false,
         }
+    }
+}
+
+impl Point {
+    pub fn meters(&self) -> Vector3<f32> {
+        self.position.map(|e| e as f32 * 0.01)
     }
 }
 
@@ -93,4 +125,62 @@ impl Prop {
             data: self.data.share(),
         });
     }
+}
+
+fn meshgen(graphics: &Graphics, geometry: &SolidGeometry, selected: bool) -> Vec<SolidMesh> {
+    let mut batches = HashMap::<TextureID, (Vec<SolidVertex>, Vec<[u16; 3]>)>::new();
+    for face in &geometry.faces {
+        let normal = {
+            let edge0 = geometry.points[face.indices[1]].meters()
+                - geometry.points[face.indices[0]].meters();
+
+            let edge1 = geometry.points[face.indices[3]].meters()
+                - geometry.points[face.indices[0]].meters();
+
+            edge0.cross(edge1).normalize()
+        };
+
+        let (vertices, triangles) = batches.entry(face.texture).or_default();
+
+        let t0 = vertices.len() as u16;
+        triangles.push([t0, t0 + 1, t0 + 2]);
+        triangles.push([t0, t0 + 2, t0 + 3]);
+
+        for index in face.indices {
+            let position = geometry.points[index].meters();
+            let texcoord = if normal.x.abs() > normal.y.abs() {
+                if normal.x.abs() > normal.z.abs() {
+                    vec2(position.z, position.y)
+                } else {
+                    vec2(position.x, position.y)
+                }
+            } else if normal.y.abs() > normal.z.abs() {
+                vec2(position.x, position.z)
+            } else {
+                vec2(position.x, position.y)
+            } / 4.0;
+
+            vertices.push(SolidVertex {
+                position,
+                normal,
+                texcoord,
+                tint: if selected || face.selected {
+                    [0.04, 0.36, 0.85, 0.5]
+                } else {
+                    [0.0; 4]
+                },
+            })
+        }
+    }
+
+    batches
+        .into_iter()
+        .map(|(texture, batch)| {
+            graphics.create_solid_mesh(SolidMeshDescriptor {
+                texture,
+                vertices: &batch.0,
+                triangles: &batch.1,
+            })
+        })
+        .collect()
 }
