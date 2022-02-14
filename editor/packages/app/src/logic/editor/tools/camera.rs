@@ -1,5 +1,7 @@
 use winit::event::{MouseButton, VirtualKeyCode};
 
+use crate::logic::scene;
+
 use super::{Context, Tool};
 
 pub struct CameraTool;
@@ -9,6 +11,8 @@ impl Tool for CameraTool {
         let mut ctx = ctx;
         if ctx.input.is_button_down(MouseButton::Right) {
             control(&mut ctx);
+        } else {
+            undo_redo(&mut ctx);
         }
 
         None
@@ -49,4 +53,18 @@ fn control(ctx: &mut Context) {
     }
 
     ctx.camera.look(ctx.input.mouse_delta(), ctx.delta);
+}
+
+fn undo_redo(ctx: &mut Context) {
+    if ctx.input.is_key_down(VirtualKeyCode::LControl) {
+        if ctx.input.is_key_down_once(VirtualKeyCode::Z) {
+            ctx.scene.undo(scene::Context {
+                graphics: ctx.graphics,
+            });
+        } else if ctx.input.is_key_down_once(VirtualKeyCode::Y) {
+            ctx.scene.redo(scene::Context {
+                graphics: ctx.graphics,
+            });
+        }
+    }
 }

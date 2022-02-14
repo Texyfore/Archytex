@@ -101,6 +101,12 @@ impl Point {
     }
 }
 
+#[derive(Clone, Copy)]
+pub struct PointLocator {
+    pub solid: usize,
+    pub point: usize,
+}
+
 struct Face {
     texture: TextureID,
     indices: [usize; 4],
@@ -115,6 +121,12 @@ impl From<(TextureID, [usize; 4])> for Face {
             selected: false,
         }
     }
+}
+
+#[derive(Clone, Copy)]
+pub struct FaceLocator {
+    pub solid: usize,
+    pub face: usize,
 }
 
 struct SolidGeometry {

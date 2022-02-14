@@ -1,6 +1,5 @@
 use std::collections::HashMap;
 
-use asset::Prop;
 use cgmath::{InnerSpace, MetricSpace, Vector2, Vector3, Zero};
 
 use crate::{
@@ -8,7 +7,7 @@ use crate::{
     math::{Intersects, Plane, Ray, Sphere, Triangle},
 };
 
-use super::Solid;
+use super::{FaceLocator, PointLocator, Prop, Solid};
 
 pub fn raycast(input: RaycastInput) -> RaycastHit {
     let ray = input.camera.screen_ray(input.screen_pos);
@@ -143,10 +142,10 @@ fn raycast_faces(solids: &HashMap<usize, Solid>, ray: &Ray) -> Vec<HitFace> {
 }
 
 pub struct RaycastInput<'a> {
-    solids: &'a HashMap<usize, Solid>,
-    props: &'a HashMap<usize, Prop>,
-    camera: &'a Camera,
-    screen_pos: Vector2<f32>,
+    pub solids: &'a HashMap<usize, Solid>,
+    pub props: &'a HashMap<usize, Prop>,
+    pub camera: &'a Camera,
+    pub screen_pos: Vector2<f32>,
 }
 
 pub struct RaycastHit {
@@ -164,18 +163,6 @@ pub enum RaycastEndpointKind {
     Face(FaceLocator),
     Prop(usize),
     Ground,
-}
-
-#[derive(Clone, Copy)]
-pub struct PointLocator {
-    pub solid: usize,
-    pub point: usize,
-}
-
-#[derive(Clone, Copy)]
-pub struct FaceLocator {
-    pub solid: usize,
-    pub face: usize,
 }
 
 struct HitPoint {

@@ -1,11 +1,16 @@
 use std::collections::HashMap;
 
 use asset::TextureID;
-use cgmath::Vector3;
+use cgmath::{Vector2, Vector3};
 
 use crate::graphics::{Canvas, Graphics};
 
-use super::elements::{ElementKind, Prop, Solid};
+use super::{
+    camera::Camera,
+    elements::{
+        self, ElementKind, FaceLocator, PointLocator, Prop, RaycastHit, RaycastInput, Solid,
+    },
+};
 
 #[derive(Default)]
 pub struct Scene {
@@ -40,6 +45,15 @@ impl Scene {
         }
     }
 
+    pub fn raycast(&self, screen_pos: Vector2<f32>, camera: &Camera) -> RaycastHit {
+        elements::raycast(RaycastInput {
+            solids: &self.solids,
+            props: &self.props,
+            camera,
+            screen_pos,
+        })
+    }
+
     pub fn render(&self, canvas: &mut Canvas) {
         for solid in self.solids.values() {
             solid.render(canvas);
@@ -65,6 +79,19 @@ impl Scene {
                 (!ids.is_empty()).then(|| Action::RemoveSolids(ids))
             }
 
+            // NewProps
+            Action::AddSolids(solids) => {
+                let mut ids = Vec::new();
+
+                for (id, solid) in solids {
+                    self.solids.insert(id, solid);
+                    ids.push(id);
+                }
+
+                (!ids.is_empty()).then(|| Action::RemoveSolids(ids))
+            }
+
+            // AddProps
             Action::RemoveSolids(ids) => {
                 let mut solids = Vec::new();
                 for id in ids {
@@ -73,13 +100,30 @@ impl Scene {
 
                 (!solids.is_empty()).then(|| Action::AddSolids(solids))
             }
+
+            // RemoveProps
+            Action::SelectSolids(ids) => {
+                for id in &ids {
+                    let solid = self.solids.get_mut(id).unwrap();
+                    solid.set_selected(!solid.selected());
+                }
+                (!ids.is_empty()).then(|| Action::SelectSolids(ids))
+            }
+
+            // SelectFaces
+            // SelectPoints
+            // SelectProps
+            // DeselectAll
+            // Move
+            // RotateProps
+            // AssignTexture
             _ => todo!(),
         }
     }
 }
 
-pub struct Context<'g> {
-    graphics: &'g Graphics,
+pub struct Context<'a> {
+    pub graphics: &'a Graphics,
 }
 
 pub enum Action {
@@ -92,11 +136,10 @@ pub enum Action {
     RemoveSolids(Vec<usize>),
     RemoveProps(Vec<usize>),
 
-    Select {
-        kind: ElementKind,
-        ids: Vec<usize>,
-    },
-
+    SelectSolids(Vec<usize>),
+    SelectFaces(Vec<FaceLocator>),
+    SelectPoints(Vec<PointLocator>),
+    SelectProps(Vec<usize>),
     DeselectAll(ElementKind),
 
     Move {

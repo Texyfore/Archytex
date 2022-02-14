@@ -4,7 +4,7 @@ mod elements;
 mod input;
 mod scene;
 
-use cgmath::vec2;
+use cgmath::{vec2, vec3};
 use winit::event::{ElementState, MouseButton, VirtualKeyCode};
 
 use crate::{
@@ -12,7 +12,13 @@ use crate::{
     Host,
 };
 
-use self::{camera::Camera, editor::Editor, input::Input, scene::Scene};
+use self::{
+    camera::Camera,
+    editor::Editor,
+    elements::Solid,
+    input::Input,
+    scene::{Action, Scene},
+};
 
 pub struct Logic {
     input: Input,
@@ -26,6 +32,17 @@ impl Logic {
         let input = Input::default();
         let mut camera = Camera::default();
         let mut scene = Scene::default();
+
+        scene.act(
+            scene::Context {
+                graphics: ctx.graphics,
+            },
+            Action::NewSolids(vec![Solid::new(
+                ctx.graphics,
+                vec3(0, 0, 0),
+                vec3(100, 100, 100),
+            )]),
+        );
 
         let editor = Editor::init(editor::Context {
             input: &input,
