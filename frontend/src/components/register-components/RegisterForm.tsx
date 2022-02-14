@@ -62,35 +62,33 @@ export default function RegisterForm() {
   };
 
   const register = () => {
-    //TODO: Translate errors
-
     let errored = false;
     if (username === "") {
-      setUsernameError("Username can't be empty");
+      setUsernameError(t("empty_username"));
       errored = true;
     }
     if (email === "") {
-      setEmailError("Email can't be empty");
+      setEmailError(t("empty_email"));
       errored = true;
     }
     if (!email.includes("@")) {
-      setEmailError("Invalid email format");
+      setEmailError(t("invalid_email"));
       errored = true;
     }
     if (password === "") {
-      setPasswordError("Password can't be empty");
+      setPasswordError(t("empty_password"));
       errored = true;
     }
     if (password !== rePassword) {
-      setRePasswordError("The two passwords don't match");
+      setRePasswordError(t("passwords_dont_match"));
       errored = true;
     }
     if (rePassword === "") {
-      setRePasswordError("Please write the password again");
+      setRePasswordError("write_password_again");
       errored = true;
     }
     if (captcha === null) {
-      setGeneralError("Please complete the reCAPTCHA");
+      setGeneralError(t("complete_recaptcha"));
       errored = true;
     }
     if (captcha !== null && !errored) {
@@ -101,7 +99,7 @@ export default function RegisterForm() {
         .catch((err) => {
           alert(JSON.stringify(err));
           setCaptchaKey(captchaKey ^ 1);
-          setGeneralError("reCAPTCHA check failed");
+          setGeneralError(t("recaptcha_failed"));
           return;
         });
     }

@@ -50,16 +50,14 @@ export default function LoginForm() {
   const [stayLoggedIn, setStayLoggedIn] = useState(false);
 
   const loginClick = () => {
-    //TODO: Translate errors
-
     if (username === "") {
-      handleError("Username can't be empty", "username");
+      handleError(t("empty_username"), "username");
       if (password !== "") {
         return;
       }
     }
     if (password === "") {
-      handleError("Password can't be empty", "password");
+      handleError(t("empty_password"), "password");
       return;
     }
 
