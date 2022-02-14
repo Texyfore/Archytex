@@ -111,7 +111,15 @@ impl Scene {
                 (!ids.is_empty()).then(|| Action::SelectSolids(ids))
             }
 
-            // SelectFaces
+            Action::SelectFaces(locators) => {
+                for locator in &locators {
+                    let solid = self.solids.get_mut(&locator.solid).unwrap();
+                    solid.set_face_selected(locator.face, !solid.face_selected(locator.face));
+                    solid.recalc(ctx.graphics);
+                }
+                (!locators.is_empty()).then(|| Action::SelectFaces(locators))
+            }
+
             // SelectPoints
             // SelectProps
             Action::DeselectAll(kind) => match kind {
@@ -126,7 +134,30 @@ impl Scene {
                     }
                     (!ids.is_empty()).then(|| Action::SelectSolids(ids))
                 }
-                ElementKind::Face => todo!(),
+                ElementKind::Face => {
+                    let mut locators = Vec::new();
+
+                    for (sid, solid) in &mut self.solids {
+                        let mut recalc = false;
+
+                        for fid in 0..6 {
+                            if solid.face_selected(fid) {
+                                solid.set_face_selected(fid, false);
+                                locators.push(FaceLocator {
+                                    solid: *sid,
+                                    face: fid,
+                                });
+                                recalc = true;
+                            }
+                        }
+
+                        if recalc {
+                            solid.recalc(ctx.graphics);
+                        }
+                    }
+
+                    (!locators.is_empty()).then(|| Action::SelectFaces(locators))
+                }
                 ElementKind::Point => todo!(),
                 ElementKind::Prop => todo!(),
             },

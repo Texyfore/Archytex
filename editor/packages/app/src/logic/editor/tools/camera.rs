@@ -98,7 +98,20 @@ fn manipulate(ctx: &mut Context) -> Option<Box<dyn Tool>> {
                     );
                 }
             }
-            ElementKind::Face => todo!(),
+            ElementKind::Face => {
+                if let Some(RaycastEndpoint {
+                    kind: RaycastEndpointKind::Face(locator),
+                    ..
+                }) = hit.endpoint
+                {
+                    ctx.scene.act(
+                        scene::Context {
+                            graphics: ctx.graphics,
+                        },
+                        Action::SelectFaces(vec![locator]),
+                    );
+                }
+            }
             ElementKind::Point => todo!(),
             ElementKind::Prop => todo!(),
         }

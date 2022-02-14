@@ -19,7 +19,7 @@ pub struct Editor {
 impl Editor {
     pub fn init(ctx: Context) -> Self {
         Self {
-            mode: ElementKind::Solid,
+            mode: ElementKind::Face,
             tool: Box::new(CameraTool),
             origin: ctx.graphics.create_line_mesh(LineMeshDescriptor {
                 vertices: &[
