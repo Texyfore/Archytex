@@ -22,6 +22,7 @@ import PageNotFound from "./pages/PageNotFound";
 import SuccessfulRegistration from "./pages/SuccessfulRegistration";
 
 import SuspenseFallback from "./components/general-components/SuspenseFallback";
+import ScrollToTop from "./components/general-components/ScrollToTop";
 import ArchytexAppBar from "./components/app-bar-components/ArchytexAppBar";
 
 i18n.use(initReactI18next).init({
@@ -42,6 +43,7 @@ function App() {
       <DummyProvider fallback={<SuspenseFallback />}>
         <Router>
           <ArchytexAppBar />
+          <ScrollToTop />
           <Switch>
             <Route exact path='/'>
               <Home />
