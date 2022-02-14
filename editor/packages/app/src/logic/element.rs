@@ -36,6 +36,14 @@ impl Solid {
         }
     }
 
+    pub fn displace(&mut self, delta: Vector3<i32>, mask: ElementKind) -> bool {
+        self.geometry.displace(delta, mask)
+    }
+
+    pub fn recalc(&mut self, graphics: &Graphics) {
+        self.graphics = meshgen(graphics, &self.geometry, self.selected);
+    }
+
     pub fn render(&self, canvas: &mut Canvas) {
         self.graphics.render(canvas);
     }
@@ -99,7 +107,7 @@ struct SolidGeometry {
 }
 
 impl SolidGeometry {
-    pub fn new(origin: Vector3<i32>, extent: Vector3<i32>) -> Self {
+    fn new(origin: Vector3<i32>, extent: Vector3<i32>) -> Self {
         let points = [
             vec3(0, 0, 0),
             vec3(1, 0, 0),
@@ -123,6 +131,37 @@ impl SolidGeometry {
         .map(|indices| (TextureID(0), indices).into());
 
         Self { points, faces }
+    }
+
+    fn displace(&mut self, delta: Vector3<i32>, mask: ElementKind) -> bool {
+        match mask {
+            ElementKind::Solid => {
+                for point in &mut self.points {
+                    point.position += delta;
+                }
+                true
+            }
+            ElementKind::Face => {
+                let mut changed = false;
+                for face in self.faces.iter().filter(|face| face.selected) {
+                    changed = true;
+                    for index in face.indices {
+                        let point = &mut self.points[index];
+                        point.position += delta;
+                    }
+                }
+                changed
+            }
+            ElementKind::Point => {
+                let mut changed = false;
+                for point in self.points.iter_mut().filter(|point| point.selected) {
+                    changed = true;
+                    point.position += delta;
+                }
+                changed
+            }
+            ElementKind::Prop => false,
+        }
     }
 }
 
