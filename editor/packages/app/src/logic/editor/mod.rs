@@ -8,7 +8,7 @@ use crate::graphics::{
 
 use self::tools::{CameraTool, Tool};
 
-use super::{camera::Camera, element::ElementKind, input::Input, scene::Scene};
+use super::{camera::Camera, elements::ElementKind, input::Input, scene::Scene};
 
 pub struct Editor {
     mode: ElementKind,

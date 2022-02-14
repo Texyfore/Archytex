@@ -36,6 +36,14 @@ impl Solid {
         }
     }
 
+    pub fn selected(&self) -> bool {
+        self.selected
+    }
+
+    pub fn set_selected(&mut self, selected: bool) {
+        self.selected = selected;
+    }
+
     pub fn displace(&mut self, delta: Vector3<i32>, mask: ElementKind) -> bool {
         self.geometry.displace(delta, mask)
     }
@@ -49,7 +57,7 @@ impl Solid {
     }
 }
 
-pub struct Point {
+struct Point {
     position: Vector3<i32>,
     selected: bool,
 }
@@ -69,7 +77,7 @@ impl Point {
     }
 }
 
-pub struct Face {
+struct Face {
     texture: TextureID,
     indices: [usize; 4],
     selected: bool,
@@ -82,22 +90,6 @@ impl From<(TextureID, [usize; 4])> for Face {
             indices: tuple.1,
             selected: false,
         }
-    }
-}
-
-pub struct Prop {
-    asset: PropID,
-    position: Vector3<i32>,
-    rotation: Vector3<i32>,
-    data: PropData,
-}
-
-impl Prop {
-    pub fn render(&self, canvas: &mut Canvas) {
-        canvas.draw_prop(PropInstance {
-            prop: self.asset,
-            data: self.data.share(),
-        });
     }
 }
 
@@ -176,6 +168,22 @@ impl SolidGraphics {
             canvas.draw_solid(mesh.share());
         }
         canvas.draw_lines(self.lines.share());
+    }
+}
+
+pub struct Prop {
+    asset: PropID,
+    position: Vector3<i32>,
+    rotation: Vector3<i32>,
+    data: PropData,
+}
+
+impl Prop {
+    pub fn render(&self, canvas: &mut Canvas) {
+        canvas.draw_prop(PropInstance {
+            prop: self.asset,
+            data: self.data.share(),
+        });
     }
 }
 

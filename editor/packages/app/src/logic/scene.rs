@@ -5,7 +5,7 @@ use cgmath::Vector3;
 
 use crate::graphics::{Canvas, Graphics};
 
-use super::element::{ElementKind, Prop, Solid};
+use super::elements::{ElementKind, Prop, Solid};
 
 #[derive(Default)]
 pub struct Scene {

@@ -2,7 +2,7 @@ mod camera;
 
 use crate::{
     graphics::{Canvas, Graphics},
-    logic::{camera::Camera, element::ElementKind, input::Input, scene::Scene},
+    logic::{camera::Camera, elements::ElementKind, input::Input, scene::Scene},
 };
 
 pub use camera::CameraTool;

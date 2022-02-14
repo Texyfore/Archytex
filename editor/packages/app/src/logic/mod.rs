@@ -1,6 +1,6 @@
 mod camera;
 mod editor;
-mod element;
+mod elements;
 mod input;
 mod scene;
 
@@ -12,7 +12,7 @@ use crate::{
     Host,
 };
 
-use self::{camera::Camera, editor::Editor, element::Solid, input::Input, scene::Scene};
+use self::{camera::Camera, editor::Editor, elements::Solid, input::Input, scene::Scene};
 
 pub struct Logic {
     input: Input,
