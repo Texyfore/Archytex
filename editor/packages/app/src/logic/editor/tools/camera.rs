@@ -1,6 +1,9 @@
 use winit::event::{MouseButton, VirtualKeyCode};
 
-use crate::logic::scene;
+use crate::logic::{
+    elements::{ElementKind, RaycastEndpoint, RaycastEndpointKind},
+    scene::{self, Action},
+};
 
 use super::{Context, Tool};
 
@@ -11,11 +14,10 @@ impl Tool for CameraTool {
         let mut ctx = ctx;
         if ctx.input.is_button_down(MouseButton::Right) {
             control(&mut ctx);
+            None
         } else {
-            undo_redo(&mut ctx);
+            manipulate(&mut ctx)
         }
-
-        None
     }
 }
 
@@ -55,7 +57,8 @@ fn control(ctx: &mut Context) {
     ctx.camera.look(ctx.input.mouse_delta(), ctx.delta);
 }
 
-fn undo_redo(ctx: &mut Context) {
+fn manipulate(ctx: &mut Context) -> Option<Box<dyn Tool>> {
+    // Undo / Redo
     if ctx.input.is_key_down(VirtualKeyCode::LControl) {
         if ctx.input.is_key_down_once(VirtualKeyCode::Z) {
             ctx.scene.undo(scene::Context {
@@ -67,4 +70,39 @@ fn undo_redo(ctx: &mut Context) {
             });
         }
     }
+
+    // Select
+    if ctx.input.was_button_down_once(MouseButton::Left) {
+        if !ctx.input.is_key_down(VirtualKeyCode::LShift) {
+            ctx.scene.act(
+                scene::Context {
+                    graphics: ctx.graphics,
+                },
+                Action::DeselectAll(ctx.mode),
+            );
+        }
+
+        let hit = ctx.scene.raycast(ctx.input.mouse_pos(), ctx.camera);
+        match ctx.mode {
+            ElementKind::Solid => {
+                if let Some(RaycastEndpoint {
+                    kind: RaycastEndpointKind::Face(locator),
+                    ..
+                }) = hit.endpoint
+                {
+                    ctx.scene.act(
+                        scene::Context {
+                            graphics: ctx.graphics,
+                        },
+                        Action::SelectSolids(vec![locator.solid]),
+                    );
+                }
+            }
+            ElementKind::Face => todo!(),
+            ElementKind::Point => todo!(),
+            ElementKind::Prop => todo!(),
+        }
+    }
+
+    None
 }

@@ -64,7 +64,7 @@ impl Scene {
         }
     }
 
-    fn execute(&mut self, _ctx: Context, action: Action) -> Option<Action> {
+    fn execute(&mut self, ctx: Context, action: Action) -> Option<Action> {
         match action {
             Action::NewSolids(solids) => {
                 let ids = solids
@@ -106,6 +106,7 @@ impl Scene {
                 for id in &ids {
                     let solid = self.solids.get_mut(id).unwrap();
                     solid.set_selected(!solid.selected());
+                    solid.recalc(ctx.graphics);
                 }
                 (!ids.is_empty()).then(|| Action::SelectSolids(ids))
             }
@@ -113,7 +114,23 @@ impl Scene {
             // SelectFaces
             // SelectPoints
             // SelectProps
-            // DeselectAll
+            Action::DeselectAll(kind) => match kind {
+                ElementKind::Solid => {
+                    let mut ids = Vec::new();
+                    for (id, solid) in &mut self.solids {
+                        if solid.selected() {
+                            solid.set_selected(false);
+                            solid.recalc(ctx.graphics);
+                            ids.push(*id);
+                        }
+                    }
+                    (!ids.is_empty()).then(|| Action::SelectSolids(ids))
+                }
+                ElementKind::Face => todo!(),
+                ElementKind::Point => todo!(),
+                ElementKind::Prop => todo!(),
+            },
+
             // Move
             // RotateProps
             // AssignTexture
