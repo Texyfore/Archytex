@@ -1,11 +1,11 @@
 import Box from "@mui/material/Box";
-import React, { ReactElement } from "react";
+import React from "react";
 import Typography from "@mui/material/Typography";
 
 interface Props {
   title: string;
   text: string;
-  ctaButton?: ReactElement;
+  ctaButton?: JSX.Element;
 }
 
 export default function HomeParagraph({ title, text, ctaButton }: Props) {

@@ -10,7 +10,7 @@ import AppBarStartContent from "./AppBarStartContent";
 
 interface Props {
   window?: () => Window;
-  children: React.ReactElement;
+  children: JSX.Element;
 }
 
 function ElevationScroll(props: Props) {

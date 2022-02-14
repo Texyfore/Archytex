@@ -8,7 +8,12 @@ import ListItemButton from "@mui/material/ListItemButton";
 import ListItemIcon from "@mui/material/ListItemIcon";
 import ListItemText from "@mui/material/ListItemText";
 
-import { DashboardRounded, Home, Login } from "@mui/icons-material";
+import {
+  DashboardRounded,
+  Home,
+  InfoOutlined,
+  Login,
+} from "@mui/icons-material";
 
 import { useApi } from "../../services/user/api";
 
@@ -36,6 +41,11 @@ export default function DrawerNavButtonList() {
             icon: <DashboardRounded />,
             route: "/dashboard",
           },
+          {
+            text: t("about"),
+            icon: <InfoOutlined />,
+            route: "/about",
+          },
         ]
       : [
           {
@@ -47,6 +57,11 @@ export default function DrawerNavButtonList() {
             text: t("login"),
             icon: <Login />,
             route: "/login",
+          },
+          {
+            text: t("about"),
+            icon: <InfoOutlined />,
+            route: "/about",
           },
         ];
 

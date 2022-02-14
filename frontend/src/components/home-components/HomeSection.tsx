@@ -1,4 +1,4 @@
-import React, { ReactElement, useEffect } from "react";
+import React, { useEffect } from "react";
 
 import AOS from "aos";
 import "aos/dist/aos.css";
@@ -13,7 +13,7 @@ interface Props {
   title: string;
   subtitle: string;
   paragraph: string;
-  ctaButton?: ReactElement;
+  ctaButton?: JSX.Element;
   imageSrc: string;
   imageAlt: string;
   flipped?: boolean;
