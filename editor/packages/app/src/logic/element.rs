@@ -113,12 +113,12 @@ impl SolidGeometry {
         .map(|point| (origin + point.mul_element_wise(extent)).into());
 
         let faces = [
-            [1, 2, 6, 5],
-            [3, 0, 4, 7],
-            [6, 7, 4, 5],
-            [1, 0, 3, 2],
-            [2, 3, 7, 6],
-            [0, 1, 5, 4],
+            [1, 5, 6, 2],
+            [4, 0, 3, 7],
+            [5, 4, 7, 6],
+            [0, 1, 2, 3],
+            [3, 2, 6, 7],
+            [1, 0, 4, 5],
         ]
         .map(|indices| (TextureID(0), indices).into());
 
