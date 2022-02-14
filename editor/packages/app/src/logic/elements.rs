@@ -44,6 +44,22 @@ impl Solid {
         self.selected = selected;
     }
 
+    pub fn face_selected(&self, index: usize) -> bool {
+        self.geometry.faces[index].selected
+    }
+
+    pub fn set_face_selected(&mut self, index: usize, selected: bool) {
+        self.geometry.faces[index].selected = selected;
+    }
+
+    pub fn point_selected(&self, index: usize) -> bool {
+        self.geometry.points[index].selected
+    }
+
+    pub fn set_point_selected(&mut self, index: usize, selected: bool) {
+        self.geometry.points[index].selected = selected;
+    }
+
     pub fn displace(&mut self, delta: Vector3<i32>, mask: ElementKind) -> bool {
         self.geometry.displace(delta, mask)
     }
