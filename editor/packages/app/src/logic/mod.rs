@@ -12,7 +12,13 @@ use crate::{
     Host,
 };
 
-use self::{camera::Camera, editor::Editor, elements::Solid, input::Input, scene::Scene};
+use self::{
+    camera::Camera,
+    editor::Editor,
+    elements::{ElementKind, Solid},
+    input::Input,
+    scene::Scene,
+};
 
 pub struct Logic {
     input: Input,
@@ -53,6 +59,9 @@ impl Logic {
             scene: &mut self.scene,
             delta: ctx.delta,
         });
+        self.test.set_face_selected(0, true);
+        self.test.displace(vec3(1, 0, 0), ElementKind::Face);
+        self.test.recalc(ctx.graphics);
         self.input.process();
     }
 

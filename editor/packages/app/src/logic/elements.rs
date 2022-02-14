@@ -60,8 +60,12 @@ impl Solid {
         self.geometry.points[index].selected = selected;
     }
 
-    pub fn displace(&mut self, delta: Vector3<i32>, mask: ElementKind) -> bool {
-        self.geometry.displace(delta, mask)
+    pub fn displace(&mut self, delta: Vector3<i32>, mask: ElementKind) {
+        self.geometry.displace(delta, mask);
+    }
+
+    pub fn retexture(&mut self, texture: TextureID) {
+        self.geometry.retexture(texture);
     }
 
     pub fn recalc(&mut self, graphics: &Graphics) {
@@ -141,34 +145,33 @@ impl SolidGeometry {
         Self { points, faces }
     }
 
-    fn displace(&mut self, delta: Vector3<i32>, mask: ElementKind) -> bool {
+    fn displace(&mut self, delta: Vector3<i32>, mask: ElementKind) {
         match mask {
             ElementKind::Solid => {
                 for point in &mut self.points {
                     point.position += delta;
                 }
-                true
             }
             ElementKind::Face => {
-                let mut changed = false;
                 for face in self.faces.iter().filter(|face| face.selected) {
-                    changed = true;
                     for index in face.indices {
                         let point = &mut self.points[index];
                         point.position += delta;
                     }
                 }
-                changed
             }
             ElementKind::Point => {
-                let mut changed = false;
                 for point in self.points.iter_mut().filter(|point| point.selected) {
-                    changed = true;
                     point.position += delta;
                 }
-                changed
             }
-            ElementKind::Prop => false,
+            ElementKind::Prop => (),
+        };
+    }
+
+    fn retexture(&mut self, texture: TextureID) {
+        for face in self.faces.iter_mut().filter(|face| face.selected) {
+            face.texture = texture;
         }
     }
 }
