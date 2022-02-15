@@ -3,7 +3,7 @@ mod raycast;
 use std::collections::HashMap;
 
 use asset::{GizmoID, PropID, TextureID};
-use cgmath::{vec2, vec3, ElementWise, InnerSpace, Matrix4, Vector3};
+use cgmath::{vec2, vec3, ElementWise, InnerSpace, Matrix4, Vector3, Zero};
 
 use crate::graphics::{
     structures::{GizmoInstance, LineVertex, SolidVertex},
@@ -12,6 +12,8 @@ use crate::graphics::{
 };
 
 pub use raycast::*;
+
+use super::scene::Scene;
 
 #[derive(Clone, Copy)]
 pub enum ElementKind {
@@ -64,20 +66,16 @@ impl Solid {
         self.geometry.points[index].selected = selected;
     }
 
-    pub fn displace(&mut self, delta: Vector3<i32>, mask: ElementKind) {
-        self.geometry.displace(delta, mask);
+    pub fn any_face_selected(&self) -> bool {
+        self.geometry.faces.iter().any(|face| face.selected)
+    }
+
+    pub fn any_point_selected(&self) -> bool {
+        self.geometry.points.iter().any(|point| point.selected)
     }
 
     pub fn retexture(&mut self, texture: TextureID) {
         self.geometry.retexture(texture);
-    }
-
-    pub fn recalc(&mut self, graphics: &Graphics) {
-        self.graphics = meshgen(graphics, &self.geometry, self.selected);
-    }
-
-    pub fn render(&self, canvas: &mut Canvas, verts: bool) {
-        self.graphics.render(canvas, verts);
     }
 }
 
@@ -161,28 +159,37 @@ impl SolidGeometry {
         Self { points, faces }
     }
 
-    fn displace(&mut self, delta: Vector3<i32>, mask: ElementKind) {
+    fn displace(&mut self, delta: Vector3<i32>, mask: ElementKind) -> bool {
         match mask {
             ElementKind::Solid => {
+                let mut changed = false;
                 for point in &mut self.points {
                     point.position += delta;
+                    changed = true;
                 }
+                changed
             }
             ElementKind::Face => {
+                let mut changed = false;
                 for face in self.faces.iter().filter(|face| face.selected) {
                     for index in face.indices {
                         let point = &mut self.points[index];
                         point.position += delta;
+                        changed = true;
                     }
                 }
+                changed
             }
             ElementKind::Point => {
+                let mut changed = false;
                 for point in self.points.iter_mut().filter(|point| point.selected) {
                     point.position += delta;
+                    changed = true;
                 }
+                changed
             }
-            ElementKind::Prop => (),
-        };
+            ElementKind::Prop => false,
+        }
     }
 
     fn retexture(&mut self, texture: TextureID) {
@@ -312,5 +319,81 @@ fn meshgen(graphics: &Graphics, geometry: &SolidGeometry, selected: bool) -> Sol
                 })
                 .collect::<Vec<_>>(),
         ),
+    }
+}
+
+pub trait Movable: Sized {
+    fn center(&self, mask: ElementKind) -> Vector3<f32>;
+    fn displace(&mut self, delta: Vector3<i32>, mask: ElementKind) -> bool;
+    fn recalc(&mut self, graphics: &Graphics);
+    fn render(&self, canvas: &mut Canvas, mask: ElementKind);
+    fn insert_move(
+        scene: &mut Scene,
+        elements: Vec<(usize, Self)>,
+        delta: Vector3<i32>,
+        mask: ElementKind,
+    );
+    fn insert(scene: &mut Scene, elements: Vec<(usize, Self)>);
+}
+
+impl Movable for Solid {
+    fn center(&self, mask: ElementKind) -> Vector3<f32> {
+        let mut center = Vector3::zero();
+        let mut div = 0.0;
+
+        match mask {
+            ElementKind::Solid => {
+                for point in &self.geometry.points {
+                    center += point.meters();
+                    div += 1.0;
+                }
+            }
+            ElementKind::Face => {
+                for face in &self.geometry.faces {
+                    if face.selected {
+                        for pid in face.indices {
+                            let point = &self.geometry.points[pid];
+                            center += point.meters();
+                            div += 1.0;
+                        }
+                    }
+                }
+            }
+            ElementKind::Point => {
+                for point in self.geometry.points.iter().filter(|point| point.selected) {
+                    center += point.meters();
+                    div += 1.0;
+                }
+            }
+            ElementKind::Prop => (),
+        };
+
+        center / div
+    }
+
+    fn displace(&mut self, delta: Vector3<i32>, mask: ElementKind) -> bool {
+        self.geometry.displace(delta, mask)
+    }
+
+    fn recalc(&mut self, graphics: &Graphics) {
+        self.graphics = meshgen(graphics, &self.geometry, self.selected);
+    }
+
+    fn render(&self, canvas: &mut Canvas, mask: ElementKind) {
+        self.graphics
+            .render(canvas, matches!(mask, ElementKind::Point));
+    }
+
+    fn insert_move(
+        scene: &mut Scene,
+        elements: Vec<(usize, Self)>,
+        delta: Vector3<i32>,
+        mask: ElementKind,
+    ) {
+        scene.insert_solids_with_move(elements, delta, mask);
+    }
+
+    fn insert(scene: &mut Scene, elements: Vec<(usize, Self)>) {
+        scene.insert_solids(elements);
     }
 }

@@ -4,7 +4,7 @@ use winit::event::MouseButton;
 use crate::{
     graphics::Canvas,
     logic::{
-        elements::Solid,
+        elements::{ElementKind, Movable, Solid},
         scene::{self, Action},
     },
     math::{MinMax, Snap},
@@ -55,7 +55,7 @@ impl Tool for NewSolid {
 
     fn render(&self, canvas: &mut Canvas) {
         if let Some(solid) = &self.solid {
-            solid.render(canvas, false);
+            solid.render(canvas, ElementKind::Solid);
         }
     }
 }

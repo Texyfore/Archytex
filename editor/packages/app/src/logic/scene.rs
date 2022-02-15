@@ -8,7 +8,8 @@ use crate::graphics::{Canvas, Graphics};
 use super::{
     camera::Camera,
     elements::{
-        self, ElementKind, FaceLocator, PointLocator, Prop, RaycastHit, RaycastInput, Solid,
+        self, ElementKind, FaceLocator, Movable, PointLocator, Prop, RaycastHit, RaycastInput,
+        Solid,
     },
 };
 
@@ -59,9 +60,57 @@ impl Scene {
         })
     }
 
+    pub fn take_solids(&mut self, mask: ElementKind) -> Vec<(usize, Solid)> {
+        #[allow(clippy::needless_collect)]
+        let ids = self
+            .solids
+            .iter()
+            .filter_map(|(id, solid)| {
+                match mask {
+                    ElementKind::Solid => solid.selected(),
+                    ElementKind::Face => solid.any_face_selected(),
+                    ElementKind::Point => solid.any_point_selected(),
+                    ElementKind::Prop => false,
+                }
+                .then(|| *id)
+            })
+            .collect::<Vec<_>>();
+
+        ids.into_iter()
+            .map(|id| (id, self.solids.remove(&id).unwrap()))
+            .collect()
+    }
+
+    pub fn insert_solids_with_move(
+        &mut self,
+        solids: Vec<(usize, Solid)>,
+        delta: Vector3<i32>,
+        mask: ElementKind,
+    ) {
+        for (id, solid) in solids {
+            self.solids.insert(id, solid);
+        }
+
+        self.undo_stack.push(Action::Move {
+            kind: mask,
+            delta: -delta,
+        });
+
+        // Limit undo to 64 steps
+        if self.undo_stack.len() > 64 {
+            self.undo_stack.remove(0);
+        }
+    }
+
+    pub fn insert_solids(&mut self, solids: Vec<(usize, Solid)>) {
+        for (id, solid) in solids {
+            self.solids.insert(id, solid);
+        }
+    }
+
     pub fn render(&self, canvas: &mut Canvas, mask: ElementKind) {
         for solid in self.solids.values() {
-            solid.render(canvas, matches!(mask, ElementKind::Point));
+            solid.render(canvas, mask);
         }
 
         if matches!(mask, ElementKind::Prop) {
@@ -201,7 +250,23 @@ impl Scene {
                 ElementKind::Prop => todo!(),
             },
 
-            // Move
+            Action::Move { kind, delta } => match kind {
+                ElementKind::Solid | ElementKind::Face | ElementKind::Point => {
+                    let mut changed = false;
+                    for solid in self.solids.values_mut() {
+                        if solid.displace(delta, kind) {
+                            solid.recalc(ctx.graphics);
+                            changed = true;
+                        }
+                    }
+                    changed.then(|| Action::Move {
+                        kind,
+                        delta: -delta,
+                    })
+                }
+                ElementKind::Prop => todo!(),
+            },
+
             // RotateProps
             // AssignTexture
             Action::DeleteSolids => {

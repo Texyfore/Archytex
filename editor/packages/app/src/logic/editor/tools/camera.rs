@@ -2,11 +2,11 @@ use cgmath::{InnerSpace, Vector2};
 use winit::event::{MouseButton, VirtualKeyCode};
 
 use crate::logic::{
-    elements::{ElementKind, RaycastEndpoint, RaycastEndpointKind},
+    elements::{ElementKind, RaycastEndpoint, RaycastEndpointKind, Solid, Movable},
     scene::{self, Action},
 };
 
-use super::{Context, NewSolid, Tool};
+use super::{move_tool::MoveTool, Context, NewSolid, Tool};
 
 #[derive(Default)]
 pub struct CameraTool {
@@ -180,6 +180,25 @@ fn common(ctx: &mut Context) -> Option<Box<dyn Tool>> {
                 todo!()
             }
             _ => (),
+        }
+    }
+
+    // Move
+    if ctx.input.is_key_down_once(VirtualKeyCode::G) {
+        match ctx.mode {
+            ElementKind::Solid => {
+                let ray = ctx.camera.screen_ray(ctx.input.mouse_pos());
+                let elements = ctx.scene.take_solids(ElementKind::Solid);
+                match MoveTool::new(ElementKind::Solid, ray, elements) {
+                    Ok(tool) => return Some(Box::new(tool)),
+                    Err(elements) => {
+                        Solid::insert(ctx.scene, elements);
+                    }
+                };
+            }
+            ElementKind::Face => todo!(),
+            ElementKind::Point => todo!(),
+            ElementKind::Prop => todo!(),
         }
     }
 

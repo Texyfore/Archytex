@@ -1,4 +1,5 @@
 mod camera;
+mod move_tool;
 mod new_solid;
 
 use crate::{
