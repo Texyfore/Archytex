@@ -1,4 +1,4 @@
-use cgmath::{vec3, Vector3};
+use cgmath::{vec3, Vector2, Vector3};
 use winit::event::MouseButton;
 
 use crate::{
@@ -18,8 +18,8 @@ pub struct NewSolid {
 }
 
 impl NewSolid {
-    pub fn new(ctx: Context) -> Option<Self> {
-        let hit = ctx.scene.raycast(ctx.input.mouse_pos(), ctx.camera);
+    pub fn new(ctx: Context, click: Vector2<f32>) -> Option<Self> {
+        let hit = ctx.scene.raycast(click, ctx.camera);
         hit.endpoint.map(|endpoint| Self {
             start: endpoint.point + endpoint.normal * 0.001,
             solid: None,

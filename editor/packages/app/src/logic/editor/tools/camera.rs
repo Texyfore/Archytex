@@ -33,15 +33,18 @@ impl Tool for CameraTool {
                 if let Some(last_click) = self.last_click {
                     let delta = ctx.input.mouse_pos() - last_click;
                     if delta.magnitude2() > 100.0 {
-                        let tool = NewSolid::new(Context {
-                            input: ctx.input,
-                            graphics: ctx.graphics,
-                            camera: ctx.camera,
-                            scene: ctx.scene,
-                            delta: ctx.delta,
-                            mode: ctx.mode,
-                            grid: ctx.grid,
-                        });
+                        let tool = NewSolid::new(
+                            Context {
+                                input: ctx.input,
+                                graphics: ctx.graphics,
+                                camera: ctx.camera,
+                                scene: ctx.scene,
+                                delta: ctx.delta,
+                                mode: ctx.mode,
+                                grid: ctx.grid,
+                            },
+                            last_click,
+                        );
 
                         if let Some(tool) = tool {
                             return Some(Box::new(tool));
