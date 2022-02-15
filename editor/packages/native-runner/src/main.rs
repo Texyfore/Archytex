@@ -14,6 +14,11 @@ fn main() {
                 kind: ResourceKind::Texture,
             },
             Resource {
+                id: 1,
+                buf: include_bytes!("../assets/bricks.png").to_vec(),
+                kind: ResourceKind::Texture,
+            },
+            Resource {
                 id: 0,
                 buf: include_bytes!("../assets/vertex.agzm").to_vec(),
                 kind: ResourceKind::Gizmo,
