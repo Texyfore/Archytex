@@ -4,7 +4,7 @@ mod elements;
 mod input;
 mod scene;
 
-use cgmath::{vec2, vec3};
+use cgmath::vec2;
 use winit::event::{ElementState, MouseButton, VirtualKeyCode};
 
 use crate::{
@@ -12,13 +12,7 @@ use crate::{
     Host,
 };
 
-use self::{
-    camera::Camera,
-    editor::Editor,
-    elements::Solid,
-    input::Input,
-    scene::{Action, Scene},
-};
+use self::{camera::Camera, editor::Editor, input::Input, scene::Scene};
 
 pub struct Logic {
     input: Input,
