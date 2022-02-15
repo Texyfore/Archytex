@@ -73,6 +73,7 @@ impl Scene {
                     .into_iter()
                     .map(|solid| {
                         let id = self.next_elem_id;
+                        self.next_elem_id += 1;
                         self.solids.insert(id, solid);
                         id
                     })

@@ -1,4 +1,5 @@
 mod camera;
+mod new_solid;
 
 use crate::{
     graphics::{Canvas, Graphics},
@@ -6,6 +7,7 @@ use crate::{
 };
 
 pub use camera::CameraTool;
+pub use new_solid::NewSolid;
 
 pub trait Tool {
     fn process(&mut self, _ctx: Context) -> Option<Box<dyn Tool>> {
@@ -22,4 +24,5 @@ pub struct Context<'a> {
     pub scene: &'a mut Scene,
     pub delta: f32,
     pub mode: ElementKind,
+    pub grid: i32,
 }

@@ -14,13 +14,14 @@ pub struct Editor {
     mode: ElementKind,
     tool: Box<dyn Tool>,
     origin: LineMesh,
+    grid: i32,
 }
 
 impl Editor {
     pub fn init(ctx: Context) -> Self {
         Self {
             mode: ElementKind::Solid,
-            tool: Box::new(CameraTool),
+            tool: Box::new(CameraTool::default()),
             origin: ctx.graphics.create_line_mesh(LineMeshDescriptor {
                 vertices: &[
                     LineVertex {
@@ -49,6 +50,7 @@ impl Editor {
                     },
                 ],
             }),
+            grid: 100,
         }
     }
 
@@ -60,6 +62,7 @@ impl Editor {
             scene: ctx.scene,
             delta: ctx.delta,
             mode: self.mode,
+            grid: self.grid,
         });
 
         if let Some(new) = new {

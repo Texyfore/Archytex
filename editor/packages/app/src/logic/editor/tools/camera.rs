@@ -1,3 +1,4 @@
+use cgmath::{InnerSpace, Vector2};
 use winit::event::{MouseButton, VirtualKeyCode};
 
 use crate::logic::{
@@ -5,9 +6,12 @@ use crate::logic::{
     scene::{self, Action},
 };
 
-use super::{Context, Tool};
+use super::{Context, NewSolid, Tool};
 
-pub struct CameraTool;
+#[derive(Default)]
+pub struct CameraTool {
+    last_click: Option<Vector2<f32>>,
+}
 
 impl Tool for CameraTool {
     fn process(&mut self, ctx: Context) -> Option<Box<dyn Tool>> {
@@ -16,7 +20,37 @@ impl Tool for CameraTool {
             control(&mut ctx);
             None
         } else {
-            manipulate(&mut ctx)
+            // New solid
+            {
+                if ctx.input.is_button_down_once(MouseButton::Left) {
+                    self.last_click = Some(ctx.input.mouse_pos());
+                }
+
+                if ctx.input.was_button_down_once(MouseButton::Left) {
+                    self.last_click = None;
+                }
+
+                if let Some(last_click) = self.last_click {
+                    let delta = ctx.input.mouse_pos() - last_click;
+                    if delta.magnitude2() > 100.0 {
+                        let tool = NewSolid::new(Context {
+                            input: ctx.input,
+                            graphics: ctx.graphics,
+                            camera: ctx.camera,
+                            scene: ctx.scene,
+                            delta: ctx.delta,
+                            mode: ctx.mode,
+                            grid: ctx.grid,
+                        });
+
+                        if let Some(tool) = tool {
+                            return Some(Box::new(tool));
+                        }
+                    }
+                }
+            }
+
+            common(&mut ctx)
         }
     }
 }
@@ -57,8 +91,8 @@ fn control(ctx: &mut Context) {
     ctx.camera.look(ctx.input.mouse_delta(), ctx.delta);
 }
 
-fn manipulate(ctx: &mut Context) -> Option<Box<dyn Tool>> {
-    // Undo / Redo
+fn common(ctx: &mut Context) -> Option<Box<dyn Tool>> {
+    // Undo & Redo
     if ctx.input.is_key_down(VirtualKeyCode::LControl) {
         if ctx.input.is_key_down_once(VirtualKeyCode::Z) {
             ctx.scene.undo(scene::Context {
