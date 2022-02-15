@@ -33,17 +33,6 @@ impl Logic {
         let mut camera = Camera::default();
         let mut scene = Scene::default();
 
-        scene.act(
-            scene::Context {
-                graphics: ctx.graphics,
-            },
-            Action::NewSolids(vec![Solid::new(
-                ctx.graphics,
-                vec3(0, 0, 0),
-                vec3(100, 100, 100),
-            )]),
-        );
-
         let editor = Editor::init(editor::Context {
             input: &input,
             graphics: ctx.graphics,
