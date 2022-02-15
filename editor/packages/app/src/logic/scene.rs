@@ -26,6 +26,11 @@ impl Scene {
         if let Some(reaction) = self.execute(ctx, action) {
             self.undo_stack.push(reaction);
             self.redo_stack.clear();
+
+            // Limit undo to 64 steps
+            if self.undo_stack.len() > 64 {
+                self.undo_stack.remove(0);
+            }
         }
     }
 
