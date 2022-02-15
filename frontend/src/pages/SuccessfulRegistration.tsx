@@ -2,16 +2,18 @@ import React from "react";
 
 import { Link as L } from "react-router-dom";
 
+import { useTranslation } from "react-i18next";
+
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
+import Button from "@mui/material/Button";
+
+import { NavigateNext } from "@mui/icons-material";
 
 import Footer from "../components/general-components/Footer";
 import MaxHeightContainer from "../components/general-components/MaxHeightContainter";
 
 import successImage from "../img/illustrations/successful.svg";
-import Button from "@mui/material/Button";
-import { NavigateNext } from "@mui/icons-material";
-import { useTranslation } from "react-i18next";
 
 export default function SuccessfulRegistration() {
   const { t } = useTranslation();
