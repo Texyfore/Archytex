@@ -112,7 +112,14 @@ fn manipulate(ctx: &mut Context) -> Option<Box<dyn Tool>> {
                     );
                 }
             }
-            ElementKind::Point => todo!(),
+            ElementKind::Point => {
+                ctx.scene.act(
+                    scene::Context {
+                        graphics: ctx.graphics,
+                    },
+                    Action::SelectPoints(hit.points),
+                );
+            }
             ElementKind::Prop => todo!(),
         }
     }
