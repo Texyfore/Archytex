@@ -24,6 +24,7 @@ import SuccessfulRegistration from "./pages/SuccessfulRegistration";
 import SuspenseFallback from "./components/general-components/SuspenseFallback";
 import ScrollToTop from "./components/general-components/ScrollToTop";
 import ArchytexAppBar from "./components/app-bar-components/ArchytexAppBar";
+import Dashboard from "./pages/Dashboard";
 
 i18n.use(initReactI18next).init({
   resources: {
@@ -56,6 +57,9 @@ function App() {
             </Route>
             <Route exact path='/about'>
               <About />
+            </Route>
+            <Route exact path='/dashboard'>
+              <Dashboard />
             </Route>
             <Route path='/success'>
               <SuccessfulRegistration />
