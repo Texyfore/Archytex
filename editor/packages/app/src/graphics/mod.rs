@@ -19,6 +19,11 @@ pub fn init(window: &Window) -> (Renderer, Graphics) {
     let gpu = Rc::new(gpu);
     let surface = Rc::new(surface);
 
+    {
+        let (width, height) = window.inner_size().into();
+        surface.configure(&gpu, width, height);
+    }
+
     (Renderer::new(gpu.clone(), surface), Graphics { gpu })
 }
 

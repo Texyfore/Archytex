@@ -50,6 +50,12 @@ pub fn run(init: Init) {
         delta: 0.0,
     });
 
+    {
+        let (width, height) = window.inner_size().into();
+        renderer.resize(width, height);
+        logic.resized(width, height);
+    }
+
     let mut before = Instant::now();
 
     event_loop.run(move |event, _, flow| {
