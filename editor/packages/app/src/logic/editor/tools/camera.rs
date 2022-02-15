@@ -47,6 +47,12 @@ impl Tool for CameraTool {
                         );
 
                         if let Some(tool) = tool {
+                            ctx.scene.act(
+                                scene::Context {
+                                    graphics: ctx.graphics,
+                                },
+                                Action::DeselectAll(ElementKind::Solid),
+                            );
                             return Some(Box::new(tool));
                         }
                     }
