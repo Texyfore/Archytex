@@ -6,7 +6,7 @@ mod math;
 
 use std::{sync::mpsc::Receiver, time::Instant};
 
-use asset::{Texture, TextureID};
+use asset::{Gizmo, GizmoID, Texture, TextureID};
 use logic::Logic;
 use winit::{
     dpi::{PhysicalPosition, PhysicalSize},
@@ -35,7 +35,11 @@ pub fn run(init: Init) {
                     renderer.add_texture(id, texture);
                 }
                 ResourceKind::Prop => todo!(),
-                ResourceKind::Gizmo => todo!(),
+                ResourceKind::Gizmo => {
+                    let id = GizmoID(resource.id);
+                    let gizmo = Gizmo::decode(&resource.buf).unwrap();
+                    renderer.add_gizmo(id, gizmo);
+                }
             }
         }
     }

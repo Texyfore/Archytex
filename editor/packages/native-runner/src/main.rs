@@ -7,11 +7,18 @@ fn main() {
     let (_sender, receiver) = channel();
     run(Init {
         winit: winit(),
-        resources: vec![Resource {
-            id: 0,
-            buf: include_bytes!("../assets/nodraw.png").to_vec(),
-            kind: ResourceKind::Texture,
-        }],
+        resources: vec![
+            Resource {
+                id: 0,
+                buf: include_bytes!("../assets/nodraw.png").to_vec(),
+                kind: ResourceKind::Texture,
+            },
+            Resource {
+                id: 0,
+                buf: include_bytes!("../assets/vertex.agzm").to_vec(),
+                kind: ResourceKind::Gizmo,
+            },
+        ],
         host: Box::new(NativeHost),
         receiver,
     });

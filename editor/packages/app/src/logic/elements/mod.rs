@@ -2,13 +2,13 @@ mod raycast;
 
 use std::collections::HashMap;
 
-use asset::{PropID, TextureID};
-use cgmath::{vec2, vec3, ElementWise, InnerSpace, Vector3};
+use asset::{GizmoID, PropID, TextureID};
+use cgmath::{vec2, vec3, ElementWise, InnerSpace, Matrix4, Vector3};
 
 use crate::graphics::{
-    structures::{LineVertex, SolidVertex},
-    Canvas, Graphics, LineMesh, LineMeshDescriptor, PropData, PropInstance, Share, SolidMesh,
-    SolidMeshDescriptor,
+    structures::{GizmoInstance, LineVertex, SolidVertex},
+    Canvas, GizmoGroup, GizmoInstances, Graphics, LineMesh, LineMeshDescriptor, PropData,
+    PropInstance, Share, SolidMesh, SolidMeshDescriptor,
 };
 
 pub use raycast::*;
@@ -195,6 +195,7 @@ impl SolidGeometry {
 struct SolidGraphics {
     meshes: Vec<SolidMesh>,
     lines: LineMesh,
+    verts: GizmoInstances,
 }
 
 impl SolidGraphics {
@@ -202,7 +203,12 @@ impl SolidGraphics {
         for mesh in &self.meshes {
             canvas.draw_solid(mesh.share());
         }
+
         canvas.draw_lines(self.lines.share());
+        canvas.draw_gizmos(GizmoGroup {
+            gizmo: GizmoID(0),
+            instances: self.verts.share(),
+        });
     }
 }
 
@@ -289,5 +295,19 @@ fn meshgen(graphics: &Graphics, geometry: &SolidGeometry, selected: bool) -> Sol
                 color: [0.0; 3],
             }),
         }),
+        verts: graphics.create_gizmo_instances(
+            &geometry
+                .points
+                .iter()
+                .map(|point| GizmoInstance {
+                    matrix: Matrix4::from_translation(point.meters()),
+                    color: if point.selected {
+                        [0.04, 0.36, 0.85]
+                    } else {
+                        [0.0; 3]
+                    },
+                })
+                .collect::<Vec<_>>(),
+        ),
     }
 }
