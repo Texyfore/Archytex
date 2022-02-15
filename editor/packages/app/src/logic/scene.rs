@@ -54,13 +54,15 @@ impl Scene {
         })
     }
 
-    pub fn render(&self, canvas: &mut Canvas) {
+    pub fn render(&self, canvas: &mut Canvas, mask: ElementKind) {
         for solid in self.solids.values() {
-            solid.render(canvas);
+            solid.render(canvas, matches!(mask, ElementKind::Point));
         }
 
-        for prop in self.props.values() {
-            prop.render(canvas);
+        if matches!(mask, ElementKind::Prop) {
+            for prop in self.props.values() {
+                prop.render(canvas);
+            }
         }
     }
 

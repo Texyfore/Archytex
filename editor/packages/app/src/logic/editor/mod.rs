@@ -71,6 +71,10 @@ impl Editor {
         self.tool.render(canvas);
         canvas.draw_lines(self.origin.share());
     }
+
+    pub fn mode(&self) -> ElementKind {
+        self.mode
+    }
 }
 
 pub struct Context<'a> {

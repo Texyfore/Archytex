@@ -76,8 +76,8 @@ impl Solid {
         self.graphics = meshgen(graphics, &self.geometry, self.selected);
     }
 
-    pub fn render(&self, canvas: &mut Canvas) {
-        self.graphics.render(canvas);
+    pub fn render(&self, canvas: &mut Canvas, verts: bool) {
+        self.graphics.render(canvas, verts);
     }
 }
 
@@ -199,16 +199,19 @@ struct SolidGraphics {
 }
 
 impl SolidGraphics {
-    fn render(&self, canvas: &mut Canvas) {
+    fn render(&self, canvas: &mut Canvas, verts: bool) {
         for mesh in &self.meshes {
             canvas.draw_solid(mesh.share());
         }
 
         canvas.draw_lines(self.lines.share());
-        canvas.draw_gizmos(GizmoGroup {
-            gizmo: GizmoID(0),
-            instances: self.verts.share(),
-        });
+
+        if verts {
+            canvas.draw_gizmos(GizmoGroup {
+                gizmo: GizmoID(0),
+                instances: self.verts.share(),
+            });
+        }
     }
 }
 

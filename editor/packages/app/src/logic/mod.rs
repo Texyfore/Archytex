@@ -93,7 +93,7 @@ impl Logic {
 
     pub fn render(&self, canvas: &mut Canvas) {
         canvas.set_camera_matrices(self.camera.matrices());
-        self.scene.render(canvas);
+        self.scene.render(canvas, self.editor.mode());
         self.editor.render(canvas);
     }
 }
