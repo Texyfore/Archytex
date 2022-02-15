@@ -268,7 +268,41 @@ impl Scene {
             },
 
             // RotateProps
-            // AssignTexture
+            Action::AssignTexture(texture) => {
+                let mut changes = Vec::new();
+                for (sid, solid) in &mut self.solids {
+                    for fid in 0..6 {
+                        if solid.face_selected(fid) {
+                            let old = solid.retexture(fid, texture);
+                            if old != texture {
+                                solid.recalc(ctx.graphics);
+                                changes.push((
+                                    FaceLocator {
+                                        solid: *sid,
+                                        face: fid,
+                                    },
+                                    old,
+                                ))
+                            }
+                        }
+                    }
+                }
+                (!changes.is_empty()).then(|| Action::AssignTextures(changes))
+            }
+
+            Action::AssignTextures(textures) => {
+                let mut changes = Vec::new();
+                for (locator, texture) in textures {
+                    let solid = self.solids.get_mut(&locator.solid).unwrap();
+                    let old = solid.retexture(locator.face, texture);
+                    if old != texture {
+                        solid.recalc(ctx.graphics);
+                        changes.push((locator, old));
+                    }
+                }
+                (!changes.is_empty()).then(|| Action::AssignTextures(changes))
+            }
+
             Action::DeleteSolids => {
                 let ids = self
                     .solids
@@ -320,6 +354,7 @@ pub enum Action {
 
     RotateProps(Vector3<i32>),
     AssignTexture(TextureID),
+    AssignTextures(Vec<(FaceLocator, TextureID)>),
 
     DeleteSolids,
     DeleteProps,

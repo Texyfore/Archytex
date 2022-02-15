@@ -1,3 +1,4 @@
+use asset::TextureID;
 use cgmath::{InnerSpace, Vector2};
 use winit::event::{MouseButton, VirtualKeyCode};
 
@@ -59,6 +60,18 @@ impl Tool for CameraTool {
                 }
             } else {
                 self.last_click = None;
+            }
+
+            // Assign texture
+            if matches!(ctx.mode, ElementKind::Face)
+                && ctx.input.is_key_down_once(VirtualKeyCode::T)
+            {
+                ctx.scene.act(
+                    scene::Context {
+                        graphics: ctx.graphics,
+                    },
+                    Action::AssignTexture(TextureID(1)),
+                );
             }
 
             common(&mut ctx)

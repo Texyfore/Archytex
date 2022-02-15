@@ -74,8 +74,8 @@ impl Solid {
         self.geometry.points.iter().any(|point| point.selected)
     }
 
-    pub fn retexture(&mut self, texture: TextureID) {
-        self.geometry.retexture(texture);
+    pub fn retexture(&mut self, face: usize, texture: TextureID) -> TextureID {
+        self.geometry.retexture(face, texture)
     }
 }
 
@@ -192,10 +192,10 @@ impl SolidGeometry {
         }
     }
 
-    fn retexture(&mut self, texture: TextureID) {
-        for face in self.faces.iter_mut().filter(|face| face.selected) {
-            face.texture = texture;
-        }
+    fn retexture(&mut self, face: usize, texture: TextureID) -> TextureID {
+        let old = self.faces[face].texture;
+        self.faces[face].texture = texture;
+        old
     }
 }
 
