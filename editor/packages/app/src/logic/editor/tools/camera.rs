@@ -21,7 +21,7 @@ impl Tool for CameraTool {
             None
         } else {
             // New solid
-            {
+            if matches!(ctx.mode, ElementKind::Solid) {
                 if ctx.input.is_button_down_once(MouseButton::Left) {
                     self.last_click = Some(ctx.input.mouse_pos());
                 }
