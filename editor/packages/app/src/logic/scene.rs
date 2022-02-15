@@ -198,6 +198,25 @@ impl Scene {
             // Move
             // RotateProps
             // AssignTexture
+            Action::DeleteSolids => {
+                let ids = self
+                    .solids
+                    .iter()
+                    .filter(|(_, solid)| solid.selected())
+                    .map(|(id, _)| *id)
+                    .collect::<Vec<_>>();
+
+                let mut solids = Vec::new();
+
+                for id in ids {
+                    let solid = self.solids.remove(&id).unwrap();
+                    solids.push((id, solid));
+                }
+
+                (!solids.is_empty()).then(|| Action::AddSolids(solids))
+            }
+
+            // DeleteProps
             _ => todo!(),
         }
     }
@@ -230,4 +249,7 @@ pub enum Action {
 
     RotateProps(Vector3<i32>),
     AssignTexture(TextureID),
+
+    DeleteSolids,
+    DeleteProps,
 }

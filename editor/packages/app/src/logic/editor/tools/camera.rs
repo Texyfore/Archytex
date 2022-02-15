@@ -124,5 +124,21 @@ fn manipulate(ctx: &mut Context) -> Option<Box<dyn Tool>> {
         }
     }
 
+    // Delete
+    if ctx.input.is_key_down_once(VirtualKeyCode::Delete) {
+        match ctx.mode {
+            ElementKind::Solid => ctx.scene.act(
+                scene::Context {
+                    graphics: ctx.graphics,
+                },
+                Action::DeleteSolids,
+            ),
+            ElementKind::Prop => {
+                todo!()
+            }
+            _ => (),
+        }
+    }
+
     None
 }
