@@ -32,6 +32,7 @@ fn vertex(attribs: Attribs) -> Vertex {
     var vertex: Vertex;
     
     vertex.position = camera.world_to_clip * vec4<f32>(attribs.position, 1.0);
+    vertex.position.z = vertex.position.z - 0.001;
     vertex.color = attribs.color;
 
     return vertex;
