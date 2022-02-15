@@ -152,13 +152,14 @@ where
             return Some(Box::new(CameraTool::default()));
         }
 
-        if ctx.input.was_button_down_once(MouseButton::Right)
+        if ctx.input.is_button_down_once(MouseButton::Right)
             || ctx.input.is_key_down_once(VirtualKeyCode::G)
             || ctx.input.is_key_down_once(VirtualKeyCode::Escape)
         {
             let mut elements = self.elements.drain(..).collect::<Vec<_>>();
             for (_, element) in &mut elements {
                 element.displace(-self.delta, self.mask);
+                element.recalc(ctx.graphics);
             }
             E::insert(ctx.scene, elements);
             return Some(Box::new(CameraTool::default()));

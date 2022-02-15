@@ -202,8 +202,26 @@ fn common(ctx: &mut Context) -> Option<Box<dyn Tool>> {
                     }
                 };
             }
-            ElementKind::Face => todo!(),
-            ElementKind::Point => todo!(),
+            ElementKind::Face => {
+                let ray = ctx.camera.screen_ray(ctx.input.mouse_pos());
+                let elements = ctx.scene.take_solids(ElementKind::Face);
+                match MoveTool::new(ElementKind::Face, ray, elements) {
+                    Ok(tool) => return Some(Box::new(tool)),
+                    Err(elements) => {
+                        Solid::insert(ctx.scene, elements);
+                    }
+                };
+            }
+            ElementKind::Point => {
+                let ray = ctx.camera.screen_ray(ctx.input.mouse_pos());
+                let elements = ctx.scene.take_solids(ElementKind::Point);
+                match MoveTool::new(ElementKind::Point, ray, elements) {
+                    Ok(tool) => return Some(Box::new(tool)),
+                    Err(elements) => {
+                        Solid::insert(ctx.scene, elements);
+                    }
+                };
+            }
             ElementKind::Prop => todo!(),
         }
     }
