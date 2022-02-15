@@ -13,8 +13,8 @@ fn main() {
 
     let indir = matches.value_of("in").unwrap();
     let outdir = matches.value_of("out").unwrap();
+
     for entry in read_dir(indir).unwrap().flatten() {
-        println!("{}", entry.path().to_string_lossy());
         let (document, buffers, _) = gltf::import(entry.path()).unwrap();
         let mesh = document.meshes().next().unwrap();
         let primitive = mesh.primitives().next().unwrap();
@@ -44,9 +44,11 @@ fn main() {
         .encode()
         .unwrap();
 
-        let mut name = entry.file_name().to_string_lossy();
-        name.replace("gltf", "agzm");
-        let path = format!("{}/{}", outdir, name);
+        let path = format!(
+            "{}/{}",
+            outdir,
+            entry.file_name().to_str().unwrap().replace("gltf", "agzm")
+        );
         write(path, &out).unwrap();
     }
 }
