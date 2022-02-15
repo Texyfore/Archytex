@@ -1,6 +1,7 @@
 mod tools;
 
 use cgmath::vec3;
+use winit::event::VirtualKeyCode;
 
 use crate::graphics::{
     structures::LineVertex, Canvas, Graphics, LineMesh, LineMeshDescriptor, Share,
@@ -8,7 +9,12 @@ use crate::graphics::{
 
 use self::tools::{CameraTool, Tool};
 
-use super::{camera::Camera, elements::ElementKind, input::Input, scene::Scene};
+use super::{
+    camera::Camera,
+    elements::ElementKind,
+    input::Input,
+    scene::{self, Action, Scene},
+};
 
 pub struct Editor {
     mode: ElementKind,
@@ -67,6 +73,28 @@ impl Editor {
 
         if let Some(new) = new {
             self.tool = new;
+        }
+
+        if self.tool.can_switch() {
+            for (key, mode) in [
+                (VirtualKeyCode::Key1, ElementKind::Solid),
+                (VirtualKeyCode::Key2, ElementKind::Face),
+                (VirtualKeyCode::Key3, ElementKind::Point),
+                (VirtualKeyCode::Key4, ElementKind::Prop),
+            ] {
+                if ctx.input.is_key_down_once(key) {
+                    if self.mode != mode {
+                        ctx.scene.act(
+                            scene::Context {
+                                graphics: ctx.graphics,
+                            },
+                            Action::DeselectAll(self.mode),
+                        );
+                        self.mode = mode;
+                    }
+                    break;
+                }
+            }
         }
     }
 

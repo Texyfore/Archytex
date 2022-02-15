@@ -2,7 +2,7 @@ use cgmath::{InnerSpace, Vector2};
 use winit::event::{MouseButton, VirtualKeyCode};
 
 use crate::logic::{
-    elements::{ElementKind, RaycastEndpoint, RaycastEndpointKind, Solid, Movable},
+    elements::{ElementKind, Movable, RaycastEndpoint, RaycastEndpointKind, Solid},
     scene::{self, Action},
 };
 
@@ -57,10 +57,16 @@ impl Tool for CameraTool {
                         }
                     }
                 }
+            } else {
+                self.last_click = None;
             }
 
             common(&mut ctx)
         }
+    }
+
+    fn can_switch(&self) -> bool {
+        true
     }
 }
 

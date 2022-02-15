@@ -16,6 +16,10 @@ pub trait Tool {
     }
 
     fn render(&self, _canvas: &mut Canvas) {}
+
+    fn can_switch(&self) -> bool {
+        false
+    }
 }
 
 pub struct Context<'a> {

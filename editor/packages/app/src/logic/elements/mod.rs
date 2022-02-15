@@ -15,7 +15,7 @@ pub use raycast::*;
 
 use super::scene::Scene;
 
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, PartialEq, Eq)]
 pub enum ElementKind {
     Solid,
     Face,
