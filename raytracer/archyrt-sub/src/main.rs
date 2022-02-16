@@ -10,7 +10,7 @@ use archyrt_core::{
         amdl::{amdl_textures, AMDLLoader},
         Loader,
     },
-    renderers::basic_renderer::BasicRenderer,
+    renderers::{basic_renderer::BasicRenderer, path_tracer::PathTracer},
     textures::texture_repo::png::PngTextureRepo,
     vector,
 };
@@ -18,6 +18,7 @@ use dotenv::dotenv;
 use futures::StreamExt;
 use lapin::{message::Delivery, Channel, Connection, ConnectionProperties};
 use lru::LruCache;
+use redis::AsyncCommands;
 
 struct SceneData(BVH, PerspectiveCamera);
 
@@ -49,10 +50,10 @@ async fn render(
     };
     let width: usize = redis::Cmd::get(format!("archyrt:{}:width", task)).query(redis_client)?;
     let height: usize = redis::Cmd::get(format!("archyrt:{}:height", task)).query(redis_client)?;
-    let renderer = BasicRenderer {
+    let renderer = PathTracer {
         camera: &scene.1,
         object: &scene.0,
-        lamp: vector![1.0, 1.0, 1.0],
+        bounces: 5,
     };
     let image = ArrayCollector {}.collect(renderer, texture_repo, width, height);
     //Convert image into bytes
@@ -66,43 +67,49 @@ async fn render(
         .collect();
     let temp = format!("archyrt:temp:{}", id);
     let image_key = format!("archyrt:{}:image", task);
-    //Upload image to Redis
-    redis::cmd("AI.TENSORSET")
-        .arg(&temp)
-        .arg("DOUBLE")
-        .arg(width)
-        .arg(height)
-        .arg(3)
-        .arg("BLOB")
-        .arg(image)
-        .query(redis_client)?;
-    //Add image to accumulator
-    redis::cmd("AI.SCRIPTEXECUTE")
-        .arg("archyrt:scripts")
-        .arg("add")
-        .arg("INPUTS")
-        .arg(2)
-        .arg(&temp)
-        .arg(&image_key)
-        .arg("OUTPUTS")
-        .arg(1)
-        .arg(&image_key)
-        .query(redis_client)?;
-    //Remove temporary storage
-    redis::Cmd::del(temp).query(redis_client)?;
-    println!("Sending ACK");
-    channel
-        .basic_publish(
-            "",
-            &response,
-            Default::default(),
-            Default::default(),
-            Default::default(),
-        )
-        .await?;
-    channel
-        .basic_ack(delivery.delivery_tag, Default::default())
-        .await?;
+    let channel = channel.clone();
+    let redis_client = redis_client.clone();
+    
+    async_global_executor::spawn((||async move{
+        let mut con = redis_client.get_async_connection().await.unwrap();
+        //Upload image to Redis
+        let _: () = redis::cmd("AI.TENSORSET")
+            .arg(&temp)
+            .arg("DOUBLE")
+            .arg(width)
+            .arg(height)
+            .arg(3)
+            .arg("BLOB")
+            .arg(image)
+            .query_async(&mut con).await.unwrap();
+        //Add image to accumulator
+        let _: () = redis::cmd("AI.SCRIPTEXECUTE")
+            .arg("archyrt:scripts")
+            .arg("add")
+            .arg("INPUTS")
+            .arg(2)
+            .arg(&temp)
+            .arg(&image_key)
+            .arg("OUTPUTS")
+            .arg(1)
+            .arg(&image_key)
+            .query_async(&mut con).await.unwrap();
+        //Remove temporary storage
+        let _: () = redis::Cmd::del(temp).query_async(&mut con).await.unwrap();
+        println!("Sending ACK");
+        channel
+            .basic_publish(
+                "",
+                &response,
+                Default::default(),
+                Default::default(),
+                Default::default(),
+            )
+            .await.unwrap();
+        channel
+            .basic_ack(delivery.delivery_tag, Default::default())
+            .await.unwrap();
+    })()).detach();
     Ok(())
 }
 

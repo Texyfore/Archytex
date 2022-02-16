@@ -2,6 +2,7 @@ use std::marker::PhantomData;
 
 use archyrt_core::api::fragment_render::{FragmentContext, FragmentRender};
 use archyrt_core::collector::array_collector::ArrayCollector;
+use archyrt_core::collector::raw_collector::RawCollector;
 use archyrt_core::intersectables::bvh::BVH;
 use archyrt_core::intersectables::sphere::Sphere;
 use archyrt_core::loaders::amdl::{amdl_textures, AMDLLoader};
@@ -23,7 +24,7 @@ use archyrt_core::{
 use image::{Rgb, RgbImage};
 use rayon::prelude::*;
 
-struct SamplingRenderer<Renderer: FragmentRender + Sync + Send> {
+pub struct SamplingRenderer<Renderer: FragmentRender + Sync + Send> {
     pub inner: Renderer,
     pub samples: usize,
 }
@@ -42,45 +43,6 @@ impl<Renderer: FragmentRender + Sync + Send> FragmentRender for SamplingRenderer
     }
 }
 
-struct TonemappingRenderer<Renderer: FragmentRender> {
-    pub inner: Renderer,
-}
-
-impl<Renderer: FragmentRender> FragmentRender for TonemappingRenderer<Renderer> {
-    fn render_fragment<R: TextureRepository + Sync>(
-        &self,
-        ctx: &FragmentContext<R>,
-        pos: Vec2,
-    ) -> Vec3 {
-        let c = self.inner.render_fragment(ctx, pos);
-        c.to_srgb()
-    }
-}
-
-struct RawCollector{
-    
-}
-
-impl<T: FragmentRender> FragmentCollector<T> for RawCollector{
-    type Output = Vec<f32>;
-
-    fn collect<R: TextureRepository + Sync>(
-        &self,
-        fragment_render: T,
-        texture_repo: R,
-        width: usize,
-        height: usize,
-    ) -> Self::Output {
-        let collector = ArrayCollector{};
-        collector.collect(fragment_render, texture_repo, width, height)
-        .into_iter()
-        .flatten()
-        .map(|a| a.inner)
-        .flatten()
-        .map(|a| a as f32)
-        .collect()
-    }
-}
 
 fn main() {
     println!("Load file");
