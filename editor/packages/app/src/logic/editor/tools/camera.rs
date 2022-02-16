@@ -15,7 +15,6 @@ use super::{move_tool::MoveTool, Context, NewSolid, Tool};
 #[derive(Default)]
 pub struct CameraTool {
     last_click: Option<Vector2<f32>>,
-    placed_prop: Option<usize>,
 }
 
 impl Tool for CameraTool {
@@ -90,7 +89,6 @@ impl Tool for CameraTool {
 
                 if let Some(endpoint) = hit.endpoint {
                     let position = (endpoint.point + endpoint.normal * 0.001).snap(ctx.grid);
-                    self.placed_prop = Some(ctx.scene.next_element_id());
                     ctx.scene.act(
                         scene::Context {
                             graphics: ctx.graphics,
@@ -105,7 +103,7 @@ impl Tool for CameraTool {
                 }
             }
 
-            common(&mut ctx, &mut self.placed_prop)
+            common(&mut ctx)
         }
     }
 
@@ -150,7 +148,7 @@ fn control(ctx: &mut Context) {
     ctx.camera.look(ctx.input.mouse_delta(), ctx.delta);
 }
 
-fn common(ctx: &mut Context, placed_prop: &mut Option<usize>) -> Option<Box<dyn Tool>> {
+fn common(ctx: &mut Context) -> Option<Box<dyn Tool>> {
     // Undo & Redo
     if ctx.input.is_key_down(VirtualKeyCode::LControl) {
         if ctx.input.is_key_down_once(VirtualKeyCode::Z) {
@@ -165,7 +163,9 @@ fn common(ctx: &mut Context, placed_prop: &mut Option<usize>) -> Option<Box<dyn 
     }
 
     // Select
-    if ctx.input.was_button_down_once(MouseButton::Left) {
+    if ctx.input.was_button_down_once(MouseButton::Left)
+        && !ctx.input.is_key_down(VirtualKeyCode::LControl)
+    {
         if !ctx.input.is_key_down(VirtualKeyCode::LShift) {
             ctx.scene.act(
                 scene::Context {
@@ -221,13 +221,6 @@ fn common(ctx: &mut Context, placed_prop: &mut Option<usize>) -> Option<Box<dyn 
                     ..
                 }) = hit.endpoint
                 {
-                    if let Some(placed_index) = *placed_prop {
-                        if index == placed_index {
-                            placed_prop.take();
-                            return None;
-                        }
-                    }
-
                     ctx.scene.act(
                         scene::Context {
                             graphics: ctx.graphics,
@@ -237,8 +230,6 @@ fn common(ctx: &mut Context, placed_prop: &mut Option<usize>) -> Option<Box<dyn 
                 }
             }
         }
-
-        placed_prop.take();
     }
 
     // Delete

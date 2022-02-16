@@ -152,10 +152,6 @@ impl Scene {
         }
     }
 
-    pub fn next_element_id(&self) -> usize {
-        self.next_elem_id
-    }
-
     pub fn render(&self, canvas: &mut Canvas, mask: ElementKind) {
         for solid in self.solids.values() {
             solid.render(canvas, mask);
