@@ -4,8 +4,7 @@ mod elements;
 mod input;
 mod scene;
 
-use asset::PropID;
-use cgmath::{vec2, Vector3, Zero};
+use cgmath::vec2;
 use winit::event::{ElementState, MouseButton, VirtualKeyCode};
 
 use crate::{
@@ -14,13 +13,7 @@ use crate::{
     Host,
 };
 
-use self::{
-    camera::Camera,
-    editor::Editor,
-    elements::Prop,
-    input::Input,
-    scene::{Action, Scene},
-};
+use self::{camera::Camera, editor::Editor, input::Input, scene::Scene};
 
 pub struct Logic {
     input: Input,
@@ -34,17 +27,6 @@ impl Logic {
         let input = Input::default();
         let mut camera = Camera::default();
         let mut scene = Scene::default();
-        scene.act(
-            scene::Context {
-                graphics: ctx.graphics,
-            },
-            Action::NewProps(vec![Prop::new(
-                ctx.graphics,
-                PropID(0),
-                Vector3::zero(),
-                Vector3::zero(),
-            )]),
-        );
 
         let editor = Editor::init(editor::Context {
             input: &input,

@@ -1,10 +1,15 @@
-use asset::TextureID;
-use cgmath::{InnerSpace, Vector2};
+use asset::{PropID, TextureID};
+use cgmath::{InnerSpace, Vector2, Vector3, Zero};
 use winit::event::{MouseButton, VirtualKeyCode};
 
-use crate::logic::{
-    elements::{ElementKind, Movable, Prop, RaycastEndpoint, RaycastEndpointKind, Solid},
-    scene::{self, Action},
+use crate::{
+    logic::{
+        elements::{
+            ElementKind, Movable, Prop, RaycastEndpoint, RaycastEndpointKind, RaycastHit, Solid,
+        },
+        scene::{self, Action},
+    },
+    math::Snap,
 };
 
 use super::{move_tool::MoveTool, Context, NewSolid, Tool};
@@ -73,6 +78,30 @@ impl Tool for CameraTool {
                     },
                     Action::AssignTexture(TextureID(1)),
                 );
+            }
+
+            // New prop
+            if matches!(ctx.mode, ElementKind::Prop)
+                && ctx.input.is_button_down_once(MouseButton::Middle)
+            {
+                let hit = ctx
+                    .scene
+                    .raycast(ctx.input.mouse_pos(), ctx.camera, ctx.prop_infos);
+
+                if let Some(endpoint) = hit.endpoint {
+                    let position = (endpoint.point + endpoint.normal * 0.001).snap(ctx.grid);
+                    ctx.scene.act(
+                        scene::Context {
+                            graphics: ctx.graphics,
+                        },
+                        Action::NewProps(vec![Prop::new(
+                            ctx.graphics,
+                            PropID(0),
+                            position,
+                            Vector3::zero(),
+                        )]),
+                    );
+                }
             }
 
             common(&mut ctx)
