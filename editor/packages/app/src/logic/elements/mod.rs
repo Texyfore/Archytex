@@ -279,7 +279,7 @@ impl Prop {
         });
     }
 
-    pub fn intersects(&self, infos: &PropInfoContainer, ray: &Ray) -> bool {
+    pub fn intersects(&self, infos: &PropInfoContainer, ray: &Ray) -> Option<Vector3<f32>> {
         if let Some(PropInfo { bounds }) = infos.get(self.asset) {
             let untransform = prop_transform(self.position, self.rotation)
                 .inverse_transform()
@@ -298,11 +298,11 @@ impl Prop {
             let far = t2.x.min(t2.y).min(t2.z);
 
             if near < far {
-                return true;
+                return Some(ray.start + (ray.end - ray.start) * near);
             }
         }
 
-        false
+        None
     }
 }
 
