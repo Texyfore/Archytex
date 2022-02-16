@@ -1,6 +1,7 @@
-use std::{env, fmt::format, path::Path};
+use std::{env, fmt::format, path::Path, sync::Arc};
 
-use anyhow::Result;
+use anyhow::{Result, anyhow};
+use archyrt_core::{loaders::{amdl::{AMDLLoader, amdl_textures}, Loader}, intersectables::bvh::BVH, renderers::solid_renderers::{albedo::AlbedoRenderer, normal::NormalRenderer}, collector::raw_collector::RawCollector, api::fragment_collector::FragmentCollector, textures::texture_repo::png::PngTextureRepo};
 use dotenv::dotenv;
 use futures::TryFutureExt;
 use futures_util::stream::StreamExt;
@@ -21,6 +22,7 @@ async fn handle_job(
     delivery: Delivery,
     response_queue: Queue,
     task_queue: Queue,
+    textures: Arc<PngTextureRepo>
 ) -> Result<()> {
     let response_queue = response_queue.name().as_str();
     let task_queue = task_queue.name().as_str();
@@ -115,28 +117,59 @@ async fn handle_job(
         .arg(&image_key)
         .arg("BLOB")
         .query(&mut redis_client)?;
-    let image: Vec<f64> = image
+    let image: Vec<f32> = image
         .chunks(64 / 8)
         .map(|a| {
             let a: [u8; 8] = a.try_into().unwrap();
-            f64::from_le_bytes(a)
+            f64::from_le_bytes(a) as f32
         })
         .collect();
 
-    let image: Vec<[f64; 3]> = image.chunks(3).map(|a| a.try_into().unwrap()).collect();
-    let image: Vec<&[[f64; 3]]> = image.chunks(width).collect();
-    let mut output = image::RgbImage::new(width as u32, height as u32);
-    for (x, y, pixel) in output.enumerate_pixels_mut() {
-        let [r, g, b] = image[y as usize][x as usize];
-        let r = (r * 255.0).clamp(0.0, 255.0) as u8;
-        let g = (g * 255.0).clamp(0.0, 255.0) as u8;
-        let b = (b * 255.0).clamp(0.0, 255.0) as u8;
-        *pixel = Rgb([r, g, b]);
+
+    //Render Albedo and Normal
+    let scene: Vec<u8> =
+    redis::Cmd::get(format!("archyrt:{}:scene", s)).query(&mut redis_client)?;
+    let scene = AMDLLoader::from_bytes(&scene)?;
+    let width: usize = redis::Cmd::get(format!("archyrt:{}:width", s)).query(&mut redis_client)?;
+    let height: usize = redis::Cmd::get(format!("archyrt:{}:height", s)).query(&mut redis_client)?;
+    let bvh = BVH::from_triangles(scene.get_triangles())
+        .ok_or_else(|| anyhow!("Unable to create BVH"))?;
+    let camera = scene.get_camera();
+    let albedo = AlbedoRenderer{object: &bvh, camera: &camera};
+    let normal = NormalRenderer{object: &bvh, camera: &camera};
+    let collector = RawCollector{};
+    let textures: &PngTextureRepo = &textures;
+    let albedo = collector.collect(albedo, textures, width, height);
+    let normal = collector.collect(normal, textures, width, height);
+    let mut output: Vec<f32> = (0..image.len()).into_iter().map(|_| 0f32).collect();
+    let device = oidn::Device::new();
+    oidn::RayTracing::new(&device)
+        .srgb(false)
+        .hdr(true)
+        .image_dimensions(width, height)
+        .albedo_normal(&albedo, &normal)
+        .clean_aux(true)
+        .filter(&image, &mut output)
+        .unwrap();
+
+    let mut image = image::RgbImage::new(width as u32, height as u32);
+    for (x, y, color) in image.enumerate_pixels_mut() {
+        let index = (y as usize * width + x as usize) * 3;
+        let r = output[index + 0].powf(1.0 / 2.2) * 255.0;
+        let g = output[index + 1].powf(1.0 / 2.2) * 255.0;
+        let b = output[index + 2].powf(1.0 / 2.2) * 255.0;
+        let r = r.clamp(0.0, 255.0);
+        let g = g.clamp(0.0, 255.0);
+        let b = b.clamp(0.0, 255.0);
+        let r = r as u8;
+        let g = g as u8;
+        let b = b as u8;
+        *color = Rgb([r, g, b]);
     }
     let path = Path::new(&env::var("IMAGES").unwrap())
         .join(s)
         .with_extension("png");
-    output.save(path)?;
+    image.save(path)?;
     users.update_many(doc! {"_id": user}, doc!{"$set":{"projects.$[project].renders.$[render].status": 1.0, "projects.$[project].renders.$[render].icon": render_id.to_hex()}}, UpdateOptions::builder().array_filters(vec![doc!{"render._id": render_id}, doc!{"project._id": project_id}]).build()).await?;
     redis::Cmd::del(&image_key).query(&mut redis_client)?;
     Ok(())
@@ -197,6 +230,10 @@ fn main() -> Result<()> {
                 FieldTable::default(),
             )
             .await?;
+
+        let textures = amdl_textures::load("../assets")?;
+        let textures = Arc::new(textures);
+
         while let Some(delivery) = consumer.next().await {
             let (_, delivery) = delivery.unwrap();
             let response_queue = channel
@@ -216,6 +253,7 @@ fn main() -> Result<()> {
                 delivery,
                 response_queue,
                 task_queue.clone(),
+                textures.clone()
             )).detach();
         }
 
