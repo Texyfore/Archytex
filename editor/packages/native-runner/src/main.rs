@@ -23,6 +23,11 @@ fn main() {
                 buf: include_bytes!("../assets/vertex.agzm").to_vec(),
                 kind: ResourceKind::Gizmo,
             },
+            Resource {
+                id: 0,
+                buf: include_bytes!("../assets/table.amdl").to_vec(),
+                kind: ResourceKind::Prop,
+            },
         ],
         host: Box::new(NativeHost),
         receiver,
