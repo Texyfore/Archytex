@@ -226,7 +226,15 @@ impl Scene {
                 (!locators.is_empty()).then(|| Action::SelectPoints(locators))
             }
 
-            // SelectProps
+            Action::SelectProps(ids) => {
+                for id in &ids {
+                    let prop = self.props.get_mut(id).unwrap();
+                    prop.set_selected(!prop.selected());
+                    prop.recalc(ctx.graphics);
+                }
+                (!ids.is_empty()).then(|| Action::SelectProps(ids))
+            }
+
             Action::DeselectAll(kind) => match kind {
                 ElementKind::Solid => {
                     let mut ids = Vec::new();
@@ -317,7 +325,8 @@ impl Scene {
                 ElementKind::Prop => todo!(),
             },
 
-            // RotateProps
+            Action::RotateProps(_) => todo!(),
+
             Action::AssignTexture(texture) => {
                 let mut changes = Vec::new();
                 for (sid, solid) in &mut self.solids {
@@ -371,8 +380,23 @@ impl Scene {
                 (!solids.is_empty()).then(|| Action::AddSolids(solids))
             }
 
-            // DeleteProps
-            _ => todo!(),
+            Action::DeleteProps => {
+                let ids = self
+                    .props
+                    .iter()
+                    .filter(|(_, prop)| prop.selected())
+                    .map(|(id, _)| *id)
+                    .collect::<Vec<_>>();
+
+                let mut props = Vec::new();
+
+                for id in ids {
+                    let prop = self.props.remove(&id).unwrap();
+                    props.push((id, prop));
+                }
+
+                (!props.is_empty()).then(|| Action::AddProps(props))
+            }
         }
     }
 }

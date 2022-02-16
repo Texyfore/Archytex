@@ -185,7 +185,20 @@ fn common(ctx: &mut Context) -> Option<Box<dyn Tool>> {
                     Action::SelectPoints(hit.points),
                 );
             }
-            ElementKind::Prop => todo!(),
+            ElementKind::Prop => {
+                if let Some(RaycastEndpoint {
+                    kind: RaycastEndpointKind::Prop(index),
+                    ..
+                }) = hit.endpoint
+                {
+                    ctx.scene.act(
+                        scene::Context {
+                            graphics: ctx.graphics,
+                        },
+                        Action::SelectProps(vec![index]),
+                    );
+                }
+            }
         }
     }
 
@@ -199,7 +212,12 @@ fn common(ctx: &mut Context) -> Option<Box<dyn Tool>> {
                 Action::DeleteSolids,
             ),
             ElementKind::Prop => {
-                todo!()
+                ctx.scene.act(
+                    scene::Context {
+                        graphics: ctx.graphics,
+                    },
+                    Action::DeleteProps,
+                );
             }
             _ => (),
         }
