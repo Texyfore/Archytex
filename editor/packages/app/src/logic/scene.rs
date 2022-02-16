@@ -3,7 +3,10 @@ use std::collections::HashMap;
 use asset::TextureID;
 use cgmath::{Vector2, Vector3};
 
-use crate::graphics::{Canvas, Graphics};
+use crate::{
+    data::PropInfoContainer,
+    graphics::{Canvas, Graphics},
+};
 
 use super::{
     camera::Camera,
@@ -51,11 +54,17 @@ impl Scene {
         }
     }
 
-    pub fn raycast(&self, screen_pos: Vector2<f32>, camera: &Camera) -> RaycastHit {
+    pub fn raycast(
+        &self,
+        screen_pos: Vector2<f32>,
+        camera: &Camera,
+        prop_infos: &PropInfoContainer,
+    ) -> RaycastHit {
         elements::raycast(RaycastInput {
             solids: &self.solids,
             props: &self.props,
             camera,
+            prop_infos,
             screen_pos,
         })
     }

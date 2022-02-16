@@ -3,8 +3,9 @@ mod tools;
 use cgmath::vec3;
 use winit::event::VirtualKeyCode;
 
-use crate::graphics::{
-    structures::LineVertex, Canvas, Graphics, LineMesh, LineMeshDescriptor, Share,
+use crate::{
+    data::PropInfoContainer,
+    graphics::{structures::LineVertex, Canvas, Graphics, LineMesh, LineMeshDescriptor, Share},
 };
 
 use self::tools::{CameraTool, Tool};
@@ -64,6 +65,7 @@ impl Editor {
         let new = self.tool.process(tools::Context {
             input: ctx.input,
             graphics: ctx.graphics,
+            prop_infos: ctx.prop_infos,
             camera: ctx.camera,
             scene: ctx.scene,
             delta: ctx.delta,
@@ -111,6 +113,7 @@ impl Editor {
 pub struct Context<'a> {
     pub input: &'a Input,
     pub graphics: &'a Graphics,
+    pub prop_infos: &'a PropInfoContainer,
     pub camera: &'a mut Camera,
     pub scene: &'a mut Scene,
     pub delta: f32,

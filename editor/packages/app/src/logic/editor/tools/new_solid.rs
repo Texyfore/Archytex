@@ -19,7 +19,7 @@ pub struct NewSolid {
 
 impl NewSolid {
     pub fn new(ctx: Context, click: Vector2<f32>) -> Option<Self> {
-        let hit = ctx.scene.raycast(click, ctx.camera);
+        let hit = ctx.scene.raycast(click, ctx.camera, ctx.prop_infos);
         hit.endpoint.map(|endpoint| Self {
             start: endpoint.point + endpoint.normal * 0.001,
             solid: None,
@@ -29,7 +29,9 @@ impl NewSolid {
 
 impl Tool for NewSolid {
     fn process(&mut self, ctx: Context) -> Option<Box<dyn Tool>> {
-        let hit = ctx.scene.raycast(ctx.input.mouse_pos(), ctx.camera);
+        let hit = ctx
+            .scene
+            .raycast(ctx.input.mouse_pos(), ctx.camera, ctx.prop_infos);
         if let Some(endpoint) = hit.endpoint {
             let start = self.start.snap(ctx.grid);
             let end = (endpoint.point + endpoint.normal * 0.001).snap(ctx.grid);

@@ -55,7 +55,7 @@ pub fn run(init: Init) {
     let mut logic = Logic::init(logic::Context {
         host: host.as_ref(),
         graphics: &graphics,
-        prop_info: &prop_info,
+        prop_infos: &prop_info,
         delta: 0.0,
     });
 
@@ -123,7 +123,7 @@ pub fn run(init: Init) {
                 logic.process(logic::Context {
                     host: host.as_ref(),
                     graphics: &graphics,
-                    prop_info: &prop_info,
+                    prop_infos: &prop_info,
                     delta,
                 });
 

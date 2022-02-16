@@ -3,6 +3,7 @@ use std::collections::HashMap;
 use cgmath::{InnerSpace, MetricSpace, Vector2, Vector3, Zero};
 
 use crate::{
+    data::PropInfoContainer,
     logic::camera::Camera,
     math::{Intersects, Plane, Ray, Sphere, Triangle},
 };
@@ -13,6 +14,7 @@ pub fn raycast(input: RaycastInput) -> RaycastHit {
     let ray = input.camera.screen_ray(input.screen_pos);
 
     let mut hit_faces = raycast_faces(input.solids, &ray);
+    let mut hit_props = raycast_props(input.props, input.prop_infos, &ray);
     let mut hit_points = Vec::new();
 
     for (index, solid) in input.solids {
@@ -48,23 +50,54 @@ pub fn raycast(input: RaycastInput) -> RaycastHit {
         dist_a.partial_cmp(&dist_b).unwrap()
     });
 
-    let endpoint = if let Some(hit_face) = hit_faces.first() {
-        Some(RaycastEndpoint {
-            point: hit_face.point,
-            normal: hit_face.normal,
-            kind: RaycastEndpointKind::Face(hit_face.locator),
-        })
-    } else {
-        let plane = Plane {
-            origin: Vector3::zero(),
-            normal: Vector3::unit_y(),
-        };
+    hit_props.sort_unstable_by(|a, b| {
+        let dist_a = a.point.distance2(ray.start);
+        let dist_b = b.point.distance2(ray.start);
+        dist_a.partial_cmp(&dist_b).unwrap()
+    });
 
-        ray.intersects(&plane).map(|intersection| RaycastEndpoint {
-            point: intersection.point,
-            normal: intersection.normal,
-            kind: RaycastEndpointKind::Ground,
-        })
+    let firsts = (hit_faces.first(), hit_props.first());
+    let endpoint = match firsts {
+        (Some(face), None) => Some(RaycastEndpoint {
+            point: face.point,
+            normal: face.normal,
+            kind: RaycastEndpointKind::Face(face.locator),
+        }),
+        (None, Some(prop)) => Some(RaycastEndpoint {
+            point: prop.point,
+            normal: Vector3::zero(),
+            kind: RaycastEndpointKind::Prop(prop.index),
+        }),
+        (Some(face), Some(prop)) => {
+            let dist_face = face.point.distance2(ray.start);
+            let dist_prop = prop.point.distance2(ray.start);
+
+            if dist_face < dist_prop {
+                Some(RaycastEndpoint {
+                    point: face.point,
+                    normal: face.normal,
+                    kind: RaycastEndpointKind::Face(face.locator),
+                })
+            } else {
+                Some(RaycastEndpoint {
+                    point: prop.point,
+                    normal: Vector3::zero(),
+                    kind: RaycastEndpointKind::Prop(prop.index),
+                })
+            }
+        }
+        (None, None) => {
+            let plane = Plane {
+                origin: Vector3::zero(),
+                normal: Vector3::unit_y(),
+            };
+
+            ray.intersects(&plane).map(|intersection| RaycastEndpoint {
+                point: intersection.point,
+                normal: intersection.normal,
+                kind: RaycastEndpointKind::Ground,
+            })
+        }
     };
 
     hit_points.sort_unstable_by(|a, b| {
@@ -141,10 +174,30 @@ fn raycast_faces(solids: &HashMap<usize, Solid>, ray: &Ray) -> Vec<HitFace> {
     hit_faces
 }
 
+fn raycast_props(
+    props: &HashMap<usize, Prop>,
+    infos: &PropInfoContainer,
+    ray: &Ray,
+) -> Vec<HitProp> {
+    let mut hit_props = Vec::new();
+
+    for (index, prop) in props {
+        if let Some(point) = prop.intersects(infos, ray) {
+            hit_props.push(HitProp {
+                index: *index,
+                point,
+            });
+        }
+    }
+
+    hit_props
+}
+
 pub struct RaycastInput<'a> {
     pub solids: &'a HashMap<usize, Solid>,
     pub props: &'a HashMap<usize, Prop>,
     pub camera: &'a Camera,
+    pub prop_infos: &'a PropInfoContainer,
     pub screen_pos: Vector2<f32>,
 }
 
@@ -175,4 +228,9 @@ struct HitFace {
     locator: FaceLocator,
     point: Vector3<f32>,
     normal: Vector3<f32>,
+}
+
+struct HitProp {
+    index: usize,
+    point: Vector3<f32>,
 }

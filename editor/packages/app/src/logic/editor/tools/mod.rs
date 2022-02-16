@@ -3,6 +3,7 @@ mod move_tool;
 mod new_solid;
 
 use crate::{
+    data::PropInfoContainer,
     graphics::{Canvas, Graphics},
     logic::{camera::Camera, elements::ElementKind, input::Input, scene::Scene},
 };
@@ -25,6 +26,7 @@ pub trait Tool {
 pub struct Context<'a> {
     pub input: &'a Input,
     pub graphics: &'a Graphics,
+    pub prop_infos: &'a PropInfoContainer,
     pub camera: &'a mut Camera,
     pub scene: &'a mut Scene,
     pub delta: f32,

@@ -38,6 +38,7 @@ impl Tool for CameraTool {
                             Context {
                                 input: ctx.input,
                                 graphics: ctx.graphics,
+                                prop_infos: ctx.prop_infos,
                                 camera: ctx.camera,
                                 scene: ctx.scene,
                                 delta: ctx.delta,
@@ -144,7 +145,9 @@ fn common(ctx: &mut Context) -> Option<Box<dyn Tool>> {
             );
         }
 
-        let hit = ctx.scene.raycast(ctx.input.mouse_pos(), ctx.camera);
+        let hit = ctx
+            .scene
+            .raycast(ctx.input.mouse_pos(), ctx.camera, ctx.prop_infos);
         match ctx.mode {
             ElementKind::Solid => {
                 if let Some(RaycastEndpoint {

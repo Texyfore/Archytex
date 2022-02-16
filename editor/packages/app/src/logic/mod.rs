@@ -49,6 +49,7 @@ impl Logic {
         let editor = Editor::init(editor::Context {
             input: &input,
             graphics: ctx.graphics,
+            prop_infos: ctx.prop_infos,
             camera: &mut camera,
             scene: &mut scene,
             delta: ctx.delta,
@@ -66,6 +67,7 @@ impl Logic {
         self.editor.process(editor::Context {
             input: &self.input,
             graphics: ctx.graphics,
+            prop_infos: ctx.prop_infos,
             camera: &mut self.camera,
             scene: &mut self.scene,
             delta: ctx.delta,
@@ -103,6 +105,6 @@ impl Logic {
 pub struct Context<'a> {
     pub host: &'a dyn Host,
     pub graphics: &'a Graphics,
-    pub prop_info: &'a PropInfoContainer,
+    pub prop_infos: &'a PropInfoContainer,
     pub delta: f32,
 }
