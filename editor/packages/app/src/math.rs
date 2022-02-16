@@ -148,6 +148,24 @@ impl MinMax for Vector3<i32> {
     }
 }
 
+impl MinMax for Vector3<f32> {
+    fn min(self, other: Self) -> Self {
+        Self::new(
+            self.x.min(other.x),
+            self.y.min(other.y),
+            self.z.min(other.z),
+        )
+    }
+
+    fn max(self, other: Self) -> Self {
+        Self::new(
+            self.x.max(other.x),
+            self.y.max(other.y),
+            self.z.max(other.z),
+        )
+    }
+}
+
 pub trait Snap {
     fn snap(self, step: i32) -> Vector3<i32>;
 }

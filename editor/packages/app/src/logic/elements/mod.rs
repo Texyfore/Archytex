@@ -3,12 +3,16 @@ mod raycast;
 use std::collections::HashMap;
 
 use asset::{GizmoID, PropID, TextureID};
-use cgmath::{vec2, vec3, Deg, ElementWise, InnerSpace, Matrix4, Vector3, Zero};
+use cgmath::{vec2, vec3, Deg, ElementWise, InnerSpace, Matrix4, Transform, Vector3, Zero};
 
-use crate::graphics::{
-    structures::{GizmoInstance, LineVertex, SolidVertex, TransformTint},
-    Canvas, GizmoGroup, GizmoInstances, Graphics, LineMesh, LineMeshDescriptor, PropData,
-    PropInstance, Share, SolidMesh, SolidMeshDescriptor,
+use crate::{
+    data::{PropInfo, PropInfoContainer},
+    graphics::{
+        structures::{GizmoInstance, LineVertex, SolidVertex, TransformTint},
+        Canvas, GizmoGroup, GizmoInstances, Graphics, LineMesh, LineMeshDescriptor, PropData,
+        PropInstance, Share, SolidMesh, SolidMeshDescriptor,
+    },
+    math::{MinMax, Ray},
 };
 
 pub use raycast::*;
@@ -273,6 +277,32 @@ impl Prop {
             prop: self.asset,
             data: self.data.share(),
         });
+    }
+
+    pub fn intersects(&self, infos: &PropInfoContainer, ray: &Ray) -> bool {
+        if let Some(PropInfo { bounds }) = infos.get(self.asset) {
+            let untransform = prop_transform(self.position, self.rotation)
+                .inverse_transform()
+                .unwrap();
+
+            let ray_origin = (untransform * ray.start.extend(1.0)).truncate();
+            let ray_end = (untransform * ray.end.extend(1.0)).truncate();
+
+            let ray_dir = ray_end - ray_origin;
+
+            let t_min = (bounds.min - ray_origin).div_element_wise(ray_dir);
+            let t_max = (bounds.max - ray_origin).div_element_wise(ray_dir);
+            let t1 = t_min.min(t_max);
+            let t2 = t_min.max(t_max);
+            let near = t1.x.max(t1.y).max(t1.z);
+            let far = t2.x.min(t2.y).min(t2.z);
+
+            if near < far {
+                return true;
+            }
+        }
+
+        false
     }
 }
 
