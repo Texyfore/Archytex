@@ -117,6 +117,41 @@ impl Scene {
         }
     }
 
+    pub fn take_props(&mut self) -> Vec<(usize, Prop)> {
+        #[allow(clippy::needless_collect)]
+        let ids = self
+            .props
+            .iter()
+            .filter_map(|(id, prop)| prop.selected().then(|| *id))
+            .collect::<Vec<_>>();
+
+        ids.into_iter()
+            .map(|id| (id, self.props.remove(&id).unwrap()))
+            .collect()
+    }
+
+    pub fn insert_props_with_move(&mut self, props: Vec<(usize, Prop)>, delta: Vector3<i32>) {
+        for (id, prop) in props {
+            self.props.insert(id, prop);
+        }
+
+        self.undo_stack.push(Action::Move {
+            kind: ElementKind::Prop,
+            delta: -delta,
+        });
+
+        // Limit undo to 64 steps
+        if self.undo_stack.len() > 64 {
+            self.undo_stack.remove(0);
+        }
+    }
+
+    pub fn insert_props(&mut self, props: Vec<(usize, Prop)>) {
+        for (id, prop) in props {
+            self.props.insert(id, prop);
+        }
+    }
+
     pub fn render(&self, canvas: &mut Canvas, mask: ElementKind) {
         for solid in self.solids.values() {
             solid.render(canvas, mask);
@@ -124,7 +159,7 @@ impl Scene {
 
         if matches!(mask, ElementKind::Prop) {
             for prop in self.props.values() {
-                prop.render(canvas);
+                prop.render(canvas, ElementKind::Prop);
             }
         }
     }
@@ -322,7 +357,19 @@ impl Scene {
                         delta: -delta,
                     })
                 }
-                ElementKind::Prop => todo!(),
+                ElementKind::Prop => {
+                    let mut changed = false;
+                    for prop in self.props.values_mut().filter(|prop| prop.selected()) {
+                        if prop.displace(delta, ElementKind::Prop) {
+                            prop.recalc(ctx.graphics);
+                            changed = true;
+                        }
+                    }
+                    changed.then(|| Action::Move {
+                        kind: ElementKind::Prop,
+                        delta: -delta,
+                    })
+                }
             },
 
             Action::RotateProps(_) => todo!(),

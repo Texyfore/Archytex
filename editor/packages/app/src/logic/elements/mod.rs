@@ -163,15 +163,23 @@ impl SolidGeometry {
         Self { points, faces }
     }
 
-    fn displace(&mut self, delta: Vector3<i32>, mask: ElementKind) -> bool {
+    fn displace(&mut self, selected: bool, delta: Vector3<i32>, mask: ElementKind) -> bool {
+        if delta == Vector3::zero() {
+            return false;
+        }
+
         match mask {
             ElementKind::Solid => {
-                let mut changed = false;
-                for point in &mut self.points {
-                    point.position += delta;
-                    changed = true;
+                if selected {
+                    let mut changed = false;
+                    for point in &mut self.points {
+                        point.position += delta;
+                        changed = true;
+                    }
+                    changed
+                } else {
+                    false
                 }
-                changed
             }
             ElementKind::Face => {
                 let mut changed = false;
@@ -259,24 +267,6 @@ impl Prop {
 
     pub fn set_selected(&mut self, selected: bool) {
         self.selected = selected;
-    }
-
-    pub fn recalc(&mut self, graphics: &Graphics) {
-        self.data = graphics.create_prop_data(&TransformTint {
-            transform: prop_transform(self.position, self.rotation),
-            tint: if self.selected {
-                [0.04, 0.36, 0.85, 0.5]
-            } else {
-                [0.0; 4]
-            },
-        })
-    }
-
-    pub fn render(&self, canvas: &mut Canvas) {
-        canvas.draw_prop(PropInstance {
-            prop: self.asset,
-            data: self.data.share(),
-        });
     }
 
     pub fn intersects(&self, infos: &PropInfoContainer, ray: &Ray) -> Option<Vector3<f32>> {
@@ -440,7 +430,7 @@ impl Movable for Solid {
     }
 
     fn displace(&mut self, delta: Vector3<i32>, mask: ElementKind) -> bool {
-        self.geometry.displace(delta, mask)
+        self.geometry.displace(self.selected, delta, mask)
     }
 
     fn recalc(&mut self, graphics: &Graphics) {
@@ -466,8 +456,54 @@ impl Movable for Solid {
     }
 }
 
+impl Movable for Prop {
+    fn center(&self, _mask: ElementKind) -> Vector3<f32> {
+        self.position.map(|e| e as f32 * 0.01)
+    }
+
+    fn displace(&mut self, delta: Vector3<i32>, _mask: ElementKind) -> bool {
+        if delta == Vector3::zero() {
+            return false;
+        }
+
+        self.position += delta;
+        true
+    }
+
+    fn recalc(&mut self, graphics: &Graphics) {
+        self.data = graphics.create_prop_data(&TransformTint {
+            transform: prop_transform(self.position, self.rotation),
+            tint: if self.selected {
+                [0.04, 0.36, 0.85, 0.5]
+            } else {
+                [0.0; 4]
+            },
+        })
+    }
+
+    fn render(&self, canvas: &mut Canvas, _mask: ElementKind) {
+        canvas.draw_prop(PropInstance {
+            prop: self.asset,
+            data: self.data.share(),
+        });
+    }
+
+    fn insert_move(
+        scene: &mut Scene,
+        elements: Vec<(usize, Self)>,
+        delta: Vector3<i32>,
+        _mask: ElementKind,
+    ) {
+        scene.insert_props_with_move(elements, delta);
+    }
+
+    fn insert(scene: &mut Scene, elements: Vec<(usize, Self)>) {
+        scene.insert_props(elements);
+    }
+}
+
 fn prop_transform(position: Vector3<i32>, rotation: Vector3<i32>) -> Matrix4<f32> {
-    Matrix4::from_translation(position.map(|e| e as f32))
+    Matrix4::from_translation(position.map(|e| e as f32 * 0.01))
         * Matrix4::from_angle_x(Deg(rotation.x as f32))
         * Matrix4::from_angle_y(Deg(rotation.y as f32))
         * Matrix4::from_angle_z(Deg(rotation.z as f32))

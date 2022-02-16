@@ -3,7 +3,7 @@ use cgmath::{InnerSpace, Vector2};
 use winit::event::{MouseButton, VirtualKeyCode};
 
 use crate::logic::{
-    elements::{ElementKind, Movable, RaycastEndpoint, RaycastEndpointKind, Solid},
+    elements::{ElementKind, Movable, Prop, RaycastEndpoint, RaycastEndpointKind, Solid},
     scene::{self, Action},
 };
 
@@ -256,7 +256,16 @@ fn common(ctx: &mut Context) -> Option<Box<dyn Tool>> {
                     }
                 };
             }
-            ElementKind::Prop => todo!(),
+            ElementKind::Prop => {
+                let ray = ctx.camera.screen_ray(ctx.input.mouse_pos());
+                let elements = ctx.scene.take_props();
+                match MoveTool::new(ElementKind::Prop, ray, elements) {
+                    Ok(tool) => return Some(Box::new(tool)),
+                    Err(elements) => {
+                        Prop::insert(ctx.scene, elements);
+                    }
+                };
+            }
         }
     }
 
