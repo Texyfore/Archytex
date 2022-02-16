@@ -1,9 +1,8 @@
 use std::fs::{self, read_dir, write};
 
-use cgmath::Vector3;
 use clap::{App, Arg};
 
-use asset::{BoundingBox, Gizmo, GizmoVertex, Prop, PropMesh, PropVertex, TextureID};
+use asset::{BoundingBox, Prop, PropMesh, PropVertex, TextureID};
 use gltf::mesh::util::{ReadIndices, ReadTexCoords};
 
 fn main() {
@@ -27,7 +26,7 @@ fn main() {
                     .replace("gltf", "att"),
             )
             .unwrap()
-            .split(" ")
+            .split(' ')
             .map(|str| str.parse().unwrap())
             .collect::<Vec<u32>>();
 
@@ -53,15 +52,14 @@ fn main() {
                     }
                 });
 
-                let normals = reader.read_normals().unwrap().collect::<Vec<_>>();
+                let normals = reader.read_normals().unwrap();
 
                 let texcoords =
                     if let ReadTexCoords::F32(texcoords) = reader.read_tex_coords(0).unwrap() {
                         texcoords
                     } else {
                         panic!("Bad texcoords");
-                    }
-                    .collect::<Vec<_>>();
+                    };
 
                 let vertices = positions
                     .into_iter()
