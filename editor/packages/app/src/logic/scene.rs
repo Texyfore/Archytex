@@ -136,7 +136,20 @@ impl Scene {
                 (!ids.is_empty()).then(|| Action::RemoveSolids(ids))
             }
 
-            // NewProps
+            Action::NewProps(props) => {
+                let ids = props
+                    .into_iter()
+                    .map(|prop| {
+                        let id = self.next_elem_id;
+                        self.next_elem_id += 1;
+                        self.props.insert(id, prop);
+                        id
+                    })
+                    .collect::<Vec<_>>();
+
+                (!ids.is_empty()).then(|| Action::RemoveProps(ids))
+            }
+
             Action::AddSolids(solids) => {
                 let mut ids = Vec::new();
 
@@ -148,7 +161,17 @@ impl Scene {
                 (!ids.is_empty()).then(|| Action::RemoveSolids(ids))
             }
 
-            // AddProps
+            Action::AddProps(props) => {
+                let mut ids = Vec::new();
+
+                for (id, prop) in props {
+                    self.props.insert(id, prop);
+                    ids.push(id);
+                }
+
+                (!ids.is_empty()).then(|| Action::RemoveProps(ids))
+            }
+
             Action::RemoveSolids(ids) => {
                 let mut solids = Vec::new();
                 for id in ids {
@@ -158,7 +181,15 @@ impl Scene {
                 (!solids.is_empty()).then(|| Action::AddSolids(solids))
             }
 
-            // RemoveProps
+            Action::RemoveProps(ids) => {
+                let mut props = Vec::new();
+                for id in ids {
+                    props.push((id, self.props.remove(&id).unwrap()));
+                }
+
+                (!props.is_empty()).then(|| Action::AddProps(props))
+            }
+
             Action::SelectSolids(ids) => {
                 for id in &ids {
                     let solid = self.solids.get_mut(id).unwrap();
@@ -247,7 +278,17 @@ impl Scene {
 
                     (!locators.is_empty()).then(|| Action::SelectPoints(locators))
                 }
-                ElementKind::Prop => todo!(),
+                ElementKind::Prop => {
+                    let mut ids = Vec::new();
+                    for (pid, prop) in &mut self.props {
+                        if prop.selected() {
+                            prop.set_selected(false);
+                            prop.recalc(ctx.graphics);
+                            ids.push(*pid);
+                        }
+                    }
+                    (!ids.is_empty()).then(|| Action::SelectProps(ids))
+                }
             },
 
             Action::Move { kind, delta } => match kind {

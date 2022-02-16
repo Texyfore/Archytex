@@ -3,10 +3,10 @@ mod raycast;
 use std::collections::HashMap;
 
 use asset::{GizmoID, PropID, TextureID};
-use cgmath::{vec2, vec3, ElementWise, InnerSpace, Matrix4, Vector3, Zero};
+use cgmath::{vec2, vec3, Deg, ElementWise, InnerSpace, Matrix4, Vector3, Zero};
 
 use crate::graphics::{
-    structures::{GizmoInstance, LineVertex, SolidVertex},
+    structures::{GizmoInstance, LineVertex, SolidVertex, TransformTint},
     Canvas, GizmoGroup, GizmoInstances, Graphics, LineMesh, LineMeshDescriptor, PropData,
     PropInstance, Share, SolidMesh, SolidMeshDescriptor,
 };
@@ -226,10 +226,48 @@ pub struct Prop {
     asset: PropID,
     position: Vector3<i32>,
     rotation: Vector3<i32>,
+    selected: bool,
     data: PropData,
 }
 
 impl Prop {
+    pub fn new(
+        graphics: &Graphics,
+        asset: PropID,
+        position: Vector3<i32>,
+        rotation: Vector3<i32>,
+    ) -> Self {
+        Self {
+            asset,
+            position,
+            rotation,
+            selected: false,
+            data: graphics.create_prop_data(&TransformTint {
+                transform: prop_transform(position, rotation),
+                tint: [0.0; 4],
+            }),
+        }
+    }
+
+    pub fn selected(&self) -> bool {
+        self.selected
+    }
+
+    pub fn set_selected(&mut self, selected: bool) {
+        self.selected = selected;
+    }
+
+    pub fn recalc(&mut self, graphics: &Graphics) {
+        self.data = graphics.create_prop_data(&TransformTint {
+            transform: prop_transform(self.position, self.rotation),
+            tint: if self.selected {
+                [0.04, 0.36, 0.85, 0.5]
+            } else {
+                [0.0; 4]
+            },
+        })
+    }
+
     pub fn render(&self, canvas: &mut Canvas) {
         canvas.draw_prop(PropInstance {
             prop: self.asset,
@@ -396,4 +434,11 @@ impl Movable for Solid {
     fn insert(scene: &mut Scene, elements: Vec<(usize, Self)>) {
         scene.insert_solids(elements);
     }
+}
+
+fn prop_transform(position: Vector3<i32>, rotation: Vector3<i32>) -> Matrix4<f32> {
+    Matrix4::from_translation(position.map(|e| e as f32))
+        * Matrix4::from_angle_x(Deg(rotation.x as f32))
+        * Matrix4::from_angle_y(Deg(rotation.y as f32))
+        * Matrix4::from_angle_z(Deg(rotation.z as f32))
 }
