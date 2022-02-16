@@ -1,5 +1,6 @@
 #![allow(dead_code)] // TODO Remove this at some point
 
+mod data;
 mod graphics;
 mod logic;
 mod math;
@@ -7,6 +8,7 @@ mod math;
 use std::{sync::mpsc::Receiver, time::Instant};
 
 use asset::{Gizmo, GizmoID, Prop, PropID, Texture, TextureID};
+use data::PropInfoContainer;
 use logic::Logic;
 use winit::{
     dpi::{PhysicalPosition, PhysicalSize},
@@ -24,6 +26,7 @@ pub fn run(init: Init) {
     let from_host = init.receiver;
 
     let (mut renderer, graphics) = graphics::init(&window);
+    let mut prop_info = PropInfoContainer::default();
 
     {
         let resources = init.resources;
@@ -37,6 +40,7 @@ pub fn run(init: Init) {
                 ResourceKind::Prop => {
                     let id = PropID(resource.id);
                     let prop = Prop::decode(&resource.buf).unwrap();
+                    prop_info.insert(id, &prop);
                     renderer.add_prop(id, prop);
                 }
                 ResourceKind::Gizmo => {
@@ -51,6 +55,7 @@ pub fn run(init: Init) {
     let mut logic = Logic::init(logic::Context {
         host: host.as_ref(),
         graphics: &graphics,
+        prop_info: &prop_info,
         delta: 0.0,
     });
 
@@ -118,6 +123,7 @@ pub fn run(init: Init) {
                 logic.process(logic::Context {
                     host: host.as_ref(),
                     graphics: &graphics,
+                    prop_info: &prop_info,
                     delta,
                 });
 

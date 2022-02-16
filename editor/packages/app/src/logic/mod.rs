@@ -4,12 +4,12 @@ mod elements;
 mod input;
 mod scene;
 
-use asset::PropID;
-use cgmath::{vec2, Matrix4, SquareMatrix};
+use cgmath::vec2;
 use winit::event::{ElementState, MouseButton, VirtualKeyCode};
 
 use crate::{
-    graphics::{structures::TransformTint, Canvas, Graphics, PropData, PropInstance, Share},
+    data::PropInfoContainer,
+    graphics::{Canvas, Graphics},
     Host,
 };
 
@@ -20,7 +20,6 @@ pub struct Logic {
     camera: Camera,
     scene: Scene,
     editor: Editor,
-    asd: PropData,
 }
 
 impl Logic {
@@ -42,10 +41,6 @@ impl Logic {
             camera,
             scene,
             editor,
-            asd: ctx.graphics.create_prop_data(&TransformTint {
-                transform: Matrix4::identity(),
-                tint: [0.0; 4],
-            }),
         }
     }
 
@@ -84,15 +79,12 @@ impl Logic {
         canvas.set_camera_matrices(self.camera.matrices());
         self.scene.render(canvas, self.editor.mode());
         self.editor.render(canvas);
-        canvas.draw_prop(PropInstance {
-            prop: PropID(0),
-            data: self.asd.share(),
-        });
     }
 }
 
 pub struct Context<'a> {
     pub host: &'a dyn Host,
     pub graphics: &'a Graphics,
+    pub prop_info: &'a PropInfoContainer,
     pub delta: f32,
 }

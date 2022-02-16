@@ -21,7 +21,7 @@ pub struct Prop {
     pub meshes: Vec<PropMesh>,
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Clone, Copy)]
 pub struct BoundingBox {
     pub min: Vector3<f32>,
     pub max: Vector3<f32>,
