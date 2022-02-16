@@ -1,6 +1,7 @@
 mod camera;
 mod move_tool;
 mod new_solid;
+mod rotate_tool;
 
 use crate::{
     data::PropInfoContainer,
