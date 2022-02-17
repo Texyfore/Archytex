@@ -62,7 +62,7 @@ async fn render(
         .flatten()
         .map(|vec| vec.inner)
         .flatten()
-        .map(|b| b.to_le_bytes())
+        .map(|b| (b as f32).to_le_bytes())
         .flatten()
         .collect();
     let temp = format!("archyrt:temp:{}", id);
@@ -75,7 +75,7 @@ async fn render(
         //Upload image to Redis
         let _: () = redis::cmd("AI.TENSORSET")
             .arg(&temp)
-            .arg("DOUBLE")
+            .arg("FLOAT")
             .arg(width)
             .arg(height)
             .arg(3)

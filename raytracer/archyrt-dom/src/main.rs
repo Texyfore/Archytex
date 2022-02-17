@@ -34,6 +34,7 @@ async fn handle_job(
     let user: ObjectId = ObjectId::parse_str(user)?;
     let project_id: ObjectId = ObjectId::parse_str(project_id)?;
     let render_id: ObjectId = ObjectId::parse_str(&s)?;
+    println!("[{}] Received", render_id);
     let samples: i32 =
         redis::Cmd::get(format!("archyrt:{}:samples", s)).query(&mut redis_client)?;
     let width: usize = redis::Cmd::get(format!("archyrt:{}:width", s)).query(&mut redis_client)?;
@@ -43,7 +44,7 @@ async fn handle_job(
     let image_key = format!("archyrt:{}:image", s);
     redis::cmd("AI.TENSORSET")
         .arg(&image_key)
-        .arg("DOUBLE")
+        .arg("FLOAT")
         .arg(width)
         .arg(height)
         .arg(3)
@@ -85,7 +86,7 @@ async fn handle_job(
         )
         .await?;
     let mut counter = 0;
-    
+    println!("[{}] Waiting for workers to finish", render_id);
     while let Some(delivery) = consumer.next().await {
         let (_, delivery) = delivery.unwrap();
         counter += 1;
@@ -100,6 +101,7 @@ async fn handle_job(
     channel
         .queue_delete(response_queue, Default::default())
         .await?;
+    println!("[{}] Retrieving data", render_id);
     redis::cmd("AI.SCRIPTEXECUTE")
         .arg("archyrt:scripts")
         .arg("divide")
@@ -118,14 +120,14 @@ async fn handle_job(
         .arg("BLOB")
         .query(&mut redis_client)?;
     let image: Vec<f32> = image
-        .chunks(64 / 8)
+        .chunks(4)
         .map(|a| {
-            let a: [u8; 8] = a.try_into().unwrap();
-            f64::from_le_bytes(a) as f32
+            let a: [u8; 4] = a.try_into().unwrap();
+            f32::from_le_bytes(a)
         })
         .collect();
 
-
+    println!("[{}] Applying denoiser", render_id);
     //Render Albedo and Normal
     let scene: Vec<u8> =
     redis::Cmd::get(format!("archyrt:{}:scene", s)).query(&mut redis_client)?;
@@ -152,6 +154,7 @@ async fn handle_job(
         .filter(&image, &mut output)
         .unwrap();
 
+    println!("[{}] Saving", render_id);
     let mut image = image::RgbImage::new(width as u32, height as u32);
     for (x, y, color) in image.enumerate_pixels_mut() {
         let index = (y as usize * width + x as usize) * 3;
@@ -172,6 +175,7 @@ async fn handle_job(
     image.save(path)?;
     users.update_many(doc! {"_id": user}, doc!{"$set":{"projects.$[project].renders.$[render].status": 1.0, "projects.$[project].renders.$[render].icon": render_id.to_hex()}}, UpdateOptions::builder().array_filters(vec![doc!{"render._id": render_id}, doc!{"project._id": project_id}]).build()).await?;
     redis::Cmd::del(&image_key).query(&mut redis_client)?;
+    println!("[{}] Done!", render_id);
     Ok(())
 }
 
