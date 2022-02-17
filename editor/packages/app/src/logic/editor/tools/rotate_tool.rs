@@ -29,13 +29,21 @@ impl RotateTool {
 
 impl Tool for RotateTool {
     fn process(&mut self, ctx: Context) -> Option<Box<dyn Tool>> {
-        self.orientation.update(&ctx, &self.props);
+        self.orientation.update(&ctx, &mut self.props);
 
         if self.orientation.decided() {
+            let snap = if ctx.input.is_key_down(VirtualKeyCode::LControl) {
+                Snap::Deg15
+            } else {
+                Snap::None
+            };
+
             let delta = self.delta + ctx.input.mouse_delta().x as i32;
+
             if delta != self.delta {
                 for ((_, prop), original) in self.props.iter_mut().zip(self.originals.iter()) {
-                    prop.set_rotation(original + self.orientation.delta(delta));
+                    let snapped = snap.snap(delta);
+                    prop.set_rotation(original + self.orientation.delta(snapped));
                     prop.recalc(ctx.graphics);
                 }
                 self.delta = delta;
@@ -78,18 +86,12 @@ enum Orientation {
     Decided { axis: Axis, mesh: LineMesh },
 }
 
-enum Axis {
-    X,
-    Y,
-    Z,
-}
-
 impl Orientation {
     fn decided(&self) -> bool {
         matches!(self, Self::Decided { .. })
     }
 
-    fn update(&mut self, ctx: &Context, props: &[(usize, Prop)]) {
+    fn update(&mut self, ctx: &Context, props: &mut [(usize, Prop)]) {
         for (key, axis) in [
             (VirtualKeyCode::X, Axis::X),
             (VirtualKeyCode::Y, Axis::Y),
@@ -97,6 +99,7 @@ impl Orientation {
         ] {
             if ctx.input.is_key_down_once(key) {
                 let mut vertices = Vec::with_capacity(props.len() * 2);
+
                 for (_, prop) in props {
                     vertices.push(LineVertex {
                         position: prop.meters() - axis.unit() * 10.0,
@@ -106,6 +109,7 @@ impl Orientation {
                         position: prop.meters() + axis.unit() * 10.0,
                         color: axis.color(),
                     });
+                    prop.recalc(ctx.graphics);
                 }
 
                 *self = Self::Decided {
@@ -141,6 +145,12 @@ impl Orientation {
     }
 }
 
+enum Axis {
+    X,
+    Y,
+    Z,
+}
+
 impl Axis {
     fn unit(&self) -> Vector3<f32> {
         match self {
@@ -155,6 +165,20 @@ impl Axis {
             Self::X => [1.0, 0.0, 0.0],
             Self::Y => [0.0, 1.0, 0.0],
             Self::Z => [0.0, 0.0, 1.0],
+        }
+    }
+}
+
+enum Snap {
+    None,
+    Deg15,
+}
+
+impl Snap {
+    fn snap(&self, x: i32) -> i32 {
+        match self {
+            Snap::None => x,
+            Snap::Deg15 => (x as f32 / 15.0) as i32 * 15,
         }
     }
 }
