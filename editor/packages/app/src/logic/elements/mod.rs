@@ -294,6 +294,22 @@ impl Prop {
 
         None
     }
+
+    pub fn meters(&self) -> Vector3<f32> {
+        self.position.map(|e| e as f32 * 0.01)
+    }
+
+    pub fn rotation(&self) -> Vector3<i32> {
+        self.rotation
+    }
+
+    pub fn set_rotation(&mut self, rotation: Vector3<i32>) {
+        self.rotation = rotation;
+    }
+
+    pub fn insert_rotate(scene: &mut Scene, props: Vec<(usize, Self)>, delta: Vector3<i32>) {
+        scene.insert_props_with_rotate(props, delta);
+    }
 }
 
 fn meshgen(graphics: &Graphics, geometry: &SolidGeometry, selected: bool) -> SolidGraphics {

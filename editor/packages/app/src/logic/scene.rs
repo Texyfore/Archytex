@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 
 use asset::TextureID;
-use cgmath::{Vector2, Vector3};
+use cgmath::{Vector2, Vector3, Zero};
 
 use crate::{
     data::PropInfoContainer,
@@ -135,14 +135,31 @@ impl Scene {
             self.props.insert(id, prop);
         }
 
-        self.undo_stack.push(Action::Move {
-            kind: ElementKind::Prop,
-            delta: -delta,
-        });
+        if delta != Vector3::zero() {
+            self.undo_stack.push(Action::Move {
+                kind: ElementKind::Prop,
+                delta: -delta,
+            });
 
-        // Limit undo to 64 steps
-        if self.undo_stack.len() > 64 {
-            self.undo_stack.remove(0);
+            // Limit undo to 64 steps
+            if self.undo_stack.len() > 64 {
+                self.undo_stack.remove(0);
+            }
+        }
+    }
+
+    pub fn insert_props_with_rotate(&mut self, props: Vec<(usize, Prop)>, delta: Vector3<i32>) {
+        for (id, prop) in props {
+            self.props.insert(id, prop);
+        }
+
+        if delta != Vector3::zero() {
+            self.undo_stack.push(Action::RotateProps(-delta));
+
+            // Limit undo to 64 steps
+            if self.undo_stack.len() > 64 {
+                self.undo_stack.remove(0);
+            }
         }
     }
 
@@ -370,7 +387,20 @@ impl Scene {
                 }
             },
 
-            Action::RotateProps(_) => todo!(),
+            Action::RotateProps(delta) => {
+                if delta == Vector3::zero() {
+                    return None;
+                }
+
+                let mut changed = false;
+                for prop in self.props.values_mut().filter(|prop| prop.selected()) {
+                    prop.set_rotation(prop.rotation() + delta);
+                    prop.recalc(ctx.graphics);
+                    changed = true;
+                }
+
+                changed.then(|| Action::RotateProps(-delta))
+            }
 
             Action::AssignTexture(texture) => {
                 let mut changes = Vec::new();

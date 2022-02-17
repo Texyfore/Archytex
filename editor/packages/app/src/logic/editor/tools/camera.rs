@@ -10,7 +10,7 @@ use crate::{
     math::Snap,
 };
 
-use super::{move_tool::MoveTool, Context, NewSolid, Tool};
+use super::{move_tool::MoveTool, rotate_tool::RotateTool, Context, NewSolid, Tool};
 
 #[derive(Default)]
 pub struct CameraTool {
@@ -78,28 +78,37 @@ impl Tool for CameraTool {
                 );
             }
 
-            // New prop
-            if matches!(ctx.mode, ElementKind::Prop)
-                && ctx.input.is_key_down(VirtualKeyCode::LControl)
-                && ctx.input.is_button_down_once(MouseButton::Left)
-            {
-                let hit = ctx
-                    .scene
-                    .raycast(ctx.input.mouse_pos(), ctx.camera, ctx.prop_infos);
+            if matches!(ctx.mode, ElementKind::Prop) {
+                // New prop
+                if ctx.input.is_key_down(VirtualKeyCode::LControl)
+                    && ctx.input.is_button_down_once(MouseButton::Left)
+                {
+                    let hit = ctx
+                        .scene
+                        .raycast(ctx.input.mouse_pos(), ctx.camera, ctx.prop_infos);
 
-                if let Some(endpoint) = hit.endpoint {
-                    let position = (endpoint.point + endpoint.normal * 0.001).snap(ctx.grid);
-                    ctx.scene.act(
-                        scene::Context {
-                            graphics: ctx.graphics,
-                        },
-                        Action::NewProps(vec![Prop::new(
-                            ctx.graphics,
-                            PropID(0),
-                            position,
-                            Vector3::zero(),
-                        )]),
-                    );
+                    if let Some(endpoint) = hit.endpoint {
+                        let position = (endpoint.point + endpoint.normal * 0.001).snap(ctx.grid);
+                        ctx.scene.act(
+                            scene::Context {
+                                graphics: ctx.graphics,
+                            },
+                            Action::NewProps(vec![Prop::new(
+                                ctx.graphics,
+                                PropID(0),
+                                position,
+                                Vector3::zero(),
+                            )]),
+                        );
+                    }
+                }
+
+                // Rotate
+                if ctx.input.is_key_down_once(VirtualKeyCode::R) {
+                    let props = ctx.scene.take_props();
+                    if !props.is_empty() {
+                        return Some(Box::new(RotateTool::new(props)));
+                    }
                 }
             }
 
@@ -259,42 +268,50 @@ fn common(ctx: &mut Context) -> Option<Box<dyn Tool>> {
             ElementKind::Solid => {
                 let ray = ctx.camera.screen_ray(ctx.input.mouse_pos());
                 let elements = ctx.scene.take_solids(ElementKind::Solid);
-                match MoveTool::new(ElementKind::Solid, ray, elements) {
-                    Ok(tool) => return Some(Box::new(tool)),
-                    Err(elements) => {
-                        Solid::insert(ctx.scene, elements);
-                    }
-                };
+                if !elements.is_empty() {
+                    match MoveTool::new(ElementKind::Solid, ray, elements) {
+                        Ok(tool) => return Some(Box::new(tool)),
+                        Err(elements) => {
+                            Solid::insert(ctx.scene, elements);
+                        }
+                    };
+                }
             }
             ElementKind::Face => {
                 let ray = ctx.camera.screen_ray(ctx.input.mouse_pos());
                 let elements = ctx.scene.take_solids(ElementKind::Face);
-                match MoveTool::new(ElementKind::Face, ray, elements) {
-                    Ok(tool) => return Some(Box::new(tool)),
-                    Err(elements) => {
-                        Solid::insert(ctx.scene, elements);
-                    }
-                };
+                if !elements.is_empty() {
+                    match MoveTool::new(ElementKind::Face, ray, elements) {
+                        Ok(tool) => return Some(Box::new(tool)),
+                        Err(elements) => {
+                            Solid::insert(ctx.scene, elements);
+                        }
+                    };
+                }
             }
             ElementKind::Point => {
                 let ray = ctx.camera.screen_ray(ctx.input.mouse_pos());
                 let elements = ctx.scene.take_solids(ElementKind::Point);
-                match MoveTool::new(ElementKind::Point, ray, elements) {
-                    Ok(tool) => return Some(Box::new(tool)),
-                    Err(elements) => {
-                        Solid::insert(ctx.scene, elements);
-                    }
-                };
+                if !elements.is_empty() {
+                    match MoveTool::new(ElementKind::Point, ray, elements) {
+                        Ok(tool) => return Some(Box::new(tool)),
+                        Err(elements) => {
+                            Solid::insert(ctx.scene, elements);
+                        }
+                    };
+                }
             }
             ElementKind::Prop => {
                 let ray = ctx.camera.screen_ray(ctx.input.mouse_pos());
                 let elements = ctx.scene.take_props();
-                match MoveTool::new(ElementKind::Prop, ray, elements) {
-                    Ok(tool) => return Some(Box::new(tool)),
-                    Err(elements) => {
-                        Prop::insert(ctx.scene, elements);
-                    }
-                };
+                if !elements.is_empty() {
+                    match MoveTool::new(ElementKind::Prop, ray, elements) {
+                        Ok(tool) => return Some(Box::new(tool)),
+                        Err(elements) => {
+                            Prop::insert(ctx.scene, elements);
+                        }
+                    };
+                }
             }
         }
     }
