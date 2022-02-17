@@ -52,10 +52,16 @@ var<uniform> data: Data;
 
 [[stage(vertex)]]
 fn vertex(attribs: Attribs) -> Vertex {
+    var rot = mat3x3<f32>(
+        data.transform.x.xyz,
+        data.transform.y.xyz,
+        data.transform.z.xyz,
+    );
+
     var vertex: Vertex;
     
     vertex.position = camera.world_to_clip * data.transform * vec4<f32>(attribs.position, 1.0);
-    vertex.normal = attribs.normal;
+    vertex.normal = rot * attribs.normal;
     vertex.texcoord = attribs.texcoord;
     vertex.tint = data.tint;
     
