@@ -182,15 +182,17 @@ impl SolidGeometry {
                 }
             }
             ElementKind::Face => {
-                let mut changed = false;
+                let mut changed = [false; 8];
                 for face in self.faces.iter().filter(|face| face.selected) {
                     for index in face.indices {
                         let point = &mut self.points[index];
-                        point.position += delta;
-                        changed = true;
+                        if !changed[index] {
+                            point.position += delta;
+                            changed[index] = true;
+                        }
                     }
                 }
-                changed
+                changed.iter().any(|x| *x)
             }
             ElementKind::Point => {
                 let mut changed = false;
