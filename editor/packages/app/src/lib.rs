@@ -117,6 +117,9 @@ pub fn run(init: Init) {
                         FromHost::Resolution { width, height } => {
                             window.set_inner_size(PhysicalSize { width, height })
                         }
+                        FromHost::SaveScene => todo!(),
+                        FromHost::Prop(_) => todo!(),
+                        FromHost::Texture(_) => todo!(),
                     }
                 }
 
@@ -170,4 +173,7 @@ pub enum ToHost {
 
 pub enum FromHost {
     Resolution { width: u32, height: u32 },
+    SaveScene,
+    Prop(u32),
+    Texture(u32),
 }
