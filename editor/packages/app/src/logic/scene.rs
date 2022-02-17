@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 
 use asset::TextureID;
-use cgmath::{Vector2, Vector3, Zero};
+use cgmath::{Quaternion, Rotation, Vector2, Vector3, Zero};
 
 use crate::{
     data::PropInfoContainer,
@@ -148,18 +148,16 @@ impl Scene {
         }
     }
 
-    pub fn insert_props_with_rotate(&mut self, props: Vec<(usize, Prop)>, delta: Vector3<i32>) {
+    pub fn insert_props_with_rotate(&mut self, props: Vec<(usize, Prop)>, delta: Quaternion<f32>) {
         for (id, prop) in props {
             self.props.insert(id, prop);
         }
 
-        if delta != Vector3::zero() {
-            self.undo_stack.push(Action::RotateProps(-delta));
+        self.undo_stack.push(Action::RotateProps(delta.invert()));
 
-            // Limit undo to 64 steps
-            if self.undo_stack.len() > 64 {
-                self.undo_stack.remove(0);
-            }
+        // Limit undo to 64 steps
+        if self.undo_stack.len() > 64 {
+            self.undo_stack.remove(0);
         }
     }
 
@@ -387,19 +385,15 @@ impl Scene {
                 }
             },
 
-            Action::RotateProps(delta) => {
-                if delta == Vector3::zero() {
-                    return None;
-                }
-
+            Action::RotateProps(quat) => {
                 let mut changed = false;
                 for prop in self.props.values_mut().filter(|prop| prop.selected()) {
-                    prop.set_rotation(prop.rotation() + delta);
+                    prop.set_rotation(quat * prop.rotation());
                     prop.recalc(ctx.graphics);
                     changed = true;
                 }
 
-                changed.then(|| Action::RotateProps(-delta))
+                changed.then(|| Action::RotateProps(-quat))
             }
 
             Action::AssignTexture(texture) => {
@@ -501,7 +495,7 @@ pub enum Action {
         delta: Vector3<i32>,
     },
 
-    RotateProps(Vector3<i32>),
+    RotateProps(Quaternion<f32>),
     AssignTexture(TextureID),
     AssignTextures(Vec<(FaceLocator, TextureID)>),
 

@@ -3,7 +3,7 @@ mod raycast;
 use std::collections::HashMap;
 
 use asset::{GizmoID, PropID, TextureID};
-use cgmath::{vec2, vec3, Deg, ElementWise, InnerSpace, Matrix4, Transform, Vector3, Zero};
+use cgmath::{vec2, vec3, ElementWise, InnerSpace, Matrix4, Quaternion, Transform, Vector3, Zero};
 
 use crate::{
     data::{PropInfo, PropInfoContainer},
@@ -237,18 +237,15 @@ impl SolidGraphics {
 pub struct Prop {
     asset: PropID,
     position: Vector3<i32>,
-    rotation: Vector3<i32>,
+    rotation: Quaternion<f32>,
     selected: bool,
     data: PropData,
 }
 
 impl Prop {
-    pub fn new(
-        graphics: &Graphics,
-        asset: PropID,
-        position: Vector3<i32>,
-        rotation: Vector3<i32>,
-    ) -> Self {
+    pub fn new(graphics: &Graphics, asset: PropID, position: Vector3<i32>) -> Self {
+        let rotation = Quaternion::new(1.0, 0.0, 0.0, 0.0);
+
         Self {
             asset,
             position,
@@ -299,15 +296,15 @@ impl Prop {
         self.position.map(|e| e as f32 * 0.01)
     }
 
-    pub fn rotation(&self) -> Vector3<i32> {
+    pub fn rotation(&self) -> Quaternion<f32> {
         self.rotation
     }
 
-    pub fn set_rotation(&mut self, rotation: Vector3<i32>) {
+    pub fn set_rotation(&mut self, rotation: Quaternion<f32>) {
         self.rotation = rotation;
     }
 
-    pub fn insert_rotate(scene: &mut Scene, props: Vec<(usize, Self)>, delta: Vector3<i32>) {
+    pub fn insert_rotate(scene: &mut Scene, props: Vec<(usize, Self)>, delta: Quaternion<f32>) {
         scene.insert_props_with_rotate(props, delta);
     }
 }
@@ -518,9 +515,6 @@ impl Movable for Prop {
     }
 }
 
-fn prop_transform(position: Vector3<i32>, rotation: Vector3<i32>) -> Matrix4<f32> {
-    Matrix4::from_translation(position.map(|e| e as f32 * 0.01))
-        * Matrix4::from_angle_x(Deg(rotation.x as f32))
-        * Matrix4::from_angle_y(Deg(rotation.y as f32))
-        * Matrix4::from_angle_z(Deg(rotation.z as f32))
+fn prop_transform(position: Vector3<i32>, rotation: Quaternion<f32>) -> Matrix4<f32> {
+    Matrix4::from_translation(position.map(|e| e as f32 * 0.01)) * Matrix4::from(rotation)
 }

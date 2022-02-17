@@ -1,5 +1,5 @@
 use asset::{PropID, TextureID};
-use cgmath::{InnerSpace, Vector2, Vector3, Zero};
+use cgmath::{InnerSpace, Vector2};
 use winit::event::{MouseButton, VirtualKeyCode};
 
 use crate::{
@@ -15,6 +15,16 @@ use super::{move_tool::MoveTool, rotate_tool::RotateTool, Context, NewSolid, Too
 #[derive(Default)]
 pub struct CameraTool {
     last_click: Option<Vector2<f32>>,
+    was_rotating: bool,
+}
+
+impl CameraTool {
+    pub fn new(was_rotating: bool) -> Self {
+        Self {
+            last_click: None,
+            was_rotating,
+        }
+    }
 }
 
 impl Tool for CameraTool {
@@ -93,12 +103,7 @@ impl Tool for CameraTool {
                             scene::Context {
                                 graphics: ctx.graphics,
                             },
-                            Action::NewProps(vec![Prop::new(
-                                ctx.graphics,
-                                PropID(0),
-                                position,
-                                Vector3::zero(),
-                            )]),
+                            Action::NewProps(vec![Prop::new(ctx.graphics, PropID(0), position)]),
                         );
                     }
                 }
@@ -107,12 +112,17 @@ impl Tool for CameraTool {
                 if ctx.input.is_key_down_once(VirtualKeyCode::R) {
                     let props = ctx.scene.take_props();
                     if !props.is_empty() {
-                        return Some(Box::new(RotateTool::new(props)));
+                        match RotateTool::new(&ctx, props) {
+                            Ok(tool) => {
+                                return Some(Box::new(tool));
+                            }
+                            Err(props) => ctx.scene.insert_props(props),
+                        }
                     }
                 }
             }
 
-            common(&mut ctx)
+            common(&mut ctx, &mut self.was_rotating)
         }
     }
 
@@ -157,7 +167,7 @@ fn control(ctx: &mut Context) {
     ctx.camera.look(ctx.input.mouse_delta(), ctx.delta);
 }
 
-fn common(ctx: &mut Context) -> Option<Box<dyn Tool>> {
+fn common(ctx: &mut Context, was_rotating: &mut bool) -> Option<Box<dyn Tool>> {
     // Undo & Redo
     if ctx.input.is_key_down(VirtualKeyCode::LControl) {
         if ctx.input.is_key_down_once(VirtualKeyCode::Z) {
@@ -175,6 +185,11 @@ fn common(ctx: &mut Context) -> Option<Box<dyn Tool>> {
     if ctx.input.was_button_down_once(MouseButton::Left)
         && !ctx.input.is_key_down(VirtualKeyCode::LControl)
     {
+        if *was_rotating {
+            *was_rotating = false;
+            return None;
+        }
+
         if !ctx.input.is_key_down(VirtualKeyCode::LShift) {
             ctx.scene.act(
                 scene::Context {

@@ -1,4 +1,6 @@
-use cgmath::{vec3, Vector3, Zero};
+use std::f32::consts::PI;
+
+use cgmath::{Deg, Quaternion, Rotation3, Vector2, Vector3, Zero};
 use winit::event::{MouseButton, VirtualKeyCode};
 
 use crate::{
@@ -9,28 +11,46 @@ use crate::{
 use super::{CameraTool, Context, Tool};
 
 pub struct RotateTool {
+    origin: Vector2<f32>,
     props: Vec<(usize, Prop)>,
-    originals: Vec<Vector3<i32>>,
-    delta: i32,
+    originals: Vec<Quaternion<f32>>,
     orientation: Orientation,
+    angle: i32,
+    init_angle: i32,
 }
 
 impl RotateTool {
-    pub fn new(props: Vec<(usize, Prop)>) -> Self {
-        let originals = props.iter().map(|(_, prop)| prop.rotation()).collect();
-        Self {
-            props,
-            originals,
-            delta: 0,
-            orientation: Orientation::Undecided,
+    pub fn new(ctx: &Context, props: Vec<(usize, Prop)>) -> Result<Self, Vec<(usize, Prop)>> {
+        let origin = {
+            let mut center = Vector3::zero();
+            for (_, prop) in &props {
+                center += prop.meters();
+            }
+            center /= props.len() as f32;
+            ctx.camera.project(center)
+        };
+
+        if let Some(origin) = origin {
+            let origin = origin.truncate();
+            let originals = props.iter().map(|(_, prop)| prop.rotation()).collect();
+            let init_angle = calc_angle(origin, ctx.input.mouse_pos());
+
+            Ok(Self {
+                origin,
+                props,
+                originals,
+                orientation: Orientation::Undecided,
+                angle: 0,
+                init_angle,
+            })
+        } else {
+            Err(props)
         }
     }
 }
 
 impl Tool for RotateTool {
     fn process(&mut self, ctx: Context) -> Option<Box<dyn Tool>> {
-        self.orientation.update(&ctx, &mut self.props);
-
         if self.orientation.decided() {
             let snap = if ctx.input.is_key_down(VirtualKeyCode::LControl) {
                 Snap::Deg15
@@ -38,22 +58,23 @@ impl Tool for RotateTool {
                 Snap::None
             };
 
-            let delta = self.delta + ctx.input.mouse_delta().x as i32;
-
-            if delta != self.delta {
+            let delta = calc_angle(self.origin, ctx.input.mouse_pos()) - self.init_angle;
+            if delta != self.angle {
                 for ((_, prop), original) in self.props.iter_mut().zip(self.originals.iter()) {
                     let snapped = snap.snap(delta);
-                    prop.set_rotation(original + self.orientation.delta(snapped));
+                    prop.set_rotation(self.orientation.angle(snapped) * original);
                     prop.recalc(ctx.graphics);
                 }
-                self.delta = delta;
+                self.angle = delta;
             }
 
             if ctx.input.is_button_down_once(MouseButton::Left) {
                 let props = self.props.drain(..).collect();
-                Prop::insert_rotate(ctx.scene, props, self.orientation.delta(delta));
-                return Some(Box::new(CameraTool::default()));
+                Prop::insert_rotate(ctx.scene, props, self.orientation.angle(delta));
+                return Some(Box::new(CameraTool::new(true)));
             }
+        } else {
+            self.orientation.update(&ctx, &mut self.props);
         }
 
         if ctx.input.is_button_down_once(MouseButton::Right)
@@ -133,13 +154,14 @@ impl Orientation {
         }
     }
 
-    fn delta(&self, delta: i32) -> Vector3<i32> {
+    fn angle(&self, angle: i32) -> Quaternion<f32> {
+        let angle = Deg(angle as f32);
         match self {
-            Self::Undecided => Vector3::zero(),
+            Self::Undecided => Quaternion::new(1.0, 0.0, 0.0, 0.0),
             Self::Decided { axis, .. } => match axis {
-                Axis::X => vec3(delta, 0, 0),
-                Axis::Y => vec3(0, delta, 0),
-                Axis::Z => vec3(0, 0, delta),
+                Axis::X => Quaternion::from_angle_x(angle),
+                Axis::Y => Quaternion::from_angle_y(angle),
+                Axis::Z => Quaternion::from_angle_z(angle),
             },
         }
     }
@@ -181,4 +203,11 @@ impl Snap {
             Snap::Deg15 => (x as f32 / 15.0) as i32 * 15,
         }
     }
+}
+
+fn calc_angle(origin: Vector2<f32>, pos: Vector2<f32>) -> i32 {
+    let vector = pos - origin;
+    let rad = vector.y.atan2(vector.x);
+    let deg = rad * (180.0 / PI);
+    -deg as i32
 }
