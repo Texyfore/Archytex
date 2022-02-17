@@ -157,10 +157,8 @@ impl Scene {
             solid.render(canvas, mask);
         }
 
-        if matches!(mask, ElementKind::Prop) {
-            for prop in self.props.values() {
-                prop.render(canvas, ElementKind::Prop);
-            }
+        for prop in self.props.values() {
+            prop.render(canvas, ElementKind::Prop);
         }
     }
 
