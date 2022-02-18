@@ -1,17 +1,16 @@
+mod comms;
+
 use std::{
     fs,
-    io::stdin,
-    sync::mpsc::{channel, Sender},
-    thread::{self, JoinHandle},
+    sync::mpsc::channel,
     time::{SystemTime, UNIX_EPOCH},
 };
 
-use app::{run, FromHost, Host, Init, Resource, ResourceKind, ToHost, Winit};
+use app::{run, Host, Init, Resource, ResourceKind, ToHost, Winit};
 use winit::{event_loop::EventLoop, window::WindowBuilder};
 
 fn main() {
-    let (sender, receiver) = channel();
-    let handle = stdin_listen(sender);
+    let (_sender, receiver) = channel();
     run(Init {
         winit: winit(),
         resources: resources(),
@@ -72,27 +71,4 @@ fn resources() -> Vec<Resource> {
             kind: ResourceKind::Prop,
         },
     ]
-}
-
-fn stdin_listen(tx: Sender<FromHost>) -> JoinHandle<()> {
-    let handle = thread::spawn(move || loop {
-        let mut buf = String::new();
-        stdin().read_line(&mut buf).unwrap();
-        match buf.as_str() {
-            "r" => {
-                tx.send(FromHost::Resolution {
-                    width: 400,
-                    height: 400,
-                })
-                .unwrap();
-            }
-            "s" => {
-                tx.send(FromHost::SaveScene).unwrap();
-            }
-            "e" => break,
-            _ => (),
-        };
-    });
-
-    handle
 }
