@@ -5,7 +5,10 @@ use winit::event::{MouseButton, VirtualKeyCode};
 
 use crate::{
     graphics::{structures::LineVertex, Canvas, LineMesh, LineMeshDescriptor, Share},
-    logic::elements::{ElementKind, Movable, Prop},
+    logic::{
+        elements::{ElementKind, Movable, Prop},
+        scene::{self, Action},
+    },
 };
 
 use super::{CameraTool, Context, Tool};
@@ -75,10 +78,26 @@ impl Tool for RotateTool {
             }
         } else {
             self.orientation.update(&ctx, &mut self.props);
+            if ctx.input.is_key_down_once(VirtualKeyCode::R) {
+                let props = self.props.drain(..).collect::<Vec<_>>();
+                let rotations = props
+                    .iter()
+                    .map(|(index, _)| (*index, Quaternion::new(1.0, 0.0, 0.0, 0.0)))
+                    .collect();
+
+                ctx.scene.insert_props(props);
+                ctx.scene.act(
+                    scene::Context {
+                        graphics: ctx.graphics,
+                    },
+                    Action::SetPropRotations(rotations),
+                );
+
+                return Some(Box::new(CameraTool::default()));
+            }
         }
 
         if ctx.input.is_button_down_once(MouseButton::Right)
-            || ctx.input.is_key_down_once(VirtualKeyCode::R)
             || ctx.input.is_key_down_once(VirtualKeyCode::Escape)
         {
             for ((_, prop), original) in self.props.iter_mut().zip(self.originals.iter()) {

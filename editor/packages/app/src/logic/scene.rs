@@ -396,6 +396,21 @@ impl Scene {
                 changed.then(|| Action::RotateProps(quat.invert()))
             }
 
+            Action::SetPropRotations(rotations) => {
+                let rotations = rotations
+                    .into_iter()
+                    .map(|(index, quat)| {
+                        let prop = self.props.get_mut(&index).unwrap();
+                        let old = prop.rotation();
+                        prop.set_rotation(quat);
+                        prop.recalc(ctx.graphics);
+                        (index, old)
+                    })
+                    .collect::<Vec<_>>();
+
+                (!rotations.is_empty()).then(|| Action::SetPropRotations(rotations))
+            }
+
             Action::AssignTexture(texture) => {
                 let mut changes = Vec::new();
                 for (sid, solid) in &mut self.solids {
@@ -496,6 +511,7 @@ pub enum Action {
     },
 
     RotateProps(Quaternion<f32>),
+    SetPropRotations(Vec<(usize, Quaternion<f32>)>),
     AssignTexture(TextureID),
     AssignTextures(Vec<(FaceLocator, TextureID)>),
 
