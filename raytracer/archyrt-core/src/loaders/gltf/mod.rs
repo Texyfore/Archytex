@@ -14,6 +14,7 @@ use crate::textures::TextureID;
 use crate::utilities::math::Vector;
 
 use super::Loader;
+use super::amdl::amdl_textures::AMDLTextureType;
 
 pub struct GltfLoader {
     camera: PerspectiveCamera,
@@ -75,7 +76,7 @@ impl GltfLoader {
                                         triangle[1].tex_coords.into(),
                                         triangle[2].tex_coords.into(),
                                     ],
-                                    TextureID(1),
+                                    AMDLTextureType::diffuse(1),
                                     Material::Diffuse
                                 );
                                 t.normal = triangle[0].normal.into();

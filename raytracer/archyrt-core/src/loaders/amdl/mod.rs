@@ -16,6 +16,8 @@ use std::io::Read;
 
 use std::path::Path;
 
+use self::amdl_textures::AMDLTextureType;
+
 pub struct AMDLLoader {
     triangles: Vec<Triangle>,
     camera: PerspectiveCamera,
@@ -130,13 +132,13 @@ impl AMDLLoader {
                 let triangle1 = Triangle::new(
                     [point0, point2, point1],
                     [uv0, uv2, uv1],
-                    TextureID(face.texture_id.0),
+                    AMDLTextureType::diffuse(face.texture_id.0),
                     Material::Diffuse
                 );
                 let triangle2 = Triangle::new(
                     [point0, point3, point2],
                     [uv0, uv3, uv2],
-                    TextureID(face.texture_id.0),
+                    AMDLTextureType::diffuse(face.texture_id.0),
                     Material::Diffuse
                 );
                 triangles.push(triangle1);

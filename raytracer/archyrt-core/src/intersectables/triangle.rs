@@ -73,7 +73,7 @@ impl Default for Triangle {
         let b = Vec3::new(1.0, -1.0, 3.0);
         let c = Vec3::new(-1.0, -1.0, 3.0);
         let uv = [vector![0.0, 0.0], vector![0.0, 1.0], vector![1.0, 0.0]];
-        Self::new([a, b, c], uv, TextureID(1), Material::Diffuse)
+        Self::new([a, b, c], uv, TextureID::new(&0), Material::Diffuse)
     }
 }
 

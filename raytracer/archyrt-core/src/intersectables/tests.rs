@@ -119,7 +119,7 @@ mod triangle {
                 Vec3::new(-1.0, -1.0, -1.0),
             ],
             [vector!(0.0, 0.0), vector!(0.0, 1.0), vector!(1.0, 0.0)],
-            TextureID(1),
+            TextureID::new(&0),
             Material::Diffuse
         );
         let ray = Ray {
@@ -138,7 +138,7 @@ mod triangle {
                 Vec3::new(-1.0, -1.0, -1.0),
             ],
             [vector!(0.0, 0.0), vector!(0.0, 1.0), vector!(1.0, 0.0)],
-            TextureID(1),
+            TextureID::new(&0),
             Material::Diffuse
         );
         let ray = Ray {
