@@ -26,6 +26,13 @@ pub struct SolidVertex {
 
 #[repr(C)]
 #[derive(Clone, Copy)]
+pub struct GroundVertex {
+    pub position: Vector3<f32>,
+    pub texcoord: Vector2<f32>,
+}
+
+#[repr(C)]
+#[derive(Clone, Copy)]
 pub struct TransformTint {
     pub transform: Matrix4<f32>,
     pub tint: [f32; 4],

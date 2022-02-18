@@ -1,6 +1,7 @@
 use gpu::{Gpu, Pipeline, Surface};
 
 mod gizmo;
+mod ground;
 mod line;
 mod prop;
 mod solid;
