@@ -1,10 +1,12 @@
 mod tools;
 
+use asset::TextureID;
+use cgmath::{vec3, Vector3};
 use winit::event::VirtualKeyCode;
 
 use crate::{
     data::PropInfoContainer,
-    graphics::{Canvas, Graphics},
+    graphics::{structures::SolidVertex, Canvas, Graphics, Share, SolidMesh, SolidMeshDescriptor},
 };
 
 use self::tools::{CameraTool, Tool};
@@ -20,14 +22,16 @@ pub struct Editor {
     mode: ElementKind,
     tool: Box<dyn Tool>,
     grid: i32,
+    ground: Ground,
 }
 
 impl Editor {
-    pub fn init(_ctx: Context) -> Self {
+    pub fn init(ctx: Context) -> Self {
         Self {
             mode: ElementKind::Solid,
             tool: Box::new(CameraTool::default()),
             grid: 100,
+            ground: Ground::new(ctx.graphics),
         }
     }
 
@@ -72,6 +76,7 @@ impl Editor {
 
     pub fn render(&self, canvas: &mut Canvas) {
         self.tool.render(canvas);
+        self.ground.render(canvas);
     }
 
     pub fn mode(&self) -> ElementKind {
@@ -86,4 +91,34 @@ pub struct Context<'a> {
     pub camera: &'a mut Camera,
     pub scene: &'a mut Scene,
     pub delta: f32,
+}
+
+struct Ground {
+    mesh: SolidMesh,
+}
+
+impl Ground {
+    fn new(graphics: &Graphics) -> Self {
+        const TINT: [f32; 4] = [0.0; 4];
+        const POSITIONS: [[f32; 2]; 4] = [[0.0, 0.0], [0.0, 1.0], [1.0, 1.0], [1.0, 0.0]];
+
+        let vertices = POSITIONS.map(|pos| SolidVertex {
+            position: vec3(pos[0] - 0.5, 0.0, pos[1] - 0.5) * 100.0,
+            normal: Vector3::unit_y(),
+            texcoord: pos.into(),
+            tint: TINT,
+        });
+
+        Self {
+            mesh: graphics.create_solid_mesh(SolidMeshDescriptor {
+                texture: TextureID(0),
+                vertices: &vertices,
+                triangles: &[[0, 1, 2], [0, 2, 3]],
+            }),
+        }
+    }
+
+    fn render(&self, canvas: &mut Canvas) {
+        canvas.draw_solid(self.mesh.share());
+    }
 }
