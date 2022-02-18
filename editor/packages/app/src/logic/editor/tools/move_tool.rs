@@ -3,7 +3,10 @@ use winit::event::{MouseButton, VirtualKeyCode};
 
 use crate::{
     graphics::{structures::LineVertex, Canvas, LineMesh, LineMeshDescriptor, Share},
-    logic::elements::{ElementKind, Movable},
+    logic::{
+        editor::grid,
+        elements::{ElementKind, Movable},
+    },
     math::{Intersects, Plane, Ray, Snap},
 };
 
@@ -133,8 +136,8 @@ where
         let ray = ctx.camera.screen_ray(mouse_pos);
 
         if let Some(intersection) = ray.intersects(&self.plane) {
-            let start = self.start.snap(*ctx.grid);
-            let end = (intersection.point + intersection.normal * 0.001).snap(*ctx.grid);
+            let start = self.start.snap(grid(*ctx.grid));
+            let end = (intersection.point + intersection.normal * 0.001).snap(grid(*ctx.grid));
 
             let delta = self.snap.snap_vec(end - start);
             if delta != self.delta {

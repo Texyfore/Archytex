@@ -35,7 +35,7 @@ impl Editor {
             tool: Box::new(CameraTool::default()),
             ground: Ground::new(ctx.graphics),
             mode: ElementKind::Solid,
-            grid: 100,
+            grid: 3,
             texture: TextureID(2),
             prop: PropID(0),
         }
@@ -134,4 +134,8 @@ impl Ground {
     fn render(&self, canvas: &mut Canvas) {
         canvas.draw_ground(self.mesh.share());
     }
+}
+
+fn grid(x: i32) -> i32 {
+    [5, 10, 50, 100, 500, 1000][x as usize]
 }
