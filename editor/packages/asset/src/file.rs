@@ -1,7 +1,5 @@
 macro_rules! encdec {
-    ($name:ident) => {
-        use super::$name;
-
+    ($name:path) => {
         impl $name {
             pub fn encode(&self) -> Option<Vec<u8>> {
                 bincode::serialize(&self).ok()
@@ -14,5 +12,6 @@ macro_rules! encdec {
     };
 }
 
-encdec!(Prop);
-encdec!(Gizmo);
+encdec!(crate::Prop);
+encdec!(crate::Gizmo);
+encdec!(crate::scene::Scene);

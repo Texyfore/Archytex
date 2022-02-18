@@ -10,7 +10,7 @@ use winit::event::{ElementState, MouseButton, VirtualKeyCode};
 use crate::{
     data::PropInfoContainer,
     graphics::{Canvas, Graphics},
-    Host,
+    Host, ToHost,
 };
 
 use self::{camera::Camera, editor::Editor, input::Input, scene::Scene};
@@ -75,6 +75,16 @@ impl Logic {
 
     pub fn scroll(&mut self, delta: f32) {
         self.input.scroll(delta);
+    }
+
+    pub fn save_scene(&self, ctx: Context) {
+        let scene = asset::scene::Scene {
+            camera: self.camera.save(),
+            world: self.scene.save(),
+        };
+        
+        let buf = scene.encode().unwrap();
+        ctx.host.callback(ToHost::SceneSaved(buf));
     }
 
     pub fn render(&self, canvas: &mut Canvas) {

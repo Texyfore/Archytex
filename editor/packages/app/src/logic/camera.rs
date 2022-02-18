@@ -129,6 +129,13 @@ impl Camera {
         None
     }
 
+    pub fn save(&self) -> asset::scene::Camera {
+        asset::scene::Camera {
+            position: self.position,
+            rotation: self.rotation,
+        }
+    }
+
     fn forward(&self) -> Vector3<f32> {
         Matrix3::from_angle_y(Deg(self.rotation.y))
             * Matrix3::from_angle_x(Deg(self.rotation.x))

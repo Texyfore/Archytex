@@ -117,7 +117,14 @@ pub fn run(init: Init) {
                         FromHost::Resolution { width, height } => {
                             window.set_inner_size(PhysicalSize { width, height })
                         }
-                        FromHost::SaveScene => todo!(),
+                        FromHost::SaveScene => {
+                            logic.save_scene(logic::Context {
+                                host: host.as_ref(),
+                                graphics: &graphics,
+                                prop_infos: &prop_info,
+                                delta,
+                            });
+                        }
                         FromHost::Prop(_) => todo!(),
                         FromHost::Texture(_) => todo!(),
                     }

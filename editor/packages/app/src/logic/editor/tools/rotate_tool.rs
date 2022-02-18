@@ -73,7 +73,10 @@ impl Tool for RotateTool {
 
             if ctx.input.is_button_down_once(MouseButton::Left) {
                 let props = self.props.drain(..).collect();
-                Prop::insert_rotate(ctx.scene, props, self.orientation.angle(delta));
+                
+                ctx.scene
+                    .insert_props_with_rotate(props, self.orientation.angle(delta));
+
                 return Some(Box::new(CameraTool::new(true)));
             }
         } else {

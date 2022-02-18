@@ -2,7 +2,7 @@ mod raycast;
 
 use std::collections::HashMap;
 
-use asset::{GizmoID, PropID, TextureID};
+use asset::{scene, GizmoID, PropID, TextureID};
 use cgmath::{vec2, vec3, ElementWise, InnerSpace, Matrix4, Quaternion, Transform, Vector3, Zero};
 
 use crate::{
@@ -80,6 +80,35 @@ impl Solid {
 
     pub fn retexture(&mut self, face: usize, texture: TextureID) -> TextureID {
         self.geometry.retexture(face, texture)
+    }
+
+    pub fn save(&self) -> scene::Solid {
+        let points = self
+            .geometry
+            .points
+            .iter()
+            .map(|point| scene::Point {
+                position: point.position,
+            })
+            .collect::<Vec<_>>()
+            .try_into()
+            .ok()
+            .unwrap();
+
+        let faces = self
+            .geometry
+            .faces
+            .iter()
+            .map(|face| scene::Face {
+                texture: face.texture,
+                indices: face.indices.map(|i| i as u32),
+            })
+            .collect::<Vec<_>>()
+            .try_into()
+            .ok()
+            .unwrap();
+
+        scene::Solid { points, faces }
     }
 }
 
@@ -306,8 +335,12 @@ impl Prop {
         self.rotation = rotation;
     }
 
-    pub fn insert_rotate(scene: &mut Scene, props: Vec<(usize, Self)>, delta: Quaternion<f32>) {
-        scene.insert_props_with_rotate(props, delta);
+    pub fn save(&self) -> scene::Prop {
+        scene::Prop {
+            asset: self.asset,
+            position: self.position,
+            rotation: self.rotation,
+        }
     }
 }
 

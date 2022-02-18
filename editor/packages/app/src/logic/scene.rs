@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use asset::TextureID;
+use asset::{scene, TextureID};
 use cgmath::{Quaternion, Rotation, Vector2, Vector3, Zero};
 
 use crate::{
@@ -175,6 +175,12 @@ impl Scene {
         for prop in self.props.values() {
             prop.render(canvas, ElementKind::Prop);
         }
+    }
+
+    pub fn save(&self) -> scene::World {
+        let solids = self.solids.values().map(|solid| solid.save()).collect();
+        let props = self.props.values().map(|prop| prop.save()).collect();
+        scene::World { solids, props }
     }
 
     fn execute(&mut self, ctx: Context, action: Action) -> Option<Action> {
