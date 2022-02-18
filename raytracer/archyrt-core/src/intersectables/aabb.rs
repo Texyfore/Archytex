@@ -34,7 +34,11 @@ impl AABB {
 
 impl AABB {
     pub fn intersect(&self, ray: Ray) -> Option<f64> {
-        let invdir = vector![1./ray.direction[0],1./ray.direction[1],1./ray.direction[2]];
+        let invdir = vector![
+            1. / ray.direction[0],
+            1. / ray.direction[1],
+            1. / ray.direction[2]
+        ];
         let (mut tmin, mut tmax) = if invdir.x() >= 0.0 {
             let tmin = (self.min.x() - ray.origin.x()) * invdir.x();
             let tmax = (self.max.x() - ray.origin.x()) * invdir.x();

@@ -1,18 +1,32 @@
-use std::{env, fmt::format, path::Path, sync::Arc};
+use std::{env, path::Path, sync::Arc};
 
-use anyhow::{Result, anyhow};
-use archyrt_core::{loaders::{amdl::{AMDLLoader, amdl_textures}, Loader}, intersectables::bvh::BVH, renderers::solid_renderers::{albedo::AlbedoRenderer, normal::NormalRenderer}, collector::raw_collector::RawCollector, api::fragment_collector::FragmentCollector, textures::texture_repo::{TextureRepository}};
+use anyhow::{anyhow, Result};
+use archyrt_core::{
+    api::fragment_collector::FragmentCollector,
+    collector::raw_collector::RawCollector,
+    intersectables::bvh::BVH,
+    loaders::{
+        amdl::{amdl_textures, AMDLLoader},
+        Loader,
+    },
+    renderers::solid_renderers::{albedo::AlbedoRenderer, normal::NormalRenderer},
+    textures::texture_repo::TextureRepository,
+};
 use dotenv::dotenv;
-use futures::TryFutureExt;
+
 use futures_util::stream::StreamExt;
 use image::Rgb;
 use lapin::{
     message::Delivery,
-    options::{BasicAckOptions, BasicConsumeOptions, QueueDeclareOptions},
+    options::{BasicConsumeOptions, QueueDeclareOptions},
     types::FieldTable,
     Channel, Connection, ConnectionProperties, Queue,
 };
-use mongodb::{options::{ClientOptions, UpdateOptions}, bson::{Document, doc, oid::ObjectId}, Collection};
+use mongodb::{
+    bson::{doc, oid::ObjectId, Document},
+    options::{ClientOptions, UpdateOptions},
+    Collection,
+};
 use uuid::Uuid;
 
 async fn handle_job(
@@ -22,12 +36,12 @@ async fn handle_job(
     delivery: Delivery,
     response_queue: Queue,
     task_queue: Queue,
-    textures: Arc<TextureRepository>
+    textures: Arc<TextureRepository>,
 ) -> Result<()> {
     let response_queue = response_queue.name().as_str();
     let task_queue = task_queue.name().as_str();
     let s = String::from_utf8(delivery.data)?;
-    let s: Vec<&str> = s.split("#").collect();
+    let s: Vec<&str> = s.split('#').collect();
     let user = s[1];
     let project_id = s[2];
     let s = s[0].to_string();
@@ -67,7 +81,7 @@ async fn handle_job(
                 )
                 .await
                 .unwrap();
-            ()
+            
         })
         .await;
     channel
@@ -88,15 +102,26 @@ async fn handle_job(
     let mut counter = 0;
     println!("[{}] Waiting for workers to finish", render_id);
     while let Some(delivery) = consumer.next().await {
-        let (_, delivery) = delivery.unwrap();
+        let (_, _delivery) = delivery.unwrap();
         counter += 1;
         if counter >= samples {
             break;
         }
-        
+
         //Update percentage
         let percentage = (counter as f32) / (samples as f32);
-        users.update_many(doc! {"_id": user}, doc!{"$set":{"projects.$[project].renders.$[render].status": percentage}}, UpdateOptions::builder().array_filters(vec![doc!{"render._id": render_id}, doc!{"project._id": project_id}]).build()).await?;
+        users
+            .update_many(
+                doc! {"_id": user},
+                doc! {"$set":{"projects.$[project].renders.$[render].status": percentage}},
+                UpdateOptions::builder()
+                    .array_filters(vec![
+                        doc! {"render._id": render_id},
+                        doc! {"project._id": project_id},
+                    ])
+                    .build(),
+            )
+            .await?;
     }
     channel
         .queue_delete(response_queue, Default::default())
@@ -130,16 +155,23 @@ async fn handle_job(
     println!("[{}] Applying denoiser", render_id);
     //Render Albedo and Normal
     let scene: Vec<u8> =
-    redis::Cmd::get(format!("archyrt:{}:scene", s)).query(&mut redis_client)?;
+        redis::Cmd::get(format!("archyrt:{}:scene", s)).query(&mut redis_client)?;
     let scene = AMDLLoader::from_bytes(&scene)?;
     let width: usize = redis::Cmd::get(format!("archyrt:{}:width", s)).query(&mut redis_client)?;
-    let height: usize = redis::Cmd::get(format!("archyrt:{}:height", s)).query(&mut redis_client)?;
+    let height: usize =
+        redis::Cmd::get(format!("archyrt:{}:height", s)).query(&mut redis_client)?;
     let bvh = BVH::from_triangles(scene.get_triangles())
         .ok_or_else(|| anyhow!("Unable to create BVH"))?;
     let camera = scene.get_camera();
-    let albedo = AlbedoRenderer{object: &bvh, camera: &camera};
-    let normal = NormalRenderer{object: &bvh, camera: &camera};
-    let collector = RawCollector{};
+    let albedo = AlbedoRenderer {
+        object: &bvh,
+        camera: &camera,
+    };
+    let normal = NormalRenderer {
+        object: &bvh,
+        camera: &camera,
+    };
+    let collector = RawCollector {};
     let albedo = collector.collect(albedo, &textures, width, height);
     let normal = collector.collect(normal, &textures, width, height);
     let mut output: Vec<f32> = (0..image.len()).into_iter().map(|_| 0f32).collect();
@@ -256,8 +288,9 @@ fn main() -> Result<()> {
                 delivery,
                 response_queue,
                 task_queue.clone(),
-                textures.clone()
-            )).detach();
+                textures.clone(),
+            ))
+            .detach();
         }
 
         Ok(())

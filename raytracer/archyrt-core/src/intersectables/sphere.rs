@@ -1,17 +1,18 @@
 use crate::{
+    renderers::path_tracer::Material,
     textures::color_provider::SolidColor,
     utilities::{
         math::{solve_quadratic, QuadraticResult, Vec3},
         ray::{Intersectable, Intersection, IntersectionBuilder, Ray},
     },
-    vector, renderers::path_tracer::Material,
+    vector,
 };
 
 pub struct Sphere {
     pub origin: Vec3,
     pub radius: f64,
     pub color: Vec3,
-    pub material: Material
+    pub material: Material,
 }
 
 impl Default for Sphere {
@@ -20,7 +21,7 @@ impl Default for Sphere {
             origin: vector!(0.0, 0.0, 0.0),
             radius: 1.0,
             color: vector!(1.0, 1.0, 1.0),
-            material: Material::default()
+            material: Material::default(),
         }
     }
 }

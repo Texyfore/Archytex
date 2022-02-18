@@ -3,10 +3,11 @@ use archyrt_core::{
     collector::image_collector::ImageCollector,
     intersectables::sphere::Sphere,
     renderers::basic_renderer::BasicRenderer,
+    textures::texture_repo::TextureRepository,
     utilities::{
         math::Vec3,
         ray::{Intersectable, Ray},
-    }, textures::texture_repo::TextureRepository,
+    },
 };
 use criterion::{black_box, criterion_group, criterion_main, Criterion};
 

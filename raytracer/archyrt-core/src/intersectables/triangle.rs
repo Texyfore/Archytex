@@ -1,6 +1,6 @@
 use crate::renderers::path_tracer::Material;
 use crate::textures::color_provider::ColorProvider;
-use crate::textures::samplers::linear::LinearSampler;
+
 use crate::textures::samplers::nearest::NearestSampler;
 use crate::textures::samplers::TextureSampler;
 use crate::textures::texture_repo::TextureRepository;
@@ -26,7 +26,7 @@ pub struct Triangle {
     pub normal: Vec3,
     pub uv: [Vec2; 3],
     pub texture: TextureID,
-    pub material: Material
+    pub material: Material,
 }
 
 impl Triangle {
@@ -83,7 +83,7 @@ pub struct TriangleColor {
     pub uv: [Vec2; 3],
     pub barycentric: Vec3,
     pub texture: TextureID,
-    pub material: Material
+    pub material: Material,
 }
 
 impl ColorProvider for TriangleColor {
@@ -124,7 +124,7 @@ impl Intersectable for Triangle {
                     uv: self.uv,
                     barycentric: Vec3::new(u, v, 1.0 - u - v),
                     texture: self.texture,
-                    material: self.material
+                    material: self.material,
                 },
                 ..Default::default()
             }

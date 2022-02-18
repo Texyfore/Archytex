@@ -2,7 +2,6 @@ use crate::utilities::math::Matrix3x3;
 use crate::{
     api::{camera::Camera, fragment_render::FragmentContext},
     matrix,
-    textures::texture_repo::TextureRepository,
     utilities::{
         math::{Matrix, Vec2, Vec3},
         ray::Ray,

@@ -102,12 +102,13 @@ mod surface {
 mod triangle {
     use crate::{
         intersectables::triangle::Triangle,
+        renderers::path_tracer::Material,
         textures::TextureID,
         utilities::{
             math::Vec3,
             ray::{Intersectable, Ray},
         },
-        vector, renderers::path_tracer::Material,
+        vector,
     };
 
     #[test]
@@ -120,7 +121,7 @@ mod triangle {
             ],
             [vector!(0.0, 0.0), vector!(0.0, 1.0), vector!(1.0, 0.0)],
             TextureID::new(&0),
-            Material::Diffuse
+            Material::Diffuse,
         );
         let ray = Ray {
             origin: Vec3::from_single(0.0),
@@ -139,7 +140,7 @@ mod triangle {
             ],
             [vector!(0.0, 0.0), vector!(0.0, 1.0), vector!(1.0, 0.0)],
             TextureID::new(&0),
-            Material::Diffuse
+            Material::Diffuse,
         );
         let ray = Ray {
             origin: Vec3::new(0.0, 0.0, 5.0),

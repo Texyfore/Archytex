@@ -13,7 +13,7 @@ pub trait FragmentRender {
     fn render_fragment(&self, ctx: &FragmentContext, pos: Vec2) -> Vec3;
 }
 
-impl<T: FragmentRender> FragmentRender for &T{
+impl<T: FragmentRender> FragmentRender for &T {
     fn render_fragment(&self, ctx: &FragmentContext, pos: Vec2) -> Vec3 {
         (*self).render_fragment(ctx, pos)
     }

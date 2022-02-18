@@ -244,12 +244,13 @@ mod matrices {
 #[cfg(test)]
 mod rays {
     use crate::{
+        renderers::path_tracer::Material,
         textures::{color_provider::SolidColor, texture_repo::TextureRepository},
         utilities::{
             math::Vec3,
             ray::{IntersectionBuilder, Ray},
         },
-        vector, renderers::path_tracer::Material,
+        vector,
     };
 
     #[test]
@@ -323,7 +324,9 @@ mod rays {
 }
 
 mod quadratic {
-    use crate::utilities::math::{solve_quadratic, QuadraticResult};
+    use crate::utilities::math::{QuadraticResult, solve_quadratic};
+
+    
 
     #[test]
     fn solve() {

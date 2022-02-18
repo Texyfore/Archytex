@@ -1,4 +1,4 @@
-use crate::{utilities::math::Vec3, renderers::path_tracer::Material};
+use crate::{renderers::path_tracer::Material, utilities::math::Vec3};
 
 use super::texture_repo::TextureRepository;
 
@@ -18,5 +18,4 @@ impl ColorProvider for SolidColor {
     fn get_material(&self) -> Material {
         self.1
     }
-    
 }

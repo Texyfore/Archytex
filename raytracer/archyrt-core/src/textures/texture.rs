@@ -7,10 +7,11 @@ pub struct Texture {
 }
 
 impl Texture {
-    pub fn new(width: u32, height: u32) -> Self{
-        Self{
-            width, height,
-            data: (0..width*height).map(|_|Vec3::default()).collect()
+    pub fn new(width: u32, height: u32) -> Self {
+        Self {
+            width,
+            height,
+            data: (0..width * height).map(|_| Vec3::default()).collect(),
         }
     }
     pub fn width(&self) -> u32 {

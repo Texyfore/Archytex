@@ -1,4 +1,4 @@
-use std::{collections::HashMap, f64::consts::PI};
+use std::{f64::consts::PI};
 
 use rand_distr::{Distribution, UnitSphere};
 
@@ -88,7 +88,7 @@ impl<T: Camera, K: Intersectable> FragmentRender for PathTracer<T, K> {
                 Some(intersection) => {
                     let normal = intersection.get_normal();
                     let material = intersection.get_material(); //TODO: Handle materials
-                    material.color(&intersection, &ctx.repo, &mut emissive, &mut diffusive);
+                    material.color(&intersection, ctx.repo, &mut emissive, &mut diffusive);
                     ray = match material.reflect(intersection) {
                         Some(ray) => {
                             diffusive *= ray.direction.dot(normal);

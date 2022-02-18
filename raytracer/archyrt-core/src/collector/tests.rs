@@ -17,7 +17,8 @@ mod array_collector {
     use crate::{
         api::fragment_collector::FragmentCollector,
         collector::{array_collector::ArrayCollector, tests::DummyRenderer},
-        utilities::math::Vec3, textures::texture_repo::TextureRepository,
+        textures::texture_repo::TextureRepository,
+        utilities::math::Vec3,
     };
 
     const EPSILON: f64 = 0.0001;
@@ -65,7 +66,8 @@ mod array_collector {
 
 mod image_collector {
     use crate::{
-        api::fragment_collector::FragmentCollector, collector::image_collector::ImageCollector, textures::texture_repo::TextureRepository,
+        api::fragment_collector::FragmentCollector, collector::image_collector::ImageCollector,
+        textures::texture_repo::TextureRepository,
     };
 
     use super::DummyRenderer;

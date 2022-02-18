@@ -1,4 +1,4 @@
-use std::{collections::HashMap, path::Path};
+use std::{path::Path};
 
 use anyhow::Result;
 use image::io::Reader as ImageReader;
@@ -10,7 +10,11 @@ use crate::{
 
 use super::TextureRepository;
 
-pub fn load_into(repo: &mut TextureRepository, base: &str, textures: &[(TextureID, &str)]) -> Result<()> {
+pub fn load_into(
+    repo: &mut TextureRepository,
+    base: &str,
+    textures: &[(TextureID, &str)],
+) -> Result<()> {
     for (id, name) in textures {
         let texture = load(base, *name)?;
         repo.insert(*id, texture);
@@ -28,7 +32,8 @@ pub fn load(base: &str, name: &str) -> Result<Texture> {
                 a.0[0] as f64 / 255.0,
                 a.0[1] as f64 / 255.0,
                 a.0[2] as f64 / 255.0
-            ].from_srgb()
+            ]
+            .from_srgb()
         })
         .collect();
     Ok(Texture {

@@ -9,12 +9,12 @@ use crate::intersectables::triangle::Triangle;
 use crate::matrix;
 
 use crate::renderers::path_tracer::Material;
-use crate::textures::TextureID;
+
 
 use crate::utilities::math::Vector;
 
-use super::Loader;
 use super::amdl::amdl_textures::AMDLTextureType;
+use super::Loader;
 
 pub struct GltfLoader {
     camera: PerspectiveCamera,
@@ -77,7 +77,7 @@ impl GltfLoader {
                                         triangle[2].tex_coords.into(),
                                     ],
                                     AMDLTextureType::diffuse(1),
-                                    Material::Diffuse
+                                    Material::Diffuse,
                                 );
                                 t.normal = triangle[0].normal.into();
                                 t.normal += triangle[1].normal.into();
