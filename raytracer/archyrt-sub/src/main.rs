@@ -10,9 +10,11 @@ use archyrt_core::{
         amdl::{amdl_textures, AMDLLoader},
         Loader,
     },
-    renderers::{basic_renderer::BasicRenderer, path_tracer::PathTracer},
-    textures::texture_repo::png::PngTextureRepo,
-    vector,
+    renderers::{path_tracer::PathTracer},
+    textures::{
+        texture_repo::{self, TextureRepository},
+        TextureID,
+    },
 };
 use dotenv::dotenv;
 use futures::StreamExt;
@@ -23,7 +25,7 @@ use redis::AsyncCommands;
 struct SceneData(BVH, PerspectiveCamera);
 
 async fn render(
-    texture_repo: &PngTextureRepo,
+    texture_repo: &TextureRepository,
     cache: &mut LruCache<String, SceneData>,
     redis_client: &mut redis::Client,
     channel: &Channel,
@@ -31,7 +33,7 @@ async fn render(
 ) -> Result<()> {
     println!("Rendering");
     let s = String::from_utf8(delivery.data)?;
-    let s: Vec<&str> = s.split("#").collect();
+    let s: Vec<&str> = s.split('#').collect();
     let task = s[0].to_string();
     let id = s[1].to_string();
     let response = s[2].to_string();
@@ -54,6 +56,7 @@ async fn render(
         camera: &scene.1,
         object: &scene.0,
         bounces: 5,
+        skybox: Some(TextureID::new(&"skybox")),
     };
     let image = ArrayCollector {}.collect(renderer, texture_repo, width, height);
     //Convert image into bytes
@@ -69,8 +72,8 @@ async fn render(
     let image_key = format!("archyrt:{}:image", task);
     let channel = channel.clone();
     let redis_client = redis_client.clone();
-    
-    async_global_executor::spawn((||async move{
+
+    async_global_executor::spawn(async move {
         let mut con = redis_client.get_async_connection().await.unwrap();
         //Upload image to Redis
         let _: () = redis::cmd("AI.TENSORSET")
@@ -81,7 +84,9 @@ async fn render(
             .arg(3)
             .arg("BLOB")
             .arg(image)
-            .query_async(&mut con).await.unwrap();
+            .query_async(&mut con)
+            .await
+            .unwrap();
         //Add image to accumulator
         let _: () = redis::cmd("AI.SCRIPTEXECUTE")
             .arg("archyrt:scripts")
@@ -93,7 +98,9 @@ async fn render(
             .arg("OUTPUTS")
             .arg(1)
             .arg(&image_key)
-            .query_async(&mut con).await.unwrap();
+            .query_async(&mut con)
+            .await
+            .unwrap();
         //Remove temporary storage
         let _: () = redis::Cmd::del(temp).query_async(&mut con).await.unwrap();
         println!("Sending ACK");
@@ -105,11 +112,14 @@ async fn render(
                 Default::default(),
                 Default::default(),
             )
-            .await.unwrap();
+            .await
+            .unwrap();
         channel
             .basic_ack(delivery.delivery_tag, Default::default())
-            .await.unwrap();
-    })()).detach();
+            .await
+            .unwrap();
+    })
+    .detach();
     Ok(())
 }
 
@@ -128,7 +138,13 @@ fn main() -> Result<()> {
         .await?;
         let mut redis_client = redis::Client::open(redis_addr)?;
 
-        let textures = amdl_textures::load("../assets")?;
+        let mut textures = TextureRepository::new();
+        amdl_textures::load_into(&mut textures, "../assets")?;
+        texture_repo::exr::load_into(
+            &mut textures,
+            "../assets",
+            &[(TextureID::new(&"skybox"), "skybox.exr")],
+        )?;
 
         let channel = rabbitmq_client.create_channel().await?;
         let task_queue = channel
@@ -145,7 +161,7 @@ fn main() -> Result<()> {
         while let Some(delivery) = consumer.next().await {
             let (_, delivery) = delivery.unwrap();
             let future = render(&textures, &mut cache, &mut redis_client, &channel, delivery);
-            if let Err(err) = future.await{
+            if let Err(err) = future.await {
                 println!("Error: {}", err);
             }
         }

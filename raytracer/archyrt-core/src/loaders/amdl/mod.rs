@@ -4,7 +4,7 @@ use crate::intersectables::triangle::Triangle;
 use crate::loaders::Loader;
 
 use crate::renderers::path_tracer::Material;
-use crate::textures::TextureID;
+
 use crate::utilities::math::{Vec2, Vec3};
 use crate::{cameras::perspective::PerspectiveCamera, vector};
 use anyhow::{anyhow, Result};
@@ -15,6 +15,8 @@ use std::fs::File;
 use std::io::Read;
 
 use std::path::Path;
+
+use self::amdl_textures::AMDLTextureType;
 
 pub struct AMDLLoader {
     triangles: Vec<Triangle>,
@@ -51,8 +53,8 @@ impl AMDLLoader {
         Self::from_bytes(&buf)
     }
     pub fn from_bytes(data: &[u8]) -> Result<Self> {
-        let scene = mdl::Scene::decode(data)
-            .ok_or_else(|| anyhow!("Unable to decode scene file"))?;
+        let scene =
+            mdl::Scene::decode(data).ok_or_else(|| anyhow!("Unable to decode scene file"))?;
         Self::from_scene(scene)
     }
 
@@ -64,11 +66,11 @@ impl AMDLLoader {
         let rotation: Vec3 = scene.camera.rotation.into();
         let mut camera = PerspectiveCamera::from_euler(
             camera_pos,
-            rotation/180.0*std::f64::consts::PI,
+            rotation / 180.0 * std::f64::consts::PI,
             focal_distance,
         );
         camera.matrix = camera.matrix.transpose();
-        
+
         let faces = to_hashmap(scene.model.faces);
         let points = to_hashmap(scene.model.points);
         for (_, solid) in &scene.model.solids {
@@ -130,14 +132,14 @@ impl AMDLLoader {
                 let triangle1 = Triangle::new(
                     [point0, point2, point1],
                     [uv0, uv2, uv1],
-                    TextureID(face.texture_id.0),
-                    Material::Diffuse
+                    AMDLTextureType::diffuse(face.texture_id.0),
+                    Material::Diffuse,
                 );
                 let triangle2 = Triangle::new(
                     [point0, point3, point2],
                     [uv0, uv3, uv2],
-                    TextureID(face.texture_id.0),
-                    Material::Diffuse
+                    AMDLTextureType::diffuse(face.texture_id.0),
+                    Material::Diffuse,
                 );
                 triangles.push(triangle1);
                 triangles.push(triangle2);

@@ -1,25 +1,38 @@
-use std::{path::Path, fs::File, collections::HashMap};
 use anyhow::Result;
 use serde::{Deserialize, Serialize};
+use std::{fs::File, path::Path};
 
-use crate::textures::{texture_repo::png::PngTextureRepo, TextureID};
+use crate::textures::{
+    texture_repo::{png, TextureRepository},
+    TextureID,
+};
 
-#[derive(Serialize, Deserialize)]
-struct Texture{
-    pub id: u32,
-    pub url: String
+#[derive(Hash)]
+pub enum AMDLTextureType {
+    Diffuse(u32),
 }
 
-pub fn load(directory: &str) -> Result<PngTextureRepo>{
+impl AMDLTextureType {
+    pub fn diffuse(id: u32) -> TextureID {
+        TextureID::new(&Self::Diffuse(id))
+    }
+}
+
+#[derive(Serialize, Deserialize)]
+struct Texture {
+    pub id: u32,
+    pub url: String,
+}
+
+pub fn load_into(repo: &mut TextureRepository, directory: &str) -> Result<()> {
     let assetsjson = Path::new(directory).join("assets.json");
     let assetsjson = File::open(assetsjson)?;
     let json: Vec<Texture> = serde_json::from_reader(assetsjson)?;
-    let mut textures = HashMap::new();
-    for tex in json{
-        textures.insert(TextureID(tex.id), PngTextureRepo::generate_texture(directory, tex.url.as_str())?);
+    for tex in json {
+        repo.insert(
+            AMDLTextureType::diffuse(tex.id),
+            png::load(directory, tex.url.as_str())?,
+        );
     }
-    Ok(PngTextureRepo{
-        base: directory.into(),
-        textures,
-    })
+    Ok(())
 }

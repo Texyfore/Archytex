@@ -1,5 +1,6 @@
 use crate::renderers::path_tracer::Material;
 use crate::textures::color_provider::ColorProvider;
+
 use crate::textures::samplers::nearest::NearestSampler;
 use crate::textures::samplers::TextureSampler;
 use crate::textures::texture_repo::TextureRepository;
@@ -25,7 +26,7 @@ pub struct Triangle {
     pub normal: Vec3,
     pub uv: [Vec2; 3],
     pub texture: TextureID,
-    pub material: Material
+    pub material: Material,
 }
 
 impl Triangle {
@@ -73,7 +74,7 @@ impl Default for Triangle {
         let b = Vec3::new(1.0, -1.0, 3.0);
         let c = Vec3::new(-1.0, -1.0, 3.0);
         let uv = [vector![0.0, 0.0], vector![0.0, 1.0], vector![1.0, 0.0]];
-        Self::new([a, b, c], uv, TextureID(1), Material::Diffuse)
+        Self::new([a, b, c], uv, TextureID::new(&0), Material::Diffuse)
     }
 }
 
@@ -82,16 +83,16 @@ pub struct TriangleColor {
     pub uv: [Vec2; 3],
     pub barycentric: Vec3,
     pub texture: TextureID,
-    pub material: Material
+    pub material: Material,
 }
 
 impl ColorProvider for TriangleColor {
-    fn get_color<R: TextureRepository>(&self, repo: &R) -> Vec3 {
+    fn get_color(&self, repo: &TextureRepository) -> Vec3 {
         let sampler = NearestSampler {};
         let coords = self.uv[1] * self.barycentric[0]
             + self.uv[2] * self.barycentric[1]
             + self.uv[0] * self.barycentric[2];
-        sampler.sample(repo, self.texture, coords)
+        sampler.sample_or_default(repo.get(self.texture), coords)
     }
 
     fn get_material(&self) -> Material {
@@ -123,7 +124,7 @@ impl Intersectable for Triangle {
                     uv: self.uv,
                     barycentric: Vec3::new(u, v, 1.0 - u - v),
                     texture: self.texture,
-                    material: self.material
+                    material: self.material,
                 },
                 ..Default::default()
             }

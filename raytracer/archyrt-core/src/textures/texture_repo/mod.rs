@@ -1,21 +1,24 @@
+use std::collections::HashMap;
+
 use super::{texture::Texture, TextureID};
 
+pub mod exr;
 pub mod png;
 
-pub trait TextureRepository {
-    fn get(&self, id: TextureID) -> Option<&Texture>;
+pub struct TextureRepository {
+    pub textures: HashMap<TextureID, Texture>,
 }
 
-impl<T: TextureRepository> TextureRepository for &T{
-    fn get(&self, id: TextureID) -> Option<&Texture> {
-        (*self).get(id)
+impl TextureRepository {
+    pub fn new() -> Self {
+        let t = HashMap::new();
+        Self { textures: t }
     }
-}
-
-pub struct DummyTextureRepository();
-
-impl TextureRepository for DummyTextureRepository {
-    fn get(&self, _id: TextureID) -> Option<&Texture> {
-        None
+    pub fn get(&self, id: TextureID) -> Option<&Texture> {
+        let texture = self.textures.get(&id)?;
+        Some(texture)
+    }
+    pub fn insert(&mut self, id: TextureID, texture: Texture) {
+        self.textures.insert(id, texture);
     }
 }

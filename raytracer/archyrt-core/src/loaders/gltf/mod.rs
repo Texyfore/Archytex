@@ -9,10 +9,11 @@ use crate::intersectables::triangle::Triangle;
 use crate::matrix;
 
 use crate::renderers::path_tracer::Material;
-use crate::textures::TextureID;
+
 
 use crate::utilities::math::Vector;
 
+use super::amdl::amdl_textures::AMDLTextureType;
 use super::Loader;
 
 pub struct GltfLoader {
@@ -75,8 +76,8 @@ impl GltfLoader {
                                         triangle[1].tex_coords.into(),
                                         triangle[2].tex_coords.into(),
                                     ],
-                                    TextureID(1),
-                                    Material::Diffuse
+                                    AMDLTextureType::diffuse(1),
+                                    Material::Diffuse,
                                 );
                                 t.normal = triangle[0].normal.into();
                                 t.normal += triangle[1].normal.into();

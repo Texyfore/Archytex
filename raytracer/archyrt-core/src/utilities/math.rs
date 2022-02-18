@@ -300,10 +300,10 @@ impl Vec3 {
     pub fn new(x: f64, y: f64, z: f64) -> Self {
         Self::from_array([x, y, z])
     }
-    pub fn to_srgb(self) -> Self{
-        self.powf(1.0/2.2)
+    pub fn to_srgb(self) -> Self {
+        self.powf(1.0 / 2.2)
     }
-    pub fn from_srgb(self) -> Self{
+    pub fn from_srgb(self) -> Self {
         self.powf(2.2)
     }
     pub fn x(self) -> f64 {

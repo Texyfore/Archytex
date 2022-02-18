@@ -244,17 +244,18 @@ mod matrices {
 #[cfg(test)]
 mod rays {
     use crate::{
-        textures::{color_provider::SolidColor, texture_repo::DummyTextureRepository},
+        renderers::path_tracer::Material,
+        textures::{color_provider::SolidColor, texture_repo::TextureRepository},
         utilities::{
             math::Vec3,
             ray::{IntersectionBuilder, Ray},
         },
-        vector, renderers::path_tracer::Material,
+        vector,
     };
 
     #[test]
     fn intersection_builder() {
-        let dummy_textures = DummyTextureRepository();
+        let dummy_textures = TextureRepository::new();
         let color = Vec3::new(1.0, 2.0, 3.0);
         let normal = Vec3::new(4.0, 5.0, 6.0);
         let pos = Some(Vec3::new(7.0, 8.0, 9.0));
@@ -323,7 +324,9 @@ mod rays {
 }
 
 mod quadratic {
-    use crate::utilities::math::{solve_quadratic, QuadraticResult};
+    use crate::utilities::math::{QuadraticResult, solve_quadratic};
+
+    
 
     #[test]
     fn solve() {

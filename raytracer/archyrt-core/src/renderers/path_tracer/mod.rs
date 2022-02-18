@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::{f64::consts::PI};
 
 use rand_distr::{Distribution, UnitSphere};
 
@@ -7,11 +7,17 @@ use crate::{
         camera::Camera,
         fragment_render::{FragmentContext, FragmentRender},
     },
-    textures::{color_provider::ColorProvider, texture_repo::TextureRepository, TextureID},
+    textures::{
+        color_provider::ColorProvider,
+        samplers::{nearest::NearestSampler, TextureSampler},
+        texture_repo::TextureRepository,
+        TextureID,
+    },
     utilities::{
         math::{Vec2, Vec3},
         ray::{Intersectable, Intersection, Ray},
     },
+    vector,
 };
 
 #[derive(Clone, Copy, Debug)]
@@ -20,7 +26,7 @@ pub enum Material {
     Emissive { power: f64 },
 }
 
-impl Default for Material{
+impl Default for Material {
     fn default() -> Self {
         Self::Diffuse
     }
@@ -47,10 +53,10 @@ impl Material {
             Material::Emissive { power: _ } => None,
         }
     }
-    pub fn color<C: ColorProvider, R: TextureRepository>(
+    pub fn color<C: ColorProvider>(
         self,
         intersection: &Intersection<C>,
-        repo: &R,
+        repo: &TextureRepository,
         emissive: &mut Vec3,
         diffusive: &mut Vec3,
     ) {
@@ -69,19 +75,20 @@ pub struct PathTracer<T: Camera, K: Intersectable> {
     pub camera: T,
     pub object: K,
     pub bounces: usize,
+    pub skybox: Option<TextureID>,
 }
 
 impl<T: Camera, K: Intersectable> FragmentRender for PathTracer<T, K> {
-    fn render_fragment<R: TextureRepository>(&self, ctx: &FragmentContext<R>, pos: Vec2) -> Vec3 {
+    fn render_fragment(&self, ctx: &FragmentContext, pos: Vec2) -> Vec3 {
         let mut ray = self.camera.get_ray(ctx, pos);
         let mut emissive = Vec3::default();
         let mut diffusive = Vec3::from_single(1.0);
-        for _ in 0..self.bounces {
+        for bounce in 0..self.bounces {
             match self.object.intersect(ray) {
                 Some(intersection) => {
                     let normal = intersection.get_normal();
                     let material = intersection.get_material(); //TODO: Handle materials
-                    material.color(&intersection, &ctx.repo, &mut emissive, &mut diffusive);
+                    material.color(&intersection, ctx.repo, &mut emissive, &mut diffusive);
                     ray = match material.reflect(intersection) {
                         Some(ray) => {
                             diffusive *= ray.direction.dot(normal);
@@ -94,13 +101,44 @@ impl<T: Camera, K: Intersectable> FragmentRender for PathTracer<T, K> {
                 }
                 None => {
                     //The sky is blue
-                    emissive += (diffusive
-                        * Vec3::new(
-                            0xd4 as f64 / 255.0,
-                            0xe6 as f64 / 255.0,
-                            0xff as f64 / 255.0,
-                        ))
-                        * 3.0;
+                    let sky_color = match self.skybox {
+                        //Skybox color
+                        Some(skybox) if bounce != 0 => {
+                            let sampler = NearestSampler {};
+                            let texture = ctx.repo.get(skybox).unwrap();
+                            let longitude = ray.direction.x().atan2(ray.direction.z());
+                            let latitude = -(ray.direction.y() / ray.direction.length()).asin();
+                            let longitude = (longitude / PI + 1.0) * 0.5;
+                            let latitude = (latitude / (PI / 2.0) + 1.0) * 0.5;
+                            sampler.sample(texture, vector![longitude, latitude]) * 3.0
+                        }
+                        //Background color
+                        _ if bounce == 0 => {
+                            let c_top = Vec3::new(
+                                0xd4 as f64 / 255.0,
+                                0xe6 as f64 / 255.0,
+                                0xff as f64 / 255.0,
+                            )
+                            .to_srgb();
+                            let c_bottom = Vec3::new(
+                                0x0f as f64 / 255.0,
+                                0x48 as f64 / 255.0,
+                                0xa3 as f64 / 255.0,
+                            )
+                            .to_srgb();
+                            let t = ((ray.direction.y()) + 1.0) * 0.5;
+                            c_top * t + c_bottom * (1.0 - t)
+                        }
+                        //Default skybox color
+                        _ => {
+                            Vec3::new(
+                                0xd4 as f64 / 255.0,
+                                0xe6 as f64 / 255.0,
+                                0xff as f64 / 255.0,
+                            ) * 3.0
+                        }
+                    };
+                    emissive += diffusive * sky_color;
                     break;
                 }
             }
