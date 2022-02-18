@@ -1,12 +1,12 @@
 use std::fs::{read_dir, write};
 
-use clap::{App, Arg};
+use clap::{Arg, Command};
 
 use asset::{Gizmo, GizmoVertex};
 use gltf::mesh::util::ReadIndices;
 
 fn main() {
-    let matches = App::new("agzm")
+    let matches = Command::new("agzm")
         .arg(Arg::new("in").required(true))
         .arg(Arg::new("out").required(true))
         .get_matches();

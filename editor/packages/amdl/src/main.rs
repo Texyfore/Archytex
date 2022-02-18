@@ -1,12 +1,12 @@
 use std::fs::{self, read_dir, write};
 
-use clap::{App, Arg};
+use clap::{Command, Arg};
 
 use asset::{BoundingBox, Prop, PropMesh, PropVertex, TextureID};
 use gltf::mesh::util::{ReadIndices, ReadTexCoords};
 
 fn main() {
-    let matches = App::new("agzm")
+    let matches = Command::new("agzm")
         .arg(Arg::new("in").required(true))
         .arg(Arg::new("out").required(true))
         .get_matches();
