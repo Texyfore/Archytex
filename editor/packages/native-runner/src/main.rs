@@ -7,10 +7,12 @@ use std::{
 };
 
 use app::{run, Host, Init, Resource, ResourceKind, ToHost, Winit};
+use comms::AsyncStdin;
 use winit::{event_loop::EventLoop, window::WindowBuilder};
 
 fn main() {
-    let (_sender, receiver) = channel();
+    let (sender, receiver) = channel();
+    let _stdin = AsyncStdin::new(sender);
     run(Init {
         winit: winit(),
         resources: resources(),
