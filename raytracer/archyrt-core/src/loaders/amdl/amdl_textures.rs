@@ -16,7 +16,7 @@ pub fn load(directory: &str) -> Result<PngTextureRepo>{
     let json: Vec<Texture> = serde_json::from_reader(assetsjson)?;
     let mut textures = HashMap::new();
     for tex in json{
-        textures.insert(TextureID(tex.id), PngTextureRepo::generate_texture(directory, tex.url.as_str())?);
+        textures.insert(TextureID(tex.id), PngTextureRepo::load(directory, tex.url.as_str())?);
     }
     Ok(PngTextureRepo{
         base: directory.into(),

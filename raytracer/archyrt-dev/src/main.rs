@@ -80,13 +80,13 @@ fn main() {
     };
     let renderer = SamplingRenderer {
         inner: renderer,
-        samples: 5,
+        samples: 3,
     };
     let albedo = AlbedoRenderer{object: &object, camera: &camera};
     let normal = NormalRenderer{object: &object, camera: &camera};
     let collector = RawCollector {};
-    let w = 1920;
-    let h = 1080;
+    let w = 512;
+    let h = 512;
     println!("Rendering image");
     let rt_image = collector
         .collect(&renderer, &repo, w, h);

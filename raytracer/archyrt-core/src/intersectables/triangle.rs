@@ -91,7 +91,7 @@ impl ColorProvider for TriangleColor {
         let coords = self.uv[1] * self.barycentric[0]
             + self.uv[2] * self.barycentric[1]
             + self.uv[0] * self.barycentric[2];
-        sampler.sample(repo, self.texture, coords)
+        sampler.sample_or_default(repo.get(self.texture), coords)
     }
 
     fn get_material(&self) -> Material {
