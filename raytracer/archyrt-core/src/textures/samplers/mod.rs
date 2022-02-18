@@ -1,4 +1,5 @@
 pub mod nearest;
+pub mod linear;
 
 use crate::utilities::math::{Vec2, Vec3};
 

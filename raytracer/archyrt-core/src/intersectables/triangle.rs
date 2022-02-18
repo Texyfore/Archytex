@@ -1,5 +1,6 @@
 use crate::renderers::path_tracer::Material;
 use crate::textures::color_provider::ColorProvider;
+use crate::textures::samplers::linear::LinearSampler;
 use crate::textures::samplers::nearest::NearestSampler;
 use crate::textures::samplers::TextureSampler;
 use crate::textures::texture_repo::TextureRepository;
