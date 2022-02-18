@@ -1,0 +1,11 @@
+[package]
+name = "native-runner"
+version = "0.1.0"
+edition = "2021"
+description = "A native runner for the Archytex editor"
+authors = ["Gulyás Arnold"]
+default-run = "native-runner"
+
+[dependencies]
+winit = "0"
+app = { path = "../app" }

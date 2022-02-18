@@ -1,0 +1,11 @@
+[package]
+name = "agzm"
+version = "0.1.0"
+edition = "2021"
+description = "gltf to agzm converter"
+authors = ["Gulyás Arnold"]
+
+[dependencies]
+clap = "3"
+gltf = "0"
+asset = { path = "../asset" }

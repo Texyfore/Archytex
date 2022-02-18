@@ -1,0 +1,14 @@
+[package]
+name = "app"
+version = "0.1.0"
+edition = "2021"
+description = "Archytex editor"
+authors = ["Gulyás Arnold"]
+
+[dependencies]
+winit = "0"
+cgmath = "0"
+bytemuck = "1"
+instant = "0"
+gpu = { path = "../gpu" }
+asset = { path = "../asset" }

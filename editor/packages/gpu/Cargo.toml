@@ -1,0 +1,12 @@
+[package]
+name = "gpu"
+version = "0.1.0"
+edition = "2021"
+description = "A very simple GPU abstraction for the Archytex editor"
+authors = ["Gulyás Arnold"]
+
+[dependencies]
+wgpu = "=0.12.0"
+futures-lite = "=1.12.0"
+raw-window-handle = "=0.4.2"
+bytemuck = "=1.7.3"

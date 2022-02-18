@@ -1,0 +1,12 @@
+[package]
+name = "amdl"
+version = "0.1.0"
+edition = "2021"
+description = "gltf to amdl converter"
+authors = ["Gulyás Arnold"]
+
+[dependencies]
+clap = "3"
+gltf = "0"
+cgmath = "0"
+asset = { path = "../asset" }

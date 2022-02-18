@@ -1,0 +1,13 @@
+[package]
+name = "asset"
+version = "0.1.0"
+edition = "2021"
+description = "Asset loading library"
+authors = ["Gulyás Arnold"]
+
+[dependencies]
+image = "0"
+bytemuck = "1"
+bincode = "1"
+cgmath = { version = "0", features = ["serde"] }
+serde = { version = "1", features = ["derive"] }

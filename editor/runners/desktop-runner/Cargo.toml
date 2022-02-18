@@ -1,8 +1,0 @@
-[package]
-name = "desktop-runner"
-version = "0.1.0"
-edition = "2021"
-
-[dependencies]
-viewport = { path = "../../viewport" }
-asset-id = { path = "../../../toolkit/asset-id" }
