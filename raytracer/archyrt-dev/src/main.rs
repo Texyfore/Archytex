@@ -9,7 +9,7 @@ use archyrt_core::loaders::amdl::{amdl_textures, AMDLLoader};
 use archyrt_core::renderers::path_tracer::{Material, PathTracer};
 use archyrt_core::renderers::solid_renderers::albedo::AlbedoRenderer;
 use archyrt_core::renderers::solid_renderers::normal::NormalRenderer;
-use archyrt_core::textures::texture_repo::TextureRepository;
+use archyrt_core::textures::texture_repo::{TextureRepository, self};
 use archyrt_core::utilities::math::{Vec2, Vector};
 use archyrt_core::utilities::ray::{Intersectable, Ray};
 use archyrt_core::{
@@ -48,7 +48,10 @@ fn main() {
     println!("Load file");
     let mut repo = TextureRepository::new();
     amdl_textures::load_into(&mut repo, "../assets").unwrap();
-    let loader = AMDLLoader::from_path("../assets/house_inside.ascn").unwrap();
+    let skybox_id = TextureID::new(&"skybox");
+    texture_repo::exr::load_into(&mut repo, "../assets", &[(skybox_id, "skybox.exr")]).unwrap();
+    let skybox = Some(skybox_id);
+    let loader = AMDLLoader::from_path("../assets/portal.ascn").unwrap();
     let camera = loader.get_camera();
     let object = loader.get_triangles();
     let object = BVH::from_triangles(object).unwrap();
@@ -71,23 +74,24 @@ fn main() {
         radius: radius,
         material: Material::Emissive { power: 10.0 },
     };
-    let object = object.union(sphere);
-    let object = object.union(sphere2);
+    //let object = object.union(sphere);
+    //let object = object.union(sphere2);
     println!("Render");
     let renderer = PathTracer {
+        skybox,
         object: &object,
         camera: &camera,
         bounces: 5,
     };
     let renderer = SamplingRenderer {
         inner: renderer,
-        samples: 3,
+        samples: 5,
     };
     let albedo = AlbedoRenderer{object: &object, camera: &camera};
     let normal = NormalRenderer{object: &object, camera: &camera};
     let collector = RawCollector {};
-    let w = 512;
-    let h = 512;
+    let w = 1920/2;
+    let h = 1080/2;
     println!("Rendering image");
     let rt_image = collector
         .collect(&renderer, &repo, w, h);

@@ -11,7 +11,7 @@ use archyrt_core::{
         Loader,
     },
     renderers::{basic_renderer::BasicRenderer, path_tracer::PathTracer},
-    vector, textures::texture_repo::TextureRepository,
+    vector, textures::{texture_repo::{TextureRepository, self}, TextureID},
 };
 use dotenv::dotenv;
 use futures::StreamExt;
@@ -53,6 +53,7 @@ async fn render(
         camera: &scene.1,
         object: &scene.0,
         bounces: 5,
+        skybox: Some(TextureID::new(&"skybox"))
     };
     let image = ArrayCollector {}.collect(renderer, texture_repo, width, height);
     //Convert image into bytes
@@ -129,6 +130,8 @@ fn main() -> Result<()> {
 
         let mut textures = TextureRepository::new();
         amdl_textures::load_into(&mut textures, "../assets")?;
+        texture_repo::exr::load_into(&mut textures, "../assets", &[(TextureID::new(&"skybox"), "skybox.exr")])?;
+
 
         let channel = rabbitmq_client.create_channel().await?;
         let task_queue = channel
