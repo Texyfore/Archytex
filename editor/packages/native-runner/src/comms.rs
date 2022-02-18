@@ -1,4 +1,5 @@
 use std::{
+    fs,
     io::stdin,
     sync::mpsc::Sender,
     thread::{spawn, JoinHandle},
@@ -17,27 +18,37 @@ impl AsyncStdin {
                 let mut input = String::new();
                 stdin().read_line(&mut input).unwrap();
                 let input = input.trim();
+                let mut tokens = input.split(' ');
 
-                match input {
-                    "res" => {
-                        sender
-                            .send(FromHost::Resolution {
-                                width: 100,
-                                height: 100,
-                            })
-                            .unwrap();
-                        println!("[native-runner] changed resolution");
-                    }
-                    "save" => {
-                        sender.send(FromHost::SaveScene).unwrap();
-                        println!("[native-runner] requested save");
-                    }
-                    "exit" => {
-                        println!("[native-runner] closed stdin");
-                        break;
-                    }
-                    _ => {
-                        println!("[native-runner] bad input");
+                if let Some(token) = tokens.next() {
+                    match token {
+                        "res" => {
+                            sender
+                                .send(FromHost::Resolution {
+                                    width: tokens.next().unwrap().parse().unwrap(),
+                                    height: tokens.next().unwrap().parse().unwrap(),
+                                })
+                                .unwrap();
+                            println!("[native-runner] changed resolution");
+                        }
+                        "save" => {
+                            sender.send(FromHost::SaveScene).unwrap();
+                            println!("[native-runner] requested save");
+                        }
+                        "load" => {
+                            let name = tokens.next().unwrap();
+                            let path = format!("{}.ascn", name);
+                            let buf = fs::read(&path).unwrap();
+                            sender.send(FromHost::LoadScene(buf)).unwrap();
+                            println!("[native-runner] loading `{}`", path);
+                        }
+                        "exit" => {
+                            println!("[native-runner] closed stdin");
+                            break;
+                        }
+                        _ => {
+                            println!("[native-runner] bad input");
+                        }
                     }
                 }
             })),
