@@ -1,3 +1,4 @@
+use asset::scene;
 use cgmath::{
     perspective, vec2, vec3, Deg, Matrix3, Matrix4, SquareMatrix, Transform, Vector2, Vector3,
     Vector4, Zero,
@@ -129,11 +130,16 @@ impl Camera {
         None
     }
 
-    pub fn save(&self) -> asset::scene::Camera {
-        asset::scene::Camera {
+    pub fn save(&self) -> scene::Camera {
+        scene::Camera {
             position: self.position,
             rotation: self.rotation,
         }
+    }
+
+    pub fn load(&mut self, camera: &scene::Camera) {
+        self.position = camera.position;
+        self.rotation = camera.rotation;
     }
 
     fn forward(&self) -> Vector3<f32> {

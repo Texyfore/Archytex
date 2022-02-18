@@ -82,9 +82,19 @@ impl Logic {
             camera: self.camera.save(),
             world: self.scene.save(),
         };
-        
+
         let buf = scene.encode().unwrap();
         ctx.host.callback(ToHost::SceneSaved(buf));
+    }
+
+    pub fn load_scene(&mut self, ctx: Context, scene: &asset::scene::Scene) {
+        self.camera.load(&scene.camera);
+        self.scene.load(
+            scene::Context {
+                graphics: ctx.graphics,
+            },
+            &scene.world,
+        );
     }
 
     pub fn render(&self, canvas: &mut Canvas) {

@@ -7,7 +7,7 @@ mod math;
 
 use std::{sync::mpsc::Receiver, time::Instant};
 
-use asset::{Gizmo, GizmoID, Prop, PropID, Texture, TextureID};
+use asset::{scene::Scene, Gizmo, GizmoID, Prop, PropID, Texture, TextureID};
 use data::PropInfoContainer;
 use logic::Logic;
 use winit::{
@@ -125,6 +125,18 @@ pub fn run(init: Init) {
                                 delta,
                             });
                         }
+                        FromHost::LoadScene(buf) => {
+                            let scene = Scene::decode(&buf).unwrap();
+                            logic.load_scene(
+                                logic::Context {
+                                    host: host.as_ref(),
+                                    graphics: &graphics,
+                                    prop_infos: &prop_info,
+                                    delta,
+                                },
+                                &scene,
+                            );
+                        }
                         FromHost::Prop(_) => todo!(),
                         FromHost::Texture(_) => todo!(),
                     }
@@ -181,6 +193,7 @@ pub enum ToHost {
 pub enum FromHost {
     Resolution { width: u32, height: u32 },
     SaveScene,
+    LoadScene(Vec<u8>),
     Prop(u32),
     Texture(u32),
 }

@@ -110,6 +110,17 @@ impl Solid {
 
         scene::Solid { points, faces }
     }
+
+    pub fn load(graphics: &Graphics, solid: &scene::Solid) -> Self {
+        let geometry = SolidGeometry::load(solid);
+        let graphics = meshgen(graphics, &geometry, false);
+
+        Self {
+            geometry,
+            selected: false,
+            graphics,
+        }
+    }
 }
 
 struct Point {
@@ -188,6 +199,35 @@ impl SolidGeometry {
             [1, 0, 4, 5],
         ]
         .map(|indices| (TextureID(0), indices).into());
+
+        Self { points, faces }
+    }
+
+    pub fn load(solid: &scene::Solid) -> Self {
+        let points = solid
+            .points
+            .iter()
+            .map(|point| Point {
+                position: point.position,
+                selected: false,
+            })
+            .collect::<Vec<_>>()
+            .try_into()
+            .ok()
+            .unwrap();
+
+        let faces = solid
+            .faces
+            .iter()
+            .map(|face| Face {
+                texture: face.texture,
+                indices: face.indices.map(|i| i as usize),
+                selected: false,
+            })
+            .collect::<Vec<_>>()
+            .try_into()
+            .ok()
+            .unwrap();
 
         Self { points, faces }
     }
@@ -340,6 +380,19 @@ impl Prop {
             asset: self.asset,
             position: self.position,
             rotation: self.rotation,
+        }
+    }
+
+    pub fn load(graphics: &Graphics, prop: &scene::Prop) -> Self {
+        Self {
+            asset: prop.asset,
+            position: prop.position,
+            rotation: prop.rotation,
+            selected: false,
+            data: graphics.create_prop_data(&TransformTint {
+                transform: prop_transform(prop.position, prop.rotation),
+                tint: [0.0; 4],
+            }),
         }
     }
 }

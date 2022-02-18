@@ -183,6 +183,31 @@ impl Scene {
         scene::World { solids, props }
     }
 
+    pub fn load(&mut self, ctx: Context, world: &scene::World) {
+        self.next_elem_id = 0;
+        self.solids = world
+            .solids
+            .iter()
+            .map(|solid| {
+                let index = self.next_elem_id;
+                self.next_elem_id += 1;
+                let solid = Solid::load(ctx.graphics, solid);
+                (index, solid)
+            })
+            .collect();
+
+        self.props = world
+            .props
+            .iter()
+            .map(|prop| {
+                let index = self.next_elem_id;
+                self.next_elem_id += 1;
+                let prop = Prop::load(ctx.graphics, prop);
+                (index, prop)
+            })
+            .collect()
+    }
+
     fn execute(&mut self, ctx: Context, action: Action) -> Option<Action> {
         match action {
             Action::NewSolids(solids) => {
