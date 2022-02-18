@@ -3,6 +3,7 @@ use std::collections::HashMap;
 use super::{texture::Texture, TextureID};
 
 pub mod png;
+pub mod exr;
 
 pub struct TextureRepository {
     pub textures: HashMap<TextureID, Texture>,

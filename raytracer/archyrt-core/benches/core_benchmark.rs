@@ -36,7 +36,7 @@ pub fn rendering(c: &mut Criterion) {
                 ..Default::default()
             };
             let collector = ImageCollector {};
-            let image = collector.collect(renderer, repo, 10, 10).unwrap();
+            let image = collector.collect(renderer, &repo, 10, 10).unwrap();
             black_box(image);
         })
     });
