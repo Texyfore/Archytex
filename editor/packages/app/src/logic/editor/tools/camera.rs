@@ -84,7 +84,7 @@ impl Tool for CameraTool {
                     scene::Context {
                         graphics: ctx.graphics,
                     },
-                    Action::AssignTexture(TextureID(1)),
+                    Action::AssignTexture(TextureID(2)),
                 );
             }
 

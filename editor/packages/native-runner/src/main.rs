@@ -59,6 +59,11 @@ fn resources() -> Vec<Resource> {
         },
         Resource {
             id: 1,
+            buf: include_bytes!("../assets/ground.png").to_vec(),
+            kind: ResourceKind::Texture,
+        },
+        Resource {
+            id: 2,
             buf: include_bytes!("../assets/bricks.png").to_vec(),
             kind: ResourceKind::Texture,
         },

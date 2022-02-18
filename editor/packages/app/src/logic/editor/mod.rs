@@ -1,12 +1,14 @@
 mod tools;
 
 use asset::TextureID;
-use cgmath::{vec3, Vector3};
+use cgmath::vec3;
 use winit::event::VirtualKeyCode;
 
 use crate::{
     data::PropInfoContainer,
-    graphics::{structures::SolidVertex, Canvas, Graphics, Share, SolidMesh, SolidMeshDescriptor},
+    graphics::{
+        structures::GroundVertex, Canvas, Graphics, GroundMesh, GroundMeshDescriptor, Share,
+    },
 };
 
 use self::tools::{CameraTool, Tool};
@@ -94,24 +96,21 @@ pub struct Context<'a> {
 }
 
 struct Ground {
-    mesh: SolidMesh,
+    mesh: GroundMesh,
 }
 
 impl Ground {
     fn new(graphics: &Graphics) -> Self {
-        const TINT: [f32; 4] = [0.0; 4];
         const POSITIONS: [[f32; 2]; 4] = [[0.0, 0.0], [0.0, 1.0], [1.0, 1.0], [1.0, 0.0]];
 
-        let vertices = POSITIONS.map(|pos| SolidVertex {
-            position: vec3(pos[0] - 0.5, 0.0, pos[1] - 0.5) * 100.0,
-            normal: Vector3::unit_y(),
+        let vertices = POSITIONS.map(|pos| GroundVertex {
+            position: vec3(pos[0] - 0.5, 0.0, pos[1] - 0.5) * 10000.0,
             texcoord: pos.into(),
-            tint: TINT,
         });
 
         Self {
-            mesh: graphics.create_solid_mesh(SolidMeshDescriptor {
-                texture: TextureID(0),
+            mesh: graphics.create_ground_mesh(GroundMeshDescriptor {
+                texture: TextureID(1),
                 vertices: &vertices,
                 triangles: &[[0, 1, 2], [0, 2, 3]],
             }),
@@ -119,6 +118,6 @@ impl Ground {
     }
 
     fn render(&self, canvas: &mut Canvas) {
-        canvas.draw_solid(self.mesh.share());
+        canvas.draw_ground(self.mesh.share());
     }
 }

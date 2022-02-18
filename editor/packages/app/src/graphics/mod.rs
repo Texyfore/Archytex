@@ -12,7 +12,7 @@ use winit::window::Window;
 pub use canvas::*;
 pub use renderer::Renderer;
 
-use self::structures::{GizmoInstance, LineVertex, SolidVertex, TransformTint};
+use self::structures::{GizmoInstance, GroundVertex, LineVertex, SolidVertex, TransformTint};
 
 pub fn init(window: &Window) -> (Renderer, Graphics) {
     let (gpu, surface) = gpu::init(window);
@@ -55,6 +55,20 @@ impl Graphics {
         }
     }
 
+    pub fn create_ground_mesh(&self, descriptor: GroundMeshDescriptor) -> GroundMesh {
+        GroundMesh {
+            texture: descriptor.texture,
+            vertices: Rc::new(
+                self.gpu
+                    .create_buffer(descriptor.vertices, BufferUsages::VERTEX),
+            ),
+            triangles: Rc::new(
+                self.gpu
+                    .create_buffer(descriptor.triangles, BufferUsages::INDEX),
+            ),
+        }
+    }
+
     pub fn create_prop_data(&self, data: &TransformTint) -> PropData {
         PropData {
             uniform: Rc::new(self.gpu.create_uniform(data)),
@@ -76,6 +90,12 @@ pub struct LineMeshDescriptor<'v> {
 pub struct SolidMeshDescriptor<'v, 't> {
     pub texture: TextureID,
     pub vertices: &'v [SolidVertex],
+    pub triangles: &'t [[u16; 3]],
+}
+
+pub struct GroundMeshDescriptor<'v, 't> {
+    pub texture: TextureID,
+    pub vertices: &'v [GroundVertex],
     pub triangles: &'t [[u16; 3]],
 }
 

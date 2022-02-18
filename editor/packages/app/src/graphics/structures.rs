@@ -63,6 +63,9 @@ unsafe impl Pod for LineVertex {}
 unsafe impl Zeroable for SolidVertex {}
 unsafe impl Pod for SolidVertex {}
 
+unsafe impl Zeroable for GroundVertex {}
+unsafe impl Pod for GroundVertex {}
+
 unsafe impl Zeroable for TransformTint {}
 unsafe impl Pod for TransformTint {}
 

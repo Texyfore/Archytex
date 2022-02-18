@@ -62,7 +62,7 @@ impl Renderer {
         let mut frame = self.gpu.begin_frame(&self.surface);
 
         {
-            let mut pass = frame.begin_pass(&self.depth_buffer, &[0.1; 3]);
+            let mut pass = frame.begin_pass(&self.depth_buffer, &[0.537, 0.847, 1.0]);
             pass.set_uniform(0, &self.camera);
 
             pass.set_pipeline(&self.pipelines.line);
@@ -72,6 +72,14 @@ impl Renderer {
 
             pass.set_pipeline(&self.pipelines.solid);
             for mesh in &canvas.solid_meshes {
+                if let Some(texture) = self.resources.texture(mesh.texture) {
+                    pass.set_texture(1, texture);
+                    pass.draw_triangles(&mesh.vertices, &mesh.triangles);
+                }
+            }
+
+            pass.set_pipeline(&self.pipelines.ground);
+            for mesh in &canvas.ground_meshes {
                 if let Some(texture) = self.resources.texture(mesh.texture) {
                     pass.set_texture(1, texture);
                     pass.draw_triangles(&mesh.vertices, &mesh.triangles);

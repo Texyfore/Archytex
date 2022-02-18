@@ -4,7 +4,9 @@ use asset::{GizmoID, PropID, TextureID};
 use gpu::{Buffer, Uniform};
 
 use super::{
-    structures::{CameraMatrices, GizmoInstance, LineVertex, SolidVertex, TransformTint},
+    structures::{
+        CameraMatrices, GizmoInstance, GroundVertex, LineVertex, SolidVertex, TransformTint,
+    },
     Share,
 };
 
@@ -13,6 +15,7 @@ pub struct Canvas {
     pub(super) camera_matrices: CameraMatrices,
     pub(super) line_meshes: Vec<LineMesh>,
     pub(super) solid_meshes: Vec<SolidMesh>,
+    pub(super) ground_meshes: Vec<GroundMesh>,
     pub(super) prop_instances: Vec<PropInstance>,
     pub(super) gizmo_groups: Vec<GizmoGroup>,
 }
@@ -28,6 +31,10 @@ impl Canvas {
 
     pub fn draw_solid(&mut self, solid_mesh: SolidMesh) {
         self.solid_meshes.push(solid_mesh);
+    }
+
+    pub fn draw_ground(&mut self, ground_mesh: GroundMesh) {
+        self.ground_meshes.push(ground_mesh);
     }
 
     pub fn draw_prop(&mut self, instance: PropInstance) {
@@ -58,6 +65,22 @@ pub struct SolidMesh {
 }
 
 impl Share for SolidMesh {
+    fn share(&self) -> Self {
+        Self {
+            texture: self.texture,
+            vertices: self.vertices.clone(),
+            triangles: self.triangles.clone(),
+        }
+    }
+}
+
+pub struct GroundMesh {
+    pub(super) texture: TextureID,
+    pub(super) vertices: Rc<Buffer<GroundVertex>>,
+    pub(super) triangles: Rc<Buffer<[u16; 3]>>,
+}
+
+impl Share for GroundMesh {
     fn share(&self) -> Self {
         Self {
             texture: self.texture,
