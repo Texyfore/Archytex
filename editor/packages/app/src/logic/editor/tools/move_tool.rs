@@ -133,8 +133,8 @@ where
         let ray = ctx.camera.screen_ray(mouse_pos);
 
         if let Some(intersection) = ray.intersects(&self.plane) {
-            let start = self.start.snap(ctx.grid);
-            let end = (intersection.point + intersection.normal * 0.001).snap(ctx.grid);
+            let start = self.start.snap(*ctx.grid);
+            let end = (intersection.point + intersection.normal * 0.001).snap(*ctx.grid);
 
             let delta = self.snap.snap_vec(end - start);
             if delta != self.delta {

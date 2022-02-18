@@ -33,10 +33,10 @@ impl Tool for NewSolid {
             .scene
             .raycast(ctx.input.mouse_pos(), ctx.camera, ctx.prop_infos);
         if let Some(endpoint) = hit.endpoint {
-            let start = self.start.snap(ctx.grid);
-            let end = (endpoint.point + endpoint.normal * 0.001).snap(ctx.grid);
+            let start = self.start.snap(*ctx.grid);
+            let end = (endpoint.point + endpoint.normal * 0.001).snap(*ctx.grid);
             let min = start.min(end);
-            let max = start.max(end) + vec3(ctx.grid, ctx.grid, ctx.grid);
+            let max = start.max(end) + vec3(*ctx.grid, *ctx.grid, *ctx.grid);
             self.solid = Some(Solid::new(ctx.graphics, min, max - min));
         }
 

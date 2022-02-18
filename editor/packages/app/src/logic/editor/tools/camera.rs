@@ -1,4 +1,3 @@
-use asset::{PropID, TextureID};
 use cgmath::{InnerSpace, Vector2};
 use winit::event::{MouseButton, VirtualKeyCode};
 
@@ -86,7 +85,7 @@ impl Tool for CameraTool {
                         .raycast(ctx.input.mouse_pos(), ctx.camera, ctx.prop_infos);
 
                     if let Some(endpoint) = hit.endpoint {
-                        let position = (endpoint.point + endpoint.normal * 0.001).snap(ctx.grid);
+                        let position = (endpoint.point + endpoint.normal * 0.001).snap(*ctx.grid);
                         ctx.scene.act(
                             scene::Context {
                                 graphics: ctx.graphics,
@@ -167,6 +166,16 @@ fn common(ctx: &mut Context, was_rotating: &mut bool) -> Option<Box<dyn Tool>> {
                 graphics: ctx.graphics,
             });
         }
+    }
+
+    // Grid
+    if ctx.input.is_key_down_once(VirtualKeyCode::O) {
+        *ctx.grid = (*ctx.grid / 10).clamp(1, 1000);
+        println!("grid: {}cm", ctx.grid);
+    }
+    if ctx.input.is_key_down_once(VirtualKeyCode::P) {
+        *ctx.grid = (*ctx.grid * 10).clamp(1, 1000);
+        println!("grid: {}cm", ctx.grid);
     }
 
     // Select

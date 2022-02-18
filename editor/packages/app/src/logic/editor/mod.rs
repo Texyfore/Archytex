@@ -50,7 +50,7 @@ impl Editor {
             scene: ctx.scene,
             delta: ctx.delta,
             mode: self.mode,
-            grid: self.grid,
+            grid: &mut self.grid,
             texture: self.texture,
             prop: self.prop,
         });

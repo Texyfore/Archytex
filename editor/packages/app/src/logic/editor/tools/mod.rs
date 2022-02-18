@@ -33,7 +33,7 @@ pub struct Context<'a> {
     pub scene: &'a mut Scene,
     pub delta: f32,
     pub mode: ElementKind,
-    pub grid: i32,
+    pub grid: &'a mut i32,
     pub texture: TextureID,
     pub prop: PropID,
 }
