@@ -1,6 +1,6 @@
 mod tools;
 
-use asset::TextureID;
+use asset::{PropID, TextureID};
 use cgmath::vec3;
 use winit::event::VirtualKeyCode;
 
@@ -21,19 +21,23 @@ use super::{
 };
 
 pub struct Editor {
-    mode: ElementKind,
     tool: Box<dyn Tool>,
-    grid: i32,
     ground: Ground,
+    mode: ElementKind,
+    grid: i32,
+    texture: TextureID,
+    prop: PropID,
 }
 
 impl Editor {
     pub fn init(ctx: Context) -> Self {
         Self {
-            mode: ElementKind::Solid,
             tool: Box::new(CameraTool::default()),
-            grid: 100,
             ground: Ground::new(ctx.graphics),
+            mode: ElementKind::Solid,
+            grid: 100,
+            texture: TextureID(2),
+            prop: PropID(0),
         }
     }
 
@@ -47,6 +51,8 @@ impl Editor {
             delta: ctx.delta,
             mode: self.mode,
             grid: self.grid,
+            texture: self.texture,
+            prop: self.prop,
         });
 
         if let Some(new) = new {
@@ -76,13 +82,21 @@ impl Editor {
         }
     }
 
-    pub fn render(&self, canvas: &mut Canvas) {
-        self.tool.render(canvas);
-        self.ground.render(canvas);
+    pub fn set_texture(&mut self, texture: TextureID) {
+        self.texture = texture;
+    }
+
+    pub fn set_prop(&mut self, prop: PropID) {
+        self.prop = prop;
     }
 
     pub fn mode(&self) -> ElementKind {
         self.mode
+    }
+
+    pub fn render(&self, canvas: &mut Canvas) {
+        self.tool.render(canvas);
+        self.ground.render(canvas);
     }
 }
 

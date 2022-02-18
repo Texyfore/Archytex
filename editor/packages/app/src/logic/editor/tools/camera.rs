@@ -47,19 +47,7 @@ impl Tool for CameraTool {
                 if let Some(last_click) = self.last_click {
                     let delta = ctx.input.mouse_pos() - last_click;
                     if delta.magnitude2() > 100.0 {
-                        let tool = NewSolid::new(
-                            Context {
-                                input: ctx.input,
-                                graphics: ctx.graphics,
-                                prop_infos: ctx.prop_infos,
-                                camera: ctx.camera,
-                                scene: ctx.scene,
-                                delta: ctx.delta,
-                                mode: ctx.mode,
-                                grid: ctx.grid,
-                            },
-                            last_click,
-                        );
+                        let tool = NewSolid::new(&mut ctx, last_click);
 
                         if let Some(tool) = tool {
                             ctx.scene.act(
@@ -84,7 +72,7 @@ impl Tool for CameraTool {
                     scene::Context {
                         graphics: ctx.graphics,
                     },
-                    Action::AssignTexture(TextureID(2)),
+                    Action::AssignTexture(ctx.texture),
                 );
             }
 
@@ -103,7 +91,7 @@ impl Tool for CameraTool {
                             scene::Context {
                                 graphics: ctx.graphics,
                             },
-                            Action::NewProps(vec![Prop::new(ctx.graphics, PropID(0), position)]),
+                            Action::NewProps(vec![Prop::new(ctx.graphics, ctx.prop, position)]),
                         );
                     }
                 }

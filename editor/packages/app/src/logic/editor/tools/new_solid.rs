@@ -18,7 +18,7 @@ pub struct NewSolid {
 }
 
 impl NewSolid {
-    pub fn new(ctx: Context, click: Vector2<f32>) -> Option<Self> {
+    pub fn new(ctx: &mut Context, click: Vector2<f32>) -> Option<Self> {
         let hit = ctx.scene.raycast(click, ctx.camera, ctx.prop_infos);
         hit.endpoint.map(|endpoint| Self {
             start: endpoint.point + endpoint.normal * 0.001,

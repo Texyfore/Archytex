@@ -42,6 +42,16 @@ impl AsyncStdin {
                             sender.send(FromHost::LoadScene(buf)).unwrap();
                             println!("[native-runner] loading `{}`", path);
                         }
+                        "texture" => {
+                            let texture = tokens.next().unwrap().parse().unwrap();
+                            sender.send(FromHost::Texture(texture)).unwrap();
+                            println!("[native-runner] picked texture `{}`", texture);
+                        }
+                        "prop" => {
+                            let prop = tokens.next().unwrap().parse().unwrap();
+                            sender.send(FromHost::Prop(prop)).unwrap();
+                            println!("[native-runner] picked prop `{}`", prop);
+                        }
                         "exit" => {
                             println!("[native-runner] closed stdin");
                             break;

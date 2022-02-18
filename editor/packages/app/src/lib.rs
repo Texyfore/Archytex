@@ -137,8 +137,12 @@ pub fn run(init: Init) {
                                 &scene,
                             );
                         }
-                        FromHost::Prop(_) => todo!(),
-                        FromHost::Texture(_) => todo!(),
+                        FromHost::Texture(id) => {
+                            logic.set_texture(TextureID(id));
+                        }
+                        FromHost::Prop(id) => {
+                            logic.set_prop(PropID(id));
+                        }
                     }
                 }
 

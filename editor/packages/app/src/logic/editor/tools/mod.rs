@@ -9,6 +9,7 @@ use crate::{
     logic::{camera::Camera, elements::ElementKind, input::Input, scene::Scene},
 };
 
+use asset::{PropID, TextureID};
 pub use camera::CameraTool;
 pub use new_solid::NewSolid;
 
@@ -33,4 +34,6 @@ pub struct Context<'a> {
     pub delta: f32,
     pub mode: ElementKind,
     pub grid: i32,
+    pub texture: TextureID,
+    pub prop: PropID,
 }

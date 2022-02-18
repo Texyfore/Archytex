@@ -4,6 +4,7 @@ mod elements;
 mod input;
 mod scene;
 
+use asset::{PropID, TextureID};
 use cgmath::vec2;
 use winit::event::{ElementState, MouseButton, VirtualKeyCode};
 
@@ -95,6 +96,14 @@ impl Logic {
             },
             &scene.world,
         );
+    }
+
+    pub fn set_texture(&mut self, texture: TextureID) {
+        self.editor.set_texture(texture);
+    }
+
+    pub fn set_prop(&mut self, prop: PropID) {
+        self.editor.set_prop(prop);
     }
 
     pub fn render(&self, canvas: &mut Canvas) {
