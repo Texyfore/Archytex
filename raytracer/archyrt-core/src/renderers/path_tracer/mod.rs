@@ -47,10 +47,10 @@ impl Material {
             Material::Emissive { power: _ } => None,
         }
     }
-    pub fn color<C: ColorProvider, R: TextureRepository>(
+    pub fn color<C: ColorProvider>(
         self,
         intersection: &Intersection<C>,
-        repo: &R,
+        repo: &TextureRepository,
         emissive: &mut Vec3,
         diffusive: &mut Vec3,
     ) {
@@ -72,7 +72,7 @@ pub struct PathTracer<T: Camera, K: Intersectable> {
 }
 
 impl<T: Camera, K: Intersectable> FragmentRender for PathTracer<T, K> {
-    fn render_fragment<R: TextureRepository>(&self, ctx: &FragmentContext<R>, pos: Vec2) -> Vec3 {
+    fn render_fragment(&self, ctx: &FragmentContext, pos: Vec2) -> Vec3 {
         let mut ray = self.camera.get_ray(ctx, pos);
         let mut emissive = Vec3::default();
         let mut diffusive = Vec3::from_single(1.0);

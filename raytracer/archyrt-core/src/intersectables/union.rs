@@ -9,7 +9,7 @@ pub enum UnionColorProvider<A: ColorProvider + Clone, B: ColorProvider + Clone>{
 }
 
 impl<A: ColorProvider + Clone, B: ColorProvider + Clone> ColorProvider for UnionColorProvider<A, B>{
-    fn get_color<R: TextureRepository>(&self, repo: &R) -> Vec3 {
+    fn get_color(&self, repo: &TextureRepository) -> Vec3 {
         match self{
             UnionColorProvider::A(a) => a.get_color(repo),
             UnionColorProvider::B(b) => b.get_color(repo),

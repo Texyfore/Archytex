@@ -86,7 +86,7 @@ pub struct TriangleColor {
 }
 
 impl ColorProvider for TriangleColor {
-    fn get_color<R: TextureRepository>(&self, repo: &R) -> Vec3 {
+    fn get_color(&self, repo: &TextureRepository) -> Vec3 {
         let sampler = NearestSampler {};
         let coords = self.uv[1] * self.barycentric[0]
             + self.uv[2] * self.barycentric[1]

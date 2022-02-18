@@ -12,10 +12,10 @@ pub struct ArrayCollector {}
 
 impl<T: FragmentRender> FragmentCollector<T> for ArrayCollector {
     type Output = Vec<Vec<Vec3>>;
-    fn collect<R: TextureRepository + Sync>(
+    fn collect(
         &self,
         fragment_render: T,
-        texture_repo: R,
+        texture_repo: &TextureRepository,
         width: usize,
         height: usize,
     ) -> Self::Output {

@@ -2,7 +2,7 @@ use std::{path::Path, fs::File, collections::HashMap};
 use anyhow::Result;
 use serde::{Deserialize, Serialize};
 
-use crate::textures::{texture_repo::png::PngTextureRepo, TextureID};
+use crate::textures::{TextureID, texture_repo::{TextureRepository, png}};
 
 
 #[derive(Hash)]
@@ -22,16 +22,12 @@ struct Texture{
     pub url: String
 }
 
-pub fn load(directory: &str) -> Result<PngTextureRepo>{
+pub fn load_into(repo: &mut TextureRepository, directory: &str) -> Result<()>{
     let assetsjson = Path::new(directory).join("assets.json");
     let assetsjson = File::open(assetsjson)?;
     let json: Vec<Texture> = serde_json::from_reader(assetsjson)?;
-    let mut textures = HashMap::new();
     for tex in json{
-        textures.insert(AMDLTextureType::diffuse(tex.id), PngTextureRepo::load(directory, tex.url.as_str())?);
+        repo.insert(AMDLTextureType::diffuse(tex.id), png::load(directory, tex.url.as_str())?);
     }
-    Ok(PngTextureRepo{
-        base: directory.into(),
-        textures,
-    })
+    Ok(())
 }

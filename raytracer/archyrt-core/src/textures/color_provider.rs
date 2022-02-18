@@ -3,7 +3,7 @@ use crate::{utilities::math::Vec3, renderers::path_tracer::Material};
 use super::texture_repo::TextureRepository;
 
 pub trait ColorProvider {
-    fn get_color<R: TextureRepository>(&self, repo: &R) -> Vec3;
+    fn get_color(&self, repo: &TextureRepository) -> Vec3;
     fn get_material(&self) -> Material;
 }
 
@@ -11,7 +11,7 @@ pub trait ColorProvider {
 pub struct SolidColor(pub Vec3, pub Material);
 
 impl ColorProvider for SolidColor {
-    fn get_color<R: TextureRepository>(&self, _: &R) -> Vec3 {
+    fn get_color(&self, _: &TextureRepository) -> Vec3 {
         self.0
     }
 

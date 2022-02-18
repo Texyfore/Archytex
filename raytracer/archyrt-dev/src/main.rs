@@ -18,7 +18,7 @@ use archyrt_core::{
     collector::image_collector::ImageCollector,
     loaders::Loader,
     renderers::basic_renderer::BasicRenderer,
-    textures::{texture_repo::png::PngTextureRepo, TextureID},
+    textures::{TextureID},
     utilities::math::Vec3,
 };
 use image::{Rgb, RgbImage};
@@ -30,9 +30,9 @@ pub struct SamplingRenderer<Renderer: FragmentRender + Sync + Send> {
 }
 
 impl<Renderer: FragmentRender + Sync + Send> FragmentRender for SamplingRenderer<Renderer> {
-    fn render_fragment<R: TextureRepository + Sync>(
+    fn render_fragment(
         &self,
-        ctx: &FragmentContext<R>,
+        ctx: &FragmentContext,
         pos: Vec2,
     ) -> Vec3 {
         (0..self.samples)
@@ -46,7 +46,8 @@ impl<Renderer: FragmentRender + Sync + Send> FragmentRender for SamplingRenderer
 
 fn main() {
     println!("Load file");
-    let repo = amdl_textures::load("../assets").unwrap();
+    let mut repo = TextureRepository::new();
+    amdl_textures::load_into(&mut repo, "../assets").unwrap();
     let loader = AMDLLoader::from_path("../assets/house_inside.ascn").unwrap();
     let camera = loader.get_camera();
     let object = loader.get_triangles();

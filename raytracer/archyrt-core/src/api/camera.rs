@@ -6,14 +6,14 @@ use crate::{
 use super::fragment_render::FragmentContext;
 
 pub trait Camera {
-    fn get_ray<R: TextureRepository>(&self, ctx: &FragmentContext<R>, pos: Vec2) -> Ray;
+    fn get_ray(&self, ctx: &FragmentContext, pos: Vec2) -> Ray;
 }
 
 impl<T> Camera for &T
 where
     T: Camera,
 {
-    fn get_ray<R: TextureRepository>(&self, ctx: &FragmentContext<R>, pos: Vec2) -> Ray {
+    fn get_ray(&self, ctx: &FragmentContext, pos: Vec2) -> Ray {
         (*self).get_ray(ctx, pos)
     }
 }

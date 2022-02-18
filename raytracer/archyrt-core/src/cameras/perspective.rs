@@ -45,7 +45,7 @@ impl PerspectiveCamera {
 }
 
 impl Camera for PerspectiveCamera {
-    fn get_ray<R: TextureRepository>(&self, ctx: &FragmentContext<R>, pos: Vec2) -> Ray {
+    fn get_ray(&self, ctx: &FragmentContext, pos: Vec2) -> Ray {
         let uv = {
             //Calculate center-origin coordinates
             let mut uv = vector!(pos.x() - 0.5, 0.5 - pos.y());

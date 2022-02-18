@@ -11,8 +11,7 @@ use archyrt_core::{
         Loader,
     },
     renderers::{basic_renderer::BasicRenderer, path_tracer::PathTracer},
-    textures::texture_repo::png::PngTextureRepo,
-    vector,
+    vector, textures::texture_repo::TextureRepository,
 };
 use dotenv::dotenv;
 use futures::StreamExt;
@@ -23,7 +22,7 @@ use redis::AsyncCommands;
 struct SceneData(BVH, PerspectiveCamera);
 
 async fn render(
-    texture_repo: &PngTextureRepo,
+    texture_repo: &TextureRepository,
     cache: &mut LruCache<String, SceneData>,
     redis_client: &mut redis::Client,
     channel: &Channel,
@@ -128,7 +127,8 @@ fn main() -> Result<()> {
         .await?;
         let mut redis_client = redis::Client::open(redis_addr)?;
 
-        let textures = amdl_textures::load("../assets")?;
+        let mut textures = TextureRepository::new();
+        amdl_textures::load_into(&mut textures, "../assets")?;
 
         let channel = rabbitmq_client.create_channel().await?;
         let task_queue = channel

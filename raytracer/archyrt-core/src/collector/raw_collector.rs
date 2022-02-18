@@ -9,10 +9,10 @@ pub struct RawCollector{
 impl<T: FragmentRender> FragmentCollector<T> for RawCollector{
     type Output = Vec<f32>;
 
-    fn collect<R: TextureRepository + Sync>(
+    fn collect(
         &self,
         fragment_render: T,
-        texture_repo: R,
+        texture_repo: &TextureRepository,
         width: usize,
         height: usize,
     ) -> Self::Output {

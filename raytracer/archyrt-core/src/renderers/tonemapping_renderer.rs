@@ -9,9 +9,9 @@ pub struct TonemappingRenderer<Renderer: FragmentRender> {
 }
 
 impl<Renderer: FragmentRender> FragmentRender for TonemappingRenderer<Renderer> {
-    fn render_fragment<R: TextureRepository + Sync>(
+    fn render_fragment(
         &self,
-        ctx: &FragmentContext<R>,
+        ctx: &FragmentContext,
         pos: Vec2,
     ) -> Vec3 {
         let c = self.inner.render_fragment(ctx, pos);

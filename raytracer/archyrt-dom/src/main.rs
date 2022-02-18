@@ -1,7 +1,7 @@
 use std::{env, fmt::format, path::Path, sync::Arc};
 
 use anyhow::{Result, anyhow};
-use archyrt_core::{loaders::{amdl::{AMDLLoader, amdl_textures}, Loader}, intersectables::bvh::BVH, renderers::solid_renderers::{albedo::AlbedoRenderer, normal::NormalRenderer}, collector::raw_collector::RawCollector, api::fragment_collector::FragmentCollector, textures::texture_repo::png::PngTextureRepo};
+use archyrt_core::{loaders::{amdl::{AMDLLoader, amdl_textures}, Loader}, intersectables::bvh::BVH, renderers::solid_renderers::{albedo::AlbedoRenderer, normal::NormalRenderer}, collector::raw_collector::RawCollector, api::fragment_collector::FragmentCollector, textures::texture_repo::{TextureRepository}};
 use dotenv::dotenv;
 use futures::TryFutureExt;
 use futures_util::stream::StreamExt;
@@ -22,7 +22,7 @@ async fn handle_job(
     delivery: Delivery,
     response_queue: Queue,
     task_queue: Queue,
-    textures: Arc<PngTextureRepo>
+    textures: Arc<TextureRepository>
 ) -> Result<()> {
     let response_queue = response_queue.name().as_str();
     let task_queue = task_queue.name().as_str();
@@ -140,9 +140,8 @@ async fn handle_job(
     let albedo = AlbedoRenderer{object: &bvh, camera: &camera};
     let normal = NormalRenderer{object: &bvh, camera: &camera};
     let collector = RawCollector{};
-    let textures: &PngTextureRepo = &textures;
-    let albedo = collector.collect(albedo, textures, width, height);
-    let normal = collector.collect(normal, textures, width, height);
+    let albedo = collector.collect(albedo, &textures, width, height);
+    let normal = collector.collect(normal, &textures, width, height);
     let mut output: Vec<f32> = (0..image.len()).into_iter().map(|_| 0f32).collect();
     let device = oidn::Device::new();
     oidn::RayTracing::new(&device)
@@ -234,8 +233,8 @@ fn main() -> Result<()> {
                 FieldTable::default(),
             )
             .await?;
-
-        let textures = amdl_textures::load("../assets")?;
+        let mut textures = TextureRepository::new();
+        amdl_textures::load_into(&mut textures, "../assets")?;
         let textures = Arc::new(textures);
 
         while let Some(delivery) = consumer.next().await {

@@ -18,7 +18,7 @@ pub struct AlbedoRenderer<T: Camera, K: Intersectable> {
 }
 
 impl<T: Camera, K: Intersectable> FragmentRender for AlbedoRenderer<T, K> {
-    fn render_fragment<R: TextureRepository>(&self, ctx: &FragmentContext<R>, pos: Vec2) -> Vec3 {
+    fn render_fragment(&self, ctx: &FragmentContext, pos: Vec2) -> Vec3 {
         let ray = self.camera.get_ray(ctx, pos);
         match self.object.intersect(ray) {
             Some(intersection) => {

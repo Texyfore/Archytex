@@ -10,48 +10,30 @@ use crate::{
 
 use super::TextureRepository;
 
-pub struct PngTextureRepo {
-    pub base: String,
-    pub textures: HashMap<TextureID, Texture>,
+pub fn load_into(repo: &mut TextureRepository, base: &str, textures: &[(TextureID, &str)]) -> Result<()> {
+    for (id, name) in textures {
+        let texture = load(base, *name)?;
+        repo.insert(*id, texture);
+    }
+    Ok(())
 }
-
-impl PngTextureRepo {
-    pub fn new(base: &str, textures: &[(TextureID, &str)]) -> Result<Self> {
-        let mut t = HashMap::new();
-        for (id, name) in textures {
-            let texture = Self::load(base, *name)?;
-            t.insert(*id, texture);
-        }
-        Ok(Self {
-            base: base.into(),
-            textures: t,
+pub fn load(base: &str, name: &str) -> Result<Texture> {
+    let path = Path::new(base).join(name);
+    let image = ImageReader::open(path)?.decode()?;
+    let image = image.into_rgb8();
+    let pixels: Vec<_> = image
+        .pixels()
+        .map(|a| {
+            vector![
+                a.0[0] as f64 / 255.0,
+                a.0[1] as f64 / 255.0,
+                a.0[2] as f64 / 255.0
+            ].from_srgb()
         })
-    }
-    pub fn load(base: &str, name: &str) -> Result<Texture> {
-        let path = Path::new(base).join(name);
-        let image = ImageReader::open(path)?.decode()?;
-        let image = image.into_rgb8();
-        let pixels: Vec<_> = image
-            .pixels()
-            .map(|a| {
-                vector![
-                    a.0[0] as f64 / 255.0,
-                    a.0[1] as f64 / 255.0,
-                    a.0[2] as f64 / 255.0
-                ].from_srgb()
-            })
-            .collect();
-        Ok(Texture {
-            data: pixels,
-            width: image.width(),
-            height: image.height(),
-        })
-    }
-}
-
-impl TextureRepository for PngTextureRepo {
-    fn get(&self, id: TextureID) -> Option<&Texture> {
-        let texture = self.textures.get(&id)?;
-        Some(texture)
-    }
+        .collect();
+    Ok(Texture {
+        data: pixels,
+        width: image.width(),
+        height: image.height(),
+    })
 }
