@@ -1,11 +1,10 @@
 mod tools;
 
-use cgmath::vec3;
 use winit::event::VirtualKeyCode;
 
 use crate::{
     data::PropInfoContainer,
-    graphics::{structures::LineVertex, Canvas, Graphics, LineMesh, LineMeshDescriptor, Share},
+    graphics::{Canvas, Graphics},
 };
 
 use self::tools::{CameraTool, Tool};
@@ -20,43 +19,14 @@ use super::{
 pub struct Editor {
     mode: ElementKind,
     tool: Box<dyn Tool>,
-    origin: LineMesh,
     grid: i32,
 }
 
 impl Editor {
-    pub fn init(ctx: Context) -> Self {
+    pub fn init(_ctx: Context) -> Self {
         Self {
             mode: ElementKind::Solid,
             tool: Box::new(CameraTool::default()),
-            origin: ctx.graphics.create_line_mesh(LineMeshDescriptor {
-                vertices: &[
-                    LineVertex {
-                        position: vec3(0.0, 0.0, 0.0),
-                        color: [1.0, 0.0, 0.0],
-                    },
-                    LineVertex {
-                        position: vec3(1.0, 0.0, 0.0),
-                        color: [1.0, 0.0, 0.0],
-                    },
-                    LineVertex {
-                        position: vec3(0.0, 0.0, 0.0),
-                        color: [0.0, 1.0, 0.0],
-                    },
-                    LineVertex {
-                        position: vec3(0.0, 1.0, 0.0),
-                        color: [0.0, 1.0, 0.0],
-                    },
-                    LineVertex {
-                        position: vec3(0.0, 0.0, 0.0),
-                        color: [0.0, 0.0, 1.0],
-                    },
-                    LineVertex {
-                        position: vec3(0.0, 0.0, 1.0),
-                        color: [0.0, 0.0, 1.0],
-                    },
-                ],
-            }),
             grid: 100,
         }
     }
@@ -102,7 +72,6 @@ impl Editor {
 
     pub fn render(&self, canvas: &mut Canvas) {
         self.tool.render(canvas);
-        canvas.draw_lines(self.origin.share());
     }
 
     pub fn mode(&self) -> ElementKind {
