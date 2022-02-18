@@ -393,7 +393,7 @@ impl Scene {
                     changed = true;
                 }
 
-                changed.then(|| Action::RotateProps(-quat))
+                changed.then(|| Action::RotateProps(quat.invert()))
             }
 
             Action::AssignTexture(texture) => {
