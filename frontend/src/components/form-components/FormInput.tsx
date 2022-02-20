@@ -19,7 +19,7 @@ import {
   VpnKey,
 } from "@mui/icons-material";
 
-type Variant = "username" | "password" | "email" | "repeatPassword";
+type Variant = "regular" | "username" | "password" | "email" | "repeatPassword";
 
 interface Props {
   variant: Variant;
@@ -57,7 +57,7 @@ export default function FormInput({
       case "repeatPassword":
         return <RedoRounded sx={{ mr: 1, my: 1 }} />;
       default:
-        break;
+        return null;
     }
   };
 
@@ -65,12 +65,15 @@ export default function FormInput({
     <Box
       display='flex'
       alignItems='flex-end'
-      width='304px'
+      width={variant === "regular" ? "100%" : "304px"}
       marginTop={2}
       marginBottom={1}
     >
       {getIcon(variant)}
-      <FormControl sx={{ width: "304px" }} variant='standard'>
+      <FormControl
+        sx={{ width: variant === "regular" ? "100%" : "304px" }}
+        variant='standard'
+      >
         <InputLabel htmlFor='adornment-password'>
           <Typography color={error !== "" ? "error" : "info"}>
             {label}
