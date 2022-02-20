@@ -3,7 +3,7 @@ import React from "react";
 import Box from "@mui/material/Box";
 import IconButton from "@mui/material/IconButton";
 
-import { Dashboard, PlayArrow, Settings } from "@mui/icons-material";
+import { PermMedia, PlayArrow, Settings } from "@mui/icons-material";
 
 import { useTranslation } from "react-i18next";
 
@@ -14,7 +14,7 @@ import { ColorMode, useColorMode } from "../../services/colorMode";
 export default function DashboardSideBar() {
   const { t } = useTranslation();
   const playTooltipText = t("launch_archytex");
-  const dashboardTooltipText = t("dashboard");
+  const projectsTooltipText = t("projects");
   const settingsTooltipText = t("settings");
 
   const [colorMode, _] = useColorMode();
@@ -38,9 +38,9 @@ export default function DashboardSideBar() {
           <PlayArrow fontSize='large' />
         </IconButton>
       </Tooltip>
-      <Tooltip title={dashboardTooltipText} placement='right'>
+      <Tooltip title={projectsTooltipText} placement='right'>
         <IconButton>
-          <Dashboard fontSize='large' />
+          <PermMedia fontSize='large' />
         </IconButton>
       </Tooltip>
       <Tooltip title={settingsTooltipText} placement='right'>

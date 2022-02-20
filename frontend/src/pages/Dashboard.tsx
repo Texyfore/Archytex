@@ -11,7 +11,7 @@ export default function Dashboard() {
       <AppBarOffset />
       <DashboardContainer>
         <DashboardSideBar />
-        <DashboardContent></DashboardContent>
+        <DashboardContent />
       </DashboardContainer>
     </>
   );
