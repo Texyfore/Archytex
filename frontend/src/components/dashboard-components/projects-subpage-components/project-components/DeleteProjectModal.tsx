@@ -11,7 +11,9 @@ import Backdrop from "@mui/material/Backdrop";
 import Fade from "@mui/material/Fade";
 
 import { Close } from "@mui/icons-material";
+
 import { Project, useProjects } from "../../../../services/projects";
+import useNotification from "../../../../services/hooks/useNotification";
 
 interface Props {
   project: Project;
@@ -25,14 +27,17 @@ export default function DeleteProjectModal({
 }: Props) {
   const { t } = useTranslation();
 
+  const { addNotification } = useNotification();
+
   const { dispatch: dispatchProjects } = useProjects();
+
   const handleProjectDelete = () => {
     dispatchProjects({
       type: "delete",
       id: project.id,
     });
     handleClose();
-    // feedbackSnackbar(t("project_deleted_successfully"), "success");
+    addNotification(t("project_deleted_successfully"), "success");
   };
 
   return (

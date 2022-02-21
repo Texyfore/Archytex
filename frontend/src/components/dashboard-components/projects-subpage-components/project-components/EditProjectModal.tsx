@@ -16,6 +16,8 @@ import { Project, useProjects } from "../../../../services/projects";
 
 import FormInput from "../../../form-components/FormInput";
 
+import useNotification from "../../../../services/hooks/useNotification";
+
 interface Props {
   project: Project;
   open: boolean;
@@ -35,6 +37,8 @@ export default function EditProjectModal({
 
   const { dispatch: projectsDispatch } = useProjects();
 
+  const { addNotification } = useNotification();
+
   const handleSaveEdit = () => {
     if (title.trim() === "") {
       setError(t("no_empty_project_name"));
@@ -51,6 +55,7 @@ export default function EditProjectModal({
     });
 
     handleClose();
+    addNotification(t("project_name_updated"), "success");
   };
 
   return (

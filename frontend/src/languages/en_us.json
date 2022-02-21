@@ -73,6 +73,7 @@
   "create": "Create",
   "project_name": "Project name",
   "edit_project_name": "Edit project name",
+  "project_name_updated": "Project name updated",
   "search": "Search…",
   "renders_count": "renders",
   "project_actions": "Project actions",

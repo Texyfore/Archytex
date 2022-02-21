@@ -17,6 +17,7 @@ import { Close } from "@mui/icons-material";
 import { useProjects } from "../../../services/projects";
 
 import FormInput from "../../form-components/FormInput";
+import useNotification from "../../../services/hooks/useNotification";
 
 const modalStyle = {
   position: "absolute" as "absolute",
@@ -44,6 +45,8 @@ export default function NewProjectModal({
   feedbackSnackbar,
 }: Parameters) {
   const { t } = useTranslation();
+
+  const { addNotification } = useNotification();
 
   const [name, setName] = useState("");
   const handleNameChange = (e: any) => {
@@ -74,7 +77,7 @@ export default function NewProjectModal({
 
     setName("");
     handleClose();
-    feedbackSnackbar(t("project_created_successfully"), "success");
+    addNotification(t("project_created_successfully"), "success");
   };
 
   const handleClose = () => {
