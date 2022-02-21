@@ -15,6 +15,7 @@ import Divider from "@mui/material/Divider";
 import { AccountCircle, CreditCard, Logout } from "@mui/icons-material";
 
 import { useApi } from "../../services/user/api";
+import useNotification from "../../services/hooks/useNotification";
 
 interface Props {
   anchorEl: null | HTMLElement;
@@ -33,10 +34,13 @@ export default function UserDropdownMenu({
 
   const api = useApi();
 
+  const { addNotification } = useNotification();
+
   const handleLogOut = () => {
     if (api?.state === "logged-in") {
       history.push("/");
       api.logOut();
+      addNotification(t("logged_out"), "info");
     }
   };
 

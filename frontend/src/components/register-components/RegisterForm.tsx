@@ -84,7 +84,7 @@ export default function RegisterForm() {
       errored = true;
     }
     if (rePassword === "") {
-      setRePasswordError("write_password_again");
+      setRePasswordError(t("write_password_again"));
       errored = true;
     }
     if (captcha === null) {

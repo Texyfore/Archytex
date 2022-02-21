@@ -15,6 +15,7 @@ import FormContainer from "../form-components/FormContainer";
 import FormInput from "../form-components/FormInput";
 
 import { useApi } from "../../services/user/api";
+import useNotification from "../../services/hooks/useNotification";
 
 type ErrorType = "username" | "password" | "general";
 
@@ -24,6 +25,8 @@ export default function LoginForm() {
   const api = useApi();
 
   const history = useHistory();
+
+  const { addNotification } = useNotification();
 
   const [username, setUsername] = useState("");
   const [usernameError, setUsernameError] = useState("");
@@ -66,6 +69,7 @@ export default function LoginForm() {
         .logIn(username, password, stayLoggedIn)
         .then(() => {
           history.push("/dashboard");
+          addNotification(t("successful_login"), "success");
         })
         .catch((error) => {
           handleError(error.message, "general");
