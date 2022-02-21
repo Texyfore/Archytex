@@ -50,14 +50,16 @@ where
             .await
             .unwrap();
 
-        let format = surface.get_preferred_format(&adapter).unwrap();
+        let format = surface
+            .get_preferred_format(&adapter)
+            .unwrap_or(TextureFormat::Bgra8UnormSrgb);
 
         let (device, queue) = adapter
             .request_device(
                 &DeviceDescriptor {
                     label: None,
                     features: Features::empty(),
-                    limits: Limits::downlevel_defaults().using_resolution(adapter.limits()),
+                    limits: Limits::downlevel_webgl2_defaults().using_resolution(adapter.limits()),
                 },
                 None,
             )

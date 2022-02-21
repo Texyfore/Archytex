@@ -5,10 +5,11 @@ mod graphics;
 mod logic;
 mod math;
 
-use std::{sync::mpsc::Receiver, time::Instant};
+use std::sync::mpsc::Receiver;
 
 use asset::{scene::Scene, Gizmo, GizmoID, Prop, PropID, Texture, TextureID};
 use data::PropInfoContainer;
+use instant::Instant;
 use logic::Logic;
 use winit::{
     dpi::{PhysicalPosition, PhysicalSize},
