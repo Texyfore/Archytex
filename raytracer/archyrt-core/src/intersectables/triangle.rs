@@ -1,6 +1,7 @@
 use crate::renderers::path_tracer::Material;
 use crate::textures::color_provider::ColorProvider;
 
+use crate::textures::samplers::linear::LinearSampler;
 use crate::textures::samplers::nearest::NearestSampler;
 use crate::textures::samplers::TextureSampler;
 use crate::textures::texture_repo::TextureRepository;
@@ -88,7 +89,7 @@ pub struct TriangleColor {
 
 impl ColorProvider for TriangleColor {
     fn get_color(&self, repo: &TextureRepository) -> Vec3 {
-        let sampler = NearestSampler {};
+        let sampler = LinearSampler {};
         let coords = self.uv[1] * self.barycentric[0]
             + self.uv[2] * self.barycentric[1]
             + self.uv[0] * self.barycentric[2];

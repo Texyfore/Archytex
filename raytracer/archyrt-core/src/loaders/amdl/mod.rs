@@ -32,7 +32,7 @@ fn to_hashmap<T>(a: Vec<(u32, T)>) -> HashMap<u32, T> {
 }
 
 fn texcoord(point: Vec3, normal: Vec3) -> Vec2 {
-    if normal.x().abs() > normal.y().abs() {
+    (if normal.x().abs() > normal.y().abs() {
         if normal.x().abs() > normal.z().abs() {
             vector![point.y(), point.z()]
         } else {
@@ -42,7 +42,7 @@ fn texcoord(point: Vec3, normal: Vec3) -> Vec2 {
         vector![point.x(), point.z()]
     } else {
         vector![point.x(), point.y()]
-    }
+    })*0.1
 }
 
 impl AMDLLoader {
