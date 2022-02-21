@@ -34,16 +34,27 @@ name = "archyrt_core"
 version = "0.1.0"
 dependencies = [
  "anyhow",
+ "asset",
  "cgmath",
  "criterion",
  "easy-gltf",
  "exr",
  "image",
- "mdl",
  "rand",
  "rand_distr",
  "serde",
  "serde_json",
+]
+
+[[package]]
+name = "asset"
+version = "0.1.0"
+dependencies = [
+ "bincode",
+ "bytemuck",
+ "cgmath",
+ "image",
+ "serde",
 ]
 
 [[package]]
@@ -149,6 +160,7 @@ checksum = "1a98d30140e3296250832bbaaff83b27dcd6fa3cc70fb6f1f3e5c9c0023b5317"
 dependencies = [
  "approx",
  "num-traits",
+ "serde",
 ]
 
 [[package]]
@@ -545,14 +557,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "51b9bbe6c47d51fc3e1a9b945965946b4c44142ab8792c50835a980d362c2710"
 dependencies = [
  "cfg-if",
-]
-
-[[package]]
-name = "mdl"
-version = "0.1.0"
-dependencies = [
- "bincode",
- "serde",
 ]
 
 [[package]]

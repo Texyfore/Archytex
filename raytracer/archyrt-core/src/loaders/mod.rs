@@ -1,6 +1,6 @@
 use crate::{api::camera::Camera, intersectables::triangle::Triangle};
 
-pub mod amdl;
+pub mod ascn;
 pub mod gltf;
 
 pub trait Loader {

@@ -13,8 +13,8 @@ use crate::renderers::path_tracer::Material;
 
 use crate::utilities::math::Vector;
 
-use super::amdl::amdl_textures::AMDLTextureType;
 use super::Loader;
+use super::ascn::amdl_textures::AMDLTextureType;
 
 pub struct GltfLoader {
     camera: PerspectiveCamera,

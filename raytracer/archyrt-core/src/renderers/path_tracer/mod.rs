@@ -127,7 +127,7 @@ impl<T: Camera, K: Intersectable> FragmentRender for PathTracer<T, K> {
                             )
                             .to_srgb();
                             let t = ((ray.direction.y()) + 1.0) * 0.5;
-                            c_top * t + c_bottom * (1.0 - t)
+                            (c_top * t + c_bottom * (1.0 - t))*0.5
                         }
                         //Default skybox color
                         _ => {

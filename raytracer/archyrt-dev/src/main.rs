@@ -6,13 +6,14 @@ use archyrt_core::cameras::jitter::JitterCamera;
 use archyrt_core::collector::raw_collector::RawCollector;
 use archyrt_core::intersectables::bvh::BVH;
 use archyrt_core::intersectables::sphere::Sphere;
-use archyrt_core::loaders::amdl::{amdl_textures, AMDLLoader};
+use archyrt_core::loaders::ascn::{amdl_textures, ASCNLoader};
 use archyrt_core::renderers::path_tracer::{Material, PathTracer};
 use archyrt_core::renderers::solid_renderers::albedo::AlbedoRenderer;
 use archyrt_core::renderers::solid_renderers::normal::NormalRenderer;
 use archyrt_core::textures::texture_repo::{self, TextureRepository};
-use archyrt_core::utilities::math::{Vec2};
+use archyrt_core::utilities::math::{Vec2, Vector};
 use archyrt_core::utilities::ray::{Intersectable, Ray};
+use archyrt_core::vector;
 use archyrt_core::{
     api::fragment_collector::FragmentCollector, loaders::Loader, textures::TextureID, utilities::math::Vec3,
 };
@@ -47,7 +48,7 @@ fn main() {
     let skybox = Some(skybox_id);
 
     //Load model
-    let loader = AMDLLoader::from_path("../assets/portal.ascn").unwrap();
+    let loader = ASCNLoader::from_path("../assets/house_outside.ascn").unwrap();
     let camera = loader.get_camera();
     let aa_camera = JitterCamera::new(camera, w, h); //Camera used for anti-aliasing
     let object = loader.get_triangles();
@@ -101,11 +102,23 @@ fn main() {
         .unwrap();
     //Collect OIDN image
     let mut image = RgbImage::new(w as u32, h as u32);
+    
+    let output: Vec<Vec3> = output.chunks(3).map(|v|{
+        let [r, g, b]: [f32;3] = v.try_into().unwrap();
+        vector![r as f64, g as f64, b as f64]
+    }).collect();
     for (x, y, color) in image.enumerate_pixels_mut() {
-        let index = (y as usize * w + x as usize) * 3;
-        let r = output[index + 0].powf(1.0 / 2.2) * 255.0;
-        let g = output[index + 1].powf(1.0 / 2.2) * 255.0;
-        let b = output[index + 2].powf(1.0 / 2.2) * 255.0;
+        let index = y as usize * w + x as usize;
+        let c = output[index];
+
+        let c = c*4.0;
+        let c = c/(c+Vector::from_single(1.0));
+        let c = c.powf(1.0/2.2);
+
+        let c = c*255.;
+        let r = c.x();
+        let g = c.y();
+        let b = c.z();
         let r = r.clamp(0.0, 255.0);
         let g = g.clamp(0.0, 255.0);
         let b = b.clamp(0.0, 255.0);

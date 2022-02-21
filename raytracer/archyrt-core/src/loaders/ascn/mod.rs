@@ -1,5 +1,4 @@
 pub mod amdl_textures;
-
 use crate::intersectables::triangle::Triangle;
 use crate::loaders::Loader;
 
@@ -8,7 +7,7 @@ use crate::renderers::path_tracer::Material;
 use crate::utilities::math::{Vec2, Vec3};
 use crate::{cameras::perspective::PerspectiveCamera, vector};
 use anyhow::{anyhow, Result};
-use mdl;
+use asset::scene::{Scene, Point};
 
 use std::collections::HashMap;
 use std::fs::File;
@@ -18,34 +17,26 @@ use std::path::Path;
 
 use self::amdl_textures::AMDLTextureType;
 
-pub struct AMDLLoader {
+
+pub struct ASCNLoader {
     triangles: Vec<Triangle>,
     camera: PerspectiveCamera,
 }
-
-fn to_hashmap<T>(a: Vec<(u32, T)>) -> HashMap<u32, T> {
-    let mut map = HashMap::new();
-    for (k, v) in a {
-        map.insert(k, v);
-    }
-    map
-}
-
-fn texcoord(point: Vec3, normal: Vec3) -> Vec2 {
+fn texcoord(position: Vec3, normal: Vec3) -> Vec2 {
     (if normal.x().abs() > normal.y().abs() {
         if normal.x().abs() > normal.z().abs() {
-            vector![point.y(), point.z()]
+          vector!(position.z(), position.y())
         } else {
-            vector![point.x(), point.y()]
+          vector!(position.x(), position.y())
         }
-    } else if normal.y().abs() > normal.z().abs() {
-        vector![point.x(), point.z()]
-    } else {
-        vector![point.x(), point.y()]
-    })*0.1
+      } else if normal.y().abs() > normal.z().abs() {
+        vector!(position.x(), position.z())
+      } else {
+          vector!(position.x(), position.y())
+      }) / 4.0
 }
 
-impl AMDLLoader {
+impl ASCNLoader {
     pub fn from_path<P: AsRef<Path>>(path: P) -> Result<Self> {
         let mut f = File::open(path)?;
         let mut buf: Vec<u8> = Vec::new();
@@ -53,52 +44,34 @@ impl AMDLLoader {
         Self::from_bytes(&buf)
     }
     pub fn from_bytes(data: &[u8]) -> Result<Self> {
-        let scene =
-            mdl::Scene::decode(data).ok_or_else(|| anyhow!("Unable to decode scene file"))?;
+        let scene = Scene::decode(data).ok_or_else(||anyhow!("Could not decode scene"))?;
         Self::from_scene(scene)
     }
 
-    pub fn from_scene(scene: mdl::Scene) -> Result<Self> {
+    pub fn from_scene(scene: Scene) -> Result<Self> {
         let mut triangles: Vec<Triangle> = Vec::new();
         let focal_distance = 0.595877;
         let mut camera_pos: Vec3 = scene.camera.position.into();
         camera_pos.inner[2] = -camera_pos[2];
-        let rotation: Vec3 = scene.camera.rotation.into();
+        let rotation: Vec2 = scene.camera.rotation.into();
         let mut camera = PerspectiveCamera::from_euler(
             camera_pos,
-            rotation / 180.0 * std::f64::consts::PI,
+            vector![rotation.x(), rotation.y(), 0.0] / 180.0 * std::f64::consts::PI,
             focal_distance,
         );
         camera.matrix = camera.matrix.transpose();
-
-        let faces = to_hashmap(scene.model.faces);
-        let points = to_hashmap(scene.model.points);
-        for (_, solid) in &scene.model.solids {
-            let faces: Vec<_> = solid
-                .faces
-                .iter()
-                .map(|id| faces.get(id))
-                .into_iter()
-                .flatten()
-                .collect();
-            if faces.len() != 6 {
-                return Err(anyhow!("Invalid face ID"));
-            }
-            for face in faces {
+        for solid in &scene.world.solids {
+            for face in &solid.faces {
                 //Counterclockwise
-                let points: Vec<_> = face
-                    .points
+                let points: Vec<&Point> = face
+                    .indices
                     .iter()
-                    .map(|id| points.get(id))
-                    .into_iter()
-                    .flatten()
+                    .map(|id| &solid.points[(*id) as usize])
                     .collect();
-                if points.len() != 4 {
-                    return Err(anyhow!("Invalid face ID"));
-                }
                 let point_positions: Vec<Vec3> = points
                     .iter()
-                    .map(|point| (&point.position).into())
+                    .map(|point| (point.position).into())
+                    .map(|point: Vec3| point/100.0)
                     .collect();
                 let edge0 = point_positions[1] - point_positions[0];
                 let edge1 = point_positions[3] - point_positions[0];
@@ -132,13 +105,13 @@ impl AMDLLoader {
                 let triangle1 = Triangle::new(
                     [point0, point2, point1],
                     [uv0, uv2, uv1],
-                    AMDLTextureType::diffuse(face.texture_id.0),
+                    AMDLTextureType::diffuse(face.texture.0),
                     Material::Diffuse,
                 );
                 let triangle2 = Triangle::new(
                     [point0, point3, point2],
                     [uv0, uv3, uv2],
-                    AMDLTextureType::diffuse(face.texture_id.0),
+                    AMDLTextureType::diffuse(face.texture.0),
                     Material::Diffuse,
                 );
                 triangles.push(triangle1);
@@ -149,7 +122,7 @@ impl AMDLLoader {
     }
 }
 
-impl Loader for AMDLLoader {
+impl Loader for ASCNLoader {
     type C = PerspectiveCamera;
 
     fn get_triangles(&self) -> &Vec<Triangle> {

@@ -91,11 +91,11 @@ name = "archyrt_core"
 version = "0.1.0"
 dependencies = [
  "anyhow",
+ "asset",
  "cgmath",
  "easy-gltf",
  "exr",
  "image",
- "mdl",
  "rand",
  "rand_distr",
  "serde",
@@ -114,6 +114,17 @@ dependencies = [
  "lapin",
  "lru",
  "redis",
+]
+
+[[package]]
+name = "asset"
+version = "0.1.0"
+dependencies = [
+ "bincode",
+ "bytemuck",
+ "cgmath",
+ "image",
+ "serde",
 ]
 
 [[package]]
@@ -347,6 +358,7 @@ checksum = "1a98d30140e3296250832bbaaff83b27dcd6fa3cc70fb6f1f3e5c9c0023b5317"
 dependencies = [
  "approx",
  "num-traits",
+ "serde",
 ]
 
 [[package]]
@@ -954,14 +966,6 @@ name = "matches"
 version = "0.1.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "a3e378b66a060d48947b590737b30a1be76706c8dd7b8ba0f2fe3989c68a853f"
-
-[[package]]
-name = "mdl"
-version = "0.1.0"
-dependencies = [
- "bincode",
- "serde",
-]
 
 [[package]]
 name = "memchr"

@@ -184,6 +184,22 @@ impl<const N: usize> DivAssign<f64> for Vector<N> {
         *self = *self / rhs;
     }
 }
+impl<const N: usize> Div<Vector<N>> for Vector<N> {
+    type Output = Self;
+
+    fn div(self, rhs: Vector<N>) -> Self::Output {
+        let mut o = self;
+        for (a, rhs) in o.inner.iter_mut().zip(rhs.inner) {
+            *a /= rhs;
+        }
+        o
+    }
+}
+impl<const N: usize> DivAssign<Vector<N>> for Vector<N> {
+    fn div_assign(&mut self, rhs: Vector<N>) {
+        *self = *self / rhs;
+    }
+}
 
 impl<const N: usize> Neg for Vector<N> {
     type Output = Self;
@@ -343,18 +359,6 @@ impl Vec3 {
     }
 }
 
-impl From<mdl::Vector3> for Vec3 {
-    fn from(vec: mdl::Vector3) -> Self {
-        (&vec).into()
-    }
-}
-
-impl From<&mdl::Vector3> for Vec3 {
-    fn from(vec: &mdl::Vector3) -> Self {
-        vector![vec.x as f64, vec.y as f64, vec.z as f64]
-    }
-}
-
 impl From<Vector3<f32>> for Vec3 {
     fn from(a: Vector3<f32>) -> Self {
         Self::new(a.x as f64, a.y as f64, a.z as f64)
@@ -362,6 +366,16 @@ impl From<Vector3<f32>> for Vec3 {
 }
 impl From<Vector2<f32>> for Vec2 {
     fn from(a: Vector2<f32>) -> Self {
+        vector!(a.x as f64, a.y as f64)
+    }
+}
+impl From<Vector3<i32>> for Vec3 {
+    fn from(a: Vector3<i32>) -> Self {
+        Self::new(a.x as f64, a.y as f64, a.z as f64)
+    }
+}
+impl From<Vector2<i32>> for Vec2 {
+    fn from(a: Vector2<i32>) -> Self {
         vector!(a.x as f64, a.y as f64)
     }
 }
@@ -377,18 +391,6 @@ impl Vec2 {
     }
     pub fn y(self) -> f64 {
         self[1]
-    }
-}
-
-impl From<mdl::Vector2> for Vec2 {
-    fn from(vec: mdl::Vector2) -> Self {
-        (&vec).into()
-    }
-}
-
-impl From<&mdl::Vector2> for Vec2 {
-    fn from(vec: &mdl::Vector2) -> Self {
-        vector![vec.x as f64, vec.y as f64]
     }
 }
 
