@@ -16,6 +16,7 @@ import EditProjectModal from "./EditProjectModal";
 import DeleteProjectModal from "./DeleteProjectModal";
 
 import { Project } from "../../../../services/projects";
+import ProjectDetailsModal from "./ProjectDetailsModal";
 
 interface Props {
   project: Project;
@@ -40,7 +41,19 @@ export default function ProjectActionsMenu({
     setDeleteProjectModalOpen(true);
     handleClose();
   };
-  const handleDeleteProjectModalClose = () => setDeleteProjectModalOpen(false);
+  const handleDeleteProjectModalClose = () => {
+    setDeleteProjectModalOpen(false);
+  };
+
+  //Project details modal
+  const [projectDetailsModalOpen, setProjectDetailsModalOpen] = useState(false);
+  const handleProjectDetailsModalOpen = () => {
+    setProjectDetailsModalOpen(true);
+    handleClose();
+  };
+  const handleProjectDetailsModalClose = () => {
+    setProjectDetailsModalOpen(false);
+  };
 
   //Title edit handling
   const [underEdit, setUnderEdit] = useState(false);
@@ -79,7 +92,7 @@ export default function ProjectActionsMenu({
           {t("edit_name")}
         </MenuItem>
         <Divider />
-        <MenuItem>
+        <MenuItem onClick={handleProjectDetailsModalOpen}>
           <ListItemIcon>
             <InfoOutlined />
           </ListItemIcon>
@@ -106,6 +119,12 @@ export default function ProjectActionsMenu({
         project={project}
         open={deleteProjectModalOpen}
         handleClose={handleDeleteProjectModalClose}
+      />
+
+      <ProjectDetailsModal
+        project={project}
+        open={projectDetailsModalOpen}
+        handleClose={handleProjectDetailsModalClose}
       />
     </>
   );
