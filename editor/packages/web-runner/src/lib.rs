@@ -1,8 +1,11 @@
 use std::sync::mpsc;
 
-use app::{FromHost, Host, Init, Resource, ToHost, Winit};
-use winit::{event_loop::EventLoop, window::WindowBuilder};
+use wasm_bindgen::{prelude::*, JsCast};
 
+use app::{FromHost, Host, Init, Resource, ResourceKind, ToHost, Winit};
+use winit::{event_loop::EventLoop, platform::web::WindowBuilderExtWebSys, window::WindowBuilder};
+
+#[wasm_bindgen]
 pub fn run(mut channel: Channel, callback: Callback) {
     app::run(Init {
         winit: winit(),
@@ -12,13 +15,16 @@ pub fn run(mut channel: Channel, callback: Callback) {
     });
 }
 
+#[wasm_bindgen]
 pub struct Channel {
     tx: Option<mpsc::Sender<FromHost>>,
     rx: Option<mpsc::Receiver<FromHost>>,
 }
 
+#[wasm_bindgen]
 impl Channel {
     #[allow(clippy::new_without_default)]
+    #[wasm_bindgen(constructor)]
     pub fn new() -> Self {
         let (tx, rx) = mpsc::channel();
         Self {
@@ -34,10 +40,12 @@ impl Channel {
     }
 }
 
+#[wasm_bindgen]
 pub struct Sender {
     tx: mpsc::Sender<FromHost>,
 }
 
+#[wasm_bindgen]
 impl Sender {
     pub fn set_resolution(&self, width: u32, height: u32) {
         self.tx
@@ -62,20 +70,59 @@ impl Sender {
     }
 }
 
+#[wasm_bindgen]
 pub struct Callback;
 
+#[wasm_bindgen]
+impl Callback {
+    #[allow(clippy::new_without_default)]
+    #[wasm_bindgen(constructor)]
+    pub fn new() -> Self {
+        Self
+    }
+}
+
 impl Host for Callback {
-    fn callback(&self, data: ToHost) {
+    fn callback(&self, _data: ToHost) {
         // todo
     }
 }
 
 fn winit() -> Winit {
     let event_loop = EventLoop::new();
-    let window = WindowBuilder::default().build(&event_loop).unwrap();
+    let window = WindowBuilder::default()
+        .with_canvas(
+            web_sys::window()
+                .unwrap()
+                .document()
+                .unwrap()
+                .get_element_by_id("viewport-canvas")
+                .unwrap()
+                .dyn_into::<web_sys::HtmlCanvasElement>()
+                .ok(),
+        )
+        .build(&event_loop)
+        .unwrap();
+
     Winit { event_loop, window }
 }
 
 fn builtin_resources() -> Vec<Resource> {
-    vec![]
+    vec![
+        Resource {
+            id: 0,
+            buf: include_bytes!("../../../assets/builtin/nodraw.png").to_vec(),
+            kind: ResourceKind::Texture,
+        },
+        Resource {
+            id: 1,
+            buf: include_bytes!("../../../assets/builtin/ground.png").to_vec(),
+            kind: ResourceKind::Texture,
+        },
+        Resource {
+            id: 0,
+            buf: include_bytes!("../../../assets/builtin/vertex.agzm").to_vec(),
+            kind: ResourceKind::Gizmo,
+        },
+    ]
 }

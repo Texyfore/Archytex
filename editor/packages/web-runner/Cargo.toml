@@ -12,4 +12,4 @@ crate-type = ["cdylib", "rlib"]
 winit = "0"
 app = { path = "../app" }
 wasm-bindgen = "0"
-web-sys = "0"
+web-sys = { version = "0", features = ["Document", "Window", "Node"] }
