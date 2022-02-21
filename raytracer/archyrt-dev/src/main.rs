@@ -2,6 +2,7 @@
 
 use archyrt_core::api::fragment_render::{FragmentContext, FragmentRender};
 
+use archyrt_core::cameras::jitter::JitterCamera;
 use archyrt_core::collector::raw_collector::RawCollector;
 use archyrt_core::intersectables::bvh::BVH;
 use archyrt_core::intersectables::sphere::Sphere;
@@ -34,65 +35,61 @@ impl<Renderer: FragmentRender + Sync + Send> FragmentRender for SamplingRenderer
 }
 
 fn main() {
+    let w = 1920 / 2;
+    let h = 1080 / 2;
+    
+    //Loading textures and skybox
     println!("Load file");
     let mut repo = TextureRepository::new();
     amdl_textures::load_into(&mut repo, "../assets").unwrap();
     let skybox_id = TextureID::new(&"skybox");
     texture_repo::exr::load_into(&mut repo, "../assets", &[(skybox_id, "skybox.exr")]).unwrap();
     let skybox = Some(skybox_id);
+
+    //Load model
     let loader = AMDLLoader::from_path("../assets/portal.ascn").unwrap();
     let camera = loader.get_camera();
+    let aa_camera = JitterCamera::new(camera, w, h); //Camera used for anti-aliasing
     let object = loader.get_triangles();
-    let object = BVH::from_triangles(object).unwrap();
-    let sphere_intersection = object
-        .intersect(Ray {
-            origin: camera.position,
-            direction: camera.matrix.inner[2],
-        })
-        .unwrap();
-    let radius = 1.0;
-    let _sphere = Sphere {
-        origin: sphere_intersection.get_pos() + Vec3::new(0.0, radius, 0.0),
-        color: Vec3::new(0.0, 0.0, 1.0),
-        radius,
-        material: Material::Emissive { power: 10.0 },
-    };
-    let _sphere2 = Sphere {
-        origin: sphere_intersection.get_pos() + Vec3::new(-radius * 4.0, radius, 0.0),
-        color: Vec3::new(1.0, 0.0, 0.0),
-        radius,
-        material: Material::Emissive { power: 10.0 },
-    };
-    //let object = object.union(sphere);
-    //let object = object.union(sphere2);
+    let object = BVH::from_triangles(object).unwrap(); //Generate acceleration structure
+
     println!("Render");
-    let renderer = PathTracer {
+    //Set renderers up
+    let pathtracer = PathTracer {
         skybox,
         object: &object,
-        camera: &camera,
+        camera: &aa_camera,
         bounces: 5,
     };
-    let renderer = SamplingRenderer {
-        inner: renderer,
+    let pathtracer = SamplingRenderer {
+        inner: pathtracer,
         samples: 5,
     };
+    //Albedo and Normal renderers are required by OIDN
     let albedo = AlbedoRenderer {
         object: &object,
-        camera: &camera,
+        camera: &aa_camera,
+    };
+    //Make sure albedo is anti-aliased
+    let albedo = SamplingRenderer{
+        inner: albedo,
+        samples: 5
     };
     let normal = NormalRenderer {
         object: &object,
         camera: &camera,
     };
-    let collector = RawCollector {};
-    let w = 1920 / 2;
-    let h = 1080 / 2;
+    
+    //Collect images to arrays
     println!("Rendering image");
-    let rt_image = collector.collect(&renderer, &repo, w, h);
+    let collector = RawCollector {};
+    let pathtracer_image = collector.collect(&pathtracer, &repo, w, h);
     let albedo_image = collector.collect(&albedo, &repo, w, h);
     let normal_image = collector.collect(&normal, &repo, w, h);
+
+    //Using OIDN for denoising
     println!("Denoising");
-    let mut output: Vec<f32> = (0..rt_image.len()).into_iter().map(|_| 0f32).collect();
+    let mut output: Vec<f32> = (0..pathtracer_image.len()).into_iter().map(|_| 0f32).collect();
     let device = oidn::Device::new();
     oidn::RayTracing::new(&device)
         .srgb(false)
@@ -100,8 +97,9 @@ fn main() {
         .image_dimensions(w, h)
         .albedo_normal(&albedo_image, &normal_image)
         .clean_aux(true)
-        .filter(&rt_image, &mut output)
+        .filter(&pathtracer_image, &mut output)
         .unwrap();
+    //Collect OIDN image
     let mut image = RgbImage::new(w as u32, h as u32);
     for (x, y, color) in image.enumerate_pixels_mut() {
         let index = (y as usize * w + x as usize) * 3;
