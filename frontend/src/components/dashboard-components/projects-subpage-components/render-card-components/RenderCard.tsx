@@ -44,7 +44,7 @@ export default function RenderCard({ render }: RenderCardProps) {
               height: { xs: "150px", sm: "200px", md: "250px" },
             }}
             image={`${Environment.base_url}render/${render.icon}`}
-            alt='green iguana'
+            alt='archytex_render'
           />
           {/* Image overlay for progress information */}
           <Box

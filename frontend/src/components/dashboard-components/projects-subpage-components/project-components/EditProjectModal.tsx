@@ -12,10 +12,9 @@ import Backdrop from "@mui/material/Backdrop";
 
 import { Close } from "@mui/icons-material";
 
-import { Project, useProjects } from "../../../../services/projects";
-
 import FormInput from "../../../form-components/FormInput";
 
+import { Project, useProjects } from "../../../../services/projects";
 import useNotification from "../../../../services/hooks/useNotification";
 
 interface Props {

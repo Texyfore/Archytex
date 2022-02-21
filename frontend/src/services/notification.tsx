@@ -42,12 +42,9 @@ export default function NotificationProvider({ children }: Props) {
     notification: notification,
     addNotification: useCallback(
       (message, status) => addNotification(message, status),
-      [setNotification]
+      []
     ),
-    removeNotification: useCallback(
-      () => removeNotification(),
-      [setNotification]
-    ),
+    removeNotification: useCallback(() => removeNotification(), []),
   };
 
   return (
