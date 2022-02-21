@@ -7,6 +7,7 @@ use winit::{event_loop::EventLoop, platform::web::WindowBuilderExtWebSys, window
 
 #[wasm_bindgen]
 pub fn run(mut channel: Channel, callback: Callback) {
+    console_error_panic_hook::set_once();
     app::run(Init {
         winit: winit(),
         resources: builtin_resources(),

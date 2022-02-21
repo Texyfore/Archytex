@@ -1,3 +1,3 @@
 cd packages/web-runner
-wasm-pack build --out-dir ../../express/public/pkg
+wasm-pack build --dev --target=web --out-dir ../../express/public/pkg
 cd ..
