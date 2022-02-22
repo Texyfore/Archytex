@@ -22,7 +22,5 @@ init().then(() => {
 async function resource(url) {
     const res = await fetch(url);
     const buf = await res.arrayBuffer();
-    let a = new Uint8Array(buf);
-    alert(a.length);
     return new Uint8Array(buf);
 }
