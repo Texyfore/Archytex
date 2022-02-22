@@ -8,7 +8,7 @@ enum ColorMode {
 }
 
 function GetTheme(mode: ColorMode): any {
-  //set different font for Japanese language
+  // Set different font for Japanese language
   const { i18n } = useTranslation();
   const fontFamily = React.useMemo(() => {
     switch (i18n.language) {
@@ -16,9 +16,11 @@ function GetTheme(mode: ColorMode): any {
         return "Noto Sans JP";
 
       default:
-        return "Poppins";
+        return "Nagoda";
     }
   }, [i18n.language]);
+
+  // Main theme
   return React.useMemo(
     () =>
       createTheme({
@@ -28,26 +30,14 @@ function GetTheme(mode: ColorMode): any {
             main: "#39A0ED",
           },
           secondary: {
-            main: "#f68dd1",
+            main: "#FF6584",
           },
           text: {
-            primary: mode === ColorMode.Dark ? "#f5f0f6" : "#0c0c0c",
+            primary: mode === ColorMode.Dark ? "#F4F4F4" : "#1B1B1A",
           },
           background: {
-            default: mode === ColorMode.Dark ? "#0c0c0c" : "#F5F0F6",
-            paper: mode === ColorMode.Dark ? "#0c0c0c" : "#F5F0F6",
-          },
-          error: {
-            main: "#fb4d3d",
-          },
-          warning: {
-            main: "#fea82f",
-          },
-          info: {
-            main: "#4c6085",
-          },
-          success: {
-            main: "#13c4a3",
+            default: mode === ColorMode.Dark ? "#1B1B1A" : "#F4F4F4",
+            paper: mode === ColorMode.Dark ? "#1B1B1A" : "#F4F4F4",
           },
           divider: mode === ColorMode.Dark ? "#1F1F1F" : "#EBE7EC",
         },
@@ -104,7 +94,7 @@ export const ColorModeProvider = ({
   children,
 }: React.PropsWithChildren<{}>) => {
   let mode =
-    modeFromString(localStorage.getItem("colormode")) ?? ColorMode.Dark;
+    modeFromString(localStorage.getItem("colormode")) ?? ColorMode.Light;
   const [state, dispatch] = useReducer(colorModeReducer, mode);
   const theme = GetTheme(state);
   return (
@@ -119,10 +109,10 @@ export const ColorModeProvider = ({
 export const ForceDarkProvider = ({
   children,
 }: React.PropsWithChildren<{}>) => {
-  const theme = GetTheme(ColorMode.Dark);
+  const theme = GetTheme(ColorMode.Light);
   return (
     <ThemeProvider theme={theme}>
-      <ColorModeContext.Provider value={[ColorMode.Dark, () => {}]}>
+      <ColorModeContext.Provider value={[ColorMode.Light, () => {}]}>
         {children}
       </ColorModeContext.Provider>
     </ThemeProvider>
