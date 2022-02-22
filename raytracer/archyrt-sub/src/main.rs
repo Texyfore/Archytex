@@ -3,11 +3,11 @@ use std::env;
 use anyhow::{anyhow, Result};
 use archyrt_core::{
     api::fragment_collector::FragmentCollector,
-    cameras::perspective::PerspectiveCamera,
+    cameras::{perspective::PerspectiveCamera, jitter::JitterCamera},
     collector::array_collector::ArrayCollector,
     intersectables::bvh::BVH,
     loaders::{
-        amdl::{amdl_textures, AMDLLoader},
+        ascn::{amdl_textures, ASCNLoader},
         Loader,
     },
     renderers::{path_tracer::PathTracer},
@@ -22,7 +22,7 @@ use lapin::{message::Delivery, Channel, Connection, ConnectionProperties};
 use lru::LruCache;
 use redis::AsyncCommands;
 
-struct SceneData(BVH, PerspectiveCamera);
+struct SceneData(BVH, JitterCamera<PerspectiveCamera>);
 
 async fn render(
     texture_repo: &TextureRepository,
@@ -37,21 +37,23 @@ async fn render(
     let task = s[0].to_string();
     let id = s[1].to_string();
     let response = s[2].to_string();
+    let width: usize = redis::Cmd::get(format!("archyrt:{}:width", task)).query(redis_client)?;
+    let height: usize = redis::Cmd::get(format!("archyrt:{}:height", task)).query(redis_client)?;
     let scene = match cache.get(&task) {
         Some(a) => a,
         None => {
             let scene: Vec<u8> =
                 redis::Cmd::get(format!("archyrt:{}:scene", task)).query(redis_client)?;
-            let scene = AMDLLoader::from_bytes(&scene)?;
+            let scene = ASCNLoader::from_bytes(&scene)?;
             let bvh = BVH::from_triangles(scene.get_triangles())
                 .ok_or_else(|| anyhow!("Unable to create BVH"))?;
-            let data = SceneData(bvh, scene.get_camera().clone());
+                let camera = scene.get_camera().clone();
+                let camera = JitterCamera::new(camera, width, height);
+            let data = SceneData(bvh, camera);
             cache.put(task.clone(), data);
             cache.get(&task).unwrap()
         }
     };
-    let width: usize = redis::Cmd::get(format!("archyrt:{}:width", task)).query(redis_client)?;
-    let height: usize = redis::Cmd::get(format!("archyrt:{}:height", task)).query(redis_client)?;
     let renderer = PathTracer {
         camera: &scene.1,
         object: &scene.0,

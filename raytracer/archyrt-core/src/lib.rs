@@ -6,3 +6,4 @@ pub mod loaders;
 pub mod renderers;
 pub mod textures;
 pub mod utilities;
+pub mod tonemapping;

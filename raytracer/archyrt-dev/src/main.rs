@@ -8,9 +8,11 @@ use archyrt_core::intersectables::bvh::BVH;
 use archyrt_core::intersectables::sphere::Sphere;
 use archyrt_core::loaders::ascn::{amdl_textures, ASCNLoader};
 use archyrt_core::renderers::path_tracer::{Material, PathTracer};
+use archyrt_core::renderers::sampling::SamplingRenderer;
 use archyrt_core::renderers::solid_renderers::albedo::AlbedoRenderer;
 use archyrt_core::renderers::solid_renderers::normal::NormalRenderer;
 use archyrt_core::textures::texture_repo::{self, TextureRepository};
+use archyrt_core::tonemapping::tonemap_fragment;
 use archyrt_core::utilities::math::{Vec2, Vector};
 use archyrt_core::utilities::ray::{Intersectable, Ray};
 use archyrt_core::vector;
@@ -20,12 +22,12 @@ use archyrt_core::{
 use image::{Rgb, RgbImage};
 use rayon::prelude::*;
 
-pub struct SamplingRenderer<Renderer: FragmentRender + Sync + Send> {
+pub struct ParallelSamplingRenderer<Renderer: FragmentRender + Sync + Send> {
     pub inner: Renderer,
     pub samples: usize,
 }
 
-impl<Renderer: FragmentRender + Sync + Send> FragmentRender for SamplingRenderer<Renderer> {
+impl<Renderer: FragmentRender + Sync + Send> FragmentRender for ParallelSamplingRenderer<Renderer> {
     fn render_fragment(&self, ctx: &FragmentContext, pos: Vec2) -> Vec3 {
         (0..self.samples)
             .into_par_iter()
@@ -34,6 +36,7 @@ impl<Renderer: FragmentRender + Sync + Send> FragmentRender for SamplingRenderer
             / (self.samples as f64)
     }
 }
+
 
 fn main() {
     let w = 1920 / 2;
@@ -62,7 +65,7 @@ fn main() {
         camera: &aa_camera,
         bounces: 5,
     };
-    let pathtracer = SamplingRenderer {
+    let pathtracer = ParallelSamplingRenderer {
         inner: pathtracer,
         samples: 5,
     };
@@ -72,7 +75,7 @@ fn main() {
         camera: &aa_camera,
     };
     //Make sure albedo is anti-aliased
-    let albedo = SamplingRenderer{
+    let albedo = ParallelSamplingRenderer{
         inner: albedo,
         samples: 5
     };
@@ -111,9 +114,7 @@ fn main() {
         let index = y as usize * w + x as usize;
         let c = output[index];
 
-        let c = c*4.0;
-        let c = c/(c+Vector::from_single(1.0));
-        let c = c.powf(1.0/2.2);
+        let c = tonemap_fragment(c);
 
         let c = c*255.;
         let r = c.x();

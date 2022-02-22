@@ -6,11 +6,11 @@ use archyrt_core::{
     collector::raw_collector::RawCollector,
     intersectables::bvh::BVH,
     loaders::{
-        amdl::{amdl_textures, AMDLLoader},
+        ascn::{amdl_textures, ASCNLoader},
         Loader,
     },
-    renderers::solid_renderers::{albedo::AlbedoRenderer, normal::NormalRenderer},
-    textures::texture_repo::TextureRepository,
+    renderers::{solid_renderers::{albedo::AlbedoRenderer, normal::NormalRenderer}, sampling::SamplingRenderer},
+    textures::texture_repo::TextureRepository, vector, utilities::math::Vec3, tonemapping::tonemap_fragment, cameras::jitter::JitterCamera,
 };
 use dotenv::dotenv;
 
@@ -152,11 +152,10 @@ async fn handle_job(
         })
         .collect();
 
-    println!("[{}] Applying denoiser", render_id);
     //Render Albedo and Normal
     let scene: Vec<u8> =
         redis::Cmd::get(format!("archyrt:{}:scene", s)).query(&mut redis_client)?;
-    let scene = AMDLLoader::from_bytes(&scene)?;
+    let scene = ASCNLoader::from_bytes(&scene)?;
     let width: usize = redis::Cmd::get(format!("archyrt:{}:width", s)).query(&mut redis_client)?;
     let height: usize =
         redis::Cmd::get(format!("archyrt:{}:height", s)).query(&mut redis_client)?;
@@ -165,16 +164,23 @@ async fn handle_job(
     let camera = scene.get_camera();
     let albedo = AlbedoRenderer {
         object: &bvh,
-        camera: &camera,
+        camera: JitterCamera::new(&camera, width, height),
+    };
+    let albedo = SamplingRenderer{
+        inner: albedo,
+        samples: 4
     };
     let normal = NormalRenderer {
         object: &bvh,
         camera: &camera,
     };
     let collector = RawCollector {};
+    println!("[{}] Rendering Albedo and Normal", render_id);
     let albedo = collector.collect(albedo, &textures, width, height);
     let normal = collector.collect(normal, &textures, width, height);
     let mut output: Vec<f32> = (0..image.len()).into_iter().map(|_| 0f32).collect();
+    //Apply denoised
+    println!("[{}] Applying denoiser", render_id);
     let device = oidn::Device::new();
     oidn::RayTracing::new(&device)
         .srgb(false)
@@ -187,11 +193,19 @@ async fn handle_job(
 
     println!("[{}] Saving", render_id);
     let mut image = image::RgbImage::new(width as u32, height as u32);
+    let output: Vec<Vec3> = output.chunks(3).map(|v|{
+        let [r, g, b]: [f32;3] = v.try_into().unwrap();
+        vector![r as f64, g as f64, b as f64]
+    }).collect();
     for (x, y, color) in image.enumerate_pixels_mut() {
-        let index = (y as usize * width + x as usize) * 3;
-        let r = output[index + 0].powf(1.0 / 2.2) * 255.0;
-        let g = output[index + 1].powf(1.0 / 2.2) * 255.0;
-        let b = output[index + 2].powf(1.0 / 2.2) * 255.0;
+        let index = y as usize * width + x as usize;
+        let c = output[index];
+        
+        let c = tonemap_fragment(c);
+
+        let r = c.x()*255.0;
+        let g = c.y()*255.0;
+        let b = c.z()*255.0;
         let r = r.clamp(0.0, 255.0);
         let g = g.clamp(0.0, 255.0);
         let b = b.clamp(0.0, 255.0);

@@ -87,7 +87,7 @@ impl<T: Camera, K: Intersectable> FragmentRender for PathTracer<T, K> {
             match self.object.intersect(ray) {
                 Some(intersection) => {
                     let normal = intersection.get_normal();
-                    let material = intersection.get_material(); //TODO: Handle materials
+                    let material = intersection.get_material();
                     material.color(&intersection, ctx.repo, &mut emissive, &mut diffusive);
                     ray = match material.reflect(intersection) {
                         Some(ray) => {
