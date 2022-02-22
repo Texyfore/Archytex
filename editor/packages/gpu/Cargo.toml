@@ -6,7 +6,12 @@ description = "A very simple GPU abstraction for the Archytex editor"
 authors = ["Gulyás Arnold"]
 
 [dependencies]
-wgpu = "=0.12.0"
 futures-lite = "=1.12.0"
 raw-window-handle = "=0.4.2"
 bytemuck = "=1.7.3"
+
+[target.'cfg(not(target_arch="wasm32"))'.dependencies]
+wgpu = "=0.12.0"
+
+[target.'cfg(target_arch="wasm32")'.dependencies]
+wgpu = { version = "=0.12.0", features = ["webgl"] }

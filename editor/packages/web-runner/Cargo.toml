@@ -4,3 +4,14 @@ version = "0.1.0"
 edition = "2021"
 description = "The Archytex editor's web runner"
 authors = ["Gulyás Arnold"]
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+winit = "0"
+app = { path = "../app" }
+wasm-bindgen = "0"
+console_error_panic_hook = "0"
+js-sys = "0"
+web-sys = { version = "0", features = ["Document", "Window", "Node"] }

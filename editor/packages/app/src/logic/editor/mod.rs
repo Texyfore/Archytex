@@ -7,7 +7,8 @@ use winit::event::VirtualKeyCode;
 use crate::{
     data::PropInfoContainer,
     graphics::{
-        structures::GroundVertex, Canvas, Graphics, GroundMesh, GroundMeshDescriptor, Share,
+        structures::{GroundVertex, LineVertex},
+        Canvas, Graphics, GroundMesh, GroundMeshDescriptor, LineMesh, LineMeshDescriptor, Share,
     },
 };
 
@@ -111,28 +112,57 @@ pub struct Context<'a> {
 
 struct Ground {
     mesh: GroundMesh,
+    lines: LineMesh,
 }
 
 impl Ground {
     fn new(graphics: &Graphics) -> Self {
-        const POSITIONS: [[f32; 2]; 4] = [[0.0, 0.0], [0.0, 1.0], [1.0, 1.0], [1.0, 0.0]];
+        let mesh = {
+            const POSITIONS: [[f32; 2]; 4] = [[0.0, 0.0], [0.0, 1.0], [1.0, 1.0], [1.0, 0.0]];
 
-        let vertices = POSITIONS.map(|pos| GroundVertex {
-            position: vec3(pos[0] - 0.5, 0.0, pos[1] - 0.5) * 10000.0,
-            texcoord: pos.into(),
-        });
+            let vertices = POSITIONS.map(|pos| GroundVertex {
+                position: vec3(pos[0] - 0.5, 0.0, pos[1] - 0.5) * 10000.0,
+                texcoord: pos.into(),
+            });
 
-        Self {
-            mesh: graphics.create_ground_mesh(GroundMeshDescriptor {
+            graphics.create_ground_mesh(GroundMeshDescriptor {
                 texture: TextureID(1),
                 vertices: &vertices,
                 triangles: &[[0, 1, 2], [0, 2, 3]],
-            }),
-        }
+            })
+        };
+
+        let lines = {
+            let vertices = [
+                LineVertex {
+                    position: vec3(-100.0, 0.0, 0.0),
+                    color: [1.0, 0.0, 0.0],
+                },
+                LineVertex {
+                    position: vec3(100.0, 0.0, 0.0),
+                    color: [1.0, 0.0, 0.0],
+                },
+                LineVertex {
+                    position: vec3(0.0, 0.0, -100.0),
+                    color: [0.0, 0.0, 1.0],
+                },
+                LineVertex {
+                    position: vec3(0.0, 0.0, 100.0),
+                    color: [0.0, 0.0, 1.0],
+                },
+            ];
+
+            graphics.create_line_mesh(LineMeshDescriptor {
+                vertices: &vertices,
+            })
+        };
+
+        Self { mesh, lines }
     }
 
     fn render(&self, canvas: &mut Canvas) {
         canvas.draw_ground(self.mesh.share());
+        canvas.draw_lines(self.lines.share());
     }
 }
 

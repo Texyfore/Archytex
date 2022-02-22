@@ -1,10 +1,13 @@
-use std::marker::PhantomData;
+use std::{marker::PhantomData, mem::size_of};
 
 use crate::Gpu;
 
 use bytemuck::{cast_slice, Pod};
-use wgpu::util::{BufferInitDescriptor, DeviceExt};
 pub use wgpu::BufferUsages;
+use wgpu::{
+    util::{BufferInitDescriptor, DeviceExt},
+    BufferDescriptor,
+};
 
 pub struct Buffer<T> {
     pub(crate) buffer: wgpu::Buffer,
@@ -26,6 +29,30 @@ impl Gpu {
             len: content.len(),
             _t: PhantomData,
         }
+    }
+
+    pub fn create_buffer_uninit<T>(&self, len: usize, usage: BufferUsages) -> Buffer<T>
+    where
+        T: Pod,
+    {
+        Buffer {
+            buffer: self.device.create_buffer(&BufferDescriptor {
+                label: None,
+                size: (size_of::<T>() * len) as u64,
+                usage,
+                mapped_at_creation: false,
+            }),
+            len,
+            _t: PhantomData,
+        }
+    }
+
+    pub fn write_buffer<T>(&self, buffer: &Buffer<T>, content: &[T])
+    where
+        T: Pod,
+    {
+        self.queue
+            .write_buffer(&buffer.buffer, 0, cast_slice(content));
     }
 }
 

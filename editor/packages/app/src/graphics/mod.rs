@@ -75,11 +75,18 @@ impl Graphics {
         }
     }
 
-    pub fn create_gizmo_instances(&self, instances: &[GizmoInstance]) -> GizmoInstances {
+    pub fn create_gizmo_instances(&self, len: usize) -> GizmoInstances {
         GizmoInstances {
-            buffer: Rc::new(self.gpu.create_buffer(instances, BufferUsages::VERTEX)),
-            len: instances.len() as u32,
+            buffer: Rc::new(
+                self.gpu
+                    .create_buffer_uninit(len, BufferUsages::VERTEX | BufferUsages::COPY_DST),
+            ),
+            len: len as u32,
         }
+    }
+
+    pub fn write_gizmo_instances(&self, instances: &GizmoInstances, data: &[GizmoInstance]) {
+        self.gpu.write_buffer(&instances.buffer, data);
     }
 }
 
