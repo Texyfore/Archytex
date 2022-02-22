@@ -30,6 +30,7 @@ pub enum ElementKind {
 pub struct Solid {
     geometry: SolidGeometry,
     selected: bool,
+    verts: GizmoInstances,
     graphics: SolidGraphics,
 }
 
@@ -37,12 +38,14 @@ impl Solid {
     pub fn new(graphics: &Graphics, origin: Vector3<i32>, extent: Vector3<i32>) -> Self {
         let geometry = SolidGeometry::new(origin, extent);
         let selected = false;
-        let graphics = meshgen(graphics, &geometry, selected);
+        let verts = graphics.create_gizmo_instances(8);
+        let graphics = meshgen(graphics, &geometry, selected, &verts);
 
         Self {
             geometry,
             selected,
             graphics,
+            verts,
         }
     }
 
@@ -113,12 +116,14 @@ impl Solid {
 
     pub fn load(graphics: &Graphics, solid: &scene::Solid) -> Self {
         let geometry = SolidGeometry::load(solid);
-        let graphics = meshgen(graphics, &geometry, false);
+        let verts = graphics.create_gizmo_instances(8);
+        let graphics = meshgen(graphics, &geometry, false, &verts);
 
         Self {
             geometry,
             selected: false,
             graphics,
+            verts,
         }
     }
 }
@@ -285,23 +290,14 @@ impl SolidGeometry {
 struct SolidGraphics {
     meshes: Vec<SolidMesh>,
     lines: LineMesh,
-    verts: GizmoInstances,
 }
 
 impl SolidGraphics {
-    fn render(&self, canvas: &mut Canvas, verts: bool) {
+    fn render(&self, canvas: &mut Canvas) {
         for mesh in &self.meshes {
             canvas.draw_solid(mesh.share());
         }
-
         canvas.draw_lines(self.lines.share());
-
-        if verts {
-            canvas.draw_gizmos(GizmoGroup {
-                gizmo: GizmoID(0),
-                instances: self.verts.share(),
-            });
-        }
     }
 }
 
@@ -397,7 +393,12 @@ impl Prop {
     }
 }
 
-fn meshgen(graphics: &Graphics, geometry: &SolidGeometry, selected: bool) -> SolidGraphics {
+fn meshgen(
+    graphics: &Graphics,
+    geometry: &SolidGeometry,
+    selected: bool,
+    verts: &GizmoInstances,
+) -> SolidGraphics {
     let mut batches = HashMap::<TextureID, (Vec<SolidVertex>, Vec<[u16; 3]>)>::new();
     for face in &geometry.faces {
         let normal = {
@@ -447,6 +448,22 @@ fn meshgen(graphics: &Graphics, geometry: &SolidGeometry, selected: bool) -> Sol
         0, 1, 1, 2, 2, 3, 3, 0, 4, 5, 5, 6, 6, 7, 7, 4, 0, 4, 1, 5, 2, 6, 3, 7,
     ];
 
+    graphics.write_gizmo_instances(
+        verts,
+        &geometry
+            .points
+            .iter()
+            .map(|point| GizmoInstance {
+                matrix: Matrix4::from_translation(point.meters()),
+                color: if point.selected {
+                    [0.04, 0.36, 0.85]
+                } else {
+                    [0.0; 3]
+                },
+            })
+            .collect::<Vec<_>>(),
+    );
+
     SolidGraphics {
         meshes: batches
             .into_iter()
@@ -464,20 +481,6 @@ fn meshgen(graphics: &Graphics, geometry: &SolidGeometry, selected: bool) -> Sol
                 color: [0.0; 3],
             }),
         }),
-        verts: graphics.create_gizmo_instances(
-            &geometry
-                .points
-                .iter()
-                .map(|point| GizmoInstance {
-                    matrix: Matrix4::from_translation(point.meters()),
-                    color: if point.selected {
-                        [0.04, 0.36, 0.85]
-                    } else {
-                        [0.0; 3]
-                    },
-                })
-                .collect::<Vec<_>>(),
-        ),
     }
 }
 
@@ -535,12 +538,17 @@ impl Movable for Solid {
     }
 
     fn recalc(&mut self, graphics: &Graphics) {
-        self.graphics = meshgen(graphics, &self.geometry, self.selected);
+        self.graphics = meshgen(graphics, &self.geometry, self.selected, &self.verts);
     }
 
     fn render(&self, canvas: &mut Canvas, mask: ElementKind) {
-        self.graphics
-            .render(canvas, matches!(mask, ElementKind::Point));
+        self.graphics.render(canvas);
+        if matches!(mask, ElementKind::Point) {
+            canvas.draw_gizmos(GizmoGroup {
+                gizmo: GizmoID(0),
+                instances: self.verts.share(),
+            });
+        }
     }
 
     fn insert_move(
