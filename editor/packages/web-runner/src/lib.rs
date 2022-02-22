@@ -1,3 +1,5 @@
+#![allow(clippy::unused_unit)]
+
 use std::sync::mpsc;
 
 use wasm_bindgen::{prelude::*, JsCast};
