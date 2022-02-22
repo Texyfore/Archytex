@@ -17,9 +17,12 @@ const ProjectListContainer = styled(Box)(({ theme }) => ({
   overflowY: "scroll",
 
   [`${theme.breakpoints.up("xs")} and (orientation: landscape)`]: {
-    height: "calc(100vh - 49px - 60px)",
+    height: "calc(100vh - 49px - 60px - 48px)",
   },
   [theme.breakpoints.up("sm")]: {
+    height: "calc(100vh - 65px - 60px - 48px)",
+  },
+  [theme.breakpoints.up("md")]: {
     height: "calc(100vh - 65px - 60px)",
   },
 }));

@@ -10,6 +10,7 @@ import { useTranslation } from "react-i18next";
 import Tooltip from "@mui/material/Tooltip";
 
 import { ColorMode, useColorMode } from "../../services/colorMode";
+import { useSubPage } from "../../services/selectedDashboardSubPage";
 
 export default function DashboardSideBar() {
   const { t } = useTranslation();
@@ -18,6 +19,8 @@ export default function DashboardSideBar() {
   const settingsTooltipText = t("settings");
 
   const [colorMode, _] = useColorMode();
+
+  const [subPage, setSubPage] = useSubPage();
 
   return (
     <Box
@@ -39,12 +42,12 @@ export default function DashboardSideBar() {
         </IconButton>
       </Tooltip>
       <Tooltip title={projectsTooltipText} placement='right'>
-        <IconButton>
+        <IconButton onClick={() => setSubPage("projects")}>
           <PermMedia fontSize='large' />
         </IconButton>
       </Tooltip>
       <Tooltip title={settingsTooltipText} placement='right'>
-        <IconButton>
+        <IconButton onClick={() => setSubPage("settings")}>
           <Settings fontSize='large' />
         </IconButton>
       </Tooltip>

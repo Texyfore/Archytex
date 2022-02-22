@@ -5,14 +5,18 @@ import DashboardContainer from "../components/dashboard-components/DashboardCont
 import DashboardSideBar from "../components/dashboard-components/DashboardSideBar";
 import DashboardContent from "../components/dashboard-components/DashboardContent";
 
+import { SubPageProvider } from "../services/selectedDashboardSubPage";
+
 export default function Dashboard() {
   return (
     <>
       <AppBarOffset />
-      <DashboardContainer>
-        <DashboardSideBar />
-        <DashboardContent />
-      </DashboardContainer>
+      <SubPageProvider>
+        <DashboardContainer>
+          <DashboardSideBar />
+          <DashboardContent />
+        </DashboardContainer>
+      </SubPageProvider>
     </>
   );
 }
