@@ -2,17 +2,23 @@
 
 use std::sync::mpsc;
 
+use js_sys::{Function, Uint8Array};
 use wasm_bindgen::{prelude::*, JsCast};
 
 use app::{FromHost, Host, Init, Resource, ResourceKind, ToHost, Winit};
 use winit::{event_loop::EventLoop, platform::web::WindowBuilderExtWebSys, window::WindowBuilder};
 
 #[wasm_bindgen]
-pub fn run(mut channel: Channel, callback: Callback) {
+pub fn run(mut channel: Channel, callback: Callback, resources: Resources) {
     console_error_panic_hook::set_once();
+
+    let mut imported = resources.vec;
+    let mut resources = builtin_resources();
+    resources.append(&mut imported);
+
     app::run(Init {
         winit: winit(),
-        resources: builtin_resources(),
+        resources,
         host: Box::new(callback),
         receiver: channel.rx.take().unwrap(),
     });
@@ -50,44 +56,98 @@ pub struct Sender {
 
 #[wasm_bindgen]
 impl Sender {
+    #[wasm_bindgen(js_name = "setResolution")]
     pub fn set_resolution(&self, width: u32, height: u32) {
         self.tx
             .send(FromHost::Resolution { width, height })
             .unwrap();
     }
 
+    #[wasm_bindgen(js_name = "saveScene")]
     pub fn save_scene(&self) {
         self.tx.send(FromHost::SaveScene).unwrap();
     }
 
+    #[wasm_bindgen(js_name = "loadScene")]
     pub fn load_scene(&self, buf: Vec<u8>) {
         self.tx.send(FromHost::LoadScene(buf)).unwrap();
     }
 
+    #[wasm_bindgen(js_name = "setTexture")]
     pub fn set_texture(&self, id: u32) {
         self.tx.send(FromHost::Texture(id)).unwrap();
     }
 
+    #[wasm_bindgen(js_name = "setProp")]
     pub fn set_prop(&self, id: u32) {
         self.tx.send(FromHost::Prop(id)).unwrap();
     }
 }
 
 #[wasm_bindgen]
-pub struct Callback;
+pub struct Callback {
+    scene_saved: Function,
+}
 
 #[wasm_bindgen]
 impl Callback {
     #[allow(clippy::new_without_default)]
     #[wasm_bindgen(constructor)]
-    pub fn new() -> Self {
-        Self
+    pub fn new(scene_saved: Function) -> Self {
+        Self { scene_saved }
     }
 }
 
 impl Host for Callback {
-    fn callback(&self, _data: ToHost) {
-        // todo
+    fn callback(&self, data: ToHost) {
+        match data {
+            ToHost::SceneSaved(buf) => {
+                self.scene_saved
+                    .call1(&JsValue::NULL, &Uint8Array::from(buf.as_slice()))
+                    .unwrap();
+            }
+        }
+    }
+}
+
+#[wasm_bindgen]
+pub struct Resources {
+    vec: Vec<Resource>,
+}
+
+#[wasm_bindgen]
+impl Resources {
+    #[allow(clippy::new_without_default)]
+    #[wasm_bindgen(constructor)]
+    pub fn new() -> Self {
+        Self { vec: Vec::new() }
+    }
+
+    #[wasm_bindgen(js_name = "addTexture")]
+    pub fn add_texture(&mut self, id: u32, buf: Vec<u8>) {
+        self.vec.push(Resource {
+            id,
+            buf,
+            kind: ResourceKind::Texture,
+        });
+    }
+
+    #[wasm_bindgen(js_name = "addProp")]
+    pub fn add_prop(&mut self, id: u32, buf: Vec<u8>) {
+        self.vec.push(Resource {
+            id,
+            buf,
+            kind: ResourceKind::Prop,
+        });
+    }
+
+    #[wasm_bindgen(js_name = "addGizmo")]
+    pub fn add_gizmo(&mut self, id: u32, buf: Vec<u8>) {
+        self.vec.push(Resource {
+            id,
+            buf,
+            kind: ResourceKind::Gizmo,
+        });
     }
 }
 
