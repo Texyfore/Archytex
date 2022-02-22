@@ -23,8 +23,10 @@ interface NavButton {
   icon: JSX.Element;
   route: string;
 }
-
-export default function DrawerNavButtonList() {
+interface Props {
+  handleClose: () => void;
+}
+export default function DrawerNavButtonList({ handleClose }: Props) {
   const { t } = useTranslation();
 
   const api = useApi();
@@ -73,6 +75,7 @@ export default function DrawerNavButtonList() {
         <ListItemButton
           component={L}
           to={props.route}
+          onClick={handleClose}
           sx={{
             borderRadius: "2px",
           }}

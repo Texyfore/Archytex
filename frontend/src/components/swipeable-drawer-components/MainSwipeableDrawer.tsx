@@ -18,7 +18,7 @@ export default function MainSwipeableDrawer({ open, handleOpenChange }: Props) {
       onClose={() => handleOpenChange(false)}
       onOpen={() => handleOpenChange(true)}
     >
-      <DrawerContent />
+      <DrawerContent handleClose={() => handleOpenChange(false)} />
     </SwipeableDrawer>
   );
 }

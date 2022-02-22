@@ -4,11 +4,14 @@ import DrawerHeader from "./DrawerHeader";
 import DrawerNavButtonList from "./DrawerNavButtonList";
 import DrawerBottomButtons from "./DrawerBottomButtons";
 
-export default function DrawerContent() {
+interface Props {
+  handleClose: () => void;
+}
+export default function DrawerContent({ handleClose }: Props) {
   return (
     <>
       <DrawerHeader />
-      <DrawerNavButtonList />
+      <DrawerNavButtonList handleClose={handleClose} />
       <DrawerBottomButtons />
     </>
   );
