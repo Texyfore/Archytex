@@ -1,5 +1,7 @@
 import React from "react";
 
+import { styled } from "@mui/material/styles";
+
 import Box from "@mui/material/Box";
 import Grow from "@mui/material/Grow";
 
@@ -10,11 +12,11 @@ interface Props {
   children: null | JSX.Element | JSX.Element[];
 }
 export default function SubPageContainer({ trigger, children }: Props) {
-  const [subpage, _] = useSubPage();
+  const [subPage, _] = useSubPage();
 
   return (
-    <Grow in={subpage === trigger}>
-      <Box height='100%' display={subpage === trigger ? "block" : "none"}>
+    <Grow in={subPage === trigger}>
+      <Box height='100%' display={subPage === trigger ? "block" : "none"}>
         {children}
       </Box>
     </Grow>

@@ -1,6 +1,6 @@
 import React, { useContext } from "react";
 
-type SubPage = "projects" | "settings" | "community";
+type SubPage = "projects" | "settings";
 
 const SubPageContext = React.createContext<
   [SubPage, React.Dispatch<React.SetStateAction<SubPage>>]
