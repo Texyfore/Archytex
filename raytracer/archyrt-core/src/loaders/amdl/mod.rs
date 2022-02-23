@@ -1,10 +1,11 @@
 use std::{path::Path, fs::File, io::Read};
 
-use crate::{intersectables::triangle::Triangle, textures::TextureID, renderers::path_tracer::Material};
+use crate::{intersectables::triangle::Triangle, renderers::path_tracer::Material};
 use anyhow::{anyhow, Result};
 use asset::Prop;
 
 use super::ascn::amdl_textures::AMDLTextureType;
+pub mod repo;
 
 pub struct AMDLLoader{
     pub triangles: Vec<Triangle>
