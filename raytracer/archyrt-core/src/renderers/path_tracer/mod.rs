@@ -103,31 +103,19 @@ impl<T: Camera, K: Intersectable> FragmentRender for PathTracer<T, K> {
                     //The sky is blue
                     let sky_color = match self.skybox {
                         //Skybox color
-                        Some(skybox) if bounce != 0 => {
+                        Some(skybox) => { 
                             let sampler = NearestSampler {};
                             let texture = ctx.repo.get(skybox).unwrap();
                             let longitude = ray.direction.x().atan2(ray.direction.z());
                             let latitude = -(ray.direction.y() / ray.direction.length()).asin();
                             let longitude = (longitude / PI + 1.0) * 0.5;
                             let latitude = (latitude / (PI / 2.0) + 1.0) * 0.5;
-                            sampler.sample(texture, vector![longitude, latitude]) * 3.0
-                        }
-                        //Background color
-                        _ if bounce == 0 => {
-                            let c_top = Vec3::new(
-                                0xd4 as f64 / 255.0,
-                                0xe6 as f64 / 255.0,
-                                0xff as f64 / 255.0,
-                            )
-                            .to_srgb();
-                            let c_bottom = Vec3::new(
-                                0x0f as f64 / 255.0,
-                                0x48 as f64 / 255.0,
-                                0xa3 as f64 / 255.0,
-                            )
-                            .to_srgb();
-                            let t = ((ray.direction.y()) + 1.0) * 0.5;
-                            (c_top * t + c_bottom * (1.0 - t))*0.5
+                            let res = sampler.sample(texture, vector![longitude, latitude]);
+                            if bounce == 0{
+                                res
+                            }else{
+                                res * 3.0
+                            }
                         }
                         //Default skybox color
                         _ => {
