@@ -87,14 +87,18 @@ impl Sender {
 #[wasm_bindgen]
 pub struct Callback {
     scene_saved: Function,
+    button_feedback: Function,
 }
 
 #[wasm_bindgen]
 impl Callback {
     #[allow(clippy::new_without_default)]
     #[wasm_bindgen(constructor)]
-    pub fn new(scene_saved: Function) -> Self {
-        Self { scene_saved }
+    pub fn new(scene_saved: Function, button_feedback: Function) -> Self {
+        Self {
+            scene_saved,
+            button_feedback,
+        }
     }
 }
 
@@ -104,6 +108,11 @@ impl Host for Callback {
             ToHost::SceneSaved(buf) => {
                 self.scene_saved
                     .call1(&JsValue::NULL, &Uint8Array::from(buf.as_slice()))
+                    .unwrap();
+            }
+            ToHost::Button(button) => {
+                self.button_feedback
+                    .call1(&JsValue::NULL, &JsValue::from(button))
                     .unwrap();
             }
         }

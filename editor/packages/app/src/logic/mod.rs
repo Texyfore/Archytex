@@ -16,6 +16,8 @@ use crate::{
 
 use self::{camera::Camera, editor::Editor, input::Input, scene::Scene};
 
+pub use elements::ElementKind;
+
 pub struct Logic {
     input: Input,
     camera: Camera,
@@ -30,6 +32,7 @@ impl Logic {
         let mut scene = Scene::default();
 
         let editor = Editor::init(editor::Context {
+            host: ctx.host,
             input: &input,
             graphics: ctx.graphics,
             prop_infos: ctx.prop_infos,
@@ -48,6 +51,7 @@ impl Logic {
 
     pub fn process(&mut self, ctx: Context) {
         self.editor.process(editor::Context {
+            host: ctx.host,
             input: &self.input,
             graphics: ctx.graphics,
             prop_infos: ctx.prop_infos,
@@ -104,6 +108,21 @@ impl Logic {
 
     pub fn set_prop(&mut self, prop: PropID) {
         self.editor.set_prop(prop);
+    }
+
+    pub fn set_editor_mode(&mut self, ctx: Context, mode: ElementKind) {
+        self.editor.set_mode(
+            editor::Context {
+                host: ctx.host,
+                input: &self.input,
+                graphics: ctx.graphics,
+                prop_infos: ctx.prop_infos,
+                camera: &mut self.camera,
+                scene: &mut self.scene,
+                delta: ctx.delta,
+            },
+            mode,
+        );
     }
 
     pub fn render(&self, canvas: &mut Canvas) {
