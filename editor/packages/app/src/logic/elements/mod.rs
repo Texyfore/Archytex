@@ -32,10 +32,11 @@ pub struct Solid {
 }
 
 impl Solid {
-    pub fn new(graphics: &Graphics, origin: Vector3<i32>, extent: Vector3<i32>) -> Self {
+    pub fn new(gfx: &Graphics, origin: Vector3<i32>, extent: Vector3<i32>) -> Self {
         let geometry = SolidGeometry::new(origin, extent);
         let selected = false;
-        let graphics = SolidGraphics::new(graphics);
+        let mut graphics = SolidGraphics::new(gfx);
+        graphics.recalc(gfx, &geometry, selected);
 
         Self {
             geometry,
@@ -111,7 +112,7 @@ impl Solid {
 
     pub fn load(gfx: &Graphics, solid: &scene::Solid) -> Self {
         let geometry = SolidGeometry::load(solid);
-        let graphics = SolidGraphics::new(gfx);
+        let mut graphics = SolidGraphics::new(gfx);
         graphics.recalc(gfx, &geometry, false);
 
         Self {
@@ -308,13 +309,12 @@ impl SolidGraphics {
         }
     }
 
-    fn recalc(&self, graphics: &Graphics, geometry: &SolidGeometry, selected: bool) {
-        let mut textures = [TextureID(0); 6];
+    fn recalc(&mut self, graphics: &Graphics, geometry: &SolidGeometry, selected: bool) {
         let mut vertices = Vec::with_capacity(24);
         let mut triangles = Vec::with_capacity(12);
 
         for (i, face) in geometry.faces.iter().enumerate() {
-            textures[i] = face.texture;
+            self.mesh.textures[i] = face.texture;
 
             let normal = {
                 let edge0 = geometry.points[face.indices[1]].meters()
