@@ -1,7 +1,13 @@
 import React from "react";
-import { Box, Tooltip, IconButton } from "@mui/material";
-import { Grid3x3Rounded } from "@mui/icons-material";
+
 import { useTranslation } from "react-i18next";
+
+import Box from "@mui/material/Box";
+import Tooltip from "@mui/material/Tooltip";
+import IconButton from "@mui/material/IconButton";
+
+import { Grid3x3Rounded } from "@mui/icons-material";
+
 import GridSettingsMenu from "./GridSettingsMenu";
 
 interface GridSettingsButtonProps {

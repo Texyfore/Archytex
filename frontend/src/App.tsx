@@ -48,6 +48,7 @@ function App() {
         <NotificationProvider>
           <Router>
             <ArchytexAppBar />
+
             <ScrollToTop />
             <Switch>
               <Route exact path='/'>

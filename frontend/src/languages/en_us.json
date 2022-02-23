@@ -5,6 +5,7 @@
   "projects": "Projects",
   "settings": "Settings",
   "version": "version",
+  "version_number": "1.0.0",
   "login": "Login",
   "register": "Register",
   "product": "Product",

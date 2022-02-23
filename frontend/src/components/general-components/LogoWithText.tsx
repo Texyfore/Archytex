@@ -11,7 +11,7 @@ import Logo from "./Logo";
 export default function LogoWithText() {
   const { t } = useTranslation();
   const tooltipText: string =
-    t("archytex") + " " + t("version") + " " + t("version");
+    t("archytex") + " " + t("version") + " " + t("version_number");
 
   return (
     <Tooltip title={tooltipText} placement='bottom-start'>

@@ -1,7 +1,14 @@
-import { Chair } from "@mui/icons-material";
-import { Box, ToggleButton, ToggleButtonGroup, Tooltip } from "@mui/material";
 import React from "react";
+
 import { useTranslation } from "react-i18next";
+
+import Box from "@mui/material/Box";
+import ToggleButtonGroup from "@mui/material/ToggleButtonGroup";
+import ToggleButton from "@mui/material/ToggleButton";
+import Tooltip from "@mui/material/Tooltip";
+
+import { Chair } from "@mui/icons-material";
+
 import FaceSelectIcon from "./icons/FaceSelectIcon";
 import MeshSelectIcon from "./icons/MeshSelectIcon";
 import VertexSelectIcon from "./icons/VertexSelectIcon";
@@ -21,6 +28,7 @@ export default function EditorModeButtons({
   const propTooltipText = t("prop_mode");
   const faceTooltipText = t("face_select_mode");
   const vertexTooltipText = t("vertex_select_mode");
+
   return (
     <Box position='absolute' top={58} left={220}>
       <ToggleButtonGroup

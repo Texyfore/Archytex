@@ -1,21 +1,27 @@
 import React, { useState } from "react";
-import { Box, List, ListItem, ListItemButton, Typography } from "@mui/material";
-import { Category, Settings } from "@mui/icons-material";
-import LibraryDialog from "./library/LibraryDialog";
+
 import { useTranslation } from "react-i18next";
 
+import Box from "@mui/material/Box";
+import Typography from "@mui/material/Typography";
+import List from "@mui/material/List";
+import ListItem from "@mui/material/ListItem";
+
+import { Settings } from "@mui/icons-material";
+
+import LibraryDialog from "./library/LibraryDialog";
+
+import { ColorMode, useColorMode } from "../../services/colorMode";
+
 type libraryType = "textureLibrary" | "propLibrary";
-interface EditorMenuProps {
+
+interface Props {
   libraryType: libraryType;
 }
-export default function EditorMenu({ libraryType }: EditorMenuProps) {
+export default function EditorMenu({ libraryType }: Props) {
   const { t } = useTranslation();
 
-  const objects = [
-    {
-      name: "Object",
-    },
-  ];
+  const [colorMode, _] = useColorMode();
 
   //Library dialog
   const [libraryOpen, setLibraryOpen] = useState<boolean>(false);
@@ -28,49 +34,29 @@ export default function EditorMenu({ libraryType }: EditorMenuProps) {
 
   return (
     <>
-      <Box width='400px' display='flex' flexDirection='column'>
-        {/* Outliner */}
-        <Box
-          borderBottom='1px solid #1F1F1F'
-          display='flex'
-          alignItems='center'
-        >
-          <Category
-            sx={{
-              marginLeft: 2,
-              filter: "drop-shadow(0px 2px 4px rgba(0,0,0,0.5))  ",
-            }}
-          />
-          <Typography marginY={1} marginLeft={1}>
-            {t("outliner")}
-          </Typography>
-        </Box>
-        <Box
-          height='350px'
-          borderBottom='1px solid #1F1F1F'
-          sx={{ overflowY: "scroll" }}
-        >
-          <List>
-            {objects.map((object, index) => {
-              return (
-                <ListItemButton key={index} sx={{ paddingLeft: 4 }}>
-                  {`${object.name} ${index}`}
-                </ListItemButton>
-              );
-            })}
-          </List>
-        </Box>
-
+      <Box
+        width='400px'
+        display='flex'
+        flexDirection='column'
+        borderLeft={
+          colorMode === ColorMode.Dark
+            ? "1px solid #2E2E2E"
+            : "1px solid #BABABA"
+        }
+      >
         {/* Settings */}
         <Box
-          borderBottom='1px solid #1F1F1F'
+          borderBottom={
+            colorMode === ColorMode.Dark
+              ? "1px solid #2E2E2E"
+              : "1px solid #BABABA"
+          }
           display='flex'
           alignItems='center'
         >
           <Settings
             sx={{
               marginLeft: 2,
-              filter: "drop-shadow(0px 2px 4px rgba(0,0,0,0.5))  ",
             }}
           />
           <Typography marginY={1} marginLeft={1}>

@@ -1,10 +1,16 @@
 import React from "react";
-import { Box, ToggleButton, ToggleButtonGroup, Tooltip } from "@mui/material";
+
+import { useTranslation } from "react-i18next";
+
+import Box from "@mui/material/Box";
+import ToggleButton from "@mui/material/ToggleButton";
+import ToggleButtonGroup from "@mui/material/ToggleButtonGroup";
+import Tooltip from "@mui/material/Tooltip";
+
 import MoveTransformModeIcon from "./icons/MoveTransformModeIcon";
 import RotateTransformModeIcon from "./icons/RotateTransformModeIcon";
 import ScaleTransformModeIcon from "./icons/ScaleTransformModeIcon";
 import SelectTransformModeIcon from "./icons/SelectTransformModeIcon";
-import { useTranslation } from "react-i18next";
 
 export default function TranslateModeButtons() {
   const { t } = useTranslation();
