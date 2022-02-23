@@ -181,14 +181,14 @@ fn main() {
     amdl::repo::load_into(&mut props, "../assets").unwrap();
 
     //Load model
-    let loader = ASCNLoader::from_path("../assets/house_inside.ascn").unwrap();
+    let loader = ASCNLoader::from_path("../assets/proprot.ascn").unwrap();
     let camera = loader.get_camera();
     let object = loader.get_triangles();
     let props = props.fulfill_all(loader.get_prop_requests()).unwrap();
     let object = object.union(props);
 
     println!("Render");
-    //let image = render_pathtraced(object, camera, repo, w, h);
     let image = render_pathtraced(object, camera, textures, w, h);
+    //let image = render_albedo(object, camera, textures, w, h);
     image.save("image.png").unwrap();
 }

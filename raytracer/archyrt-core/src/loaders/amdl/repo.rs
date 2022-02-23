@@ -57,9 +57,9 @@ impl PropRepository {
         let object = BVH::from_triangles(object).ok_or(anyhow!("Invalid geometry"))?;
         let object = ApplyMatrix{
             inner: object, 
-            matrix: req.matrix
+            matrix: req.matrix,
+            inverse_matrix: req.inverse_matrix
         };
-        println!("{:?}", req.position);
         let object = Transform{
             inner: object,
             transformation: req.position
@@ -100,5 +100,6 @@ pub fn load_into(repo: &mut PropRepository, directory: &str) -> Result<()> {
 pub struct PropRequest{
     pub prop: PropID,
     pub position: Vec3,
-    pub matrix: Matrix3x3
+    pub matrix: Matrix3x3,
+    pub inverse_matrix: Matrix3x3,
 }

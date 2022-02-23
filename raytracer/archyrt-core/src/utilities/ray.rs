@@ -99,6 +99,9 @@ impl<C: ColorProvider> Intersection<C> {
     pub fn get_material(&self) -> Material {
         self.0.color_provider.get_material()
     }
+    pub fn to_builder(self) -> IntersectionBuilder<C>{
+        self.0
+    }
 }
 
 pub trait Intersectable {

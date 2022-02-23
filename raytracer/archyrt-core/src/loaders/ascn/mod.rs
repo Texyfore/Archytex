@@ -4,10 +4,11 @@ use crate::loaders::Loader;
 
 use crate::renderers::path_tracer::Material;
 
-use crate::utilities::math::{Vec2, Vec3};
+use crate::utilities::math::{Vec2, Vec3, Matrix3x3};
 use crate::{cameras::perspective::PerspectiveCamera, vector};
 use anyhow::{anyhow, Result};
 use asset::scene::{Scene, Point};
+use cgmath::Rotation;
 
 use std::collections::HashMap;
 use std::fs::File;
@@ -125,10 +126,17 @@ impl ASCNLoader {
             let mut pos: Vec3 = prop.position.into();
             pos.inner[2] = -pos.inner[2];
             pos = pos/100.0;
+            let matrix: Matrix3x3 = prop.rotation.into();
+            let inverse_matrix: Matrix3x3 = prop.rotation.invert().into();
+            let mut matrix = matrix.transpose();
+            matrix.inner[2] = -matrix.inner[2];
+            let mut inverse_matrix = inverse_matrix.transpose();
+            inverse_matrix.inner[2] = -inverse_matrix.inner[2];
             PropRequest{
                 prop: PropType::default(prop.asset.0),
                 position: pos,
-                matrix: prop.rotation.into(),
+                matrix,
+                inverse_matrix
             }
         }).collect();
         Ok(Self { camera, triangles, prop_requests })

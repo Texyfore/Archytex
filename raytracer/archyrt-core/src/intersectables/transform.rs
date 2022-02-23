@@ -11,6 +11,12 @@ impl<T: Intersectable> Intersectable for Transform<T>{
     fn intersect(&self, ray: Ray) -> Option<Intersection<Self::C>> {
         let origin = ray.origin-self.transformation;
         let ray = Ray::new(origin, ray.direction);
-        self.inner.intersect(ray)
+        let mut result = self.inner.intersect(ray)?.to_builder();
+
+        if let Some(pos) = result.pos{
+            result.pos = Some(pos + self.transformation);
+        }
+
+        Some(result.build())
     }
 }
