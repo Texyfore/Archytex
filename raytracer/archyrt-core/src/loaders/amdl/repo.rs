@@ -1,7 +1,9 @@
 use std::{collections::{hash_map::DefaultHasher, HashMap}, hash::{Hash, Hasher}, path::Path, fs::File};
 
-use anyhow::Result;
+use anyhow::{Result, anyhow};
 use serde::{Serialize, Deserialize};
+
+use crate::{intersectables::{bvh::{self, BVH}, apply_matrix::ApplyMatrix, transform::Transform}, utilities::math::{Vec3, Matrix3x3}};
 
 use super::AMDLLoader;
 
@@ -49,6 +51,29 @@ impl PropRepository {
     pub fn insert(&mut self, id: PropID, object: AMDLLoader) {
         self.objects.insert(id, object);
     }
+    pub fn fulfill(&self, req: &PropRequest) -> Result<Transform<ApplyMatrix<BVH>>>{
+        let object = self.get(req.prop).ok_or(anyhow!("Invalid prop id"))?;
+        let object = &object.triangles;
+        let object = BVH::from_triangles(object).ok_or(anyhow!("Invalid geometry"))?;
+        let object = ApplyMatrix{
+            inner: object, 
+            matrix: req.matrix
+        };
+        println!("{:?}", req.position);
+        let object = Transform{
+            inner: object,
+            transformation: req.position
+        };
+        Ok(object)
+    }
+    pub fn fulfill_all(&self, requests: &[PropRequest]) -> Result<Vec<Transform<ApplyMatrix<BVH>>>>{
+        let mut output = Vec::with_capacity(requests.len());
+        for req in requests{
+            let prop = self.fulfill(req)?;
+            output.push(prop);
+        }
+        Ok(output)
+    }
 }
 
 #[derive(Serialize, Deserialize)]
@@ -69,4 +94,11 @@ pub fn load_into(repo: &mut PropRepository, directory: &str) -> Result<()> {
         );
     }
     Ok(())
+}
+
+
+pub struct PropRequest{
+    pub prop: PropID,
+    pub position: Vec3,
+    pub matrix: Matrix3x3
 }

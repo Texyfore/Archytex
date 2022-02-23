@@ -1,11 +1,18 @@
+use std::f64::consts::PI;
+
 use archyrt_core::api::camera::Camera;
 use archyrt_core::api::fragment_render::{FragmentContext, FragmentRender};
 
 use archyrt_core::cameras::jitter::JitterCamera;
+use archyrt_core::cameras::perspective::PerspectiveCamera;
 use archyrt_core::collector::image_collector::ImageCollector;
 use archyrt_core::collector::raw_collector::RawCollector;
+use archyrt_core::intersectables::apply_matrix::ApplyMatrix;
 use archyrt_core::intersectables::bvh::BVH;
 use archyrt_core::intersectables::sphere::Sphere;
+use archyrt_core::intersectables::transform::Transform;
+use archyrt_core::loaders::amdl::{AMDLLoader, self};
+use archyrt_core::loaders::amdl::repo::{PropRepository, PropType};
 use archyrt_core::loaders::ascn::{amdl_textures, ASCNLoader};
 use archyrt_core::renderers::basic_renderer::BasicRenderer;
 use archyrt_core::renderers::path_tracer::{Material, PathTracer};
@@ -14,7 +21,7 @@ use archyrt_core::renderers::solid_renderers::albedo::AlbedoRenderer;
 use archyrt_core::renderers::solid_renderers::normal::NormalRenderer;
 use archyrt_core::textures::texture_repo::{self, TextureRepository};
 use archyrt_core::tonemapping::tonemap_fragment;
-use archyrt_core::utilities::math::{Vec2, Vector};
+use archyrt_core::utilities::math::{Vec2, Vector, Matrix3x3};
 use archyrt_core::utilities::ray::{Intersectable, Ray};
 use archyrt_core::vector;
 use archyrt_core::{
@@ -167,17 +174,21 @@ fn main() {
 
     //Loading textures and skybox
     println!("Load file");
-    let mut repo = TextureRepository::new();
-    amdl_textures::load_into(&mut repo, "../assets").unwrap();
+    let mut textures = TextureRepository::new();
+    amdl_textures::load_into(&mut textures, "../assets").unwrap();
+
+    let mut props = PropRepository::new();
+    amdl::repo::load_into(&mut props, "../assets").unwrap();
 
     //Load model
     let loader = ASCNLoader::from_path("../assets/house_inside.ascn").unwrap();
     let camera = loader.get_camera();
     let object = loader.get_triangles();
-    let object = BVH::from_triangles(object).unwrap(); //Generate acceleration structure
+    let props = props.fulfill_all(loader.get_prop_requests()).unwrap();
+    let object = object.union(props);
 
     println!("Render");
     //let image = render_pathtraced(object, camera, repo, w, h);
-    let image = render_albedo(object, camera, repo, w, h);
+    let image = render_pathtraced(object, camera, textures, w, h);
     image.save("image.png").unwrap();
 }
