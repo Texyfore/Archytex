@@ -3,7 +3,7 @@ mod renderer;
 
 pub mod structures;
 
-use std::rc::Rc;
+use std::{mem::size_of, rc::Rc};
 
 use asset::TextureID;
 use gpu::{BufferUsages, Gpu};
@@ -41,18 +41,41 @@ impl Graphics {
         }
     }
 
-    pub fn create_solid_mesh(&self, descriptor: SolidMeshDescriptor) -> SolidMesh {
-        SolidMesh {
-            texture: descriptor.texture,
-            vertices: Rc::new(
-                self.gpu
-                    .create_buffer(descriptor.vertices, BufferUsages::VERTEX),
-            ),
-            triangles: Rc::new(
-                self.gpu
-                    .create_buffer(descriptor.triangles, BufferUsages::INDEX),
-            ),
+    pub fn create_line_mesh_uninit(&self, num_points: usize) -> LineMesh {
+        LineMesh {
+            vertices: Rc::new(self.gpu.create_buffer_uninit(
+                size_of::<LineVertex>() * num_points,
+                BufferUsages::VERTEX | BufferUsages::COPY_DST,
+            )),
         }
+    }
+
+    pub fn write_line_mesh(&self, mesh: &LineMesh, vertices: &[LineVertex]) {
+        self.gpu.write_buffer(&mesh.vertices, vertices);
+    }
+
+    pub fn create_solid_mesh(&self) -> SolidMesh {
+        SolidMesh {
+            textures: [TextureID(0); 6],
+            vertices: Rc::new(self.gpu.create_buffer_uninit(
+                size_of::<SolidVertex>() * 24,
+                BufferUsages::VERTEX | BufferUsages::COPY_DST,
+            )),
+            triangles: Rc::new(self.gpu.create_buffer_uninit(
+                size_of::<[u16; 3]>() * 12,
+                BufferUsages::INDEX | BufferUsages::COPY_DST,
+            )),
+        }
+    }
+
+    pub fn write_solid_mesh(
+        &self,
+        mesh: &SolidMesh,
+        vertices: &[SolidVertex],
+        triangles: &[[u16; 3]],
+    ) {
+        self.gpu.write_buffer(&mesh.vertices, vertices);
+        self.gpu.write_buffer(&mesh.triangles, triangles);
     }
 
     pub fn create_ground_mesh(&self, descriptor: GroundMeshDescriptor) -> GroundMesh {
@@ -92,12 +115,6 @@ impl Graphics {
 
 pub struct LineMeshDescriptor<'v> {
     pub vertices: &'v [LineVertex],
-}
-
-pub struct SolidMeshDescriptor<'v, 't> {
-    pub texture: TextureID,
-    pub vertices: &'v [SolidVertex],
-    pub triangles: &'t [[u16; 3]],
 }
 
 pub struct GroundMeshDescriptor<'v, 't> {

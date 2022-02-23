@@ -1,7 +1,5 @@
 mod raycast;
 
-use std::collections::HashMap;
-
 use asset::{scene, GizmoID, PropID, TextureID};
 use cgmath::{vec2, vec3, ElementWise, InnerSpace, Matrix4, Quaternion, Transform, Vector3, Zero};
 
@@ -9,8 +7,8 @@ use crate::{
     data::{PropInfo, PropInfoContainer},
     graphics::{
         structures::{GizmoInstance, LineVertex, SolidVertex, TransformTint},
-        Canvas, GizmoGroup, GizmoInstances, Graphics, LineMesh, LineMeshDescriptor, PropData,
-        PropInstance, Share, SolidMesh, SolidMeshDescriptor,
+        Canvas, GizmoGroup, GizmoInstances, Graphics, LineMesh, PropData, PropInstance, Share,
+        SolidMesh,
     },
     math::{MinMax, Ray},
 };
@@ -30,7 +28,6 @@ pub enum ElementKind {
 pub struct Solid {
     geometry: SolidGeometry,
     selected: bool,
-    verts: GizmoInstances,
     graphics: SolidGraphics,
 }
 
@@ -38,14 +35,12 @@ impl Solid {
     pub fn new(graphics: &Graphics, origin: Vector3<i32>, extent: Vector3<i32>) -> Self {
         let geometry = SolidGeometry::new(origin, extent);
         let selected = false;
-        let verts = graphics.create_gizmo_instances(8);
-        let graphics = meshgen(graphics, &geometry, selected, &verts);
+        let graphics = SolidGraphics::new(graphics);
 
         Self {
             geometry,
             selected,
             graphics,
-            verts,
         }
     }
 
@@ -114,16 +109,15 @@ impl Solid {
         scene::Solid { points, faces }
     }
 
-    pub fn load(graphics: &Graphics, solid: &scene::Solid) -> Self {
+    pub fn load(gfx: &Graphics, solid: &scene::Solid) -> Self {
         let geometry = SolidGeometry::load(solid);
-        let verts = graphics.create_gizmo_instances(8);
-        let graphics = meshgen(graphics, &geometry, false, &verts);
+        let graphics = SolidGraphics::new(gfx);
+        graphics.recalc(gfx, &geometry, false);
 
         Self {
             geometry,
             selected: false,
             graphics,
-            verts,
         }
     }
 }
@@ -288,16 +282,107 @@ impl SolidGeometry {
 }
 
 struct SolidGraphics {
-    meshes: Vec<SolidMesh>,
+    mesh: SolidMesh,
     lines: LineMesh,
+    verts: GizmoInstances,
 }
 
 impl SolidGraphics {
-    fn render(&self, canvas: &mut Canvas) {
-        for mesh in &self.meshes {
-            canvas.draw_solid(mesh.share());
+    fn new(graphics: &Graphics) -> Self {
+        Self {
+            mesh: graphics.create_solid_mesh(),
+            lines: graphics.create_line_mesh_uninit(24),
+            verts: graphics.create_gizmo_instances(8),
         }
+    }
+
+    fn render(&self, canvas: &mut Canvas, draw_verts: bool) {
+        canvas.draw_solid(self.mesh.share());
         canvas.draw_lines(self.lines.share());
+
+        if draw_verts {
+            canvas.draw_gizmos(GizmoGroup {
+                gizmo: GizmoID(0),
+                instances: self.verts.share(),
+            });
+        }
+    }
+
+    fn recalc(&self, graphics: &Graphics, geometry: &SolidGeometry, selected: bool) {
+        let mut textures = [TextureID(0); 6];
+        let mut vertices = Vec::with_capacity(24);
+        let mut triangles = Vec::with_capacity(12);
+
+        for (i, face) in geometry.faces.iter().enumerate() {
+            textures[i] = face.texture;
+
+            let normal = {
+                let edge0 = geometry.points[face.indices[1]].meters()
+                    - geometry.points[face.indices[0]].meters();
+
+                let edge1 = geometry.points[face.indices[3]].meters()
+                    - geometry.points[face.indices[0]].meters();
+
+                edge0.cross(edge1).normalize()
+            };
+
+            let t0 = vertices.len() as u16;
+            triangles.push([t0, t0 + 1, t0 + 2]);
+            triangles.push([t0, t0 + 2, t0 + 3]);
+
+            for index in face.indices {
+                let position = geometry.points[index].meters();
+                let texcoord = if normal.x.abs() > normal.y.abs() {
+                    if normal.x.abs() > normal.z.abs() {
+                        vec2(position.z, position.y)
+                    } else {
+                        vec2(position.x, position.y)
+                    }
+                } else if normal.y.abs() > normal.z.abs() {
+                    vec2(position.x, position.z)
+                } else {
+                    vec2(position.x, position.y)
+                } / 4.0;
+
+                vertices.push(SolidVertex {
+                    position,
+                    normal,
+                    texcoord,
+                    tint: if selected || face.selected {
+                        [0.04, 0.36, 0.85, 0.5]
+                    } else {
+                        [0.0; 4]
+                    },
+                })
+            }
+        }
+
+        let lines = [
+            0, 1, 1, 2, 2, 3, 3, 0, 4, 5, 5, 6, 6, 7, 7, 4, 0, 4, 1, 5, 2, 6, 3, 7,
+        ]
+        .map(|index| LineVertex {
+            position: geometry.points[index].meters(),
+            color: [0.0; 3],
+        });
+
+        graphics.write_gizmo_instances(
+            &self.verts,
+            &geometry
+                .points
+                .iter()
+                .map(|point| GizmoInstance {
+                    matrix: Matrix4::from_translation(point.meters()),
+                    color: if point.selected {
+                        [0.04, 0.36, 0.85]
+                    } else {
+                        [0.0; 3]
+                    },
+                })
+                .collect::<Vec<_>>(),
+        );
+
+        graphics.write_solid_mesh(&self.mesh, &vertices, &triangles);
+        graphics.write_line_mesh(&self.lines, &lines);
     }
 }
 
@@ -393,97 +478,6 @@ impl Prop {
     }
 }
 
-fn meshgen(
-    graphics: &Graphics,
-    geometry: &SolidGeometry,
-    selected: bool,
-    verts: &GizmoInstances,
-) -> SolidGraphics {
-    let mut batches = HashMap::<TextureID, (Vec<SolidVertex>, Vec<[u16; 3]>)>::new();
-    for face in &geometry.faces {
-        let normal = {
-            let edge0 = geometry.points[face.indices[1]].meters()
-                - geometry.points[face.indices[0]].meters();
-
-            let edge1 = geometry.points[face.indices[3]].meters()
-                - geometry.points[face.indices[0]].meters();
-
-            edge0.cross(edge1).normalize()
-        };
-
-        let (vertices, triangles) = batches.entry(face.texture).or_default();
-
-        let t0 = vertices.len() as u16;
-        triangles.push([t0, t0 + 1, t0 + 2]);
-        triangles.push([t0, t0 + 2, t0 + 3]);
-
-        for index in face.indices {
-            let position = geometry.points[index].meters();
-            let texcoord = if normal.x.abs() > normal.y.abs() {
-                if normal.x.abs() > normal.z.abs() {
-                    vec2(position.z, position.y)
-                } else {
-                    vec2(position.x, position.y)
-                }
-            } else if normal.y.abs() > normal.z.abs() {
-                vec2(position.x, position.z)
-            } else {
-                vec2(position.x, position.y)
-            } / 4.0;
-
-            vertices.push(SolidVertex {
-                position,
-                normal,
-                texcoord,
-                tint: if selected || face.selected {
-                    [0.04, 0.36, 0.85, 0.5]
-                } else {
-                    [0.0; 4]
-                },
-            })
-        }
-    }
-
-    let lines = [
-        0, 1, 1, 2, 2, 3, 3, 0, 4, 5, 5, 6, 6, 7, 7, 4, 0, 4, 1, 5, 2, 6, 3, 7,
-    ];
-
-    graphics.write_gizmo_instances(
-        verts,
-        &geometry
-            .points
-            .iter()
-            .map(|point| GizmoInstance {
-                matrix: Matrix4::from_translation(point.meters()),
-                color: if point.selected {
-                    [0.04, 0.36, 0.85]
-                } else {
-                    [0.0; 3]
-                },
-            })
-            .collect::<Vec<_>>(),
-    );
-
-    SolidGraphics {
-        meshes: batches
-            .into_iter()
-            .map(|(texture, batch)| {
-                graphics.create_solid_mesh(SolidMeshDescriptor {
-                    texture,
-                    vertices: &batch.0,
-                    triangles: &batch.1,
-                })
-            })
-            .collect(),
-        lines: graphics.create_line_mesh(LineMeshDescriptor {
-            vertices: &lines.map(|index| LineVertex {
-                position: geometry.points[index].meters(),
-                color: [0.0; 3],
-            }),
-        }),
-    }
-}
-
 pub trait Movable: Sized {
     fn center(&self, mask: ElementKind) -> Vector3<f32>;
     fn displace(&mut self, delta: Vector3<i32>, mask: ElementKind) -> bool;
@@ -538,17 +532,13 @@ impl Movable for Solid {
     }
 
     fn recalc(&mut self, graphics: &Graphics) {
-        self.graphics = meshgen(graphics, &self.geometry, self.selected, &self.verts);
+        self.graphics
+            .recalc(graphics, &self.geometry, self.selected);
     }
 
     fn render(&self, canvas: &mut Canvas, mask: ElementKind) {
-        self.graphics.render(canvas);
-        if matches!(mask, ElementKind::Point) {
-            canvas.draw_gizmos(GizmoGroup {
-                gizmo: GizmoID(0),
-                instances: self.verts.share(),
-            });
-        }
+        let draw_verts = matches!(mask, ElementKind::Point);
+        self.graphics.render(canvas, draw_verts);
     }
 
     fn insert_move(
