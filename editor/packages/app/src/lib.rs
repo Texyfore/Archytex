@@ -1,5 +1,6 @@
 #![allow(dead_code)] // TODO Remove this at some point
 
+mod button;
 mod data;
 mod graphics;
 mod logic;
@@ -10,7 +11,7 @@ use std::sync::mpsc::Receiver;
 use asset::{scene::Scene, Gizmo, GizmoID, Prop, PropID, Texture, TextureID};
 use data::PropInfoContainer;
 use instant::Instant;
-use logic::Logic;
+use logic::{ElementKind, Logic};
 use winit::{
     dpi::{PhysicalPosition, PhysicalSize},
     event::{Event, KeyboardInput, MouseScrollDelta, WindowEvent},
@@ -144,6 +145,55 @@ pub fn run(init: Init) {
                         FromHost::Prop(id) => {
                             logic.set_prop(PropID(id));
                         }
+                        FromHost::Button(button) => match button {
+                            button::PROP => {
+                                logic.set_editor_mode(
+                                    logic::Context {
+                                        host: host.as_ref(),
+                                        graphics: &graphics,
+                                        prop_infos: &prop_info,
+                                        delta,
+                                    },
+                                    ElementKind::Prop,
+                                );
+                            }
+                            button::SOLID => {
+                                logic.set_editor_mode(
+                                    logic::Context {
+                                        host: host.as_ref(),
+                                        graphics: &graphics,
+                                        prop_infos: &prop_info,
+                                        delta,
+                                    },
+                                    ElementKind::Solid,
+                                );
+                            }
+                            button::FACE => {
+                                logic.set_editor_mode(
+                                    logic::Context {
+                                        host: host.as_ref(),
+                                        graphics: &graphics,
+                                        prop_infos: &prop_info,
+                                        delta,
+                                    },
+                                    ElementKind::Face,
+                                );
+                            }
+                            button::POINT => {
+                                logic.set_editor_mode(
+                                    logic::Context {
+                                        host: host.as_ref(),
+                                        graphics: &graphics,
+                                        prop_infos: &prop_info,
+                                        delta,
+                                    },
+                                    ElementKind::Point,
+                                );
+                            }
+                            button::MOVE => todo!(),
+                            button::ROTATE => todo!(),
+                            _ => (),
+                        },
                     }
                 }
 
@@ -193,6 +243,7 @@ pub trait Host {
 
 pub enum ToHost {
     SceneSaved(Vec<u8>),
+    Button(i32),
 }
 
 pub enum FromHost {
@@ -201,4 +252,5 @@ pub enum FromHost {
     LoadScene(Vec<u8>),
     Prop(u32),
     Texture(u32),
+    Button(i32),
 }
