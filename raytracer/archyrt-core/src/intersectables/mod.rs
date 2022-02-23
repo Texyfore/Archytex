@@ -6,3 +6,5 @@ pub mod surface;
 mod tests;
 pub mod triangle;
 pub mod union;
+pub mod apply_matrix;
+pub mod transform;

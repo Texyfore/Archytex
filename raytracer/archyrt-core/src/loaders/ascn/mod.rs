@@ -4,10 +4,11 @@ use crate::loaders::Loader;
 
 use crate::renderers::path_tracer::Material;
 
-use crate::utilities::math::{Vec2, Vec3};
+use crate::utilities::math::{Vec2, Vec3, Matrix3x3};
 use crate::{cameras::perspective::PerspectiveCamera, vector};
 use anyhow::{anyhow, Result};
 use asset::scene::{Scene, Point};
+use cgmath::{Rotation, Matrix3, Matrix, SquareMatrix};
 
 use std::collections::HashMap;
 use std::fs::File;
@@ -17,10 +18,13 @@ use std::path::Path;
 
 use self::amdl_textures::AMDLTextureType;
 
+use super::amdl::repo::{PropRequest, PropType};
+
 
 pub struct ASCNLoader {
     triangles: Vec<Triangle>,
     camera: PerspectiveCamera,
+    prop_requests: Vec<PropRequest>
 }
 fn texcoord(position: Vec3, normal: Vec3) -> Vec2 {
     (if normal.x().abs() > normal.y().abs() {
@@ -118,7 +122,27 @@ impl ASCNLoader {
                 triangles.push(triangle2);
             }
         }
-        Ok(Self { camera, triangles })
+        let prop_requests: Vec<PropRequest> = scene.world.props.iter().map(|prop|{
+            let mut pos: Vec3 = prop.position.into();
+            pos.inner[2] = -pos.inner[2];
+            pos = pos/100.0;
+            let matrix: Matrix3<f32> = prop.rotation.into();
+            let mut matrix = matrix.transpose();
+            matrix.z = -matrix.z;
+            let inverse_matrix = matrix.invert().unwrap();
+            
+
+            PropRequest{
+                prop: PropType::default(prop.asset.0),
+                position: pos,
+                matrix: matrix.into(),
+                inverse_matrix: inverse_matrix.into()
+            }
+        }).collect();
+        Ok(Self { camera, triangles, prop_requests })
+    }
+    pub fn get_prop_requests(&self) -> &Vec<PropRequest>{
+        &self.prop_requests
     }
 }
 

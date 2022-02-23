@@ -4,7 +4,7 @@ use std::{
     ops::{Add, AddAssign, Div, DivAssign, Index, IndexMut, Mul, MulAssign, Neg, Sub, SubAssign},
 };
 
-use cgmath::{Vector2, Vector3};
+use cgmath::{Vector2, Vector3, Matrix3, Quaternion};
 
 #[derive(Copy, Clone)]
 pub enum Axis3 {
@@ -447,6 +447,21 @@ impl Matrix3x3 {
             vector![0.0, 0.0, 1.0]
         );
         self * matrix
+    }
+}
+
+impl From<Matrix3<f32>> for Matrix3x3{
+    fn from(m: Matrix3<f32>) -> Self {
+        Self::from_vectors([
+            m.x.into(), m.y.into(), m.z.into()
+        ])
+    }
+}
+
+impl From<Quaternion<f32>> for Matrix3x3{
+    fn from(q: Quaternion<f32>) -> Self {
+        let matrix: Matrix3<f32> = q.into();
+        matrix.into()
     }
 }
 
