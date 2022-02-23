@@ -25,6 +25,7 @@ import Dashboard from "./pages/Dashboard";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import About from "./pages/About";
+import Editor from "./pages/Editor";
 import PageNotFound from "./pages/PageNotFound";
 import SuccessfulRegistration from "./pages/SuccessfulRegistration";
 
@@ -47,6 +48,7 @@ function App() {
         <NotificationProvider>
           <Router>
             <ArchytexAppBar />
+
             <ScrollToTop />
             <Switch>
               <Route exact path='/'>
@@ -64,8 +66,11 @@ function App() {
               <Route exact path='/dashboard'>
                 <Dashboard />
               </Route>
-              <Route path='/success'>
+              <Route exact path='/success'>
                 <SuccessfulRegistration />
+              </Route>
+              <Route path='/editor/:projectId'>
+                <Editor />
               </Route>
               <Route>
                 <PageNotFound />

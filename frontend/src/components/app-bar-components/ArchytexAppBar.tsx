@@ -1,4 +1,5 @@
 import React from "react";
+import { useLocation } from "react-router-dom";
 
 import useScrollTrigger from "@mui/material/useScrollTrigger";
 import AppBar from "@mui/material/AppBar";
@@ -28,7 +29,9 @@ function ElevationScroll(props: Props) {
 }
 
 export default function ArchytexAppBar() {
-  return (
+  const location = useLocation();
+
+  return !location.pathname.includes("editor") ? (
     <ElevationScroll>
       <AppBar position='fixed' color='transparent'>
         <Toolbar>
@@ -39,5 +42,7 @@ export default function ArchytexAppBar() {
         </Toolbar>
       </AppBar>
     </ElevationScroll>
+  ) : (
+    <></>
   );
 }

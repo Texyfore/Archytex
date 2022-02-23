@@ -1,6 +1,6 @@
 import React from "react";
 
-import { useHistory } from "react-router-dom";
+import { Link } from "react-router-dom";
 
 import { useTranslation } from "react-i18next";
 
@@ -25,8 +25,6 @@ interface Props {
 export default function RenderCardGrid({ project, open }: Props) {
   const { t } = useTranslation();
 
-  const history = useHistory();
-
   const [colorMode, _] = useColorMode();
 
   return (
@@ -47,7 +45,10 @@ export default function RenderCardGrid({ project, open }: Props) {
             variant='outlined'
             endIcon={<Send />}
             color='inherit'
-            onClick={() => history.push(`/editor/${project.id}`)}
+            component={Link}
+            to={`/editor/${project.id}`}
+            target='_blank'
+            rel='noopener noreferrer'
           >
             {t("open_project_in_editor")}
           </Button>
