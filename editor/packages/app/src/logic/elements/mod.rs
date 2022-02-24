@@ -110,6 +110,17 @@ impl Solid {
         scene::Solid { points, faces }
     }
 
+    pub fn clone(&self, gfx: &Graphics) -> Self {
+        let mut graphics = SolidGraphics::new(gfx);
+        graphics.recalc(gfx, &self.geometry, self.selected);
+
+        Self {
+            geometry: self.geometry.clone(),
+            selected: self.selected,
+            graphics,
+        }
+    }
+
     pub fn load(gfx: &Graphics, solid: &scene::Solid) -> Self {
         let geometry = SolidGeometry::load(solid);
         let mut graphics = SolidGraphics::new(gfx);
@@ -123,6 +134,7 @@ impl Solid {
     }
 }
 
+#[derive(Clone)]
 struct Point {
     position: Vector3<i32>,
     selected: bool,
@@ -149,6 +161,7 @@ pub struct PointLocator {
     pub point: usize,
 }
 
+#[derive(Clone)]
 struct Face {
     texture: TextureID,
     indices: [usize; 4],
@@ -171,6 +184,7 @@ pub struct FaceLocator {
     pub face: usize,
 }
 
+#[derive(Clone)]
 struct SolidGeometry {
     points: [Point; 8],
     faces: [Face; 6],
@@ -476,6 +490,23 @@ impl Prop {
             }),
         }
     }
+
+    pub fn clone(&self, gfx: &Graphics) -> Self {
+        Self {
+            asset: self.asset,
+            position: self.position,
+            rotation: self.rotation,
+            selected: self.selected,
+            data: gfx.create_prop_data(&TransformTint {
+                transform: prop_transform(self.position, self.rotation),
+                tint: if self.selected {
+                    [0.04, 0.36, 0.85, 0.5]
+                } else {
+                    [0.0; 4]
+                },
+            }),
+        }
+    }
 }
 
 pub trait Movable: Sized {
@@ -490,6 +521,7 @@ pub trait Movable: Sized {
         mask: ElementKind,
     );
     fn insert(scene: &mut Scene, elements: Vec<(usize, Self)>);
+    fn insert_remove(scene: &mut Scene, elements: Vec<(usize, Self)>);
 }
 
 impl Movable for Solid {
@@ -553,6 +585,10 @@ impl Movable for Solid {
     fn insert(scene: &mut Scene, elements: Vec<(usize, Self)>) {
         scene.insert_solids(elements);
     }
+
+    fn insert_remove(scene: &mut Scene, elements: Vec<(usize, Self)>) {
+        scene.insert_solids_with_remove(elements);
+    }
 }
 
 impl Movable for Prop {
@@ -598,6 +634,10 @@ impl Movable for Prop {
 
     fn insert(scene: &mut Scene, elements: Vec<(usize, Self)>) {
         scene.insert_props(elements);
+    }
+
+    fn insert_remove(scene: &mut Scene, elements: Vec<(usize, Self)>) {
+        scene.insert_props_with_remove(elements);
     }
 }
 
