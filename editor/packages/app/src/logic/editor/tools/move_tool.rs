@@ -14,6 +14,7 @@ use super::{CameraTool, Context, Tool};
 
 pub struct MoveTool<E> {
     mask: ElementKind,
+    clone: bool,
 
     ray: Ray,
     center: Vector3<f32>,
@@ -34,6 +35,7 @@ where
         mask: ElementKind,
         ray: Ray,
         elements: Vec<(usize, E)>,
+        clone: bool,
     ) -> Result<Self, Vec<(usize, E)>> {
         let dir = ray.direction();
         let normal = -dir;
@@ -52,6 +54,7 @@ where
         if let Some(intersection) = ray.intersects(&plane) {
             Ok(Self {
                 mask,
+                clone,
                 ray,
                 center,
                 plane,
@@ -151,7 +154,13 @@ where
 
         if ctx.input.was_button_down_once(MouseButton::Left) {
             let elements = self.elements.drain(..).collect::<Vec<_>>();
-            E::insert_move(ctx.scene, elements, self.delta, self.mask);
+
+            if self.clone {
+                E::insert_remove(ctx.scene, elements);
+            } else {
+                E::insert_move(ctx.scene, elements, self.delta, self.mask);
+            }
+
             return Some(Box::new(CameraTool::default()));
         }
 
@@ -160,11 +169,16 @@ where
             || ctx.input.is_key_down_once(VirtualKeyCode::Escape)
         {
             let mut elements = self.elements.drain(..).collect::<Vec<_>>();
-            for (_, element) in &mut elements {
-                element.displace(-self.delta, self.mask);
-                element.recalc(ctx.graphics);
+
+            if !self.clone {
+                for (_, element) in &mut elements {
+                    element.displace(-self.delta, self.mask);
+                    element.recalc(ctx.graphics);
+                }
+
+                E::insert(ctx.scene, elements);
             }
-            E::insert(ctx.scene, elements);
+
             return Some(Box::new(CameraTool::default()));
         }
 

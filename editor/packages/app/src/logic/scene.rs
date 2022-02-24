@@ -85,6 +85,13 @@ impl Scene {
             .collect()
     }
 
+    pub fn clone_solids(&mut self, ctx: Context) -> Vec<(usize, Solid)> {
+        self.solids
+            .iter()
+            .filter_map(|(id, solid)| solid.selected().then(|| (*id, solid.clone(ctx.graphics))))
+            .collect()
+    }
+
     pub fn insert_solids_with_move(
         &mut self,
         solids: Vec<(usize, Solid)>,
@@ -107,6 +114,17 @@ impl Scene {
         }
     }
 
+    pub fn insert_solids_with_remove(&mut self, solids: Vec<(usize, Solid)>) {
+        let mut ids = Vec::new();
+        for (_, solid) in solids {
+            let id = self.next_elem_id;
+            self.next_elem_id += 1;
+            self.solids.insert(id, solid);
+            ids.push(id);
+        }
+        self.undo_stack.push(Action::RemoveSolids(ids));
+    }
+
     pub fn take_props(&mut self) -> Vec<(usize, Prop)> {
         #[allow(clippy::needless_collect)]
         let ids = self
@@ -117,6 +135,13 @@ impl Scene {
 
         ids.into_iter()
             .map(|id| (id, self.props.remove(&id).unwrap()))
+            .collect()
+    }
+
+    pub fn clone_props(&mut self, ctx: Context) -> Vec<(usize, Prop)> {
+        self.props
+            .iter()
+            .filter_map(|(id, prop)| prop.selected().then(|| (*id, prop.clone(ctx.graphics))))
             .collect()
     }
 
@@ -145,6 +170,19 @@ impl Scene {
         for (id, prop) in props {
             self.props.insert(id, prop);
         }
+    }
+
+    pub fn insert_props_with_remove(&mut self, props: Vec<(usize, Prop)>) {
+        let mut ids = Vec::new();
+
+        for (_, prop) in props {
+            let id = self.next_elem_id;
+            self.next_elem_id += 1;
+            self.props.insert(id, prop);
+            ids.push(id);
+        }
+
+        self.undo_stack.push(Action::RemoveProps(ids));
     }
 
     pub fn render(&self, canvas: &mut Canvas, mask: ElementKind) {
