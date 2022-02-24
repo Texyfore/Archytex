@@ -39,13 +39,6 @@ export default function EditorModeButtons({
         size='small'
         sx={{ height: 30.75 }}
       >
-        <ToggleButton value='prop'>
-          <Tooltip title={propTooltipText}>
-            <Box marginTop={0.8}>
-              <Chair />
-            </Box>
-          </Tooltip>
-        </ToggleButton>
         <ToggleButton value='solid'>
           <Tooltip title={meshTooltipText}>
             <Box marginTop={0.8}>
@@ -64,6 +57,13 @@ export default function EditorModeButtons({
           <Tooltip title={vertexTooltipText}>
             <Box marginTop={0.8}>
               <VertexSelectIcon />
+            </Box>
+          </Tooltip>
+        </ToggleButton>
+        <ToggleButton value='prop'>
+          <Tooltip title={propTooltipText}>
+            <Box marginTop={0.8}>
+              <Chair />
             </Box>
           </Tooltip>
         </ToggleButton>

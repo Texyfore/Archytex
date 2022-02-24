@@ -13,6 +13,7 @@ import section1Image from "../../img/illustrations/section1.svg";
 import section2Image from "../../img/illustrations/section2.svg";
 import section3Image from "../../img/illustrations/section3.svg";
 import section4Image from "../../img/illustrations/section4.svg";
+import { Link } from "react-router-dom";
 
 export default function HomeContent() {
   const { t } = useTranslation();
@@ -27,6 +28,8 @@ export default function HomeContent() {
           <Button
             onClick={() => console.log("click")}
             endIcon={<NavigateNext />}
+            component={Link}
+            to='/register'
           >
             {t("section1_cta")}
           </Button>
@@ -39,10 +42,7 @@ export default function HomeContent() {
         subtitle={t("section2_subtitle")}
         paragraph={t("section2_paragraph")}
         ctaButton={
-          <Button
-            onClick={() => console.log("click")}
-            endIcon={<NavigateNext />}
-          >
+          <Button component={Link} to='/features' endIcon={<NavigateNext />}>
             {t("section2_cta")}
           </Button>
         }
@@ -55,10 +55,7 @@ export default function HomeContent() {
         subtitle={t("section3_subtitle")}
         paragraph={t("section3_paragraph")}
         ctaButton={
-          <Button
-            onClick={() => console.log("click")}
-            endIcon={<NavigateNext />}
-          >
+          <Button component={Link} to='/register' endIcon={<NavigateNext />}>
             {t("section3_cta")}
           </Button>
         }
@@ -70,10 +67,7 @@ export default function HomeContent() {
         subtitle={t("section4_subtitle")}
         paragraph={t("section4_paragraph")}
         ctaButton={
-          <Button
-            onClick={() => console.log("click")}
-            endIcon={<NavigateNext />}
-          >
+          <Button component={Link} to='/register' endIcon={<NavigateNext />}>
             {t("section4_cta")}
           </Button>
         }
