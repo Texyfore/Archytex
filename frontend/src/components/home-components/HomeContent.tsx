@@ -47,7 +47,7 @@ export default function HomeContent() {
           </Button>
         }
         imageSrc={section2Image}
-        imageAlt='3D artist'
+        imageAlt='Designer'
         flipped
       />
       <HomeSection
@@ -63,7 +63,7 @@ export default function HomeContent() {
           </Button>
         }
         imageSrc={section3Image}
-        imageAlt='3D artist'
+        imageAlt='Share'
       />
       <HomeSection
         title={t("section4_title")}
@@ -78,7 +78,7 @@ export default function HomeContent() {
           </Button>
         }
         imageSrc={section4Image}
-        imageAlt='3D artist'
+        imageAlt='Render image'
         flipped
       />
     </Box>
