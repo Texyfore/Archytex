@@ -6,6 +6,7 @@ use crate::{
     logic::{
         editor::grid,
         elements::{ElementKind, Movable},
+        scene::{self, Action},
     },
     math::{Intersects, Plane, Ray, Snap},
 };
@@ -157,6 +158,12 @@ where
 
             if self.clone {
                 E::insert_remove(ctx.scene, elements);
+                ctx.scene.act(
+                    scene::Context {
+                        graphics: ctx.graphics,
+                    },
+                    Action::DeselectAll(self.mask),
+                );
             } else {
                 E::insert_move(ctx.scene, elements, self.delta, self.mask);
             }
@@ -177,6 +184,13 @@ where
                 }
 
                 E::insert(ctx.scene, elements);
+            } else {
+                ctx.scene.act(
+                    scene::Context {
+                        graphics: ctx.graphics,
+                    },
+                    Action::DeselectAll(self.mask),
+                );
             }
 
             return Some(Box::new(CameraTool::default()));
