@@ -21,7 +21,7 @@ pub struct Scene {
     solids: HashMap<usize, Solid>,
     props: HashMap<usize, Prop>,
     next_elem_id: usize,
-    undo_stack: Vec<Action>,
+    undo_stack: UndoStack,
     redo_stack: Vec<Action>,
 }
 
@@ -30,11 +30,6 @@ impl Scene {
         if let Some(reaction) = self.execute(ctx, action) {
             self.undo_stack.push(reaction);
             self.redo_stack.clear();
-
-            // Limit undo to 64 steps
-            if self.undo_stack.len() > 64 {
-                self.undo_stack.remove(0);
-            }
         }
     }
 
@@ -104,11 +99,6 @@ impl Scene {
             kind: mask,
             delta: -delta,
         });
-
-        // Limit undo to 64 steps
-        if self.undo_stack.len() > 64 {
-            self.undo_stack.remove(0);
-        }
     }
 
     pub fn insert_solids(&mut self, solids: Vec<(usize, Solid)>) {
@@ -140,11 +130,6 @@ impl Scene {
                 kind: ElementKind::Prop,
                 delta: -delta,
             });
-
-            // Limit undo to 64 steps
-            if self.undo_stack.len() > 64 {
-                self.undo_stack.remove(0);
-            }
         }
     }
 
@@ -154,11 +139,6 @@ impl Scene {
         }
 
         self.undo_stack.push(Action::RotateProps(delta.invert()));
-
-        // Limit undo to 64 steps
-        if self.undo_stack.len() > 64 {
-            self.undo_stack.remove(0);
-        }
     }
 
     pub fn insert_props(&mut self, props: Vec<(usize, Prop)>) {
@@ -548,4 +528,29 @@ pub enum Action {
 
     DeleteSolids,
     DeleteProps,
+}
+
+struct UndoStack {
+    vec: Vec<Action>,
+}
+
+impl Default for UndoStack {
+    fn default() -> Self {
+        Self {
+            vec: Vec::with_capacity(64),
+        }
+    }
+}
+
+impl UndoStack {
+    fn push(&mut self, value: Action) {
+        if self.vec.len() == 64 {
+            self.vec.remove(0);
+        }
+        self.vec.push(value);
+    }
+
+    fn pop(&mut self) -> Option<Action> {
+        self.vec.pop()
+    }
 }
