@@ -91,6 +91,7 @@ export default function LoginForm() {
         break;
 
       default:
+        setGeneralError(errorMessage);
         break;
     }
   };
