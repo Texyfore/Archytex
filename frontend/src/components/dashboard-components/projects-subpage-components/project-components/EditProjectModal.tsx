@@ -48,13 +48,14 @@ export default function EditProjectModal({
       id: project.id,
       type: "rename",
       name: title,
+    }).then(()=>{
+      addNotification(t("project_name_updated"), "success");
+      handleClose();
     }).catch((error) => {
       setError(error.message);
-      return;
     });
 
-    handleClose();
-    addNotification(t("project_name_updated"), "success");
+    
   };
 
   return (

@@ -31,7 +31,7 @@ function get_fetch(token: string) {
     result = await fetch(resource, _init);
     if (result.status !== 200) {
       let data = await result.json();
-      throw data.error;
+      throw { message: data.error, requestId: data._requestId };
     }
     return result;
   };
@@ -55,12 +55,8 @@ async function Restore(token: string | null): Promise<Internal> {
   }
   let fetch = get_fetch(token);
   let response = await fetch(USER_URL, { method: "POST" });
-  if (response.status === 200) {
-    let user: User = await response.json();
-    return { user, fetch, token };
-  } else {
-    return null;
-  }
+  let user: User = await response.json();
+  return { user, fetch, token };
 }
 
 async function LogIn(
@@ -80,7 +76,7 @@ async function LogIn(
   });
   let data = await resp.json();
   if (resp.status !== 200) {
-    throw { message: data.message, requestId: data._requestId };
+    throw { message: data.error, requestId: data._requestId };
   }
   if (stayLoggedIn) {
     localStorage.setItem("token", data.token);
