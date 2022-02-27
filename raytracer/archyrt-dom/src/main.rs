@@ -23,7 +23,7 @@ use lapin::{
     Channel, Connection, ConnectionProperties, Queue,
 };
 use mongodb::{
-    bson::{doc, oid::ObjectId, Document},
+    bson::{doc, oid::ObjectId, Document, DateTime},
     options::{ClientOptions, UpdateOptions},
     Collection,
 };
@@ -218,7 +218,7 @@ async fn handle_job(
         .join(s)
         .with_extension("png");
     image.save(path)?;
-    users.update_many(doc! {"_id": user}, doc!{"$set":{"projects.$[project].renders.$[render].status": 1.0, "projects.$[project].renders.$[render].icon": render_id.to_hex()}}, UpdateOptions::builder().array_filters(vec![doc!{"render._id": render_id}, doc!{"project._id": project_id}]).build()).await?;
+    users.update_many(doc! {"_id": user}, doc!{"$set":{"projects.$[project].renders.$[render].finished": DateTime::now(), "projects.$[project].renders.$[render].status": 1.0, "projects.$[project].renders.$[render].icon": render_id.to_hex()}}, UpdateOptions::builder().array_filters(vec![doc!{"render._id": render_id}, doc!{"project._id": project_id}]).build()).await?;
     redis::Cmd::del(&image_key).query(&mut redis_client)?;
     println!("[{}] Done!", render_id);
     Ok(())
