@@ -68,7 +68,7 @@ export default function MobileDashboard() {
   };
 
   return (
-    <Box bgcolor='background.paper' width='100%' height='100%'>
+    <Box bgcolor='background.paper' width='100%' overflow='hidden'>
       <AppBar position='static' color='inherit' elevation={0}>
         <Tabs
           value={value}
@@ -85,6 +85,7 @@ export default function MobileDashboard() {
         axis={theme.direction === "rtl" ? "x-reverse" : "x"}
         index={value}
         onChangeIndex={handleChangeIndex}
+        containerStyle={{ height: "100%" }}
       >
         <TabPanel value={value} index={0} dir={theme.direction}>
           <ProjectBrowser />

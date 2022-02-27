@@ -11,7 +11,7 @@ const SettingContainer = styled(Box)(({ theme }) => ({
   overflowY: "scroll",
 
   [`${theme.breakpoints.up("xs")} and (orientation: landscape)`]: {
-    height: "calc(100vh - 49px - 48px)",
+    height: "calc(50vh - 49px - 48px)",
   },
   [theme.breakpoints.up("sm")]: {
     height: "calc(100vh - 65px - 48px)",

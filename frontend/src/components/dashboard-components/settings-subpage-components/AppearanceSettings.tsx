@@ -22,7 +22,7 @@ export default function AppearanceSettings() {
   const [colorMode, toggle] = useColorMode();
 
   return (
-    <Box mb={2} mt={5}>
+    <Box mb={5} mt={5}>
       <Box mb={2} display='flex' justifyContent='start' pl={2}>
         <Box marginY='auto' mt={1.5} marginRight={4}>
           <Palette fontSize='large' />

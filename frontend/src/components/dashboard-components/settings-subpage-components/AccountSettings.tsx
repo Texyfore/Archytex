@@ -2,6 +2,8 @@ import React from "react";
 
 import { useTranslation } from "react-i18next";
 
+import { styled } from "@mui/material/styles";
+
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
 import Divider from "@mui/material/Divider";
@@ -11,6 +13,7 @@ import ListItemIcon from "@mui/material/ListItemIcon";
 import ListItemText from "@mui/material/ListItemText";
 import TextField from "@mui/material/TextField";
 import Typography from "@mui/material/Typography";
+import Avatar from "@mui/material/Avatar";
 
 import {
   AccountBox,
@@ -18,6 +21,10 @@ import {
   ManageAccounts,
   Password,
 } from "@mui/icons-material";
+
+const Input = styled("input")({
+  display: "none",
+});
 
 export default function AccountSettings() {
   const { t } = useTranslation();
@@ -42,6 +49,33 @@ export default function AccountSettings() {
       </Box>
       <Divider />
       <List>
+        {/* Profile picture */}
+        <Box
+          display='flex'
+          justifyContent='start'
+          flexWrap='wrap'
+          paddingX={2}
+          alignItems='center'
+          gap={2}
+          mb={2}
+        >
+          <Avatar sx={{ height: 60, width: 60 }} />
+          <Box>
+            <Typography gutterBottom>{t("profile_picture")}</Typography>
+            <label htmlFor='contained-button-file'>
+              <Input
+                accept='image/*'
+                id='contained-button-file'
+                multiple
+                type='file'
+              />
+              <Button variant='contained' component='span'>
+                {t("upload")}
+              </Button>
+            </label>
+          </Box>
+        </Box>
+
         {/* Username */}
         <Box display='flex' justifyContent='start' flexWrap='wrap'>
           <ListItem
@@ -73,6 +107,7 @@ export default function AccountSettings() {
             </Button>
           </Box>
         </Box>
+
         {/* Email */}
         <Box display='flex' justifyContent='start' flexWrap='wrap'>
           <ListItem
@@ -104,6 +139,7 @@ export default function AccountSettings() {
             </Button>
           </Box>
         </Box>
+
         {/* Password */}
         <Box display='flex' justifyContent='start' flexWrap='wrap'>
           <ListItem
