@@ -61,7 +61,7 @@ export default function RenderCardGrid({ project, open }: Props) {
             easing={easing.easeInOut}
           >
             <Grid item xs={6} sm={6} md={4} xl={3} key={render.id}>
-              <RenderCard render={render} key={render.id} />
+              <RenderCard render={render} key={render.id} project={project} />
             </Grid>
           </Grow>
         ))}

@@ -31,6 +31,7 @@ type Database interface {
 	SubscribeProjects(userId interface{}) (chan Updates, error)
 
 	CreateRender(userId interface{}, projectId interface{}, name string) (interface{}, error)
+	DeleteRender(userId interface{}, projectId interface{}, renderId interface{}) error
 
 	GetTextures() ([]models.Asset, error)
 	GetTexture(id interface{}) (*models.Asset, error)

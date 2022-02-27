@@ -35,6 +35,16 @@ function reducer(projects: Projects, action: Action): Projects {
             }
           : p
       );
+    case "deleteRender":
+      return projects.map(p=>{
+        if (p.id !== action.id) {
+          return p;
+        }
+        return {
+          ...p,
+          renders: p.renders.filter(r=>r.id !== action.render)
+        };
+      })
   }
 }
 

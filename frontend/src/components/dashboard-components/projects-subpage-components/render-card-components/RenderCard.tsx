@@ -10,7 +10,7 @@ import Typography from "@mui/material/Typography";
 
 import Environment from "../../../../env";
 
-import { Render } from "../../../../services/projects";
+import { Render, Project } from "../../../../services/projects";
 
 import CircularProgressWithLabel from "../../../general-components/CircularProgressWithLabel";
 import EnlargeImageModal from "./EnlargeImageModal";
@@ -18,9 +18,10 @@ import RenderCardActions from "./RenderCardActions";
 
 interface RenderCardProps {
   render: Render;
+  project: Project;
 }
 
-export default function RenderCard({ render }: RenderCardProps) {
+export default function RenderCard({ render, project }: RenderCardProps) {
   //Enlarge render image modal
   const [openEnlargeRenderModal, setOpenEnlargeRenderModal] = useState<
     undefined | Render
@@ -80,7 +81,7 @@ export default function RenderCard({ render }: RenderCardProps) {
             </CardContent>
           </Tooltip>
         </CardActionArea>
-        <RenderCardActions render={render} />
+        <RenderCardActions render={render} project={project} />
       </Card>
 
       {/* Enlarge render image modal */}

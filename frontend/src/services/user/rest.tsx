@@ -167,6 +167,14 @@ const subscribe: (internal: Internal) => (callback: Callback) => {
             body: JSON.stringify(action.name),
           });
           return;
+        case "deleteRender":
+          await internal?.fetch(`${PROJECT_URL}/${action.id}/render/${action.render}`, {
+            headers: {
+              "Content-Type": "application/json",
+            },
+            method: "DELETE",
+          });
+          return;
       }
     },
   };
