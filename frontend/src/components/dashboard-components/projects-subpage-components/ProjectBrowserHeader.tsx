@@ -14,7 +14,14 @@ import { LibraryAdd } from "@mui/icons-material";
 import SearchBar from "../../general-components/SearchBar";
 import NewProjectModal from "./NewProjectModal";
 
-export default function ProjectBrowserHeader() {
+interface Props {
+  query: string;
+  handleQueryChange: (query: string) => void;
+}
+export default function ProjectBrowserHeader({
+  query,
+  handleQueryChange,
+}: Props) {
   const { t } = useTranslation();
   const tooltipText = t("create_new_project");
 
@@ -54,7 +61,7 @@ export default function ProjectBrowserHeader() {
         </Box>
 
         <Box>
-          <SearchBar />
+          <SearchBar query={query} handleQueryChange={handleQueryChange} />
         </Box>
       </Box>
 

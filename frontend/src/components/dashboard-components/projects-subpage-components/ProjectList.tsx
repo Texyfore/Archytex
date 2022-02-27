@@ -27,7 +27,10 @@ const ProjectListContainer = styled(Box)(({ theme }) => ({
   },
 }));
 
-export default function ProjectList() {
+interface Props {
+  query: string;
+}
+export default function ProjectList({ query }: Props) {
   const { t } = useTranslation();
 
   const { projects } = useProjects();
@@ -47,9 +50,12 @@ export default function ProjectList() {
           <Typography>{t("loading_projects")}</Typography>
         </Box>
       ) : (
-        projects.map((project: Project) => (
-          <ProjectListItem key={project.id} project={project} />
-        ))
+        projects.map(
+          (project: Project) =>
+            project.title.toLowerCase().includes(query.toLowerCase()) && (
+              <ProjectListItem key={project.id} project={project} />
+            )
+        )
       )}
     </ProjectListContainer>
   );

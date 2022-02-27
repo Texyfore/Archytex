@@ -153,7 +153,7 @@ export default function LibraryDialog({
             >
               {t("filter_results")}
             </Button>
-            <SearchBar />
+            <SearchBar query='' handleQueryChange={() => {}} />
           </Box>
         </DialogTitle>
         <DialogContent>
