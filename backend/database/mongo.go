@@ -418,6 +418,7 @@ func (m MongoDatabase) SubscribeProjects(userId interface{}) (chan Updates, erro
 			{"fullDocument.projects.renders.status", 1},
 			{"fullDocument.projects.renders.started", 1},
 			{"fullDocument.projects.renders.finished", 1},
+			{"fullDocument.projects.renders.icon", 1},
 		}},
 	}
 	pipeline := mongo.Pipeline{idMatch, project}
