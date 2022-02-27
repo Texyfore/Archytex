@@ -9,16 +9,17 @@ import CardActions from "@mui/material/CardActions";
 
 import { Delete, Download, InfoOutlined, Share } from "@mui/icons-material";
 
-import { Render } from "../../../../services/projects";
+import { Project, Render } from "../../../../services/projects";
 import DeleteRenderModal from "./DeleteRenderModal";
 import RenderDetailsModal from "./RenderDetailsModal";
 import Environment from "../../../../env";
 
 interface Props {
   render: Render;
+  project: Project;
 }
 
-export default function RenderCardActions({ render }: Props) {
+export default function RenderCardActions({ render, project }: Props) {
   const { t } = useTranslation();
   const downloadTooltipText = t("download");
   const shareTooltipText = t("share");
@@ -104,6 +105,7 @@ export default function RenderCardActions({ render }: Props) {
       </CardActions>
 
       <DeleteRenderModal
+        project={project}
         render={render}
         open={renderDeleteModalOpen}
         handleClose={handleDeleteModalClose}

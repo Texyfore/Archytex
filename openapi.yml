@@ -298,6 +298,32 @@ paths:
             schema:
               type: string
               format: binary
+  /project/{id}/render/{render}:
+    delete:
+      summary: Deletes render
+      tags:
+        - authenticated
+        - projects
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: render
+          in: path
+          required: true
+          schema:
+            type: string
+      security:
+        - api_key: []
+      responses:
+        '200':
+          description: Successfully saved project
+        '400':
+          description: Invalid parameter
+        '404':
+          description: Project or Render not found
 components:
   securitySchemes:
     api_key:

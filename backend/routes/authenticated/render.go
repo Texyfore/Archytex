@@ -18,56 +18,88 @@ import (
 func Render(w http.ResponseWriter, r *http.Request) {
 	session := models.UseSession(r.Context())
 	params := mux.Vars(r)
-	_projectId, ok := params["id"]
-	if !ok {
-		logging.Error(w, r, nil, "Project not specified", http.StatusBadRequest)
-		return
-	}
-	projectId, err := primitive.ObjectIDFromHex(_projectId)
-	if err != nil {
-		logging.Error(w, r, err, "invalid project id", http.StatusBadRequest)
-		return
-	}
-	id, err := database.CurrentDatabase.CreateRender(session.User.Id, projectId, "PLACEHOLDER")
-	if err != nil {
-		logging.Error(w, r, err, "couldn't create render", http.StatusInternalServerError)
-		return
-	}
-	task_id := id.(primitive.ObjectID).Hex()
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
-	defer cancel()
-	//TODO: Get width, height and sample count from frontend
-	bytes, err := ioutil.ReadAll(r.Body)
-	if err != nil {
-		logging.Error(w, r, err, "couldn't create render", http.StatusBadGateway)
-		return
-	}
-	err = database.RedisClient.Set(ctx, fmt.Sprintf("archyrt:%s:width", task_id), 512, 0).Err()
-	if err != nil {
-		logging.Error(w, r, err, "couldn't create render", http.StatusInternalServerError)
-		return
-	}
-	err = database.RedisClient.Set(ctx, fmt.Sprintf("archyrt:%s:height", task_id), 512, 0).Err()
-	if err != nil {
-		logging.Error(w, r, err, "couldn't create render", http.StatusInternalServerError)
-		return
-	}
-	err = database.RedisClient.Set(ctx, fmt.Sprintf("archyrt:%s:samples", task_id), 4, 0).Err()
-	if err != nil {
-		logging.Error(w, r, err, "couldn't create render", http.StatusInternalServerError)
-		return
-	}
-	err = database.RedisClient.Set(ctx, fmt.Sprintf("archyrt:%s:scene", task_id), bytes, 0).Err()
-	if err != nil {
-		logging.Error(w, r, err, "couldn't create render", http.StatusInternalServerError)
-		return
-	}
-	err = database.RabbitmqChannel.Publish("", "archyrt:dispatch", false, false, amqp.Publishing{
-		ContentType: "text/plain",
-		Body:        []byte(task_id + "#" + session.User.Id.(primitive.ObjectID).Hex() + "#" + projectId.Hex()),
-	})
-	if err != nil {
-		logging.Error(w, r, err, "couldn't create render", http.StatusInternalServerError)
-		return
+	if r.Method == "DELETE" {
+		_projectId, ok := params["id"]
+		if !ok {
+			logging.Error(w, r, nil, "Project not specified", http.StatusBadRequest)
+			return
+		}
+		projectId, err := primitive.ObjectIDFromHex(_projectId)
+		if err != nil {
+			logging.Error(w, r, err, "invalid project id", http.StatusBadRequest)
+			return
+		}
+		_renderId, ok := params["render"]
+		if !ok {
+			logging.Error(w, r, nil, "Render not specified", http.StatusBadRequest)
+			return
+		}
+		renderId, err := primitive.ObjectIDFromHex(_renderId)
+		if err != nil {
+			logging.Error(w, r, err, "invalid render id", http.StatusBadRequest)
+			return
+		}
+		err = database.CurrentDatabase.DeleteRender(session.User.Id, projectId, renderId)
+		if err == database.ErrProjectNotFound {
+			logging.Error(w, r, err, "Project or Render not found", http.StatusNotFound)
+			return
+		}
+		if err != nil {
+			logging.Error(w, r, err, "could not remove render", http.StatusBadRequest)
+			return
+		}
+	} else if r.Method == "POST" {
+		_projectId, ok := params["id"]
+		if !ok {
+			logging.Error(w, r, nil, "Project not specified", http.StatusBadRequest)
+			return
+		}
+		projectId, err := primitive.ObjectIDFromHex(_projectId)
+		if err != nil {
+			logging.Error(w, r, err, "invalid project id", http.StatusBadRequest)
+			return
+		}
+		id, err := database.CurrentDatabase.CreateRender(session.User.Id, projectId, "PLACEHOLDER")
+		if err != nil {
+			logging.Error(w, r, err, "couldn't create render", http.StatusInternalServerError)
+			return
+		}
+		task_id := id.(primitive.ObjectID).Hex()
+		ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
+		defer cancel()
+		//TODO: Get width, height and sample count from frontend
+		bytes, err := ioutil.ReadAll(r.Body)
+		if err != nil {
+			logging.Error(w, r, err, "couldn't create render", http.StatusBadGateway)
+			return
+		}
+		err = database.RedisClient.Set(ctx, fmt.Sprintf("archyrt:%s:width", task_id), 512, 0).Err()
+		if err != nil {
+			logging.Error(w, r, err, "couldn't create render", http.StatusInternalServerError)
+			return
+		}
+		err = database.RedisClient.Set(ctx, fmt.Sprintf("archyrt:%s:height", task_id), 512, 0).Err()
+		if err != nil {
+			logging.Error(w, r, err, "couldn't create render", http.StatusInternalServerError)
+			return
+		}
+		err = database.RedisClient.Set(ctx, fmt.Sprintf("archyrt:%s:samples", task_id), 4, 0).Err()
+		if err != nil {
+			logging.Error(w, r, err, "couldn't create render", http.StatusInternalServerError)
+			return
+		}
+		err = database.RedisClient.Set(ctx, fmt.Sprintf("archyrt:%s:scene", task_id), bytes, 0).Err()
+		if err != nil {
+			logging.Error(w, r, err, "couldn't create render", http.StatusInternalServerError)
+			return
+		}
+		err = database.RabbitmqChannel.Publish("", "archyrt:dispatch", false, false, amqp.Publishing{
+			ContentType: "text/plain",
+			Body:        []byte(task_id + "#" + session.User.Id.(primitive.ObjectID).Hex() + "#" + projectId.Hex()),
+		})
+		if err != nil {
+			logging.Error(w, r, err, "couldn't create render", http.StatusInternalServerError)
+			return
+		}
 	}
 }

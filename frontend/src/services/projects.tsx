@@ -34,9 +34,14 @@ interface ActionDelete{
     type: "delete"
     id: string
 }
+interface ActionDeleteRender{
+    type: "deleteRender"
+    id: string
+    render: string
+}
 
 type Projects = Project[];
-type Action = ActionCreate | ActionRename | ActionDelete;
+type Action = ActionCreate | ActionRename | ActionDelete | ActionDeleteRender;
 type ProjectsDispatch = (action: Action)=>Promise<void>
 type Subscription = { projects: Projects, dispatch: ProjectsDispatch};
 
