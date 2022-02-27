@@ -92,12 +92,6 @@ export default function UserDropdownMenu({
         </ListItemIcon>
         {t("account")}
       </MenuItem>
-      <MenuItem>
-        <ListItemIcon>
-          <CreditCard fontSize='small' />
-        </ListItemIcon>
-        {t("subscription")}
-      </MenuItem>
       <Divider />
       <MenuItem onClick={handleLogOut}>
         <ListItemIcon>

@@ -1,4 +1,5 @@
 import React from "react";
+import { Link as L } from "react-router-dom";
 
 import { useTranslation } from "react-i18next";
 
@@ -65,18 +66,13 @@ export default function Footer() {
           flexDirection='column'
           justifyContent='space-evenly'
           gap={1}
+          mb={1}
         >
           <Typography gutterBottom variant='subtitle2' color='GrayText'>
             {t("product").toUpperCase()}
           </Typography>
-          <Link variant='body2' href='#'>
+          <Link variant='body2' to='/features' component={L}>
             {t("features")}
-          </Link>
-          <Link variant='body2' href='#'>
-            {t("pricing")}
-          </Link>
-          <Link variant='body2' href='#'>
-            {t("faq")}
           </Link>
         </Box>
 
@@ -88,12 +84,12 @@ export default function Footer() {
           gap={1}
         >
           <Typography gutterBottom variant='subtitle2' color='GrayText'>
-            {t("company").toUpperCase()}
+            {t("texyfore").toUpperCase()}
           </Typography>
-          <Link variant='body2' href='#'>
+          <Link variant='body2' to='/about' component={L}>
             {t("about")}
           </Link>
-          <Link variant='body2' href='#'>
+          <Link variant='body2' to='/contact' component={L}>
             {t("contact")}
           </Link>
         </Box>
