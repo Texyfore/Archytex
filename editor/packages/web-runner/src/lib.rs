@@ -193,17 +193,22 @@ fn builtin_resources() -> Vec<Resource> {
     vec![
         Resource {
             id: 0,
-            buf: include_bytes!("../../../assets/builtin/nodraw.png").to_vec(),
+            buf: include_bytes!("../../../assets/nodraw.png").to_vec(),
             kind: ResourceKind::Texture,
         },
         Resource {
             id: 1,
-            buf: include_bytes!("../../../assets/builtin/ground.png").to_vec(),
+            buf: include_bytes!("../../../assets/ground.png").to_vec(),
             kind: ResourceKind::Texture,
         },
         Resource {
             id: 0,
-            buf: include_bytes!("../../../assets/builtin/vertex.agzm").to_vec(),
+            buf: include_bytes!("../../../assets/vertex.agzm").to_vec(),
+            kind: ResourceKind::Gizmo,
+        },
+        Resource {
+            id: 1,
+            buf: include_bytes!("../../../assets/arrow.agzm").to_vec(),
             kind: ResourceKind::Gizmo,
         },
     ]
