@@ -1,3 +1,5 @@
+mod shifted_view;
+
 use std::env;
 
 use anyhow::{anyhow, Result};
@@ -22,6 +24,8 @@ use lapin::{message::Delivery, Channel, Connection, ConnectionProperties};
 use lru::LruCache;
 use redis::AsyncCommands;
 
+use crate::shifted_view::ShiftedView;
+
 struct SceneData(BVH, JitterCamera<PerspectiveCamera>);
 
 async fn render(
@@ -37,8 +41,12 @@ async fn render(
     let task = s[0].to_string();
     let id = s[1].to_string();
     let response = s[2].to_string();
+    let x: usize = s[3].parse()?;
+    let y: usize = s[4].parse()?;
     let width: usize = redis::Cmd::get(format!("archyrt:{}:width", task)).query(redis_client)?;
     let height: usize = redis::Cmd::get(format!("archyrt:{}:height", task)).query(redis_client)?;
+    let part_width = width/4;
+    let part_height = height/4;
     let scene = match cache.get(&task) {
         Some(a) => a,
         None => {
@@ -60,7 +68,14 @@ async fn render(
         bounces: 5,
         skybox: Some(TextureID::new(&"skybox")),
     };
-    let image = ArrayCollector {}.collect(renderer, texture_repo, width, height);
+    let renderer = ShiftedView{
+        inner: renderer,
+        full_w: width,
+        full_h: height,
+        x: (x as f64)/(width as f64),
+        y: (y as f64)/(height as f64)
+    };
+    let image = ArrayCollector {}.collect(renderer, texture_repo, part_width, part_height);
     //Convert image into bytes
     let image: Vec<u8> = image
         .into_iter()
@@ -81,8 +96,8 @@ async fn render(
         let _: () = redis::cmd("AI.TENSORSET")
             .arg(&temp)
             .arg("FLOAT")
-            .arg(width)
-            .arg(height)
+            .arg(part_width)
+            .arg(part_height)
             .arg(3)
             .arg("BLOB")
             .arg(image)
@@ -97,6 +112,10 @@ async fn render(
             .arg(2)
             .arg(&temp)
             .arg(&image_key)
+            .arg("ARGS")
+            .arg(2)
+            .arg(x)
+            .arg(y)
             .arg("OUTPUTS")
             .arg(1)
             .arg(&image_key)

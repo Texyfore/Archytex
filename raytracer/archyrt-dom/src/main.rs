@@ -65,25 +65,31 @@ async fn handle_job(
         .query(&mut redis_client)?;
     let payload = s.clone();
     //Put as many tasks on the queue as there are samples
-    futures::stream::iter(0..samples)
-        .for_each(|_| async {
-            let id = Uuid::new_v4();
-            let payload = format!("{}#{}#{}", payload, id, response_queue);
-            let payload = payload.into_bytes();
-            channel
-                .clone()
-                .basic_publish(
-                    "",
-                    task_queue,
-                    Default::default(),
-                    payload,
-                    Default::default(),
-                )
-                .await
-                .unwrap();
-            
-        })
-        .await;
+    for x in 0..4 {
+        for y in 0..4{
+            let x = width/4*x;
+            let y = height/4*y;
+            futures::stream::iter(0..samples)
+                .for_each(|_| async {
+                    let id = Uuid::new_v4();
+                    let payload = format!("{}#{}#{}#{}#{}", payload, id, response_queue, x, y);
+                    let payload = payload.into_bytes();
+                    channel
+                        .clone()
+                        .basic_publish(
+                            "",
+                            task_queue,
+                            Default::default(),
+                            payload,
+                            Default::default(),
+                        )
+                        .await
+                        .unwrap();
+                    
+                })
+                .await;
+        }
+    }
     channel
         .basic_ack(delivery.delivery_tag, Default::default())
         .await?;
@@ -104,12 +110,12 @@ async fn handle_job(
     while let Some(delivery) = consumer.next().await {
         let (_, _delivery) = delivery.unwrap();
         counter += 1;
-        if counter >= samples {
+        if counter >= samples*16 {
             break;
         }
 
         //Update percentage
-        let percentage = (counter as f32) / (samples as f32);
+        let percentage = (counter as f32) / (samples as f32) / 16.0;
         users
             .update_many(
                 doc! {"_id": user},
@@ -226,8 +232,13 @@ async fn handle_job(
 
 static TORCHSCRIPT: &str = "
 def add(tensors: List[Tensor], keys: List[str], args: List[str]):
-    return tensors[0]+tensors[1]
-
+    x = int(args[0])
+    y = int(args[1])
+    w = tensors[0].shape[0]
+    h = tensors[0].shape[1]
+    t = torch.clone(tensors[1])
+    t[y:y+h,x:x+w,:] += tensors[0]
+    return t
 def divide(tensors: List[Tensor], keys: List[str], args: List[str]):
     return tensors[0]/int(args[0])
 ";
