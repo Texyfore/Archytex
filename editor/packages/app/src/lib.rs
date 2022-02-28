@@ -1,5 +1,3 @@
-#![allow(dead_code)] // TODO Remove this at some point
-
 mod button;
 mod data;
 mod graphics;
@@ -194,6 +192,9 @@ pub fn run(init: Init) {
                             button::ROTATE => todo!(),
                             _ => (),
                         },
+                        FromHost::Movement(x, y) => {
+                            logic.movement(x, y);
+                        }
                     }
                 }
 
@@ -253,4 +254,5 @@ pub enum FromHost {
     Prop(u32),
     Texture(u32),
     Button(i32),
+    Movement(f32, f32),
 }

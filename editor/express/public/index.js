@@ -2,11 +2,33 @@ import init, { Callback, Channel, Resources, run } from "./pkg/web_runner.js";
 
 document.oncontextmenu = () => { return false };
 
+let rightDown = false;
+
 init().then(() => {
     const channel = new Channel();
     const callback = new Callback();
     const resources = new Resources();
-    // const sender = channel.sender();
+    const sender = channel.sender();
+
+    // document.addEventListener("mousedown", ev => {
+    //     if (ev.button === 2) {
+    //         document.getElementById("viewport-canvas").requestPointerLock();
+    //         rightDown = true;
+    //     }
+    // });
+
+    // document.addEventListener("mouseup", ev => {
+    //     if (ev.button == 2) {
+    //         document.exitPointerLock();
+    //         rightDown = false;
+    //     }
+    // })
+
+    // document.addEventListener("mousemove", ev => {
+    //     if (rightDown) {
+    //         sender.movement(ev.movementX, ev.movementY);
+    //     }
+    // });
 
 
     Promise.all([

@@ -82,6 +82,11 @@ impl Sender {
     pub fn set_prop(&self, id: u32) {
         self.tx.send(FromHost::Prop(id)).unwrap();
     }
+
+    #[wasm_bindgen]
+    pub fn movement(&self, x: f32, y: f32) {
+        self.tx.send(FromHost::Movement(x, y)).unwrap();
+    }
 }
 
 #[wasm_bindgen]
@@ -111,9 +116,15 @@ impl Host for Callback {
                     .unwrap();
             }
             ToHost::Button(button) => {
-                self.button_feedback
+                match self
+                    .button_feedback
                     .call1(&JsValue::NULL, &JsValue::from(button))
-                    .unwrap();
+                {
+                    Ok(_) => {}
+                    Err(err) => {
+                        panic!("BING CHILLING BING CHILLING BING CHILLING BING CHILLING BING CHILLING {:?}", err)
+                    }
+                }
             }
         }
     }
