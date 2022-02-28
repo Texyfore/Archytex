@@ -1,6 +1,10 @@
 @import url("https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@100;300;400;500;700;900&display=swap");
+@font-face {
+  font-family: "Nagoda";
+  src: local("Nagoda"), url(./fonts/Nagoda.ttf) format("truetype");
+}
 body {
-  font-family: -apple-system, BlinkMacSystemFont, "Nagoda", "Noto Sans JP",
+  font-family: "Nagoda", "Noto Sans JP", -apple-system, BlinkMacSystemFont,
     sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;

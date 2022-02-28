@@ -22,9 +22,12 @@ import NotificationSnackBar from "./components/general-components/NotificationSn
 
 import Home from "./pages/Home";
 import Dashboard from "./pages/Dashboard";
+import Settings from "./pages/Settings";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import About from "./pages/About";
+import Contact from "./pages/Contact";
+import Features from "./pages/Features";
 import Editor from "./pages/Editor";
 import PageNotFound from "./pages/PageNotFound";
 import SuccessfulRegistration from "./pages/SuccessfulRegistration";
@@ -63,8 +66,17 @@ function App() {
               <Route exact path='/about'>
                 <About />
               </Route>
+              <Route exact path='/contact'>
+                <Contact />
+              </Route>
+              <Route exact path='/features'>
+                <Features />
+              </Route>
               <Route exact path='/dashboard'>
                 <Dashboard />
+              </Route>
+              <Route exact path='/settings'>
+                <Settings />
               </Route>
               <Route exact path='/success'>
                 <SuccessfulRegistration />

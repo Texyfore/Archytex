@@ -12,7 +12,7 @@ import MenuItem from "@mui/material/MenuItem";
 import ListItemIcon from "@mui/material/ListItemIcon";
 import Divider from "@mui/material/Divider";
 
-import { AccountCircle, CreditCard, Logout } from "@mui/icons-material";
+import { AccountCircle, Logout, Settings } from "@mui/icons-material";
 
 import { useApi } from "../../services/user/api";
 import useNotification from "../../services/hooks/useNotification";
@@ -42,6 +42,11 @@ export default function UserDropdownMenu({
       api.logOut();
       addNotification(t("logged_out"), "info");
     }
+  };
+
+  const handleSettingsOpen = () => {
+    history.push("/settings");
+    handleAvatarMenuClose();
   };
 
   return (
@@ -79,6 +84,7 @@ export default function UserDropdownMenu({
         justifyContent='center'
         alignItems='center'
         my={2}
+        mx={7}
       >
         <Avatar sx={{ marginBottom: 1, width: 50, height: 50 }} />
         <Typography variant='caption'>
@@ -86,17 +92,11 @@ export default function UserDropdownMenu({
         </Typography>
       </Box>
       <Divider />
-      <MenuItem>
+      <MenuItem onClick={handleSettingsOpen} sx={{ marginTop: 1 }}>
         <ListItemIcon>
-          <AccountCircle fontSize='small' />
+          <Settings fontSize='small' />
         </ListItemIcon>
-        {t("account")}
-      </MenuItem>
-      <MenuItem>
-        <ListItemIcon>
-          <CreditCard fontSize='small' />
-        </ListItemIcon>
-        {t("subscription")}
+        {t("settings")}
       </MenuItem>
       <Divider />
       <MenuItem onClick={handleLogOut}>
