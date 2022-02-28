@@ -1,20 +1,25 @@
+mod gizmo;
 mod tools;
 
-use asset::{PropID, TextureID};
-use cgmath::vec3;
+use asset::{GizmoID, PropID, TextureID};
+use cgmath::{vec3, Deg, Matrix4};
 use winit::event::VirtualKeyCode;
 
 use crate::{
     button,
     data::PropInfoContainer,
     graphics::{
-        structures::{GroundVertex, LineVertex},
-        Canvas, Graphics, GroundMesh, GroundMeshDescriptor, LineMesh, LineMeshDescriptor, Share,
+        structures::{GizmoInstance, GroundVertex, LineVertex},
+        Canvas, GizmoGroup, GizmoInstances, Graphics, GroundMesh, GroundMeshDescriptor, LineMesh,
+        LineMeshDescriptor, Share,
     },
     Host, ToHost,
 };
 
-use self::tools::{CameraTool, Tool};
+use self::{
+    gizmo::TranslationGizmo,
+    tools::{CameraTool, Tool},
+};
 
 use super::{
     camera::Camera,
@@ -30,10 +35,14 @@ pub struct Editor {
     grid: i32,
     texture: TextureID,
     prop: PropID,
+    gizmo: TranslationGizmo,
 }
 
 impl Editor {
     pub fn init(ctx: Context) -> Self {
+        let gizmo = TranslationGizmo::new(ctx.graphics);
+        gizmo.set_position(ctx.graphics, vec3(0.0, 5.0, 0.0));
+
         Self {
             tool: Box::new(CameraTool::default()),
             ground: Ground::new(ctx.graphics),
@@ -41,6 +50,7 @@ impl Editor {
             grid: 3,
             texture: TextureID(2),
             prop: PropID(0),
+            gizmo,
         }
     }
 
@@ -114,6 +124,7 @@ impl Editor {
     pub fn render(&self, canvas: &mut Canvas) {
         self.tool.render(canvas);
         self.ground.render(canvas);
+        self.gizmo.render(canvas);
     }
 }
 
