@@ -299,6 +299,7 @@ fn common(ctx: &mut Context, was_rotating: &mut bool) -> Option<Box<dyn Tool>> {
 
                     if !elements.is_empty() {
                         return Some(Box::new(GizmoMoveTool::new(
+                            ctx.graphics,
                             ElementKind::Solid,
                             elements,
                             init_clone,

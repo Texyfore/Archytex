@@ -27,10 +27,20 @@ where
         elements: Vec<(usize, E)>,
         clone: bool,
     ) -> Self {
-        let center = {};
+        let center = {
+            let mut center = Vector3::zero();
+            let mut n = 0.0;
+
+            for (_, element) in &elements {
+                center += element.center(mask);
+                n += 1.0;
+            }
+
+            center / n
+        };
 
         let gizmo = TranslationGizmo::new(graphics);
-        gizmo.set_position(graphics, Vector3::zero());
+        gizmo.set_position(graphics, center);
 
         Self {
             mask,
@@ -50,6 +60,7 @@ where
     }
 
     fn render(&self, canvas: &mut Canvas) {
+        self.gizmo.render(canvas);
         for (_, element) in &self.elements {
             element.render(canvas, self.mask);
         }
