@@ -87,6 +87,11 @@ impl Sender {
     pub fn movement(&self, x: f32, y: f32) {
         self.tx.send(FromHost::Movement(x, y)).unwrap();
     }
+
+    #[wasm_bindgen(js_name = "setPointerLock")]
+    pub fn set_pointer_lock(&self, lock: bool) {
+        self.tx.send(FromHost::LockPointer(lock)).unwrap();
+    }
 }
 
 #[wasm_bindgen]
@@ -116,15 +121,9 @@ impl Host for Callback {
                     .unwrap();
             }
             ToHost::Button(button) => {
-                match self
-                    .button_feedback
+                self.button_feedback
                     .call1(&JsValue::NULL, &JsValue::from(button))
-                {
-                    Ok(_) => {}
-                    Err(err) => {
-                        panic!("BING CHILLING BING CHILLING BING CHILLING BING CHILLING BING CHILLING {:?}", err)
-                    }
-                }
+                    .unwrap();
             }
         }
     }

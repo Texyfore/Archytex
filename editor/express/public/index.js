@@ -1,34 +1,41 @@
 import init, { Callback, Channel, Resources, run } from "./pkg/web_runner.js";
 
-document.oncontextmenu = () => { return false };
-
+const canvas = document.getElementById("viewport-canvas");
 let rightDown = false;
+
+document.oncontextmenu = () => { return false };
 
 init().then(() => {
     const channel = new Channel();
-    const callback = new Callback();
+    const callback = new Callback((scene) => {
+        console.log(`[wasm] saved scene (${scene.length})`);
+    }, (button) => {
+        console.log(`[wasm] button feedback ${button}`);
+    });
     const resources = new Resources();
     const sender = channel.sender();
 
-    // document.addEventListener("mousedown", ev => {
-    //     if (ev.button === 2) {
-    //         document.getElementById("viewport-canvas").requestPointerLock();
-    //         rightDown = true;
-    //     }
-    // });
+    canvas.addEventListener("mousedown", ev => {
+        if (ev.button === 2) {
+            canvas.requestPointerLock();
+            sender.setPointerLock(true);
+            rightDown = true;
+        }
+    });
 
-    // document.addEventListener("mouseup", ev => {
-    //     if (ev.button == 2) {
-    //         document.exitPointerLock();
-    //         rightDown = false;
-    //     }
-    // })
+    canvas.addEventListener("mouseup", ev => {
+        if (ev.button == 2) {
+            document.exitPointerLock();
+            sender.setPointerLock(false);
+            rightDown = false;
+        }
+    })
 
-    // document.addEventListener("mousemove", ev => {
-    //     if (rightDown) {
-    //         sender.movement(ev.movementX, ev.movementY);
-    //     }
-    // });
+    canvas.addEventListener("mousemove", ev => {
+        if (rightDown) {
+            sender.movement(ev.movementX, ev.movementY);
+        }
+    });
 
 
     Promise.all([

@@ -78,6 +78,10 @@ impl Logic {
         self.input.movement(vec2(x, y));
     }
 
+    pub fn movement_override(&mut self, x: f32, y: f32) {
+        self.input.movement_override(vec2(x, y));
+    }
+
     pub fn scroll(&mut self, delta: f32) {
         self.input.scroll(delta);
     }
