@@ -15,10 +15,7 @@ use crate::{
     Host, ToHost,
 };
 
-use self::{
-    gizmo::{RotationGizmo, TranslationGizmo},
-    tools::{CameraTool, Tool},
-};
+use self::tools::{CameraTool, Tool};
 
 use super::{
     camera::Camera,
@@ -34,18 +31,10 @@ pub struct Editor {
     grid: i32,
     texture: TextureID,
     prop: PropID,
-    translation: TranslationGizmo,
-    rotation: RotationGizmo,
 }
 
 impl Editor {
     pub fn init(ctx: Context) -> Self {
-        let translation = TranslationGizmo::new(ctx.graphics);
-        translation.set_position(ctx.graphics, vec3(-1.0, 5.0, 0.0));
-
-        let rotation = RotationGizmo::new(ctx.graphics);
-        rotation.set_position(ctx.graphics, vec3(1.0, 5.0, 0.0));
-
         Self {
             tool: Box::new(CameraTool::default()),
             ground: Ground::new(ctx.graphics),
@@ -53,8 +42,6 @@ impl Editor {
             grid: 3,
             texture: TextureID(2),
             prop: PropID(0),
-            translation,
-            rotation,
         }
     }
 
@@ -128,8 +115,6 @@ impl Editor {
     pub fn render(&self, canvas: &mut Canvas) {
         self.tool.render(canvas);
         self.ground.render(canvas);
-        self.translation.render(canvas);
-        self.rotation.render(canvas);
     }
 }
 
