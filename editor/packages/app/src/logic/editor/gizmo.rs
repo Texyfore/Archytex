@@ -6,13 +6,15 @@ use crate::graphics::{
 };
 
 pub struct TranslationGizmo {
-    instances: GizmoInstances,
+    arrows: GizmoInstances,
+    sphere: GizmoInstances,
 }
 
 impl TranslationGizmo {
     pub fn new(graphics: &Graphics) -> Self {
         Self {
-            instances: graphics.create_gizmo_instances(3),
+            arrows: graphics.create_gizmo_instances(3),
+            sphere: graphics.create_gizmo_instances(1),
         }
     }
 
@@ -23,7 +25,7 @@ impl TranslationGizmo {
         let rot_z = Matrix4::from_angle_x(Deg(90.0));
 
         graphics.write_gizmo_instances(
-            &self.instances,
+            &self.arrows,
             &[
                 GizmoInstance {
                     matrix: translation * rot_x * scale,
@@ -39,13 +41,26 @@ impl TranslationGizmo {
                 },
             ],
         );
+
+        graphics.write_gizmo_instances(
+            &self.sphere,
+            &[GizmoInstance {
+                matrix: translation * Matrix4::from_scale(1.5),
+                color: [1.0; 3],
+            }],
+        );
     }
 
     pub fn render(&self, canvas: &mut Canvas) {
-        canvas.draw_gizmos(GizmoGroup {
+        canvas.draw_gizmos_no_depth(GizmoGroup {
             gizmo: GizmoID(1),
-            instances: self.instances.share(),
-        })
+            instances: self.arrows.share(),
+        });
+
+        canvas.draw_gizmos_no_depth(GizmoGroup {
+            gizmo: GizmoID(0),
+            instances: self.sphere.share(),
+        });
     }
 }
 
@@ -87,7 +102,7 @@ impl RotationGizmo {
     }
 
     pub fn render(&self, canvas: &mut Canvas) {
-        canvas.draw_gizmos(GizmoGroup {
+        canvas.draw_gizmos_no_depth(GizmoGroup {
             gizmo: GizmoID(2),
             instances: self.instances.share(),
         })

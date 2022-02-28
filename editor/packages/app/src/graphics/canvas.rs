@@ -18,6 +18,7 @@ pub struct Canvas {
     pub(super) ground_meshes: Vec<GroundMesh>,
     pub(super) prop_instances: Vec<PropInstance>,
     pub(super) gizmo_groups: Vec<GizmoGroup>,
+    pub(super) gizmo_groups_no_depth: Vec<GizmoGroup>,
 }
 
 impl Canvas {
@@ -43,6 +44,10 @@ impl Canvas {
 
     pub fn draw_gizmos(&mut self, group: GizmoGroup) {
         self.gizmo_groups.push(group);
+    }
+
+    pub fn draw_gizmos_no_depth(&mut self, group: GizmoGroup) {
+        self.gizmo_groups_no_depth.push(group);
     }
 }
 

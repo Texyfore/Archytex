@@ -56,6 +56,30 @@ impl Frame {
             }),
         }
     }
+
+    pub fn begin_pass_no_clear<'a>(&'a mut self, depth_buffer: &'a DepthBuffer) -> RenderPass {
+        RenderPass {
+            pass: self.encoder.begin_render_pass(&RenderPassDescriptor {
+                label: None,
+                color_attachments: &[RenderPassColorAttachment {
+                    view: &self.view,
+                    resolve_target: None,
+                    ops: Operations {
+                        load: LoadOp::Load,
+                        store: true,
+                    },
+                }],
+                depth_stencil_attachment: Some(RenderPassDepthStencilAttachment {
+                    view: &depth_buffer.view,
+                    depth_ops: Some(Operations {
+                        load: LoadOp::Clear(1.0),
+                        store: true,
+                    }),
+                    stencil_ops: None,
+                }),
+            }),
+        }
+    }
 }
 
 impl Gpu {

@@ -118,6 +118,26 @@ impl Renderer {
             }
         }
 
+        {
+            let mut pass = frame.begin_pass_no_clear(&self.depth_buffer);
+            pass.set_uniform(0, &self.camera);
+
+            pass.set_pipeline(&self.pipelines.gizmo);
+            for group in &canvas.gizmo_groups_no_depth {
+                if let Some(mesh) = self.resources.gizmo(group.gizmo) {
+                    pass.draw_triangles_instanced(
+                        &mesh.vertices,
+                        &mesh.triangles,
+                        InstanceConfig {
+                            slot: 1,
+                            buffer: &group.instances.buffer,
+                            range: 0..group.instances.len,
+                        },
+                    );
+                }
+            }
+        }
+
         self.gpu.end_frame(frame);
     }
 }
