@@ -16,7 +16,7 @@ use crate::{
 };
 
 use self::{
-    gizmo::TranslationGizmo,
+    gizmo::{RotationGizmo, TranslationGizmo},
     tools::{CameraTool, Tool},
 };
 
@@ -34,13 +34,17 @@ pub struct Editor {
     grid: i32,
     texture: TextureID,
     prop: PropID,
-    gizmo: TranslationGizmo,
+    translation: TranslationGizmo,
+    rotation: RotationGizmo,
 }
 
 impl Editor {
     pub fn init(ctx: Context) -> Self {
-        let gizmo = TranslationGizmo::new(ctx.graphics);
-        gizmo.set_position(ctx.graphics, vec3(0.0, 5.0, 0.0));
+        let translation = TranslationGizmo::new(ctx.graphics);
+        translation.set_position(ctx.graphics, vec3(-1.0, 5.0, 0.0));
+
+        let rotation = RotationGizmo::new(ctx.graphics);
+        rotation.set_position(ctx.graphics, vec3(1.0, 5.0, 0.0));
 
         Self {
             tool: Box::new(CameraTool::default()),
@@ -49,7 +53,8 @@ impl Editor {
             grid: 3,
             texture: TextureID(2),
             prop: PropID(0),
-            gizmo,
+            translation,
+            rotation,
         }
     }
 
@@ -123,7 +128,8 @@ impl Editor {
     pub fn render(&self, canvas: &mut Canvas) {
         self.tool.render(canvas);
         self.ground.render(canvas);
-        self.gizmo.render(canvas);
+        self.translation.render(canvas);
+        self.rotation.render(canvas);
     }
 }
 
