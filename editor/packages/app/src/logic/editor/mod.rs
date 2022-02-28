@@ -1,17 +1,16 @@
 mod gizmo;
 mod tools;
 
-use asset::{GizmoID, PropID, TextureID};
-use cgmath::{vec3, Deg, Matrix4};
+use asset::{PropID, TextureID};
+use cgmath::vec3;
 use winit::event::VirtualKeyCode;
 
 use crate::{
     button,
     data::PropInfoContainer,
     graphics::{
-        structures::{GizmoInstance, GroundVertex, LineVertex},
-        Canvas, GizmoGroup, GizmoInstances, Graphics, GroundMesh, GroundMeshDescriptor, LineMesh,
-        LineMeshDescriptor, Share,
+        structures::{GroundVertex, LineVertex},
+        Canvas, Graphics, GroundMesh, GroundMeshDescriptor, LineMesh, LineMeshDescriptor, Share,
     },
     Host, ToHost,
 };
