@@ -54,7 +54,11 @@ const StyledInputBase = styled(InputBase)(({ theme }) => ({
   },
 }));
 
-export default function SearchBar() {
+interface Props {
+  query: string;
+  handleQueryChange: (query: string) => void;
+}
+export default function SearchBar({ query, handleQueryChange }: Props) {
   const { t } = useTranslation();
 
   return (
@@ -62,7 +66,11 @@ export default function SearchBar() {
       <SearchIconWrapper>
         <Search />
       </SearchIconWrapper>
-      <StyledInputBase placeholder={t("search")} />
+      <StyledInputBase
+        placeholder={t("search")}
+        value={query}
+        onChange={(e) => handleQueryChange(e.target.value)}
+      />
     </SearchDiv>
   );
 }

@@ -1,6 +1,15 @@
 import React from "react";
-import HomeHeader from "../components/home-components/HomeHeader";
+import AboutContent from "../components/about-components/AboutContent";
+
+import AboutHeader from "../components/about-components/AboutHeader";
+import Footer from "../components/general-components/Footer";
 
 export default function About() {
-  return <HomeHeader />;
+  return (
+    <>
+      <AboutHeader />
+      <AboutContent />
+      <Footer />
+    </>
+  );
 }
