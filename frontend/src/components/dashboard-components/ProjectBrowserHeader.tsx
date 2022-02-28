@@ -11,7 +11,7 @@ import IconButton from "@mui/material/IconButton";
 
 import { LibraryAdd } from "@mui/icons-material";
 
-import SearchBar from "../../general-components/SearchBar";
+import SearchBar from "../general-components/SearchBar";
 import NewProjectModal from "./NewProjectModal";
 
 interface Props {

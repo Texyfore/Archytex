@@ -8,13 +8,13 @@ import CardContent from "@mui/material/CardContent";
 import Tooltip from "@mui/material/Tooltip";
 import Typography from "@mui/material/Typography";
 
-import Environment from "../../../../env";
-
-import { Render } from "../../../../services/projects";
-
-import CircularProgressWithLabel from "../../../general-components/CircularProgressWithLabel";
+import CircularProgressWithLabel from "../../general-components/CircularProgressWithLabel";
 import EnlargeImageModal from "./EnlargeImageModal";
 import RenderCardActions from "./RenderCardActions";
+
+import { Render } from "../../../services/projects";
+
+import Environment from "../../../env";
 
 interface RenderCardProps {
   render: Render;

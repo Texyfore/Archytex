@@ -15,8 +15,8 @@ import RenderCard from "../render-card-components/RenderCard";
 
 import { Send } from "@mui/icons-material";
 
-import { Project, Render } from "../../../../services/projects";
-import { ColorMode, useColorMode } from "../../../../services/colorMode";
+import { Project, Render } from "../../../services/projects";
+import { ColorMode, useColorMode } from "../../../services/colorMode";
 
 interface Props {
   project: Project;

@@ -7,12 +7,12 @@ import Box from "@mui/material/Box";
 import { ColorMode, useColorMode } from "../../services/colorMode";
 
 const Container = styled(Box)(({ theme }) => ({
-  height: `calc(100vh - 56px)`,
+  height: `calc(100vh - 64px)`,
   [`${theme.breakpoints.up("xs")}`]: {
-    height: `calc(100vh - 48px)`,
+    height: `calc(100vh - 64px)`,
   },
   [`${theme.breakpoints.up("xs")} and (orientation: landscape)`]: {
-    height: `calc(80vh - 64px)`,
+    height: `calc(100vh - 54px)`,
   },
   [theme.breakpoints.up("sm")]: {
     height: `calc(100vh - 64px)`,
@@ -32,6 +32,7 @@ export default function DashboardContainer({ children }: Props) {
       }
       display='flex'
       flexWrap='nowrap'
+      overflow='scoll'
     >
       {children}
     </Container>

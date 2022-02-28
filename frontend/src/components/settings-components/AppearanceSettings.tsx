@@ -14,7 +14,7 @@ import Switch from "@mui/material/Switch";
 
 import { DarkMode, Palette } from "@mui/icons-material";
 
-import { ColorMode, useColorMode } from "../../../services/colorMode";
+import { ColorMode, useColorMode } from "../../services/colorMode";
 
 export default function AppearanceSettings() {
   const { t } = useTranslation();

@@ -15,7 +15,7 @@ import { Delete, Edit, InfoOutlined, Send } from "@mui/icons-material";
 import EditProjectModal from "./EditProjectModal";
 import DeleteProjectModal from "./DeleteProjectModal";
 
-import { Project } from "../../../../services/projects";
+import { Project } from "../../../services/projects";
 import ProjectDetailsModal from "./ProjectDetailsModal";
 
 interface Props {

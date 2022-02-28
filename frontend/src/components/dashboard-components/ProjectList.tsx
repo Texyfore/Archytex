@@ -8,7 +8,7 @@ import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
 import CircularProgress from "@mui/material/CircularProgress";
 
-import { Project, useProjects } from "../../../services/projects";
+import { Project, useProjects } from "../../services/projects";
 
 import ProjectListItem from "./project-components/ProjectListItem";
 

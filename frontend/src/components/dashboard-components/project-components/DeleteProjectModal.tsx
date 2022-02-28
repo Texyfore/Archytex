@@ -1,60 +1,43 @@
-import React, { useState } from "react";
+import React from "react";
 
 import { useTranslation } from "react-i18next";
 
 import Box from "@mui/material/Box";
-import Typography from "@mui/material/Typography";
 import Button from "@mui/material/Button";
 import IconButton from "@mui/material/IconButton";
-import Fade from "@mui/material/Fade";
+import Typography from "@mui/material/Typography";
 import Modal from "@mui/material/Modal";
 import Backdrop from "@mui/material/Backdrop";
+import Fade from "@mui/material/Fade";
 
 import { Close } from "@mui/icons-material";
 
-import FormInput from "../../../form-components/FormInput";
-
-import { Project, useProjects } from "../../../../services/projects";
-import useNotification from "../../../../services/hooks/useNotification";
+import { Project, useProjects } from "../../../services/projects";
+import useNotification from "../../../services/hooks/useNotification";
 
 interface Props {
   project: Project;
   open: boolean;
   handleClose: () => void;
 }
-
-export default function EditProjectModal({
+export default function DeleteProjectModal({
   project,
   open,
   handleClose,
 }: Props) {
   const { t } = useTranslation();
 
-  const [title, setTitle] = useState(project.title);
-
-  const [error, setError] = useState("");
-
-  const { dispatch: projectsDispatch } = useProjects();
-
   const { addNotification } = useNotification();
 
-  const handleSaveEdit = () => {
-    if (title.trim() === "") {
-      setError(t("no_empty_project_name"));
-      return;
-    }
+  const { dispatch: dispatchProjects } = useProjects();
 
-    projectsDispatch({
+  const handleProjectDelete = () => {
+    dispatchProjects({
+      type: "delete",
       id: project.id,
-      type: "rename",
-      name: title,
-    }).catch((error) => {
-      setError(error.message);
-      return;
     });
-
     handleClose();
-    addNotification(t("project_name_updated"), "success");
+    addNotification(t("project_deleted_successfully"), "success");
   };
 
   return (
@@ -76,41 +59,47 @@ export default function EditProjectModal({
             transform: "translate(-50%, -50%)",
             width: { xs: 400, sm: 500, md: 600, lg: 600 },
             bgcolor: "background.paper",
-            filter: "drop-shadow(0px 0px 4px rgba(0,0,0,0.5))",
             boxShadow: 24,
             p: 4,
-            borderRadius: 2,
           }}
-          borderRadius={4}
+          borderRadius={2}
           display='flex'
           flexDirection='column'
           justifyContent='space-between'
         >
           <Box display='flex' justifyContent='space-between'>
             <Typography id='transition-modal-title' variant='h6' component='h2'>
-              {t("edit_project_name")}
+              {t("delete_project")}
             </Typography>
             <IconButton onClick={handleClose}>
               <Close />
             </IconButton>
           </Box>
-          <Box display='flex' flexDirection='column' marginBottom={3}>
-            <FormInput
-              variant={"regular"}
-              label={t("project_name")}
-              input={title}
-              inputChange={(e) => setTitle(e.target.value)}
-              error={error}
-            />
+          <Box display='flex' flexDirection='column' marginY={3}>
+            <Typography variant='body1'>
+              {t("project_delete_confirm")}
+            </Typography>
+            <Typography variant='body1' fontWeight='bold'>
+              {t("no_reverse")}
+            </Typography>
           </Box>
           <Box>
             <Button
-              type='submit'
               size='large'
               variant='contained'
-              onClick={handleSaveEdit}
+              color='error'
+              onClick={handleProjectDelete}
             >
-              {t("update")}
+              {t("delete")}
+            </Button>
+            <Button
+              size='large'
+              variant='text'
+              color='inherit'
+              sx={{ marginLeft: 2 }}
+              onClick={handleClose}
+            >
+              {t("cancel")}
             </Button>
           </Box>
         </Box>

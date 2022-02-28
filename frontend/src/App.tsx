@@ -22,6 +22,7 @@ import NotificationSnackBar from "./components/general-components/NotificationSn
 
 import Home from "./pages/Home";
 import Dashboard from "./pages/Dashboard";
+import Settings from "./pages/Settings";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import About from "./pages/About";
@@ -73,6 +74,9 @@ function App() {
               </Route>
               <Route exact path='/dashboard'>
                 <Dashboard />
+              </Route>
+              <Route exact path='/settings'>
+                <Settings />
               </Route>
               <Route exact path='/success'>
                 <SuccessfulRegistration />

@@ -30,14 +30,9 @@ export default function AccountSettings() {
   const { t } = useTranslation();
 
   return (
-    <Box marginBottom={2} marginTop={5}>
-      <Box
-        marginBottom={2}
-        display='flex'
-        justifyContent='start'
-        paddingLeft={2}
-      >
-        <Box marginY='auto' marginTop={1.5} marginRight={4}>
+    <Box mt={8}>
+      <Box mb={2} display='flex' justifyContent='start' paddingLeft={2}>
+        <Box marginY='auto' mt={1.5} mr={4}>
           <ManageAccounts fontSize='large' />
         </Box>
         <Box>
@@ -90,12 +85,7 @@ export default function AccountSettings() {
               secondary={t("your_name_that_everyone_will_see")}
             />
           </ListItem>
-          <Box
-            marginBottom={2}
-            paddingX={2}
-            display='flex'
-            justifyContent='start'
-          >
+          <Box mb={2} paddingX={2} display='flex' justifyContent='start'>
             <TextField
               size='small'
               id='username'
@@ -122,12 +112,7 @@ export default function AccountSettings() {
               secondary={t("the_email_we_use_to_contact_you")}
             />
           </ListItem>
-          <Box
-            marginBottom={2}
-            paddingX={2}
-            display='flex'
-            justifyContent='start'
-          >
+          <Box mb={2} paddingX={2} display='flex' justifyContent='start'>
             <TextField
               size='small'
               id='email'
@@ -154,12 +139,7 @@ export default function AccountSettings() {
               secondary={t("change_your_password")}
             />
           </ListItem>
-          <Box
-            marginBottom={2}
-            paddingX={2}
-            display='flex'
-            justifyContent='start'
-          >
+          <Box mb={2} paddingX={2} display='flex' justifyContent='start'>
             <TextField
               size='small'
               id='password'

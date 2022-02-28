@@ -12,9 +12,8 @@ import Fade from "@mui/material/Fade";
 
 import { Close } from "@mui/icons-material";
 
-import { Render } from "../../../../services/projects";
-
-import useNotification from "../../../../services/hooks/useNotification";
+import { Render } from "../../../services/projects";
+import useNotification from "../../../services/hooks/useNotification";
 
 interface Props {
   render: Render;

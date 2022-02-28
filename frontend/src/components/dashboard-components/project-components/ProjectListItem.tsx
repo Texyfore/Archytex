@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 
-import { Project } from "../../../../services/projects";
+import { Project } from "../../../services/projects";
 
 import RenderCardGrid from "./RenderGrid";
 import ProjectActionsMenu from "./ProjectActionsMenu";

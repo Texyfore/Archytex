@@ -14,10 +14,10 @@ import Backdrop from "@mui/material/Backdrop";
 
 import { Close } from "@mui/icons-material";
 
-import { useProjects } from "../../../services/projects";
+import FormInput from "../form-components/FormInput";
 
-import FormInput from "../../form-components/FormInput";
-import useNotification from "../../../services/hooks/useNotification";
+import { useProjects } from "../../services/projects";
+import useNotification from "../../services/hooks/useNotification";
 
 const modalStyle = {
   position: "absolute" as "absolute",
