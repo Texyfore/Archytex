@@ -10,7 +10,10 @@ use crate::{
     math::Snap,
 };
 
-use super::{move_tool::MoveTool, rotate_tool::RotateTool, Context, NewSolid, Tool};
+use super::{
+    gmove_tool::GizmoMoveTool, move_tool::MoveTool, rotate_tool::RotateTool, Context, NewSolid,
+    Tool,
+};
 
 #[derive(Default)]
 pub struct CameraTool {
@@ -283,73 +286,98 @@ fn common(ctx: &mut Context, was_rotating: &mut bool) -> Option<Box<dyn Tool>> {
     let init_clone = ctx.input.is_key_down_once(VirtualKeyCode::C) && !init_move;
 
     if init_move || init_clone {
-        match ctx.mode {
-            ElementKind::Solid => {
-                let ray = ctx.camera.screen_ray(ctx.input.mouse_pos());
+        if ctx.input.is_key_down(VirtualKeyCode::LShift) {
+            match ctx.mode {
+                ElementKind::Solid => {
+                    let elements = if init_clone {
+                        ctx.scene.clone_solids(scene::Context {
+                            graphics: ctx.graphics,
+                        })
+                    } else {
+                        ctx.scene.take_solids(ElementKind::Solid)
+                    };
 
-                let elements = if init_clone {
-                    ctx.scene.clone_solids(scene::Context {
-                        graphics: ctx.graphics,
-                    })
-                } else {
-                    ctx.scene.take_solids(ElementKind::Solid)
-                };
+                    if !elements.is_empty() {
+                        return Some(Box::new(GizmoMoveTool::new(
+                            ElementKind::Solid,
+                            elements,
+                            init_clone,
+                        )));
+                    }
+                }
+                ElementKind::Face => todo!(),
+                ElementKind::Point => todo!(),
+                ElementKind::Prop => todo!(),
+            }
+        } else {
+            match ctx.mode {
+                ElementKind::Solid => {
+                    let ray = ctx.camera.screen_ray(ctx.input.mouse_pos());
 
-                if !elements.is_empty() {
-                    match MoveTool::new(ElementKind::Solid, ray, elements, init_clone) {
-                        Ok(tool) => return Some(Box::new(tool)),
-                        Err(elements) => {
-                            if !init_clone {
+                    let elements = if init_clone {
+                        ctx.scene.clone_solids(scene::Context {
+                            graphics: ctx.graphics,
+                        })
+                    } else {
+                        ctx.scene.take_solids(ElementKind::Solid)
+                    };
+
+                    if !elements.is_empty() {
+                        match MoveTool::new(ElementKind::Solid, ray, elements, init_clone) {
+                            Ok(tool) => return Some(Box::new(tool)),
+                            Err(elements) => {
+                                if !init_clone {
+                                    Solid::insert(ctx.scene, elements);
+                                }
+                            }
+                        };
+                    }
+                }
+                ElementKind::Face => {
+                    let ray = ctx.camera.screen_ray(ctx.input.mouse_pos());
+                    let elements = ctx.scene.take_solids(ElementKind::Face);
+                    if !elements.is_empty() {
+                        match MoveTool::new(ElementKind::Face, ray, elements, false) {
+                            Ok(tool) => return Some(Box::new(tool)),
+                            Err(elements) => {
                                 Solid::insert(ctx.scene, elements);
                             }
-                        }
-                    };
+                        };
+                    }
                 }
-            }
-            ElementKind::Face => {
-                let ray = ctx.camera.screen_ray(ctx.input.mouse_pos());
-                let elements = ctx.scene.take_solids(ElementKind::Face);
-                if !elements.is_empty() {
-                    match MoveTool::new(ElementKind::Face, ray, elements, false) {
-                        Ok(tool) => return Some(Box::new(tool)),
-                        Err(elements) => {
-                            Solid::insert(ctx.scene, elements);
-                        }
-                    };
-                }
-            }
-            ElementKind::Point => {
-                let ray = ctx.camera.screen_ray(ctx.input.mouse_pos());
-                let elements = ctx.scene.take_solids(ElementKind::Point);
-                if !elements.is_empty() {
-                    match MoveTool::new(ElementKind::Point, ray, elements, false) {
-                        Ok(tool) => return Some(Box::new(tool)),
-                        Err(elements) => {
-                            Solid::insert(ctx.scene, elements);
-                        }
-                    };
-                }
-            }
-            ElementKind::Prop => {
-                let ray = ctx.camera.screen_ray(ctx.input.mouse_pos());
-
-                let elements = if init_clone {
-                    ctx.scene.clone_props(scene::Context {
-                        graphics: ctx.graphics,
-                    })
-                } else {
-                    ctx.scene.take_props()
-                };
-
-                if !elements.is_empty() {
-                    match MoveTool::new(ElementKind::Prop, ray, elements, init_clone) {
-                        Ok(tool) => return Some(Box::new(tool)),
-                        Err(elements) => {
-                            if !init_clone {
-                                Prop::insert(ctx.scene, elements);
+                ElementKind::Point => {
+                    let ray = ctx.camera.screen_ray(ctx.input.mouse_pos());
+                    let elements = ctx.scene.take_solids(ElementKind::Point);
+                    if !elements.is_empty() {
+                        match MoveTool::new(ElementKind::Point, ray, elements, false) {
+                            Ok(tool) => return Some(Box::new(tool)),
+                            Err(elements) => {
+                                Solid::insert(ctx.scene, elements);
                             }
-                        }
+                        };
+                    }
+                }
+                ElementKind::Prop => {
+                    let ray = ctx.camera.screen_ray(ctx.input.mouse_pos());
+
+                    let elements = if init_clone {
+                        ctx.scene.clone_props(scene::Context {
+                            graphics: ctx.graphics,
+                        })
+                    } else {
+                        ctx.scene.take_props()
                     };
+
+                    if !elements.is_empty() {
+                        match MoveTool::new(ElementKind::Prop, ray, elements, init_clone) {
+                            Ok(tool) => return Some(Box::new(tool)),
+                            Err(elements) => {
+                                if !init_clone {
+                                    Prop::insert(ctx.scene, elements);
+                                }
+                            }
+                        };
+                    }
                 }
             }
         }
