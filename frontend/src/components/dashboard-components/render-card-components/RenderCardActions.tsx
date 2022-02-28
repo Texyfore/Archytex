@@ -9,10 +9,12 @@ import CardActions from "@mui/material/CardActions";
 
 import { Delete, Download, InfoOutlined, Share } from "@mui/icons-material";
 
-import { Project, Render } from "../../../../services/projects";
 import DeleteRenderModal from "./DeleteRenderModal";
 import RenderDetailsModal from "./RenderDetailsModal";
-import Environment from "../../../../env";
+
+import { Project, Render } from "../../../services/projects";
+
+import Environment from "../../../env";
 
 interface Props {
   render: Render;
@@ -42,7 +44,7 @@ export default function RenderCardActions({ render, project }: Props) {
     setRenderDetailsModalOpen(false);
   };
 
-  const onDownload = ()=>{
+  const onDownload = () => {
     //TODO: Use this once proxying is set up
     //https://developers.google.com/web/updates/2018/02/chrome-65-deprecations#block_cross-origin_wzxhzdk5a_download
     /*var link = document.createElement("a");
@@ -52,7 +54,7 @@ export default function RenderCardActions({ render, project }: Props) {
     link.click();
     document.body.removeChild(link);*/
     window.open(`${Environment.base_url}render/${render.icon}`, "_blank");
-  }
+  };
 
   return (
     <>
