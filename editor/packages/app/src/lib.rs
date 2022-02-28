@@ -1,5 +1,3 @@
-#![allow(dead_code)] // TODO Remove this at some point
-
 mod button;
 mod data;
 mod graphics;
@@ -68,6 +66,7 @@ pub fn run(init: Init) {
     }
 
     let mut before = Instant::now();
+    let mut lock_pointer = false;
 
     event_loop.run(move |event, _, flow| {
         *flow = ControlFlow::Poll;
@@ -95,7 +94,9 @@ pub fn run(init: Init) {
                     position: PhysicalPosition { x, y },
                     ..
                 } => {
-                    logic.movement(x as f32, y as f32);
+                    if !lock_pointer {
+                        logic.movement(x as f32, y as f32);
+                    }
                 }
                 WindowEvent::MouseWheel { delta, .. } => {
                     let delta = match delta {
@@ -194,6 +195,12 @@ pub fn run(init: Init) {
                             button::ROTATE => todo!(),
                             _ => (),
                         },
+                        FromHost::Movement(x, y) => {
+                            logic.movement_override(x, y);
+                        }
+                        FromHost::LockPointer(lock) => {
+                            lock_pointer = lock;
+                        }
                     }
                 }
 
@@ -253,4 +260,6 @@ pub enum FromHost {
     Prop(u32),
     Texture(u32),
     Button(i32),
+    Movement(f32, f32),
+    LockPointer(bool),
 }
