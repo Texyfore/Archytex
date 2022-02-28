@@ -12,15 +12,16 @@ import CircularProgressWithLabel from "../../general-components/CircularProgress
 import EnlargeImageModal from "./EnlargeImageModal";
 import RenderCardActions from "./RenderCardActions";
 
-import { Render } from "../../../services/projects";
+import { Render, Project } from "../../../services/projects";
 
 import Environment from "../../../env";
 
 interface RenderCardProps {
   render: Render;
+  project: Project;
 }
 
-export default function RenderCard({ render }: RenderCardProps) {
+export default function RenderCard({ render, project }: RenderCardProps) {
   //Enlarge render image modal
   const [openEnlargeRenderModal, setOpenEnlargeRenderModal] = useState<
     undefined | Render
@@ -80,7 +81,7 @@ export default function RenderCard({ render }: RenderCardProps) {
             </CardContent>
           </Tooltip>
         </CardActionArea>
-        <RenderCardActions render={render} />
+        <RenderCardActions render={render} project={project} />
       </Card>
 
       {/* Enlarge render image modal */}

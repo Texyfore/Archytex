@@ -9,15 +9,17 @@ import CardActions from "@mui/material/CardActions";
 
 import { Delete, Download, InfoOutlined, Share } from "@mui/icons-material";
 
-import { Render } from "../../../../services/projects";
+import { Project, Render } from "../../../../services/projects";
 import DeleteRenderModal from "./DeleteRenderModal";
 import RenderDetailsModal from "./RenderDetailsModal";
+import Environment from "../../../../env";
 
 interface Props {
   render: Render;
+  project: Project;
 }
 
-export default function RenderCardActions({ render }: Props) {
+export default function RenderCardActions({ render, project }: Props) {
   const { t } = useTranslation();
   const downloadTooltipText = t("download");
   const shareTooltipText = t("share");
@@ -40,6 +42,18 @@ export default function RenderCardActions({ render }: Props) {
     setRenderDetailsModalOpen(false);
   };
 
+  const onDownload = ()=>{
+    //TODO: Use this once proxying is set up
+    //https://developers.google.com/web/updates/2018/02/chrome-65-deprecations#block_cross-origin_wzxhzdk5a_download
+    /*var link = document.createElement("a");
+    link.download = `${render.name}.png`;
+    link.href = `${Environment.base_url}render/${render.icon}`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);*/
+    window.open(`${Environment.base_url}render/${render.icon}`, "_blank");
+  }
+
   return (
     <>
       <CardActions>
@@ -51,6 +65,7 @@ export default function RenderCardActions({ render }: Props) {
                   size='small'
                   disabled={render.status * 100 < 100}
                   color='success'
+                  onClick={onDownload}
                 >
                   <Download />
                 </IconButton>
@@ -90,6 +105,7 @@ export default function RenderCardActions({ render }: Props) {
       </CardActions>
 
       <DeleteRenderModal
+        project={project}
         render={render}
         open={renderDeleteModalOpen}
         handleClose={handleDeleteModalClose}

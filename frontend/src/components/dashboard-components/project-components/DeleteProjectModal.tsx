@@ -35,9 +35,14 @@ export default function DeleteProjectModal({
     dispatchProjects({
       type: "delete",
       id: project.id,
+    }).then(()=>{
+      handleClose();
+      addNotification(t("project_deleted_successfully"), "success");
+    }).catch((error)=>{
+      handleClose();
+      addNotification(error.message, "error");
+
     });
-    handleClose();
-    addNotification(t("project_deleted_successfully"), "success");
   };
 
   return (

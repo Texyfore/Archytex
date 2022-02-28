@@ -72,9 +72,12 @@ impl Renderer {
 
             pass.set_pipeline(&self.pipelines.solid);
             for mesh in &canvas.solid_meshes {
-                if let Some(texture) = self.resources.texture(mesh.texture) {
-                    pass.set_texture(1, texture);
-                    pass.draw_triangles(&mesh.vertices, &mesh.triangles);
+                pass.set_geometry(&mesh.vertices, &mesh.triangles);
+                for face in 0..6 {
+                    if let Some(texture) = self.resources.texture(mesh.textures[face]) {
+                        pass.set_texture(1, texture);
+                        pass.draw_face(face as u32);
+                    }
                 }
             }
 

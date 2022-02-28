@@ -59,7 +59,7 @@ impl Share for LineMesh {
 }
 
 pub struct SolidMesh {
-    pub(super) texture: TextureID,
+    pub textures: [TextureID; 6],
     pub(super) vertices: Rc<Buffer<SolidVertex>>,
     pub(super) triangles: Rc<Buffer<[u16; 3]>>,
 }
@@ -67,7 +67,7 @@ pub struct SolidMesh {
 impl Share for SolidMesh {
     fn share(&self) -> Self {
         Self {
-            texture: self.texture,
+            textures: self.textures,
             vertices: self.vertices.clone(),
             triangles: self.triangles.clone(),
         }

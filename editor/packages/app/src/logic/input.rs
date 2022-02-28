@@ -9,6 +9,7 @@ pub struct Input {
     mouse_pos_before: Vector2<f32>,
     mouse_pos: Vector2<f32>,
     mouse_wheel: f32,
+    delta_override: Option<Vector2<f32>>,
 }
 
 impl Default for Input {
@@ -19,6 +20,7 @@ impl Default for Input {
             mouse_pos_before: Vector2::zero(),
             mouse_pos: Vector2::zero(),
             mouse_wheel: 0.0,
+            delta_override: None,
         }
     }
 }
@@ -72,7 +74,8 @@ impl Input {
     }
 
     pub fn mouse_delta(&self) -> Vector2<f32> {
-        self.mouse_pos - self.mouse_pos_before
+        self.delta_override
+            .unwrap_or_else(|| self.mouse_pos - self.mouse_pos_before)
     }
 
     pub fn mouse_wheel(&self) -> f32 {
@@ -90,6 +93,7 @@ impl Input {
 
         self.mouse_pos_before = self.mouse_pos;
         self.mouse_wheel = 0.0;
+        self.delta_override = None;
     }
 
     pub fn key(&mut self, key: VirtualKeyCode, state: ElementState) {
@@ -102,6 +106,10 @@ impl Input {
 
     pub fn movement(&mut self, new_pos: Vector2<f32>) {
         self.mouse_pos = new_pos;
+    }
+
+    pub fn movement_override(&mut self, delta: Vector2<f32>) {
+        self.delta_override = Some(delta);
     }
 
     pub fn scroll(&mut self, movement: f32) {

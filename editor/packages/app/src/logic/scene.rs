@@ -21,7 +21,7 @@ pub struct Scene {
     solids: HashMap<usize, Solid>,
     props: HashMap<usize, Prop>,
     next_elem_id: usize,
-    undo_stack: Vec<Action>,
+    undo_stack: UndoStack,
     redo_stack: Vec<Action>,
 }
 
@@ -30,11 +30,6 @@ impl Scene {
         if let Some(reaction) = self.execute(ctx, action) {
             self.undo_stack.push(reaction);
             self.redo_stack.clear();
-
-            // Limit undo to 64 steps
-            if self.undo_stack.len() > 64 {
-                self.undo_stack.remove(0);
-            }
         }
     }
 
@@ -90,6 +85,13 @@ impl Scene {
             .collect()
     }
 
+    pub fn clone_solids(&mut self, ctx: Context) -> Vec<(usize, Solid)> {
+        self.solids
+            .iter()
+            .filter_map(|(id, solid)| solid.selected().then(|| (*id, solid.clone(ctx.graphics))))
+            .collect()
+    }
+
     pub fn insert_solids_with_move(
         &mut self,
         solids: Vec<(usize, Solid)>,
@@ -104,17 +106,23 @@ impl Scene {
             kind: mask,
             delta: -delta,
         });
-
-        // Limit undo to 64 steps
-        if self.undo_stack.len() > 64 {
-            self.undo_stack.remove(0);
-        }
     }
 
     pub fn insert_solids(&mut self, solids: Vec<(usize, Solid)>) {
         for (id, solid) in solids {
             self.solids.insert(id, solid);
         }
+    }
+
+    pub fn insert_solids_with_remove(&mut self, solids: Vec<(usize, Solid)>) {
+        let mut ids = Vec::new();
+        for (_, solid) in solids {
+            let id = self.next_elem_id;
+            self.next_elem_id += 1;
+            self.solids.insert(id, solid);
+            ids.push(id);
+        }
+        self.undo_stack.push(Action::RemoveSolids(ids));
     }
 
     pub fn take_props(&mut self) -> Vec<(usize, Prop)> {
@@ -130,6 +138,13 @@ impl Scene {
             .collect()
     }
 
+    pub fn clone_props(&mut self, ctx: Context) -> Vec<(usize, Prop)> {
+        self.props
+            .iter()
+            .filter_map(|(id, prop)| prop.selected().then(|| (*id, prop.clone(ctx.graphics))))
+            .collect()
+    }
+
     pub fn insert_props_with_move(&mut self, props: Vec<(usize, Prop)>, delta: Vector3<i32>) {
         for (id, prop) in props {
             self.props.insert(id, prop);
@@ -140,11 +155,6 @@ impl Scene {
                 kind: ElementKind::Prop,
                 delta: -delta,
             });
-
-            // Limit undo to 64 steps
-            if self.undo_stack.len() > 64 {
-                self.undo_stack.remove(0);
-            }
         }
     }
 
@@ -154,17 +164,25 @@ impl Scene {
         }
 
         self.undo_stack.push(Action::RotateProps(delta.invert()));
-
-        // Limit undo to 64 steps
-        if self.undo_stack.len() > 64 {
-            self.undo_stack.remove(0);
-        }
     }
 
     pub fn insert_props(&mut self, props: Vec<(usize, Prop)>) {
         for (id, prop) in props {
             self.props.insert(id, prop);
         }
+    }
+
+    pub fn insert_props_with_remove(&mut self, props: Vec<(usize, Prop)>) {
+        let mut ids = Vec::new();
+
+        for (_, prop) in props {
+            let id = self.next_elem_id;
+            self.next_elem_id += 1;
+            self.props.insert(id, prop);
+            ids.push(id);
+        }
+
+        self.undo_stack.push(Action::RemoveProps(ids));
     }
 
     pub fn render(&self, canvas: &mut Canvas, mask: ElementKind) {
@@ -548,4 +566,29 @@ pub enum Action {
 
     DeleteSolids,
     DeleteProps,
+}
+
+struct UndoStack {
+    vec: Vec<Action>,
+}
+
+impl Default for UndoStack {
+    fn default() -> Self {
+        Self {
+            vec: Vec::with_capacity(64),
+        }
+    }
+}
+
+impl UndoStack {
+    fn push(&mut self, value: Action) {
+        if self.vec.len() == 64 {
+            self.vec.remove(0);
+        }
+        self.vec.push(value);
+    }
+
+    fn pop(&mut self) -> Option<Action> {
+        self.vec.pop()
+    }
 }

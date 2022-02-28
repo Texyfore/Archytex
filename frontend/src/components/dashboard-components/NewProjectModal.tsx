@@ -70,14 +70,14 @@ export default function NewProjectModal({
     projectsDispatch({
       type: "create",
       name: name,
+    }).then(()=>{
+      setName("");
+      handleClose();
+      addNotification(t("project_created_successfully"), "success");
     }).catch((error) => {
       handleError(error.message);
-      return;
     });
 
-    setName("");
-    handleClose();
-    addNotification(t("project_created_successfully"), "success");
   };
 
   const handleClose = () => {

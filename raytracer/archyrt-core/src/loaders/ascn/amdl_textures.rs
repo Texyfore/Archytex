@@ -25,9 +25,9 @@ struct Texture {
 }
 
 pub fn load_into(repo: &mut TextureRepository, directory: &str) -> Result<()> {
-    let assetsjson = Path::new(directory).join("assets.json");
-    let assetsjson = File::open(assetsjson)?;
-    let json: Vec<Texture> = serde_json::from_reader(assetsjson)?;
+    let texturesjson = Path::new(directory).join("textures.json");
+    let texturesjson = File::open(texturesjson)?;
+    let json: Vec<Texture> = serde_json::from_reader(texturesjson)?;
     for tex in json {
         repo.insert(
             AMDLTextureType::diffuse(tex.id),

@@ -52,6 +52,11 @@ impl AsyncStdin {
                             sender.send(FromHost::Prop(prop)).unwrap();
                             println!("[native-runner] picked prop `{}`", prop);
                         }
+                        "button" => {
+                            let button = tokens.next().unwrap().parse().unwrap();
+                            sender.send(FromHost::Button(button)).unwrap();
+                            println!("[native-runner] pressed button {}", button);
+                        }
                         "exit" => {
                             println!("[native-runner] closed stdin");
                             break;

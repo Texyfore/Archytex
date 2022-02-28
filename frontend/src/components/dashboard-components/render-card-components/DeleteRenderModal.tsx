@@ -12,16 +12,19 @@ import Fade from "@mui/material/Fade";
 
 import { Close } from "@mui/icons-material";
 
-import { Render } from "../../../services/projects";
+import { Project, Render, useProjects } from "../../../services/projects";
+
 import useNotification from "../../../services/hooks/useNotification";
 
 interface Props {
   render: Render;
+  project: Project;
   open: boolean;
   handleClose: () => void;
 }
 export default function DeleteRenderModal({
   render,
+  project,
   open,
   handleClose,
 }: Props) {
@@ -29,8 +32,14 @@ export default function DeleteRenderModal({
 
   const { addNotification } = useNotification();
 
+  const { dispatch: dispatchProjects } = useProjects();
+
   const handleRenderDelete = () => {
-    //TODO: DELETE RENDER
+    dispatchProjects({
+      type: "deleteRender",
+      render: render.id,
+      id: project.id,
+    });
     handleClose();
     addNotification(t("render_deleted_successfully"), "success");
   };

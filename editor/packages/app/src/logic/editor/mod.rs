@@ -5,11 +5,13 @@ use cgmath::vec3;
 use winit::event::VirtualKeyCode;
 
 use crate::{
+    button,
     data::PropInfoContainer,
     graphics::{
         structures::{GroundVertex, LineVertex},
         Canvas, Graphics, GroundMesh, GroundMeshDescriptor, LineMesh, LineMeshDescriptor, Share,
     },
+    Host, ToHost,
 };
 
 use self::tools::{CameraTool, Tool};
@@ -61,11 +63,11 @@ impl Editor {
         }
 
         if self.tool.can_switch() {
-            for (key, mode) in [
-                (VirtualKeyCode::Key1, ElementKind::Solid),
-                (VirtualKeyCode::Key2, ElementKind::Face),
-                (VirtualKeyCode::Key3, ElementKind::Point),
-                (VirtualKeyCode::Key4, ElementKind::Prop),
+            for (key, mode, button) in [
+                (VirtualKeyCode::Key1, ElementKind::Solid, button::SOLID),
+                (VirtualKeyCode::Key2, ElementKind::Face, button::FACE),
+                (VirtualKeyCode::Key3, ElementKind::Point, button::POINT),
+                (VirtualKeyCode::Key4, ElementKind::Prop, button::PROP),
             ] {
                 if ctx.input.is_key_down_once(key) {
                     if self.mode != mode {
@@ -76,6 +78,8 @@ impl Editor {
                             Action::DeselectAll(self.mode),
                         );
                         self.mode = mode;
+                        ctx.host.callback(ToHost::Button(button));
+                        println!("[wasm] button {}", button);
                     }
                     break;
                 }
@@ -91,6 +95,18 @@ impl Editor {
         self.prop = prop;
     }
 
+    pub fn set_mode(&mut self, ctx: Context, mode: ElementKind) {
+        if self.mode != mode {
+            ctx.scene.act(
+                scene::Context {
+                    graphics: ctx.graphics,
+                },
+                Action::DeselectAll(self.mode),
+            );
+            self.mode = mode;
+        }
+    }
+
     pub fn mode(&self) -> ElementKind {
         self.mode
     }
@@ -102,6 +118,7 @@ impl Editor {
 }
 
 pub struct Context<'a> {
+    pub host: &'a dyn Host,
     pub input: &'a Input,
     pub graphics: &'a Graphics,
     pub prop_infos: &'a PropInfoContainer,

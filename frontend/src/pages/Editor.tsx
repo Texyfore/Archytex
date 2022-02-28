@@ -54,7 +54,7 @@ export default function Editor() {
     import("viewport").then((viewport) => {
       const channel = new viewport.Channel();
       setSender(channel.sender());
-      const callback = new viewport.Callback((_: any) => {});
+      const callback = new viewport.Callback((_: any) => {}, (_: any) => {});
       const resources = new viewport.Resources();
       viewport.run(channel, callback, resources);
     });

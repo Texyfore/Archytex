@@ -197,6 +197,25 @@ func (m MongoDatabase) DeleteProject(userId interface{}, projectId interface{}) 
 	return err
 }
 
+func (m MongoDatabase) DeleteRender(userId interface{}, projectId interface{}, renderId interface{}) error {
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
+	defer cancel()
+	res, err := m.Users.UpdateOne(ctx, bson.D{
+		{"_id", userId},
+		{"projects._id", projectId},
+	}, bson.D{
+		{"$pull", bson.D{
+			{"projects.$.renders", bson.D{
+				{"_id", renderId},
+			}},
+		}},
+	})
+	if res.ModifiedCount == 0 {
+		return ErrProjectNotFound
+	}
+	return err
+}
+
 func (m MongoDatabase) GetSession(id interface{}) (*models.Session, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*3)
 	defer cancel()
@@ -418,6 +437,7 @@ func (m MongoDatabase) SubscribeProjects(userId interface{}) (chan Updates, erro
 			{"fullDocument.projects.renders.status", 1},
 			{"fullDocument.projects.renders.started", 1},
 			{"fullDocument.projects.renders.finished", 1},
+			{"fullDocument.projects.renders.icon", 1},
 		}},
 	}
 	pipeline := mongo.Pipeline{idMatch, project}

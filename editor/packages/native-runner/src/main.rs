@@ -36,6 +36,9 @@ impl Host for NativeHost {
                 fs::write(&fname, &scene).unwrap();
                 println!("[native-runner] saving scene `{}`", fname);
             }
+            ToHost::Button(button) => {
+                println!("[native-runner] button feedback for {}", button);
+            }
         }
     }
 }
