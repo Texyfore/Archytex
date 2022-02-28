@@ -1,0 +1,4 @@
+gizmos/export/*.agzm
+props/export/*.amdl
+props/*.blend1
+textures/export/*.png
