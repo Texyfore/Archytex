@@ -40,29 +40,29 @@ async fn handle_job(
 ) -> Result<()> {
     let response_queue = response_queue.name().as_str();
     let task_queue = task_queue.name().as_str();
-    let s = String::from_utf8(delivery.data)?;
+    let s = String::from_utf8(delivery.data).unwrap();
     let s: Vec<&str> = s.split('#').collect();
     let user = s[1];
     let project_id = s[2];
     let s = s[0].to_string();
-    let user: ObjectId = ObjectId::parse_str(user)?;
-    let project_id: ObjectId = ObjectId::parse_str(project_id)?;
-    let render_id: ObjectId = ObjectId::parse_str(&s)?;
+    let user: ObjectId = ObjectId::parse_str(user).unwrap();
+    let project_id: ObjectId = ObjectId::parse_str(project_id).unwrap();
+    let render_id: ObjectId = ObjectId::parse_str(&s).unwrap();
     println!("[{}] Received", render_id);
     let samples: i32 =
-        redis::Cmd::get(format!("archyrt:{}:samples", s)).query(&mut redis_client)?;
-    let width: usize = redis::Cmd::get(format!("archyrt:{}:width", s)).query(&mut redis_client)?;
+        redis::Cmd::get(format!("archyrt:{}:samples", s)).query(&mut redis_client).unwrap();
+    let width: usize = redis::Cmd::get(format!("archyrt:{}:width", s)).query(&mut redis_client).unwrap();
     let height: usize =
-        redis::Cmd::get(format!("archyrt:{}:height", s)).query(&mut redis_client)?;
+        redis::Cmd::get(format!("archyrt:{}:height", s)).query(&mut redis_client).unwrap();
     //Create image storage on Redis
     let image_key = format!("archyrt:{}:image", s);
-    redis::cmd("AI.TENSORSET")
+    let _: () = redis::cmd("AI.TENSORSET")
         .arg(&image_key)
         .arg("FLOAT")
-        .arg(width)
         .arg(height)
+        .arg(width)
         .arg(3)
-        .query(&mut redis_client)?;
+        .query(&mut redis_client).unwrap();
     let payload = s.clone();
     //Put as many tasks on the queue as there are samples
     for x in 0..4 {
@@ -92,7 +92,7 @@ async fn handle_job(
     }
     channel
         .basic_ack(delivery.delivery_tag, Default::default())
-        .await?;
+        .await.unwrap();
     let consumer_tag = format!("consumer_{}", s);
     let mut consumer = channel
         .basic_consume(
@@ -104,7 +104,7 @@ async fn handle_job(
             },
             Default::default(),
         )
-        .await?;
+        .await.unwrap();
     let mut counter = 0;
     println!("[{}] Waiting for workers to finish", render_id);
     while let Some(delivery) = consumer.next().await {
@@ -114,8 +114,8 @@ async fn handle_job(
         let msg = String::from_utf8(_delivery.data).unwrap();
         let msg: Vec<&str> = msg.split("#").collect();
         let temp = msg[0];
-        let x: usize = msg[1].parse()?;
-        let y: usize = msg[2].parse()?;
+        let x: usize = msg[1].parse().unwrap();
+        let y: usize = msg[2].parse().unwrap();
         //Add image to accumulator
         let _: () = redis::cmd("AI.SCRIPTEXECUTE")
             .arg("archyrt:scripts")
@@ -131,9 +131,9 @@ async fn handle_job(
             .arg("OUTPUTS")
             .arg(1)
             .arg(&image_key)
-            .query(&mut redis_client)?;
+            .execute(&mut redis_client);
         //Remove temporary storage
-        let _: () = redis::Cmd::del(temp).query(&mut redis_client)?;
+        let _: () = redis::Cmd::del(temp).query(&mut redis_client).unwrap();
         counter += 1;
         if counter >= samples*16 {
             break;
@@ -152,13 +152,13 @@ async fn handle_job(
                     ])
                     .build(),
             )
-            .await?;
+            .await.unwrap();
     }
     channel
         .queue_delete(response_queue, Default::default())
-        .await?;
+        .await.unwrap();
     println!("[{}] Retrieving data", render_id);
-    redis::cmd("AI.SCRIPTEXECUTE")
+    let _: () = redis::cmd("AI.SCRIPTEXECUTE")
         .arg("archyrt:scripts")
         .arg("divide")
         .arg("INPUTS")
@@ -170,11 +170,11 @@ async fn handle_job(
         .arg("OUTPUTS")
         .arg(1)
         .arg(&image_key)
-        .query(&mut redis_client)?;
+        .query(&mut redis_client).unwrap();
     let image: Vec<u8> = redis::cmd("AI.TENSORGET")
         .arg(&image_key)
         .arg("BLOB")
-        .query(&mut redis_client)?;
+        .query(&mut redis_client).unwrap();
     let image: Vec<f32> = image
         .chunks(4)
         .map(|a| {
@@ -185,13 +185,13 @@ async fn handle_job(
 
     //Render Albedo and Normal
     let scene: Vec<u8> =
-        redis::Cmd::get(format!("archyrt:{}:scene", s)).query(&mut redis_client)?;
-    let scene = ASCNLoader::from_bytes(&scene)?;
-    let width: usize = redis::Cmd::get(format!("archyrt:{}:width", s)).query(&mut redis_client)?;
+        redis::Cmd::get(format!("archyrt:{}:scene", s)).query(&mut redis_client).unwrap();
+    let scene = ASCNLoader::from_bytes(&scene).unwrap();
+    let width: usize = redis::Cmd::get(format!("archyrt:{}:width", s)).query(&mut redis_client).unwrap();
     let height: usize =
-        redis::Cmd::get(format!("archyrt:{}:height", s)).query(&mut redis_client)?;
+        redis::Cmd::get(format!("archyrt:{}:height", s)).query(&mut redis_client).unwrap();
     let bvh = BVH::from_triangles(scene.get_triangles())
-        .ok_or_else(|| anyhow!("Unable to create BVH"))?;
+        .ok_or_else(|| anyhow!("Unable to create BVH")).unwrap();
     let camera = scene.get_camera();
     let albedo = AlbedoRenderer {
         object: &bvh,
@@ -244,12 +244,12 @@ async fn handle_job(
         let b = b as u8;
         *color = Rgb([r, g, b]);
     }
-    let path = Path::new(&env::var("IMAGES")?)
+    let path = Path::new(&env::var("IMAGES").unwrap())
         .join(s)
         .with_extension("png");
-    image.save(path)?;
-    users.update_many(doc! {"_id": user}, doc!{"$set":{"projects.$[project].renders.$[render].finished": DateTime::now(), "projects.$[project].renders.$[render].status": 1.0, "projects.$[project].renders.$[render].icon": render_id.to_hex()}}, UpdateOptions::builder().array_filters(vec![doc!{"render._id": render_id}, doc!{"project._id": project_id}]).build()).await?;
-    redis::Cmd::del(&image_key).query(&mut redis_client)?;
+    image.save(path).unwrap();
+    users.update_many(doc! {"_id": user}, doc!{"$set":{"projects.$[project].renders.$[render].finished": DateTime::now(), "projects.$[project].renders.$[render].status": 1.0, "projects.$[project].renders.$[render].icon": render_id.to_hex()}}, UpdateOptions::builder().array_filters(vec![doc!{"render._id": render_id}, doc!{"project._id": project_id}]).build()).await.unwrap();
+    let _: () = redis::Cmd::del(&image_key).query(&mut redis_client).unwrap();
     println!("[{}] Done!", render_id);
     Ok(())
 }
@@ -258,8 +258,8 @@ static TORCHSCRIPT: &str = "
 def add(tensors: List[Tensor], keys: List[str], args: List[str]):
     x = int(args[0])
     y = int(args[1])
-    w = tensors[0].shape[0]
-    h = tensors[0].shape[1]
+    w = tensors[0].shape[1]
+    h = tensors[0].shape[0]
     t = torch.clone(tensors[1])
     t[y:y+h,x:x+w,:] += tensors[0]
     return t
@@ -276,17 +276,17 @@ fn main() -> Result<()> {
     let mongodb_addr = env::var("MONGODB_ADDR").unwrap();
     env::var("IMAGES").unwrap();
     async_global_executor::block_on(async {
-        let mongodb_options = ClientOptions::parse(mongodb_addr).await?;
-        let mongodb_client = mongodb::Client::with_options(mongodb_options)?;
+        let mongodb_options = ClientOptions::parse(mongodb_addr).await.unwrap();
+        let mongodb_client = mongodb::Client::with_options(mongodb_options).unwrap();
         let db = mongodb_client.database("archytex");
         let users = db.collection::<Document>("users");
         let rabbitmq_client = Connection::connect(
             &amqp_addr,
             ConnectionProperties::default().with_default_executor(8),
         )
-        .await?;
-        let mut redis_client = redis::Client::open(redis_addr)?;
-        redis::cmd("AI.SCRIPTSTORE")
+        .await.unwrap();
+        let mut redis_client = redis::Client::open(redis_addr).unwrap();
+        let _: () = redis::cmd("AI.SCRIPTSTORE")
             .arg("archyrt:scripts")
             .arg("CPU")
             .arg("ENTRY_POINTS")
@@ -295,16 +295,16 @@ fn main() -> Result<()> {
             .arg("divide")
             .arg("SOURCE")
             .arg(TORCHSCRIPT)
-            .query(&mut redis_client)?;
+            .query(&mut redis_client).unwrap();
 
-        let channel = rabbitmq_client.create_channel().await?;
+        let channel = rabbitmq_client.create_channel().await.unwrap();
 
         let queue = channel
             .queue_declare("archyrt:dispatch", Default::default(), Default::default())
-            .await?;
+            .await.unwrap();
         let task_queue = channel
             .queue_declare("archyrt:taskqueue", Default::default(), Default::default())
-            .await?;
+            .await.unwrap();
 
         let mut consumer = channel
             .basic_consume(
@@ -313,9 +313,9 @@ fn main() -> Result<()> {
                 BasicConsumeOptions::default(),
                 FieldTable::default(),
             )
-            .await?;
+            .await.unwrap();
         let mut textures = TextureRepository::new();
-        amdl_textures::load_into(&mut textures, "../assets")?;
+        amdl_textures::load_into(&mut textures, "../assets").unwrap();
         let textures = Arc::new(textures);
 
         while let Some(delivery) = consumer.next().await {
@@ -329,7 +329,7 @@ fn main() -> Result<()> {
                     },
                     Default::default(),
                 )
-                .await?;
+                .await.unwrap();
             async_global_executor::spawn(handle_job(
                 users.clone(),
                 redis_client.clone(),
