@@ -1,3 +1,5 @@
+mod shifted_view;
+
 use std::env;
 
 use anyhow::{anyhow, Result};
@@ -8,13 +10,13 @@ use archyrt_core::{
     intersectables::bvh::BVH,
     loaders::{
         ascn::{amdl_textures, ASCNLoader},
-        Loader,
+        Loader, amdl::{repo::{PropRequest, PropRepository}, self},
     },
     renderers::{path_tracer::PathTracer},
     textures::{
         texture_repo::{self, TextureRepository},
         TextureID,
-    },
+    }, utilities::ray::Intersectable,
 };
 use dotenv::dotenv;
 use futures::StreamExt;
@@ -22,10 +24,13 @@ use lapin::{message::Delivery, Channel, Connection, ConnectionProperties};
 use lru::LruCache;
 use redis::AsyncCommands;
 
-struct SceneData(BVH, JitterCamera<PerspectiveCamera>);
+use crate::shifted_view::ShiftedView;
+
+struct SceneData(BVH, JitterCamera<PerspectiveCamera>, Vec<PropRequest>);
 
 async fn render(
     texture_repo: &TextureRepository,
+    prop_repo: &PropRepository,
     cache: &mut LruCache<String, SceneData>,
     redis_client: &mut redis::Client,
     channel: &Channel,
@@ -37,8 +42,12 @@ async fn render(
     let task = s[0].to_string();
     let id = s[1].to_string();
     let response = s[2].to_string();
+    let x: usize = s[3].parse()?;
+    let y: usize = s[4].parse()?;
     let width: usize = redis::Cmd::get(format!("archyrt:{}:width", task)).query(redis_client)?;
     let height: usize = redis::Cmd::get(format!("archyrt:{}:height", task)).query(redis_client)?;
+    let part_width = width/4;
+    let part_height = height/4;
     let scene = match cache.get(&task) {
         Some(a) => a,
         None => {
@@ -49,18 +58,29 @@ async fn render(
                 .ok_or_else(|| anyhow!("Unable to create BVH"))?;
                 let camera = scene.get_camera().clone();
                 let camera = JitterCamera::new(camera, width, height);
-            let data = SceneData(bvh, camera);
+            let prop_requests = scene.get_prop_requests().clone();
+            let data = SceneData(bvh, camera, prop_requests);
             cache.put(task.clone(), data);
             cache.get(&task).unwrap()
         }
     };
+    let props = prop_repo.fulfill_all(&scene.2)?;
+    let object = &scene.0;
+    let object = object.union(props);
     let renderer = PathTracer {
         camera: &scene.1,
-        object: &scene.0,
+        object,
         bounces: 5,
         skybox: Some(TextureID::new(&"skybox")),
     };
-    let image = ArrayCollector {}.collect(renderer, texture_repo, width, height);
+    let renderer = ShiftedView{
+        inner: renderer,
+        full_w: width,
+        full_h: height,
+        x: (x as f64)/(width as f64),
+        y: (y as f64)/(height as f64)
+    };
+    let image = ArrayCollector {}.collect(renderer, texture_repo, part_width, part_height);
     //Convert image into bytes
     let image: Vec<u8> = image
         .into_iter()
@@ -81,37 +101,21 @@ async fn render(
         let _: () = redis::cmd("AI.TENSORSET")
             .arg(&temp)
             .arg("FLOAT")
-            .arg(width)
-            .arg(height)
+            .arg(part_height)
+            .arg(part_width)
             .arg(3)
             .arg("BLOB")
             .arg(image)
             .query_async(&mut con)
             .await
             .unwrap();
-        //Add image to accumulator
-        let _: () = redis::cmd("AI.SCRIPTEXECUTE")
-            .arg("archyrt:scripts")
-            .arg("add")
-            .arg("INPUTS")
-            .arg(2)
-            .arg(&temp)
-            .arg(&image_key)
-            .arg("OUTPUTS")
-            .arg(1)
-            .arg(&image_key)
-            .query_async(&mut con)
-            .await
-            .unwrap();
-        //Remove temporary storage
-        let _: () = redis::Cmd::del(temp).query_async(&mut con).await.unwrap();
         println!("Sending ACK");
         channel
             .basic_publish(
                 "",
                 &response,
                 Default::default(),
-                Default::default(),
+                format!("{}#{}#{}", temp, x, y).into_bytes(),
                 Default::default(),
             )
             .await
@@ -148,6 +152,9 @@ fn main() -> Result<()> {
             &[(TextureID::new(&"skybox"), "skybox.exr")],
         )?;
 
+        let mut props = PropRepository::new();
+        amdl::repo::load_into(&mut props, "../assets")?;
+
         let channel = rabbitmq_client.create_channel().await?;
         let task_queue = channel
             .queue_declare("archyrt:taskqueue", Default::default(), Default::default())
@@ -162,7 +169,7 @@ fn main() -> Result<()> {
             .await?;
         while let Some(delivery) = consumer.next().await {
             let (_, delivery) = delivery.unwrap();
-            let future = render(&textures, &mut cache, &mut redis_client, &channel, delivery);
+            let future = render(&textures, &props, &mut cache, &mut redis_client, &channel, delivery);
             if let Err(err) = future.await {
                 println!("Error: {}", err);
             }
