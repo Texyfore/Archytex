@@ -9,38 +9,31 @@ import Chip from "@mui/material/Chip";
 import Tooltip from "@mui/material/Tooltip";
 import Typography from "@mui/material/Typography";
 
-import { PropFilterOptions } from "../../../services/types/Prop";
-import { TextureFilterOptions } from "../../../services/types/Texture";
+import Texture from "../../../services/types/Texture";
+import Prop from "../../../services/types/Prop";
+import Category from "../../../services/libraries/Category";
 
 interface Props {
   cardType: "prop" | "texture";
-  index: number;
-  name: string;
-  image: string;
-  filterOptions: TextureFilterOptions[] | PropFilterOptions[];
-  selected: number | undefined;
-  handleSelectionChange: (n: number | undefined) => void;
+  item: Texture | Prop;
+  isSelected: boolean;
+  handleSelectionChange: (item: Texture | Prop | undefined) => void;
 }
 
 export default function LibraryCard({
   cardType,
-  index,
-  name,
-  image,
-  filterOptions,
-  selected,
+  item,
+  isSelected,
   handleSelectionChange,
 }: Props) {
-  const click = () => {
-    index === selected
-      ? handleSelectionChange(undefined)
-      : handleSelectionChange(index);
+  const handleClick = () => {
+    isSelected ? handleSelectionChange(undefined) : handleSelectionChange(item);
   };
 
   return (
     <Card
       sx={
-        index === selected
+        isSelected
           ? {
               width: 175,
               border: "2px solid #39A0ED",
@@ -49,25 +42,25 @@ export default function LibraryCard({
           : { width: 175, border: "2px solid transparent" }
       }
     >
-      <CardActionArea onClick={click}>
+      <CardActionArea onClick={handleClick}>
         <CardMedia
           component='img'
           height='140'
-          image={image}
+          image={item.thumbnail}
           alt='prop'
           sx={
             cardType === "prop" ? { objectFit: "contain", padding: "10px" } : {}
           }
         />
         <CardContent>
-          <Tooltip title={name} placement='top'>
+          <Tooltip title={item.name} placement='top'>
             <Typography gutterBottom width='100%' noWrap>
-              {name}
+              {item.name}
             </Typography>
           </Tooltip>
           <Box display='flex' flexWrap='wrap' justifyContent='start' gap={1}>
-            {filterOptions.map((filterOption) => (
-              <Chip size='small' label={filterOption} />
+            {item.categories.map((category) => (
+              <Chip size='small' label={category.name} />
             ))}
           </Box>
         </CardContent>

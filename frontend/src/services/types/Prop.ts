@@ -1,8 +1,8 @@
+import Category from "../libraries/Category";
+
 export default interface Prop {
   id: number;
   name: string;
   thumbnail: string;
-  categories: PropFilterOptions[];
+  categories: Category[];
 }
-
-export type PropFilterOptions = "Furniture" | "Decoration" | "Table" | "Chair";

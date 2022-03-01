@@ -28,15 +28,15 @@ export default function Editor() {
   // Selected texture
   const textures = getTextures();
   const [texture, setTexture] = useState<Texture>(textures[0]);
-  const handleTextureChange = (id: number) => {
-    setTexture(textures.filter((texture) => texture.id === id)[0]);
+  const handleTextureChange = (texture: Texture) => {
+    setTexture(texture);
   };
 
   // Selected prop
   const props = getProps();
   const [prop, setProp] = useState<Prop>(props[0]);
-  const handlePropChange = (id: number) => {
-    setProp(props.filter((prop) => prop.id === id)[0]);
+  const handlePropChange = (prop: Prop) => {
+    setProp(prop);
   };
 
   // App bar button click

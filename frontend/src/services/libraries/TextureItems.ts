@@ -13,43 +13,102 @@ export default function getTextures(): Texture[] {
     {
       id: 1,
       name: "Concrete floor",
-      categories: ["Concrete", "Dirty"],
+      categories: [
+        {
+          id: 2,
+          name: "Concrete",
+        },
+        {
+          id: 4,
+          name: "Dirty",
+        },
+      ],
       thumbnail: concreteFloor,
     },
     {
       id: 2,
       name: "Large floor tiles",
-      categories: ["Rock", "Dirty"],
+      categories: [
+        {
+          id: 3,
+          name: "Rock",
+        },
+        {
+          id: 4,
+          name: "Dirty",
+        },
+      ],
       thumbnail: largeFloorTiles,
     },
     {
       id: 3,
       name: "Red brick",
-      categories: ["Brick", "Dirty"],
+      categories: [
+        {
+          id: 0,
+          name: "Brick",
+        },
+        {
+          id: 4,
+          name: "Dirty",
+        },
+      ],
       thumbnail: redBrick,
     },
     {
       id: 4,
       name: "Brown planks",
-      categories: ["Wood", "Clean"],
+      categories: [
+        {
+          id: 1,
+          name: "Wood",
+        },
+        {
+          id: 5,
+          name: "Clean",
+        },
+      ],
       thumbnail: brownPlanks,
     },
     {
       id: 5,
       name: "Weathered brown planks",
-      categories: ["Wood", "Dirty"],
+      categories: [
+        {
+          id: 1,
+          name: "Wood",
+        },
+        {
+          id: 4,
+          name: "Dirty",
+        },
+      ],
       thumbnail: weatheredBrownPlanks,
     },
     {
       id: 6,
       name: "Concrete wall",
-      categories: ["Concrete", "Clean"],
+      categories: [
+        {
+          id: 2,
+          name: "Concrete",
+        },
+        {
+          id: 5,
+          name: "Clean",
+        },
+      ],
       thumbnail: concreteWall,
     },
     {
       id: 7,
       name: "Roof",
-      categories: ["Dirty"],
+      categories: [
+        {
+          id: 4,
+          name: "Dirty",
+        },
+      ],
       thumbnail: roof,
     },
   ];

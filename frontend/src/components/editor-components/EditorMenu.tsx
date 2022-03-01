@@ -19,9 +19,9 @@ type LibraryType = "textureLibrary" | "propLibrary";
 
 interface Props {
   texture: Texture;
-  handleTextureChange: (id: number) => void;
+  handleTextureChange: (texture: Texture) => void;
   prop: Prop;
-  handlePropChange: (id: number) => void;
+  handlePropChange: (prop: Prop) => void;
 }
 
 export default function EditorMenu({
@@ -97,6 +97,7 @@ export default function EditorMenu({
             justifyContent='center'
             gap={1}
           >
+            <Typography variant='caption'>{t("selected_texture")}</Typography>
             <Typography>{texture.name}</Typography>
             <Button
               variant='outlined'
@@ -135,6 +136,7 @@ export default function EditorMenu({
             justifyContent='center'
             gap={1}
           >
+            <Typography variant='caption'>{t("selected_prop")}</Typography>
             <Typography>{prop.name}</Typography>
             <Button
               variant='outlined'

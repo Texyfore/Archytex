@@ -16,61 +16,128 @@ export default function getProps(): Prop[] {
     {
       id: 1,
       name: "Alarm clock",
-      categories: ["Decoration"],
+      categories: [
+        {
+          id: 1,
+          name: "Decoration",
+        },
+      ],
       thumbnail: alarmClock,
     },
     {
       id: 2,
       name: "Ceramic vase",
-      categories: ["Decoration"],
+      categories: [
+        {
+          id: 1,
+          name: "Decoration",
+        },
+      ],
       thumbnail: ceramicVase,
     },
     {
       id: 3,
       name: "Round coffee table",
-      categories: ["Furniture", "Table"],
+      categories: [
+        {
+          id: 0,
+          name: "Furniture",
+        },
+        {
+          id: 2,
+          name: "Table",
+        },
+      ],
       thumbnail: roundCoffeeTable,
     },
     {
       id: 4,
       name: "Horse statue",
-      categories: ["Decoration"],
+      categories: [
+        {
+          id: 1,
+          name: "Decoration",
+        },
+      ],
       thumbnail: horseStatue,
     },
     {
       id: 5,
       name: "Modern coffee table",
-      categories: ["Furniture", "Table"],
+      categories: [
+        {
+          id: 0,
+          name: "Furniture",
+        },
+        {
+          id: 2,
+          name: "Table",
+        },
+      ],
       thumbnail: modernCoffeeTable,
     },
     {
       id: 6,
       name: "Ottoman",
-      categories: ["Furniture", "Chair"],
+      categories: [
+        {
+          id: 0,
+          name: "Furniture",
+        },
+
+        {
+          id: 3,
+          name: "Chair",
+        },
+      ],
       thumbnail: ottoman,
     },
     {
       id: 7,
       name: "Painted wooden chair",
-      categories: ["Furniture", "Chair"],
+      categories: [
+        {
+          id: 0,
+          name: "Furniture",
+        },
+        {
+          id: 3,
+          name: "Chair",
+        },
+      ],
       thumbnail: paintedWoodenChair,
     },
     {
       id: 8,
       name: "Potted plant",
-      categories: ["Decoration"],
+      categories: [
+        {
+          id: 1,
+          name: "Decoration",
+        },
+      ],
       thumbnail: pottedPlant,
     },
     {
       id: 9,
       name: "Standing picture frame",
-      categories: ["Decoration"],
+      categories: [
+        {
+          id: 1,
+          name: "Decoration",
+        },
+      ],
       thumbnail: standingPictureFrame,
     },
     {
       id: 10,
       name: "Steel frame shelves",
-      categories: ["Furniture"],
+      categories: [
+        {
+          id: 0,
+          name: "Furniture",
+        },
+      ],
       thumbnail: steelFramShelves,
     },
   ];
