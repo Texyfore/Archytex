@@ -10,13 +10,13 @@ use archyrt_core::{
     intersectables::bvh::BVH,
     loaders::{
         ascn::{amdl_textures, ASCNLoader},
-        Loader,
+        Loader, amdl::{repo::{PropRequest, PropRepository}, self},
     },
     renderers::{path_tracer::PathTracer},
     textures::{
         texture_repo::{self, TextureRepository},
         TextureID,
-    },
+    }, utilities::ray::Intersectable,
 };
 use dotenv::dotenv;
 use futures::StreamExt;
@@ -26,10 +26,11 @@ use redis::AsyncCommands;
 
 use crate::shifted_view::ShiftedView;
 
-struct SceneData(BVH, JitterCamera<PerspectiveCamera>);
+struct SceneData(BVH, JitterCamera<PerspectiveCamera>, Vec<PropRequest>);
 
 async fn render(
     texture_repo: &TextureRepository,
+    prop_repo: &PropRepository,
     cache: &mut LruCache<String, SceneData>,
     redis_client: &mut redis::Client,
     channel: &Channel,
@@ -57,14 +58,18 @@ async fn render(
                 .ok_or_else(|| anyhow!("Unable to create BVH"))?;
                 let camera = scene.get_camera().clone();
                 let camera = JitterCamera::new(camera, width, height);
-            let data = SceneData(bvh, camera);
+            let prop_requests = scene.get_prop_requests().clone();
+            let data = SceneData(bvh, camera, prop_requests);
             cache.put(task.clone(), data);
             cache.get(&task).unwrap()
         }
     };
+    let props = prop_repo.fulfill_all(&scene.2)?;
+    let object = &scene.0;
+    let object = object.union(props);
     let renderer = PathTracer {
         camera: &scene.1,
-        object: &scene.0,
+        object,
         bounces: 5,
         skybox: Some(TextureID::new(&"skybox")),
     };
@@ -147,6 +152,9 @@ fn main() -> Result<()> {
             &[(TextureID::new(&"skybox"), "skybox.exr")],
         )?;
 
+        let mut props = PropRepository::new();
+        amdl::repo::load_into(&mut props, "../assets")?;
+
         let channel = rabbitmq_client.create_channel().await?;
         let task_queue = channel
             .queue_declare("archyrt:taskqueue", Default::default(), Default::default())
@@ -161,7 +169,7 @@ fn main() -> Result<()> {
             .await?;
         while let Some(delivery) = consumer.next().await {
             let (_, delivery) = delivery.unwrap();
-            let future = render(&textures, &mut cache, &mut redis_client, &channel, delivery);
+            let future = render(&textures, &props, &mut cache, &mut redis_client, &channel, delivery);
             if let Err(err) = future.await {
                 println!("Error: {}", err);
             }

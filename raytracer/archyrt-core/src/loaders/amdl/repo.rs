@@ -97,6 +97,7 @@ pub fn load_into(repo: &mut PropRepository, directory: &str) -> Result<()> {
 }
 
 
+#[derive(Clone)]
 pub struct PropRequest{
     pub prop: PropID,
     pub position: Vec3,

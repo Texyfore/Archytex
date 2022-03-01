@@ -7,10 +7,10 @@ use archyrt_core::{
     intersectables::bvh::BVH,
     loaders::{
         ascn::{amdl_textures, ASCNLoader},
-        Loader,
+        Loader, amdl::{repo::PropRepository, self},
     },
     renderers::{solid_renderers::{albedo::AlbedoRenderer, normal::NormalRenderer}, sampling::SamplingRenderer},
-    textures::texture_repo::TextureRepository, vector, utilities::math::Vec3, tonemapping::tonemap_fragment, cameras::jitter::JitterCamera,
+    textures::texture_repo::TextureRepository, vector, utilities::{math::Vec3, ray::Intersectable}, tonemapping::tonemap_fragment, cameras::jitter::JitterCamera,
 };
 use dotenv::dotenv;
 
@@ -37,6 +37,7 @@ async fn handle_job(
     response_queue: Queue,
     task_queue: Queue,
     textures: Arc<TextureRepository>,
+    props: Arc<PropRepository>,
 ) -> Result<()> {
     let response_queue = response_queue.name().as_str();
     let task_queue = task_queue.name().as_str();
@@ -192,13 +193,15 @@ async fn handle_job(
         redis::Cmd::get(format!("archyrt:{}:height", s)).query(&mut redis_client).unwrap();
     let bvh = BVH::from_triangles(scene.get_triangles())
         .ok_or_else(|| anyhow!("Unable to create BVH")).unwrap();
+    let props = props.fulfill_all(scene.get_prop_requests()).unwrap();
     let camera = scene.get_camera();
+    let object = bvh.union(props);
     let albedo = AlbedoRenderer {
-        object: &bvh,
+        object: &object,
         camera: JitterCamera::new(&camera, width, height),
     };
     let normal = NormalRenderer {
-        object: &bvh,
+        object: &object,
         camera: &camera,
     };
     let collector = RawCollector {};
@@ -314,6 +317,10 @@ fn main() -> Result<()> {
         amdl_textures::load_into(&mut textures, "../assets").unwrap();
         let textures = Arc::new(textures);
 
+        let mut props = PropRepository::new();
+        amdl::repo::load_into(&mut props, "../assets").unwrap();
+        let props = Arc::new(props);
+
         while let Some(delivery) = consumer.next().await {
             let (_, delivery) = delivery.unwrap();
             let response_queue = channel
@@ -334,6 +341,7 @@ fn main() -> Result<()> {
                 response_queue,
                 task_queue.clone(),
                 textures.clone(),
+                props.clone()
             ))
             .detach();
         }
