@@ -14,16 +14,39 @@ import CameraSettingsButton from "../components/editor-components/CameraSettings
 import GridSettingsButton from "../components/editor-components/GridSettingsButton";
 
 import useNotification from "../services/hooks/useNotification";
+import Texture from "../services/types/Texture";
+import Prop from "../services/types/Prop";
+
+import TextureImage from "../img/texture_thumbnails/red_brick_03.jpg";
+import PropImage from "../img/prop_thumbnails/ottoman_01.png";
 
 type EditorMode = "solid" | "face" | "vertex" | "prop";
-type LibraryType = "textureLibrary" | "propLibrary";
 
 export default function Editor() {
   // Get project ID
   const { projectId } = useParams<{ projectId: string }>();
 
-  // Library type
-  const [libraryType, setLibraryType] = useState<LibraryType>("textureLibrary");
+  // Selected texture
+  const [texture, setTexture] = useState<Texture>({
+    id: 1,
+    name: "Bricks",
+    thumbnail: TextureImage,
+    categories: ["Brick", "Dirty"],
+  });
+  const handleTextureChange = (texture: Texture) => {
+    setTexture(texture);
+  };
+
+  // Selected prop
+  const [prop, setProp] = useState<Prop>({
+    id: 1,
+    name: "Ottoman",
+    thumbnail: PropImage,
+    categories: ["Furniture", "Chair"],
+  });
+  const handlePropChange = (prop: Prop) => {
+    setProp(prop);
+  };
 
   // App bar button click
   const handleAppBarButtonClick = () => {};
@@ -54,7 +77,7 @@ export default function Editor() {
     import("viewport").then((viewport) => {
       const channel = new viewport.Channel();
       setSender(channel.sender());
-      const callback = new viewport.Callback((_: any) => {}, (_: any) => {});
+      const callback = new viewport.Callback((_: any) => {});
       const resources = new viewport.Resources();
       viewport.run(channel, callback, resources);
     });
@@ -87,9 +110,15 @@ export default function Editor() {
     <>
       <EditorAppBar onSave={handleAppBarButtonClick} />
       <Box width='100%' height='48px'></Box>
+
       <Box display='flex' height={`calc(100vh - 48px)`} overflow='hidden'>
         <Box width='100%' height='100%' ref={observe} bgcolor='#0c0c0c' />
-        <EditorMenu libraryType={libraryType} />
+        <EditorMenu
+          texture={texture}
+          handleTextureChange={handleTextureChange}
+          prop={prop}
+          handlePropChange={handlePropChange}
+        />
       </Box>
 
       <canvas

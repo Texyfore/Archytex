@@ -1,29 +1,17 @@
 import React from "react";
-import {
-  Box,
-  Card,
-  CardActionArea,
-  CardContent,
-  CardMedia,
-  Chip,
-  Typography,
-  Tooltip,
-} from "@mui/material";
 
-enum TextureFilterOptions {
-  brick = "Brick",
-  wood = "Wood",
-  concrete = "Concrete",
-  rock = "Rock",
-  dirty = "Dirty",
-  clean = "Clean",
-}
-enum PropFilterOptions {
-  furniture = "Furniture",
-  decoration = "Decoration",
-  table = "Table",
-  chair = "Chair",
-}
+import Box from "@mui/material/Box";
+import Card from "@mui/material/Card";
+import CardActionArea from "@mui/material/CardActionArea";
+import CardContent from "@mui/material/CardContent";
+import CardMedia from "@mui/material/CardMedia";
+import Chip from "@mui/material/Chip";
+import Tooltip from "@mui/material/Tooltip";
+import Typography from "@mui/material/Typography";
+
+import { PropFilterOptions } from "../../../services/types/Prop";
+import { TextureFilterOptions } from "../../../services/types/Texture";
+
 interface LibraryCardProps {
   cardType: "prop" | "texture";
   index: number;

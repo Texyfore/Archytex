@@ -10,7 +10,7 @@ import Grow from "@mui/material/Grow";
 
 import { Close } from "@mui/icons-material";
 
-import { Render } from "../../../../services/projects";
+import { Render } from "../../../services/projects";
 
 interface Props {
   render: undefined | Render;

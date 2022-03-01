@@ -8,7 +8,7 @@ import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
 import Divider from "@mui/material/Divider";
 
-import { Render } from "../../../../services/projects";
+import { Render } from "../../../services/projects";
 
 const Item = styled(Paper)(({ theme }) => ({
   ...theme.typography.body1,

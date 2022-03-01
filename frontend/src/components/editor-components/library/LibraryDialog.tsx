@@ -1,30 +1,33 @@
 import React, { useState } from "react";
-import {
-  Box,
-  Button,
-  Checkbox,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogTitle,
-  IconButton,
-  List,
-  ListItem,
-  ListItemButton,
-  ListItemIcon,
-  ListItemText,
-  Menu,
-  Paper,
-  PaperProps,
-  Typography,
-  Tooltip,
-} from "@mui/material";
-import { Close, FilterList } from "@mui/icons-material";
+
+import { useTranslation } from "react-i18next";
+
 import Draggable from "react-draggable";
 import TextureLibrary from "./TextureLibrary";
 import PropLibrary from "./PropLibrary";
-import { useTranslation } from "react-i18next";
 import SearchBar from "../../general-components/SearchBar";
+import Dialog from "@mui/material/Dialog";
+import IconButton from "@mui/material/IconButton";
+import DialogTitle from "@mui/material/DialogTitle";
+import Box from "@mui/material/Box";
+import Typography from "@mui/material/Typography";
+import Button from "@mui/material/Button";
+import DialogContent from "@mui/material/DialogContent";
+import DialogActions from "@mui/material/DialogActions";
+import Tooltip from "@mui/material/Tooltip";
+import Menu from "@mui/material/Menu";
+import List from "@mui/material/List";
+import ListItem from "@mui/material/ListItem";
+import ListItemButton from "@mui/material/ListItemButton";
+import ListItemIcon from "@mui/material/ListItemIcon";
+import Checkbox from "@mui/material/Checkbox";
+import ListItemText from "@mui/material/ListItemText";
+import Paper, { PaperProps } from "@mui/material/Paper";
+
+import { Close, FilterList, Texture } from "@mui/icons-material";
+
+import Texture from "../../../services/types/Texture";
+import Prop from "../../../services/types/Prop";
 
 function PaperComponent(props: PaperProps) {
   return (
@@ -52,12 +55,14 @@ enum PropFilterOptions {
   chair = "Chair",
 }
 
-type libraryType = "textureLibrary" | "propLibrary";
+type LibraryType = "textureLibrary" | "propLibrary";
 
 interface LibraryDialogProps {
   open: boolean;
   handleClose: () => void;
-  libraryType: libraryType;
+  libraryType: LibraryType;
+  texture: Texture;
+  prop: Prop;
 }
 
 export default function LibraryDialog({
@@ -67,6 +72,7 @@ export default function LibraryDialog({
 }: LibraryDialogProps) {
   //Translation
   const { t } = useTranslation();
+  const tooltipText = t("select_an_item_to_use");
 
   //Dialog
   const descriptionElementRef = React.useRef<HTMLElement>(null);
@@ -91,7 +97,6 @@ export default function LibraryDialog({
 
   //Filter menu items
   const [checkedFilterItems, setCheckedFilterItem] = React.useState([0]);
-
   const handleToggleFilterItem = (value: number) => () => {
     const currentIndex = checkedFilterItems.indexOf(value);
     const newChecked = [...checkedFilterItems];
@@ -111,7 +116,6 @@ export default function LibraryDialog({
     setSelected(n);
   };
 
-  const tooltipText = t("select_an_item_to_use");
   return (
     <>
       <Dialog
@@ -160,12 +164,12 @@ export default function LibraryDialog({
           <Box width={550}>
             {libraryType === "textureLibrary" ? (
               <TextureLibrary
-                selected={selected}
+                selected={texture}
                 handleSelectionChange={handleSelectionChange}
               />
             ) : (
               <PropLibrary
-                selected={selected}
+                selected={prop}
                 handleSelectionChange={handleSelectionChange}
               />
             )}

@@ -1,144 +1,54 @@
-import React from "react";
-import { Box, Typography } from "@mui/material";
-import LibraryCard from "./LibraryCard";
-import brownPlanks from "../../../img/texture_thumbnails/brown_planks_07.jpg";
-import concreteFloor from "../../../img/texture_thumbnails/concrete_floor_worn_001.jpg";
-import concreteWall from "../../../img/texture_thumbnails/concrete_wall_001.jpg";
-import largeFloorTiles from "../../../img/texture_thumbnails/large_floor_tiles_02.jpg";
-import redBrick from "../../../img/texture_thumbnails/red_brick_03.jpg";
-import roof from "../../../img/texture_thumbnails/roof_09.jpg";
-import weatheredBrownPlanks from "../../../img/texture_thumbnails/weathered_brown_planks.jpg";
-import { useTranslation } from "react-i18next";
-interface TextureLibraryProps {
-  selected: number | undefined;
-  handleSelectionChange: (n: number | undefined) => void;
-}
+import React, { useState } from "react";
 
-enum TextureFilterOptions {
-  brick = "Brick",
-  wood = "Wood",
-  concrete = "Concrete",
-  rock = "Rock",
-  dirty = "Dirty",
-  clean = "Clean",
-}
-interface Texture {
-  name: string;
-  filterOptions: TextureFilterOptions[];
-  image: string;
+import { useTranslation } from "react-i18next";
+
+import Box from "@mui/material/Box";
+import Typography from "@mui/material/Typography";
+
+import LibraryCard from "./LibraryCard";
+
+import Texture from "../../../services/types/Texture";
+import getTextures from "../../../services/libraries/TextureItems";
+
+interface Props {
+  selected: Texture;
+  handleSelectionChange: (texture: Texture) => void;
 }
 
 export default function TextureLibrary({
   selected,
   handleSelectionChange,
-}: TextureLibraryProps) {
+}: Props) {
   const { t } = useTranslation();
 
-  const textures: Texture[] = [
-    {
-      name: "Concrete floor",
-      filterOptions: [
-        TextureFilterOptions.concrete,
-        TextureFilterOptions.dirty,
-      ],
-      image: concreteFloor,
-    },
-    {
-      name: "Large floor tiles",
-      filterOptions: [TextureFilterOptions.rock, TextureFilterOptions.dirty],
-      image: largeFloorTiles,
-    },
-    {
-      name: "Red brick",
-      filterOptions: [TextureFilterOptions.brick, TextureFilterOptions.dirty],
-      image: redBrick,
-    },
-    {
-      name: "Brown planks",
-      filterOptions: [TextureFilterOptions.wood, TextureFilterOptions.clean],
-      image: brownPlanks,
-    },
-    {
-      name: "Weathered brown planks",
-      filterOptions: [TextureFilterOptions.wood, TextureFilterOptions.dirty],
-      image: weatheredBrownPlanks,
-    },
-    {
-      name: "Concrete wall",
-      filterOptions: [
-        TextureFilterOptions.concrete,
-        TextureFilterOptions.clean,
-      ],
-      image: concreteWall,
-    },
-    {
-      name: "Roof",
-      filterOptions: [TextureFilterOptions.dirty],
-      image: roof,
-    },
-  ];
-  const recentTextures: Texture[] = [
-    {
-      name: "Brown planks",
-      filterOptions: [TextureFilterOptions.wood, TextureFilterOptions.clean],
-      image: brownPlanks,
-    },
-    {
-      name: "Concrete wall",
-      filterOptions: [
-        TextureFilterOptions.concrete,
-        TextureFilterOptions.clean,
-      ],
-      image: concreteWall,
-    },
-  ];
+  const textures = getTextures();
+
+  const [selectedIndex, setSelectedIndex] = useState<number | undefined>(
+    selected.id
+  );
+  const handleIndexChange = (index: number | undefined) => {
+    setSelectedIndex(index);
+  };
 
   return (
     <>
-      <Box display={recentTextures.length === 0 ? "none" : "initial"}>
-        <Typography paddingTop={2} gutterBottom color='GrayText'>
-          {t("recent")}
-        </Typography>
-        <Box
-          display='flex'
-          flexWrap='wrap'
-          gap={1}
-          alignItems='start'
-          justifyContent='space-evenly'
-          paddingBottom={3}
-          marginBottom={3}
-          borderBottom='1px solid GrayText'
-        >
-          {recentTextures.map((texture, index) => (
-            <LibraryCard
-              cardType='texture'
-              index={index}
-              name={texture.name}
-              image={texture.image}
-              filterOptions={texture.filterOptions}
-              selected={selected}
-              handleSelectionChange={handleSelectionChange}
-            />
-          ))}
-        </Box>
-      </Box>
       <Box
         display='flex'
         flexWrap='wrap'
         gap={1}
         alignItems='start'
         justifyContent='space-evenly'
-        marginTop={recentTextures.length === 0 ? 3 : 0}
+        mt={3}
       >
         {textures.map((texture, index) => (
           <LibraryCard
             cardType='texture'
-            index={index + 6}
+            index={index}
             name={texture.name}
-            image={texture.image}
-            filterOptions={texture.filterOptions}
-            selected={selected}
-            handleSelectionChange={handleSelectionChange}
+            image={texture.thumbnail}
+            filterOptions={texture.categories}
+            selected={selectedIndex}
+            handleSelectionChange={handleIndexChange}
           />
         ))}
       </Box>
