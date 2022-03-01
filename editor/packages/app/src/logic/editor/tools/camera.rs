@@ -11,7 +11,9 @@ use crate::{
     math::Snap,
 };
 
-use super::{move_tool::MoveTool, rotate_tool::RotateTool, Context, NewSolid, Tool};
+use super::{
+    gizmo_move::GizmoMove, move_tool::MoveTool, rotate_tool::RotateTool, Context, NewSolid, Tool,
+};
 
 pub struct CameraTool {
     last_click: Option<Vector2<f32>>,
@@ -231,12 +233,16 @@ impl CameraTool {
         if let Some(center) = ctx.scene.calc_center(ctx.mode) {
             self.translation_gizmo.set_position(center);
             self.translation_gizmo.set_visible(true);
+
+            if let Some(axis) = self
+                .translation_gizmo
+                .process(ctx.graphics, ctx.camera, ctx.input)
+            {
+                return Some(Box::new(GizmoMove::new(ctx.graphics, center, axis)));
+            }
         } else {
             self.translation_gizmo.set_visible(false);
         }
-
-        self.translation_gizmo
-            .process(ctx.graphics, ctx.camera, ctx.input);
 
         None
     }

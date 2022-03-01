@@ -19,7 +19,13 @@ impl ArrowGraphics {
         }
     }
 
-    pub fn modify(&self, graphics: &Graphics, position: Vector3<f32>, selected: Option<Axis>) {
+    pub fn modify(
+        &self,
+        graphics: &Graphics,
+        position: Vector3<f32>,
+        selected: Option<Axis>,
+        pressed: bool,
+    ) {
         let translation = Matrix4::from_translation(position);
         let arrow_instances = Axis::all()
             .into_iter()
@@ -29,10 +35,15 @@ impl ArrowGraphics {
 
                 if let Some(selected) = selected {
                     if axis == selected {
-                        color[0] += 0.1;
-                        color[1] += 0.1;
-                        color[1] += 0.1;
-                        scale = 16.0;
+                        if pressed {
+                            color = [1.0; 3];
+                            scale = 18.0;
+                        } else {
+                            color[0] += 0.1;
+                            color[1] += 0.1;
+                            color[1] += 0.1;
+                            scale = 16.0;
+                        }
                     }
                 }
 

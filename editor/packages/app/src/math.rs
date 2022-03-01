@@ -27,6 +27,12 @@ pub struct Aabb {
     pub half_extent: Vector3<f32>,
 }
 
+#[derive(Clone, Copy)]
+pub struct Line {
+    origin: Vector3<f32>,
+    direction: Vector3<f32>,
+}
+
 pub trait Intersects<O> {
     fn intersects(&self, other: &O) -> Option<Intersection>;
 }
@@ -172,6 +178,38 @@ impl Aabb {
         Self {
             center: self.center * scale,
             half_extent: self.half_extent * scale,
+        }
+    }
+}
+
+impl Line {
+    pub fn new(origin: Vector3<f32>, direction: Vector3<f32>) -> Self {
+        Self {
+            origin,
+            direction: direction.normalize(),
+        }
+    }
+
+    pub fn closest_points(&self, other: &Self) -> Option<(Vector3<f32>, Vector3<f32>)> {
+        // V3 * V2 = 0
+        // V3 * V1 = 0
+        // P1 + t1V1 + t3V3 = P2 + t2V2
+
+        // t1v1 = p2 + t2v2 - t3v3 - p1
+
+        // v1 = (p2 + t2v2 - t3v3 - p1) / t1
+        // v3 = v2 x v1
+        //
+
+        let v3 = other.direction.cross(self.direction);
+    }
+}
+
+impl From<Ray> for Line {
+    fn from(ray: Ray) -> Self {
+        Self {
+            origin: ray.start,
+            direction: ray.direction(),
         }
     }
 }

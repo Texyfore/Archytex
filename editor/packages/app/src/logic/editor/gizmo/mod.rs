@@ -2,16 +2,18 @@ mod collider;
 mod graphics;
 
 use cgmath::{Vector3, Zero};
+use winit::event::MouseButton;
 
 use crate::{
     graphics::{Canvas, Graphics},
     logic::{camera::Camera, input::Input},
 };
 
-use self::{
-    collider::{ArrowCollider, HoverCheckInfo},
-    graphics::ArrowGraphics,
-};
+use self::collider::{ArrowCollider, HoverCheckInfo};
+
+use super::common::Axis;
+
+pub use graphics::*;
 
 pub struct TranslationGizmo {
     position: Vector3<f32>,
@@ -38,9 +40,9 @@ impl TranslationGizmo {
         self.visible = visible;
     }
 
-    pub fn process(&mut self, graphics: &Graphics, camera: &Camera, input: &Input) {
+    pub fn process(&mut self, graphics: &Graphics, camera: &Camera, input: &Input) -> Option<Axis> {
         if !self.visible {
-            return;
+            return None;
         }
 
         let hover_axis = self.collider.axis_above_cursor(HoverCheckInfo {
@@ -49,7 +51,9 @@ impl TranslationGizmo {
             gizmo_position: self.position,
         });
 
-        self.graphics.modify(graphics, self.position, hover_axis);
+        self.graphics
+            .modify(graphics, self.position, hover_axis, false);
+        hover_axis.and_then(|axis| input.is_button_down_once(MouseButton::Left).then(|| axis))
     }
 
     pub fn render(&self, canvas: &mut Canvas) {

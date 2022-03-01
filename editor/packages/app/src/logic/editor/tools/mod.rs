@@ -2,6 +2,7 @@ mod camera;
 mod move_tool;
 mod new_solid;
 mod rotate_tool;
+mod gizmo_move;
 
 use crate::{
     data::PropInfoContainer,
