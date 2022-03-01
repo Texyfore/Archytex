@@ -197,10 +197,6 @@ async fn handle_job(
         object: &bvh,
         camera: JitterCamera::new(&camera, width, height),
     };
-    let albedo = SamplingRenderer{
-        inner: albedo,
-        samples: 4
-    };
     let normal = NormalRenderer {
         object: &bvh,
         camera: &camera,
