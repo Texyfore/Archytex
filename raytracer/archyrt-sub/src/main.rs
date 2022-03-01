@@ -104,33 +104,13 @@ async fn render(
             .query_async(&mut con)
             .await
             .unwrap();
-        //Add image to accumulator
-        let _: () = redis::cmd("AI.SCRIPTEXECUTE")
-            .arg("archyrt:scripts")
-            .arg("add")
-            .arg("INPUTS")
-            .arg(2)
-            .arg(&temp)
-            .arg(&image_key)
-            .arg("ARGS")
-            .arg(2)
-            .arg(x)
-            .arg(y)
-            .arg("OUTPUTS")
-            .arg(1)
-            .arg(&image_key)
-            .query_async(&mut con)
-            .await
-            .unwrap();
-        //Remove temporary storage
-        let _: () = redis::Cmd::del(temp).query_async(&mut con).await.unwrap();
         println!("Sending ACK");
         channel
             .basic_publish(
                 "",
                 &response,
                 Default::default(),
-                Default::default(),
+                format!("{}#{}#{}", temp, x, y).into_bytes(),
                 Default::default(),
             )
             .await

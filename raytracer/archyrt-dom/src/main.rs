@@ -109,6 +109,31 @@ async fn handle_job(
     println!("[{}] Waiting for workers to finish", render_id);
     while let Some(delivery) = consumer.next().await {
         let (_, _delivery) = delivery.unwrap();
+
+
+        let msg = String::from_utf8(_delivery.data).unwrap();
+        let msg: Vec<&str> = msg.split("#").collect();
+        let temp = msg[0];
+        let x: usize = msg[1].parse()?;
+        let y: usize = msg[2].parse()?;
+        //Add image to accumulator
+        let _: () = redis::cmd("AI.SCRIPTEXECUTE")
+            .arg("archyrt:scripts")
+            .arg("add")
+            .arg("INPUTS")
+            .arg(2)
+            .arg(&temp)
+            .arg(&image_key)
+            .arg("ARGS")
+            .arg(2)
+            .arg(x)
+            .arg(y)
+            .arg("OUTPUTS")
+            .arg(1)
+            .arg(&image_key)
+            .query(&mut redis_client)?;
+        //Remove temporary storage
+        let _: () = redis::Cmd::del(temp).query(&mut redis_client)?;
         counter += 1;
         if counter >= samples*16 {
             break;
@@ -141,7 +166,7 @@ async fn handle_job(
         .arg(&image_key)
         .arg("ARGS")
         .arg(1)
-        .arg(counter)
+        .arg(samples)
         .arg("OUTPUTS")
         .arg(1)
         .arg(&image_key)
@@ -194,8 +219,7 @@ async fn handle_job(
         .image_dimensions(width, height)
         .albedo_normal(&albedo, &normal)
         .clean_aux(true)
-        .filter(&image, &mut output)
-        .unwrap();
+        .filter(&image, &mut output).unwrap();
 
     println!("[{}] Saving", render_id);
     let mut image = image::RgbImage::new(width as u32, height as u32);
@@ -220,7 +244,7 @@ async fn handle_job(
         let b = b as u8;
         *color = Rgb([r, g, b]);
     }
-    let path = Path::new(&env::var("IMAGES").unwrap())
+    let path = Path::new(&env::var("IMAGES")?)
         .join(s)
         .with_extension("png");
     image.save(path)?;
