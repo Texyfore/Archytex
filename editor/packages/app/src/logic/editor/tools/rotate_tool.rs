@@ -6,6 +6,7 @@ use winit::event::{MouseButton, VirtualKeyCode};
 use crate::{
     graphics::{structures::LineVertex, Canvas, LineMesh, LineMeshDescriptor, Share},
     logic::{
+        editor::common::Axis,
         elements::{ElementKind, Movable, Prop},
         scene::{self, Action},
     },
@@ -185,30 +186,6 @@ impl Orientation {
                 Axis::Y => Quaternion::from_angle_y(angle),
                 Axis::Z => Quaternion::from_angle_z(angle),
             },
-        }
-    }
-}
-
-enum Axis {
-    X,
-    Y,
-    Z,
-}
-
-impl Axis {
-    fn unit(&self) -> Vector3<f32> {
-        match self {
-            Self::X => Vector3::unit_x(),
-            Self::Y => Vector3::unit_y(),
-            Self::Z => Vector3::unit_z(),
-        }
-    }
-
-    fn color(&self) -> [f32; 3] {
-        match self {
-            Self::X => [1.0, 0.0, 0.0],
-            Self::Y => [0.0, 1.0, 0.0],
-            Self::Z => [0.0, 0.0, 1.0],
         }
     }
 }

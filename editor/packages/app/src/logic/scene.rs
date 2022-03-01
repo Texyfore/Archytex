@@ -197,12 +197,27 @@ impl Scene {
 
                 (n > 0.5).then(|| center / n)
             }
-            ElementKind::Face | ElementKind::Point => {
+            ElementKind::Face => {
+                let mut center = Vector3::zero();
+                let mut n = 0.0;
+
+                for solid in self.solids.values() {
+                    if solid.any_face_selected() {
+                        center += solid.center(mask);
+                        n += 1.0;
+                    }
+                }
+
+                (n > 0.5).then(|| center / n)
+            }
+            ElementKind::Point => {
                 let mut center = Vector3::zero();
                 let mut n = 0.0;
                 for solid in self.solids.values() {
-                    center += solid.center(mask);
-                    n += 1.0;
+                    if solid.any_point_selected() {
+                        center += solid.center(mask);
+                        n += 1.0;
+                    }
                 }
 
                 (n > 0.5).then(|| center / n)

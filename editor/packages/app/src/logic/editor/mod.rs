@@ -1,5 +1,6 @@
 mod gizmo;
 mod tools;
+mod common;
 
 use asset::{PropID, TextureID};
 use cgmath::vec3;
