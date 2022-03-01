@@ -30,6 +30,13 @@ impl<A: ColorProvider + Clone, B: ColorProvider + Clone> ColorProvider
             UnionColorProvider::B(b) => b.get_material(),
         }
     }
+
+    fn sample(&self, repo: &TextureRepository, id: crate::textures::TextureID) -> Vec3 {
+        match self {
+            UnionColorProvider::A(a) => a.sample(repo, id),
+            UnionColorProvider::B(b) => b.sample(repo, id),
+        }
+    }
 }
 
 impl<A: Intersectable, B: Intersectable> Intersectable for UnionIntersector<A, B>

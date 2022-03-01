@@ -89,15 +89,19 @@ pub struct TriangleColor {
 
 impl ColorProvider for TriangleColor {
     fn get_color(&self, repo: &TextureRepository) -> Vec3 {
-        let sampler = LinearSampler {};
-        let coords = self.uv[1] * self.barycentric[0]
-            + self.uv[2] * self.barycentric[1]
-            + self.uv[0] * self.barycentric[2];
-        sampler.sample_or_default(repo.get(self.texture), coords)
+        self.sample(repo, self.texture)
     }
 
     fn get_material(&self) -> Material {
         self.material
+    }
+
+    fn sample(&self, repo: &TextureRepository, id: TextureID) -> Vec3 {
+        let sampler = LinearSampler {};
+        let coords = self.uv[1] * self.barycentric[0]
+            + self.uv[2] * self.barycentric[1]
+            + self.uv[0] * self.barycentric[2];
+        sampler.sample_or_default(repo.get(id), coords)
     }
 }
 
