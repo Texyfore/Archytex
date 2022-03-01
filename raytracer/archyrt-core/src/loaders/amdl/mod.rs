@@ -12,26 +12,32 @@ pub struct AMDLLoader{
 }
 
 impl AMDLLoader{
-    pub fn from_path<P: AsRef<Path>>(path: P) -> Result<Self> {
+    pub fn from_path<P: AsRef<Path>>(path: P, has_emission: bool) -> Result<Self> {
         let mut f = File::open(path)?;
         let mut buf: Vec<u8> = Vec::new();
         f.read_to_end(&mut buf)?;
-        Self::from_bytes(&buf)
+        Self::from_bytes(&buf, has_emission)
     }
-    pub fn from_bytes(data: &[u8]) -> Result<Self> {
+    pub fn from_bytes(data: &[u8], has_emission: bool) -> Result<Self> {
         let scene = Prop::decode(data).ok_or_else(||anyhow!("Could not decode scene"))?;
-        Self::from_prop(scene)
+        Self::from_prop(scene, has_emission)
     }
 
-    pub fn from_prop(scene: Prop) -> Result<Self> {
+    pub fn from_prop(scene: Prop, has_emission: bool) -> Result<Self> {
         let mut triangles = Vec::new();
         for mesh in scene.meshes{
             let texture = AMDLTextureType::diffuse(mesh.texture.0);
+            let emissive = AMDLTextureType::emissive(mesh.texture.0);
             for triangle in mesh.triangles{
                 let triangle: Vec<&asset::PropVertex> = triangle.iter().map(|index|&mesh.vertices[(*index) as usize]).collect();
                 let v1 = triangle[0];
                 let v2 = triangle[1];
                 let v3 = triangle[2];
+                let material = if has_emission{
+                    Material::DiffuseAndEmissive{emissive_texture: emissive}
+                }else{
+                    Material::Diffuse
+                };
                 let triangle = Triangle::new(
                     [
                         v1.position.into(),
@@ -44,7 +50,7 @@ impl AMDLLoader{
                         v3.texcoord.into(),
                     ],
                     texture,
-                    Material::Diffuse
+                    material
                 );
                 triangles.push(triangle);
             }
