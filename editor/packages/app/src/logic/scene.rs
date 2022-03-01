@@ -185,6 +185,41 @@ impl Scene {
         self.undo_stack.push(Action::RemoveProps(ids));
     }
 
+    pub fn calc_center(&self, mask: ElementKind) -> Option<Vector3<f32>> {
+        match mask {
+            ElementKind::Solid => {
+                let mut center = Vector3::zero();
+                let mut n = 0.0;
+                for solid in self.solids.values().filter(|solid| solid.selected()) {
+                    center += solid.center(mask);
+                    n += 1.0;
+                }
+
+                (n > 0.5).then(|| center / n)
+            }
+            ElementKind::Face | ElementKind::Point => {
+                let mut center = Vector3::zero();
+                let mut n = 0.0;
+                for solid in self.solids.values() {
+                    center += solid.center(mask);
+                    n += 1.0;
+                }
+
+                (n > 0.5).then(|| center / n)
+            }
+            ElementKind::Prop => {
+                let mut center = Vector3::zero();
+                let mut n = 0.0;
+                for prop in self.props.values() {
+                    center += prop.center(mask);
+                    n += 1.0;
+                }
+
+                (n > 0.5).then(|| center / n)
+            }
+        }
+    }
+
     pub fn render(&self, canvas: &mut Canvas, mask: ElementKind) {
         for solid in self.solids.values() {
             solid.render(canvas, mask);

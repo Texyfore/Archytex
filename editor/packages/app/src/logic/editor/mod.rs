@@ -36,7 +36,7 @@ pub struct Editor {
 impl Editor {
     pub fn init(ctx: Context) -> Self {
         Self {
-            tool: Box::new(CameraTool::default()),
+            tool: Box::new(CameraTool::new(ctx.graphics, false)),
             ground: Ground::new(ctx.graphics),
             mode: ElementKind::Solid,
             grid: 3,
