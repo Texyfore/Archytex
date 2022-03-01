@@ -12,7 +12,7 @@ import Typography from "@mui/material/Typography";
 import { PropFilterOptions } from "../../../services/types/Prop";
 import { TextureFilterOptions } from "../../../services/types/Texture";
 
-interface LibraryCardProps {
+interface Props {
   cardType: "prop" | "texture";
   index: number;
   name: string;
@@ -30,7 +30,7 @@ export default function LibraryCard({
   filterOptions,
   selected,
   handleSelectionChange,
-}: LibraryCardProps) {
+}: Props) {
   const click = () => {
     index === selected
       ? handleSelectionChange(undefined)

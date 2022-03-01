@@ -1,18 +1,16 @@
-import React, { useState } from "react";
+import React from "react";
 
 import { useTranslation } from "react-i18next";
 
 import Box from "@mui/material/Box";
-import Typography from "@mui/material/Typography";
 
 import LibraryCard from "./LibraryCard";
 
-import Texture from "../../../services/types/Texture";
 import getTextures from "../../../services/libraries/TextureItems";
 
 interface Props {
-  selected: Texture;
-  handleSelectionChange: (texture: Texture) => void;
+  selected: number | undefined;
+  handleSelectionChange: (id: number | undefined) => void;
 }
 
 export default function TextureLibrary({
@@ -22,13 +20,6 @@ export default function TextureLibrary({
   const { t } = useTranslation();
 
   const textures = getTextures();
-
-  const [selectedIndex, setSelectedIndex] = useState<number | undefined>(
-    selected.id
-  );
-  const handleIndexChange = (index: number | undefined) => {
-    setSelectedIndex(index);
-  };
 
   return (
     <>
@@ -43,12 +34,12 @@ export default function TextureLibrary({
         {textures.map((texture, index) => (
           <LibraryCard
             cardType='texture'
-            index={index}
+            index={index + 1}
             name={texture.name}
             image={texture.thumbnail}
             filterOptions={texture.categories}
-            selected={selectedIndex}
-            handleSelectionChange={handleIndexChange}
+            selected={selected}
+            handleSelectionChange={handleSelectionChange}
           />
         ))}
       </Box>

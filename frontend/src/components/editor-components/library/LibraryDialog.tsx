@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 
 import { useTranslation } from "react-i18next";
 
@@ -24,10 +24,10 @@ import Checkbox from "@mui/material/Checkbox";
 import ListItemText from "@mui/material/ListItemText";
 import Paper, { PaperProps } from "@mui/material/Paper";
 
-import { Close, FilterList, Texture } from "@mui/icons-material";
+import { Close, FilterList } from "@mui/icons-material";
 
-import Texture from "../../../services/types/Texture";
 import Prop from "../../../services/types/Prop";
+import Texture from "../../../services/types/Texture";
 
 function PaperComponent(props: PaperProps) {
   return (
@@ -57,19 +57,25 @@ enum PropFilterOptions {
 
 type LibraryType = "textureLibrary" | "propLibrary";
 
-interface LibraryDialogProps {
+interface Props {
   open: boolean;
   handleClose: () => void;
   libraryType: LibraryType;
   texture: Texture;
+  handleTextureChange: (id: number) => void;
   prop: Prop;
+  handlePropChange: (id: number) => void;
 }
 
 export default function LibraryDialog({
   open,
   handleClose,
   libraryType,
-}: LibraryDialogProps) {
+  texture,
+  handleTextureChange,
+  prop,
+  handlePropChange,
+}: Props) {
   //Translation
   const { t } = useTranslation();
   const tooltipText = t("select_an_item_to_use");
@@ -82,8 +88,11 @@ export default function LibraryDialog({
       if (descriptionElement !== null) {
         descriptionElement.focus();
       }
+      handleSelectionChange(
+        libraryType === "textureLibrary" ? texture.id : prop.id
+      );
     }
-  }, [open]);
+  }, [open, libraryType, texture.id, prop.id]);
 
   //Filter menu
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
@@ -116,6 +125,16 @@ export default function LibraryDialog({
     setSelected(n);
   };
 
+  //Apply new item
+  const handleApplyNewItem = () => {
+    if (selected !== undefined) {
+      libraryType === "textureLibrary"
+        ? handleTextureChange(selected)
+        : handlePropChange(selected);
+    }
+    handleClose();
+  };
+
   return (
     <>
       <Dialog
@@ -123,7 +142,6 @@ export default function LibraryDialog({
         onClose={handleClose}
         scroll='paper'
         PaperComponent={PaperComponent}
-        aria-labelledby='draggable-dialog-title'
       >
         <IconButton
           onClick={handleClose}
@@ -164,12 +182,12 @@ export default function LibraryDialog({
           <Box width={550}>
             {libraryType === "textureLibrary" ? (
               <TextureLibrary
-                selected={texture}
+                selected={selected}
                 handleSelectionChange={handleSelectionChange}
               />
             ) : (
               <PropLibrary
-                selected={prop}
+                selected={selected}
                 handleSelectionChange={handleSelectionChange}
               />
             )}
@@ -186,7 +204,10 @@ export default function LibraryDialog({
             </Tooltip>
           </Box>
           <Box display={selected !== undefined ? "block" : "none"}>
-            <Button onClick={handleClose} disabled={selected === undefined}>
+            <Button
+              onClick={handleApplyNewItem}
+              disabled={selected === undefined}
+            >
               {t("accept")}
             </Button>
           </Box>

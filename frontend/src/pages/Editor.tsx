@@ -16,9 +16,8 @@ import GridSettingsButton from "../components/editor-components/GridSettingsButt
 import useNotification from "../services/hooks/useNotification";
 import Texture from "../services/types/Texture";
 import Prop from "../services/types/Prop";
-
-import TextureImage from "../img/texture_thumbnails/red_brick_03.jpg";
-import PropImage from "../img/prop_thumbnails/ottoman_01.png";
+import getTextures from "../services/libraries/TextureItems";
+import getProps from "../services/libraries/PropItems";
 
 type EditorMode = "solid" | "face" | "vertex" | "prop";
 
@@ -27,25 +26,17 @@ export default function Editor() {
   const { projectId } = useParams<{ projectId: string }>();
 
   // Selected texture
-  const [texture, setTexture] = useState<Texture>({
-    id: 1,
-    name: "Bricks",
-    thumbnail: TextureImage,
-    categories: ["Brick", "Dirty"],
-  });
-  const handleTextureChange = (texture: Texture) => {
-    setTexture(texture);
+  const textures = getTextures();
+  const [texture, setTexture] = useState<Texture>(textures[0]);
+  const handleTextureChange = (id: number) => {
+    setTexture(textures.filter((texture) => texture.id === id)[0]);
   };
 
   // Selected prop
-  const [prop, setProp] = useState<Prop>({
-    id: 1,
-    name: "Ottoman",
-    thumbnail: PropImage,
-    categories: ["Furniture", "Chair"],
-  });
-  const handlePropChange = (prop: Prop) => {
-    setProp(prop);
+  const props = getProps();
+  const [prop, setProp] = useState<Prop>(props[0]);
+  const handlePropChange = (id: number) => {
+    setProp(props.filter((prop) => prop.id === id)[0]);
   };
 
   // App bar button click
@@ -68,8 +59,6 @@ export default function Editor() {
         width * window.devicePixelRatio,
         height * window.devicePixelRatio
       );
-
-      console.log("width: ", width, " height: ", height);
     }
   }, [width, height, sender]);
 

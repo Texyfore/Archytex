@@ -25,12 +25,7 @@ export default function HomeContent() {
         subtitle={t("section1_subtitle")}
         paragraph={t("section1_paragraph")}
         ctaButton={
-          <Button
-            onClick={() => console.log("click")}
-            endIcon={<NavigateNext />}
-            component={Link}
-            to='/register'
-          >
+          <Button endIcon={<NavigateNext />} component={Link} to='/register'>
             {t("section1_cta")}
           </Button>
         }

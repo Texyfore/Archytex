@@ -19,9 +19,9 @@ type LibraryType = "textureLibrary" | "propLibrary";
 
 interface Props {
   texture: Texture;
-  handleTextureChange: (texture: Texture) => void;
+  handleTextureChange: (id: number) => void;
   prop: Prop;
-  handlePropChange: (prop: Prop) => void;
+  handlePropChange: (id: number) => void;
 }
 
 export default function EditorMenu({
@@ -97,7 +97,7 @@ export default function EditorMenu({
             justifyContent='center'
             gap={1}
           >
-            <Typography>Texture name</Typography>
+            <Typography>{texture.name}</Typography>
             <Button
               variant='outlined'
               onClick={() => handleLibraryClickOpen("textureLibrary")}
@@ -123,7 +123,7 @@ export default function EditorMenu({
           >
             <img
               src={prop.thumbnail}
-              alt='texture'
+              alt='prop'
               style={{ objectFit: "contain", padding: 10, borderRadius: 1 }}
               height='100%'
               width='100%'
@@ -135,7 +135,7 @@ export default function EditorMenu({
             justifyContent='center'
             gap={1}
           >
-            <Typography>Prop name</Typography>
+            <Typography>{prop.name}</Typography>
             <Button
               variant='outlined'
               onClick={() => handleLibraryClickOpen("propLibrary")}
@@ -152,7 +152,9 @@ export default function EditorMenu({
         open={libraryOpen}
         handleClose={handleLibraryClose}
         texture={texture}
+        handleTextureChange={handleTextureChange}
         prop={prop}
+        handlePropChange={handlePropChange}
       />
     </>
   );
