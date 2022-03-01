@@ -25,16 +25,19 @@ impl ArrowGraphics {
             .into_iter()
             .map(|axis| {
                 let mut color = axis.color();
+                let mut scale = 15.0;
+
                 if let Some(selected) = selected {
                     if axis == selected {
                         color[0] += 0.1;
                         color[1] += 0.1;
                         color[1] += 0.1;
+                        scale = 16.0;
                     }
                 }
 
                 GizmoInstance {
-                    matrix: translation * axis.rotation_from_y() * Matrix4::from_scale(15.0),
+                    matrix: translation * axis.rotation_from_y() * Matrix4::from_scale(scale),
                     color,
                 }
             })
