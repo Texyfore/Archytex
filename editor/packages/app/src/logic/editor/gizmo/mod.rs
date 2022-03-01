@@ -1,14 +1,22 @@
+mod collider;
 mod graphics;
 
 use cgmath::{Vector3, Zero};
 
-use crate::graphics::{Canvas, Graphics};
+use crate::{
+    graphics::{Canvas, Graphics},
+    logic::{camera::Camera, input::Input},
+};
 
-use self::graphics::ArrowGraphics;
+use self::{
+    collider::{ArrowCollider, HoverCheckInfo},
+    graphics::ArrowGraphics,
+};
 
 pub struct TranslationGizmo {
     position: Vector3<f32>,
     graphics: ArrowGraphics,
+    collider: ArrowCollider,
     visible: bool,
 }
 
@@ -17,6 +25,7 @@ impl TranslationGizmo {
         Self {
             position: Vector3::zero(),
             graphics: ArrowGraphics::new_empty(graphics),
+            collider: ArrowCollider::default(),
             visible: false,
         }
     }
@@ -29,12 +38,18 @@ impl TranslationGizmo {
         self.visible = visible;
     }
 
-    pub fn process(&mut self, graphics: &Graphics) {
+    pub fn process(&mut self, graphics: &Graphics, camera: &Camera, input: &Input) {
         if !self.visible {
             return;
         }
-        
-        self.graphics.modify(graphics, self.position, None);
+
+        let hover_axis = self.collider.axis_above_cursor(HoverCheckInfo {
+            camera,
+            mouse_position: input.mouse_pos(),
+            gizmo_position: self.position,
+        });
+
+        self.graphics.modify(graphics, self.position, hover_axis);
     }
 
     pub fn render(&self, canvas: &mut Canvas) {

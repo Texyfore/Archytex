@@ -235,7 +235,8 @@ impl CameraTool {
             self.translation_gizmo.set_visible(false);
         }
 
-        self.translation_gizmo.process(ctx.graphics);
+        self.translation_gizmo
+            .process(ctx.graphics, ctx.camera, ctx.input);
 
         None
     }
