@@ -51,7 +51,7 @@ impl TranslationGizmo {
         for (collider, tint) in self.colliders.iter_mut().zip(tints.iter_mut()) {
             collider.raycast(&ray, self.position, 15.0 * dist);
             if collider.collides {
-                *tint = vec3(0.5, 0.5, 0.5);
+                *tint = vec3(0.2, 0.2, 0.2);
             }
         }
 
@@ -66,15 +66,15 @@ impl TranslationGizmo {
                 &[
                     GizmoInstance {
                         matrix: translation * rot_x * scale,
-                        color: (vec3(0.5, 0.0, 0.0) + tints[0]).into(),
+                        color: (vec3(0.8, 0.1, 0.0) + tints[0]).into(),
                     },
                     GizmoInstance {
                         matrix: translation * scale,
-                        color: (vec3(0.0, 0.5, 0.0) + tints[1]).into(),
+                        color: (vec3(0.0, 0.8, 0.1) + tints[1]).into(),
                     },
                     GizmoInstance {
                         matrix: translation * rot_z * scale,
-                        color: (vec3(0.0, 0.0, 0.5) + tints[2]).into(),
+                        color: (vec3(0.0, 0.1, 0.8) + tints[2]).into(),
                     },
                 ],
             );
