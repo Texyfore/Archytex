@@ -210,7 +210,7 @@ impl Scene {
             ElementKind::Prop => {
                 let mut center = Vector3::zero();
                 let mut n = 0.0;
-                for prop in self.props.values() {
+                for prop in self.props.values().filter(|prop| prop.selected()) {
                     center += prop.center(mask);
                     n += 1.0;
                 }

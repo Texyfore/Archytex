@@ -1,5 +1,4 @@
 mod camera;
-mod gmove_tool;
 mod move_tool;
 mod new_solid;
 mod rotate_tool;

@@ -229,11 +229,14 @@ impl CameraTool {
         // Gizmos
 
         if let Some(center) = ctx.scene.calc_center(ctx.mode) {
-            self.translation_gizmo.set_position(ctx.graphics, center);
+            self.translation_gizmo.set_position(center);
             self.translation_gizmo.set_visible(true);
         } else {
             self.translation_gizmo.set_visible(false);
         }
+
+        self.translation_gizmo
+            .process(ctx.graphics, ctx.camera, ctx.input);
 
         None
     }

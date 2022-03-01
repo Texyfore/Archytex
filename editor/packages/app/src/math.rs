@@ -1,4 +1,4 @@
-use cgmath::{InnerSpace, Vector3};
+use cgmath::{ElementWise, InnerSpace, Vector3, Zero};
 
 pub struct Ray {
     pub start: Vector3<f32>,
@@ -19,6 +19,12 @@ pub struct Plane {
 pub struct Sphere {
     pub origin: Vector3<f32>,
     pub radius: f32,
+}
+
+#[derive(Clone, Copy)]
+pub struct Aabb {
+    pub center: Vector3<f32>,
+    pub half_extent: Vector3<f32>,
 }
 
 pub trait Intersects<O> {
@@ -117,11 +123,56 @@ impl Intersects<Sphere> for Ray {
     }
 }
 
+impl Intersects<Aabb> for Ray {
+    fn intersects(&self, other: &Aabb) -> Option<Intersection> {
+        let ray_origin = self.start;
+        let ray_end = self.end;
+
+        let ray_dir = ray_end - ray_origin;
+
+        let t_min = (other.min() - ray_origin).div_element_wise(ray_dir);
+        let t_max = (other.max() - ray_origin).div_element_wise(ray_dir);
+        let t1 = t_min.min(t_max);
+        let t2 = t_min.max(t_max);
+        let near = t1.x.max(t1.y).max(t1.z);
+        let far = t2.x.min(t2.y).min(t2.z);
+
+        (near < far).then(|| Intersection {
+            point: self.start + (self.end - self.start) * near,
+            normal: Vector3::zero(),
+        })
+    }
+}
+
 impl Triangle {
     pub fn normal(&self) -> Vector3<f32> {
         let edge0 = self.b - self.a;
         let edge1 = self.c - self.a;
         edge0.cross(edge1).normalize()
+    }
+}
+
+impl Aabb {
+    pub fn min(&self) -> Vector3<f32> {
+        self.center - self.half_extent
+    }
+
+    pub fn max(&self) -> Vector3<f32> {
+        self.center + self.half_extent
+    }
+
+    pub fn translate(self, position: Vector3<f32>) -> Self {
+        Self {
+            center: self.center + position,
+            half_extent: self.half_extent,
+        }
+    }
+
+    pub fn scale_from_origin(self, scale: f32) -> Self {
+        Self {
+            center: self.center * scale,
+            half_extent: self.half_extent * scale,
+        }
     }
 }
 
