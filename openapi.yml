@@ -270,7 +270,7 @@ paths:
           description: Unauthorized
         '404':
           description: Project not found
-  /project/{id}/render:
+  /project/{id}/render/{width}/{height}/{samples}:
     post:
       summary: Sends project to render queue
       tags:

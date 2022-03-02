@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"strconv"
 	"time"
 
 	"github.com/Texyfore/Archytex/backend/database"
@@ -54,12 +55,40 @@ func Render(w http.ResponseWriter, r *http.Request) {
 			logging.Error(w, r, nil, "Project not specified", http.StatusBadRequest)
 			return
 		}
+		_width, _ := params["width"]
+		width, err := strconv.Atoi(_width)
+		if err != nil {
+			logging.Error(w, r, err, "invalid width field", http.StatusBadRequest)
+			return
+		}
+		_height, _ := params["height"]
+		height, err := strconv.Atoi(_height)
+		if err != nil {
+			logging.Error(w, r, err, "invalid height field", http.StatusBadRequest)
+			return
+		}
+		_samples, _ := params["samples"]
+		samples, err := strconv.Atoi(_samples)
+		if err != nil {
+			logging.Error(w, r, err, "invalid samples field", http.StatusBadRequest)
+			return
+		}
+		if width%4 != 0 || height%4 != 0 {
+			logging.Error(w, r, err, "Width and Height have to be divisible by 4", http.StatusBadRequest)
+			return
+		}
 		projectId, err := primitive.ObjectIDFromHex(_projectId)
 		if err != nil {
 			logging.Error(w, r, err, "invalid project id", http.StatusBadRequest)
 			return
 		}
-		id, err := database.CurrentDatabase.CreateRender(session.User.Id, projectId, "PLACEHOLDER")
+		project, err := database.CurrentDatabase.GetProject(session.User.Id, projectId)
+		if err != nil || project == nil {
+			logging.Error(w, r, err, "could not find project", http.StatusNotFound)
+			return
+		}
+		name := fmt.Sprintf("%s-%d", project.Title, len(project.Renders)+1)
+		id, err := database.CurrentDatabase.CreateRender(session.User.Id, projectId, name)
 		if err != nil {
 			logging.Error(w, r, err, "couldn't create render", http.StatusInternalServerError)
 			return
@@ -73,17 +102,17 @@ func Render(w http.ResponseWriter, r *http.Request) {
 			logging.Error(w, r, err, "couldn't create render", http.StatusBadGateway)
 			return
 		}
-		err = database.RedisClient.Set(ctx, fmt.Sprintf("archyrt:%s:width", task_id), 512, 0).Err()
+		err = database.RedisClient.Set(ctx, fmt.Sprintf("archyrt:%s:width", task_id), width, 0).Err()
 		if err != nil {
 			logging.Error(w, r, err, "couldn't create render", http.StatusInternalServerError)
 			return
 		}
-		err = database.RedisClient.Set(ctx, fmt.Sprintf("archyrt:%s:height", task_id), 512, 0).Err()
+		err = database.RedisClient.Set(ctx, fmt.Sprintf("archyrt:%s:height", task_id), height, 0).Err()
 		if err != nil {
 			logging.Error(w, r, err, "couldn't create render", http.StatusInternalServerError)
 			return
 		}
-		err = database.RedisClient.Set(ctx, fmt.Sprintf("archyrt:%s:samples", task_id), 4, 0).Err()
+		err = database.RedisClient.Set(ctx, fmt.Sprintf("archyrt:%s:samples", task_id), samples, 0).Err()
 		if err != nil {
 			logging.Error(w, r, err, "couldn't create render", http.StatusInternalServerError)
 			return
