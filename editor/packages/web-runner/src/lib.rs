@@ -83,7 +83,6 @@ impl Sender {
         self.tx.send(FromHost::Prop(id)).unwrap();
     }
 
-    #[wasm_bindgen]
     pub fn movement(&self, x: f32, y: f32) {
         self.tx.send(FromHost::Movement(x, y)).unwrap();
     }
@@ -91,6 +90,10 @@ impl Sender {
     #[wasm_bindgen(js_name = "setPointerLock")]
     pub fn set_pointer_lock(&self, lock: bool) {
         self.tx.send(FromHost::LockPointer(lock)).unwrap();
+    }
+
+    pub fn button(&self, index: i32) {
+        self.tx.send(FromHost::Button(index)).unwrap();
     }
 }
 
