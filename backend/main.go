@@ -84,7 +84,7 @@ func main() {
 	auth.HandleFunc("/project", authenticated.Project).Methods("POST")
 	auth.HandleFunc("/project/{id}", authenticated.Project).Methods("DELETE", "PATCH")
 	auth.HandleFunc("/project/{id}/data", authenticated.ProjectData).Methods("GET", "POST")
-	auth.HandleFunc("/project/{id}/render", authenticated.Render).Methods("POST")
+	auth.HandleFunc("/project/{id}/render/{width}/{height}/{samples}", authenticated.Render).Methods("POST")
 	auth.HandleFunc("/project/{id}/render/{render}", authenticated.Render).Methods("DELETE")
 
 	http.Handle("/", r)
