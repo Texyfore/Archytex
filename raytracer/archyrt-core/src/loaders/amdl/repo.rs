@@ -80,6 +80,7 @@ impl PropRepository {
 struct PropInfo {
     pub id: u32,
     pub url: String,
+    pub has_emission: Option<bool>
 }
 
 pub fn load_into(repo: &mut PropRepository, directory: &str) -> Result<()> {
@@ -88,15 +89,17 @@ pub fn load_into(repo: &mut PropRepository, directory: &str) -> Result<()> {
     let json: Vec<PropInfo> = serde_json::from_reader(propsjson)?;
     for prop in json {
         let path = Path::new(directory).join(prop.url);
+        let has_emission = prop.has_emission.or(Some(false)).unwrap();
         repo.insert(
             PropType::default(prop.id),
-            AMDLLoader::from_path(path)?
+            AMDLLoader::from_path(path, has_emission)?
         );
     }
     Ok(())
 }
 
 
+#[derive(Clone)]
 pub struct PropRequest{
     pub prop: PropID,
     pub position: Vec3,

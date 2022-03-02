@@ -7,10 +7,10 @@ use archyrt_core::{
     intersectables::bvh::BVH,
     loaders::{
         ascn::{amdl_textures, ASCNLoader},
-        Loader,
+        Loader, amdl::{repo::PropRepository, self},
     },
     renderers::{solid_renderers::{albedo::AlbedoRenderer, normal::NormalRenderer}, sampling::SamplingRenderer},
-    textures::texture_repo::TextureRepository, vector, utilities::math::Vec3, tonemapping::tonemap_fragment, cameras::jitter::JitterCamera,
+    textures::texture_repo::TextureRepository, vector, utilities::{math::Vec3, ray::Intersectable}, tonemapping::tonemap_fragment, cameras::jitter::JitterCamera,
 };
 use dotenv::dotenv;
 
@@ -37,56 +37,63 @@ async fn handle_job(
     response_queue: Queue,
     task_queue: Queue,
     textures: Arc<TextureRepository>,
+    props: Arc<PropRepository>,
 ) -> Result<()> {
     let response_queue = response_queue.name().as_str();
     let task_queue = task_queue.name().as_str();
-    let s = String::from_utf8(delivery.data)?;
+    let s = String::from_utf8(delivery.data).unwrap();
     let s: Vec<&str> = s.split('#').collect();
     let user = s[1];
     let project_id = s[2];
     let s = s[0].to_string();
-    let user: ObjectId = ObjectId::parse_str(user)?;
-    let project_id: ObjectId = ObjectId::parse_str(project_id)?;
-    let render_id: ObjectId = ObjectId::parse_str(&s)?;
+    let user: ObjectId = ObjectId::parse_str(user).unwrap();
+    let project_id: ObjectId = ObjectId::parse_str(project_id).unwrap();
+    let render_id: ObjectId = ObjectId::parse_str(&s).unwrap();
     println!("[{}] Received", render_id);
     let samples: i32 =
-        redis::Cmd::get(format!("archyrt:{}:samples", s)).query(&mut redis_client)?;
-    let width: usize = redis::Cmd::get(format!("archyrt:{}:width", s)).query(&mut redis_client)?;
+        redis::Cmd::get(format!("archyrt:{}:samples", s)).query(&mut redis_client).unwrap();
+    let width: usize = redis::Cmd::get(format!("archyrt:{}:width", s)).query(&mut redis_client).unwrap();
     let height: usize =
-        redis::Cmd::get(format!("archyrt:{}:height", s)).query(&mut redis_client)?;
+        redis::Cmd::get(format!("archyrt:{}:height", s)).query(&mut redis_client).unwrap();
     //Create image storage on Redis
     let image_key = format!("archyrt:{}:image", s);
-    redis::cmd("AI.TENSORSET")
+    let _: () = redis::cmd("AI.TENSORSET")
         .arg(&image_key)
         .arg("FLOAT")
-        .arg(width)
         .arg(height)
+        .arg(width)
         .arg(3)
-        .query(&mut redis_client)?;
+        .query(&mut redis_client).unwrap();
     let payload = s.clone();
     //Put as many tasks on the queue as there are samples
-    futures::stream::iter(0..samples)
-        .for_each(|_| async {
-            let id = Uuid::new_v4();
-            let payload = format!("{}#{}#{}", payload, id, response_queue);
-            let payload = payload.into_bytes();
-            channel
-                .clone()
-                .basic_publish(
-                    "",
-                    task_queue,
-                    Default::default(),
-                    payload,
-                    Default::default(),
-                )
-                .await
-                .unwrap();
-            
-        })
-        .await;
+    for x in 0..4 {
+        for y in 0..4{
+            let x = width/4*x;
+            let y = height/4*y;
+            futures::stream::iter(0..samples)
+                .for_each(|_| async {
+                    let id = Uuid::new_v4();
+                    let payload = format!("{}#{}#{}#{}#{}", payload, id, response_queue, x, y);
+                    let payload = payload.into_bytes();
+                    channel
+                        .clone()
+                        .basic_publish(
+                            "",
+                            task_queue,
+                            Default::default(),
+                            payload,
+                            Default::default(),
+                        )
+                        .await
+                        .unwrap();
+                    
+                })
+                .await;
+        }
+    }
     channel
         .basic_ack(delivery.delivery_tag, Default::default())
-        .await?;
+        .await.unwrap();
     let consumer_tag = format!("consumer_{}", s);
     let mut consumer = channel
         .basic_consume(
@@ -98,18 +105,43 @@ async fn handle_job(
             },
             Default::default(),
         )
-        .await?;
+        .await.unwrap();
     let mut counter = 0;
     println!("[{}] Waiting for workers to finish", render_id);
     while let Some(delivery) = consumer.next().await {
         let (_, _delivery) = delivery.unwrap();
+
+
+        let msg = String::from_utf8(_delivery.data).unwrap();
+        let msg: Vec<&str> = msg.split("#").collect();
+        let temp = msg[0];
+        let x: usize = msg[1].parse().unwrap();
+        let y: usize = msg[2].parse().unwrap();
+        //Add image to accumulator
+        let _: () = redis::cmd("AI.SCRIPTEXECUTE")
+            .arg("archyrt:scripts")
+            .arg("add")
+            .arg("INPUTS")
+            .arg(2)
+            .arg(&temp)
+            .arg(&image_key)
+            .arg("ARGS")
+            .arg(2)
+            .arg(x)
+            .arg(y)
+            .arg("OUTPUTS")
+            .arg(1)
+            .arg(&image_key)
+            .execute(&mut redis_client);
+        //Remove temporary storage
+        let _: () = redis::Cmd::del(temp).query(&mut redis_client).unwrap();
         counter += 1;
-        if counter >= samples {
+        if counter >= samples*16 {
             break;
         }
 
         //Update percentage
-        let percentage = (counter as f32) / (samples as f32);
+        let percentage = (counter as f32) / (samples as f32) / 16.0;
         users
             .update_many(
                 doc! {"_id": user},
@@ -121,13 +153,13 @@ async fn handle_job(
                     ])
                     .build(),
             )
-            .await?;
+            .await.unwrap();
     }
     channel
         .queue_delete(response_queue, Default::default())
-        .await?;
+        .await.unwrap();
     println!("[{}] Retrieving data", render_id);
-    redis::cmd("AI.SCRIPTEXECUTE")
+    let _: () = redis::cmd("AI.SCRIPTEXECUTE")
         .arg("archyrt:scripts")
         .arg("divide")
         .arg("INPUTS")
@@ -135,15 +167,15 @@ async fn handle_job(
         .arg(&image_key)
         .arg("ARGS")
         .arg(1)
-        .arg(counter)
+        .arg(samples)
         .arg("OUTPUTS")
         .arg(1)
         .arg(&image_key)
-        .query(&mut redis_client)?;
+        .query(&mut redis_client).unwrap();
     let image: Vec<u8> = redis::cmd("AI.TENSORGET")
         .arg(&image_key)
         .arg("BLOB")
-        .query(&mut redis_client)?;
+        .query(&mut redis_client).unwrap();
     let image: Vec<f32> = image
         .chunks(4)
         .map(|a| {
@@ -154,24 +186,22 @@ async fn handle_job(
 
     //Render Albedo and Normal
     let scene: Vec<u8> =
-        redis::Cmd::get(format!("archyrt:{}:scene", s)).query(&mut redis_client)?;
-    let scene = ASCNLoader::from_bytes(&scene)?;
-    let width: usize = redis::Cmd::get(format!("archyrt:{}:width", s)).query(&mut redis_client)?;
+        redis::Cmd::get(format!("archyrt:{}:scene", s)).query(&mut redis_client).unwrap();
+    let scene = ASCNLoader::from_bytes(&scene).unwrap();
+    let width: usize = redis::Cmd::get(format!("archyrt:{}:width", s)).query(&mut redis_client).unwrap();
     let height: usize =
-        redis::Cmd::get(format!("archyrt:{}:height", s)).query(&mut redis_client)?;
+        redis::Cmd::get(format!("archyrt:{}:height", s)).query(&mut redis_client).unwrap();
     let bvh = BVH::from_triangles(scene.get_triangles())
-        .ok_or_else(|| anyhow!("Unable to create BVH"))?;
+        .ok_or_else(|| anyhow!("Unable to create BVH")).unwrap();
+    let props = props.fulfill_all(scene.get_prop_requests()).unwrap();
     let camera = scene.get_camera();
+    let object = bvh.union(props);
     let albedo = AlbedoRenderer {
-        object: &bvh,
+        object: &object,
         camera: JitterCamera::new(&camera, width, height),
     };
-    let albedo = SamplingRenderer{
-        inner: albedo,
-        samples: 4
-    };
     let normal = NormalRenderer {
-        object: &bvh,
+        object: &object,
         camera: &camera,
     };
     let collector = RawCollector {};
@@ -188,8 +218,7 @@ async fn handle_job(
         .image_dimensions(width, height)
         .albedo_normal(&albedo, &normal)
         .clean_aux(true)
-        .filter(&image, &mut output)
-        .unwrap();
+        .filter(&image, &mut output).unwrap();
 
     println!("[{}] Saving", render_id);
     let mut image = image::RgbImage::new(width as u32, height as u32);
@@ -217,17 +246,22 @@ async fn handle_job(
     let path = Path::new(&env::var("IMAGES").unwrap())
         .join(s)
         .with_extension("png");
-    image.save(path)?;
-    users.update_many(doc! {"_id": user}, doc!{"$set":{"projects.$[project].renders.$[render].finished": DateTime::now(), "projects.$[project].renders.$[render].status": 1.0, "projects.$[project].renders.$[render].icon": render_id.to_hex()}}, UpdateOptions::builder().array_filters(vec![doc!{"render._id": render_id}, doc!{"project._id": project_id}]).build()).await?;
-    redis::Cmd::del(&image_key).query(&mut redis_client)?;
+    image.save(path).unwrap();
+    users.update_many(doc! {"_id": user}, doc!{"$set":{"projects.$[project].renders.$[render].finished": DateTime::now(), "projects.$[project].renders.$[render].status": 1.0, "projects.$[project].renders.$[render].icon": render_id.to_hex()}}, UpdateOptions::builder().array_filters(vec![doc!{"render._id": render_id}, doc!{"project._id": project_id}]).build()).await.unwrap();
+    let _: () = redis::Cmd::del(&image_key).query(&mut redis_client).unwrap();
     println!("[{}] Done!", render_id);
     Ok(())
 }
 
 static TORCHSCRIPT: &str = "
 def add(tensors: List[Tensor], keys: List[str], args: List[str]):
-    return tensors[0]+tensors[1]
-
+    x = int(args[0])
+    y = int(args[1])
+    w = tensors[0].shape[1]
+    h = tensors[0].shape[0]
+    t = torch.clone(tensors[1])
+    t[y:y+h,x:x+w,:] += tensors[0]
+    return t
 def divide(tensors: List[Tensor], keys: List[str], args: List[str]):
     return tensors[0]/int(args[0])
 ";
@@ -241,17 +275,17 @@ fn main() -> Result<()> {
     let mongodb_addr = env::var("MONGODB_ADDR").unwrap();
     env::var("IMAGES").unwrap();
     async_global_executor::block_on(async {
-        let mongodb_options = ClientOptions::parse(mongodb_addr).await?;
-        let mongodb_client = mongodb::Client::with_options(mongodb_options)?;
+        let mongodb_options = ClientOptions::parse(mongodb_addr).await.unwrap();
+        let mongodb_client = mongodb::Client::with_options(mongodb_options).unwrap();
         let db = mongodb_client.database("archytex");
         let users = db.collection::<Document>("users");
         let rabbitmq_client = Connection::connect(
             &amqp_addr,
             ConnectionProperties::default().with_default_executor(8),
         )
-        .await?;
-        let mut redis_client = redis::Client::open(redis_addr)?;
-        redis::cmd("AI.SCRIPTSTORE")
+        .await.unwrap();
+        let mut redis_client = redis::Client::open(redis_addr).unwrap();
+        let _: () = redis::cmd("AI.SCRIPTSTORE")
             .arg("archyrt:scripts")
             .arg("CPU")
             .arg("ENTRY_POINTS")
@@ -260,16 +294,16 @@ fn main() -> Result<()> {
             .arg("divide")
             .arg("SOURCE")
             .arg(TORCHSCRIPT)
-            .query(&mut redis_client)?;
+            .query(&mut redis_client).unwrap();
 
-        let channel = rabbitmq_client.create_channel().await?;
+        let channel = rabbitmq_client.create_channel().await.unwrap();
 
         let queue = channel
             .queue_declare("archyrt:dispatch", Default::default(), Default::default())
-            .await?;
+            .await.unwrap();
         let task_queue = channel
             .queue_declare("archyrt:taskqueue", Default::default(), Default::default())
-            .await?;
+            .await.unwrap();
 
         let mut consumer = channel
             .basic_consume(
@@ -278,10 +312,14 @@ fn main() -> Result<()> {
                 BasicConsumeOptions::default(),
                 FieldTable::default(),
             )
-            .await?;
+            .await.unwrap();
         let mut textures = TextureRepository::new();
-        amdl_textures::load_into(&mut textures, "../assets")?;
+        amdl_textures::load_into(&mut textures, "../assets").unwrap();
         let textures = Arc::new(textures);
+
+        let mut props = PropRepository::new();
+        amdl::repo::load_into(&mut props, "../assets").unwrap();
+        let props = Arc::new(props);
 
         while let Some(delivery) = consumer.next().await {
             let (_, delivery) = delivery.unwrap();
@@ -294,7 +332,7 @@ fn main() -> Result<()> {
                     },
                     Default::default(),
                 )
-                .await?;
+                .await.unwrap();
             async_global_executor::spawn(handle_job(
                 users.clone(),
                 redis_client.clone(),
@@ -303,6 +341,7 @@ fn main() -> Result<()> {
                 response_queue,
                 task_queue.clone(),
                 textures.clone(),
+                props.clone()
             ))
             .detach();
         }

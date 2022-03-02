@@ -24,6 +24,7 @@ use crate::{
 pub enum Material {
     Diffuse,
     Emissive { power: f64 },
+    DiffuseAndEmissive {emissive_texture: TextureID},
 }
 
 impl Default for Material {
@@ -37,7 +38,7 @@ const EPSILON: f64 = 0.00001;
 impl Material {
     pub fn reflect<C: ColorProvider>(self, intersection: Intersection<C>) -> Option<Ray> {
         match self {
-            Material::Diffuse => {
+            Material::Diffuse | Material::DiffuseAndEmissive{emissive_texture: _} => {
                 let p: [f64; 3] = UnitSphere.sample(&mut rand::thread_rng());
                 let p = Vec3::new(p[0], p[1], p[2]);
                 let p = if intersection.get_normal().dot(p) < 0.0 {
@@ -50,7 +51,7 @@ impl Material {
                     direction: p,
                 })
             }
-            Material::Emissive { power: _ } => None,
+            Material::Emissive { power: _ } => None
         }
     }
     pub fn color<C: ColorProvider>(
@@ -67,6 +68,11 @@ impl Material {
             Material::Emissive { power } => {
                 (*emissive) += intersection.get_color(repo) * power * (*diffusive);
             }
+            Material::DiffuseAndEmissive { emissive_texture } => {
+                (*emissive) += intersection.ref_color_provider().sample(repo, emissive_texture) * 50.0 * (*diffusive);
+                (*diffusive) *= intersection.get_color(repo);
+                
+            },
         }
     }
 }
@@ -119,11 +125,7 @@ impl<T: Camera, K: Intersectable> FragmentRender for PathTracer<T, K> {
                         }
                         //Default skybox color
                         _ => {
-                            Vec3::new(
-                                0xd4 as f64 / 255.0,
-                                0xe6 as f64 / 255.0,
-                                0xff as f64 / 255.0,
-                            ) * 3.0
+                            Vec3::default()
                         }
                     };
                     emissive += diffusive * sky_color;

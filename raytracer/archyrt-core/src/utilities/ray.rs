@@ -57,6 +57,10 @@ impl<C: ColorProvider> Intersection<C> {
     {
         self.0.color_provider.clone()
     }
+    pub fn ref_color_provider(&self) -> &C
+    {
+        &self.0.color_provider
+    }
     pub fn get_ray(&self) -> Ray {
         self.0.ray
     }
