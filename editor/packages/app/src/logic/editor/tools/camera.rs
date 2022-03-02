@@ -230,18 +230,44 @@ impl CameraTool {
 
         // Gizmos
 
+        self.translation_gizmo.set_visible(false);
         if let Some(center) = ctx.scene.calc_center(ctx.mode) {
-            self.translation_gizmo.set_position(center);
-            self.translation_gizmo.set_visible(true);
+            if !ctx.input.is_key_down(VirtualKeyCode::LShift) {
+                self.translation_gizmo.set_position(center);
+                self.translation_gizmo.set_visible(true);
 
-            if let Some(axis) = self
-                .translation_gizmo
-                .process(ctx.graphics, ctx.camera, ctx.input)
-            {
-                return Some(Box::new(GizmoMove::new(ctx.graphics, center, axis)));
+                if let Some(axis) =
+                    self.translation_gizmo
+                        .process(ctx.graphics, ctx.camera, ctx.input)
+                {
+                    let ray = ctx.camera.screen_ray(ctx.input.mouse_pos());
+
+                    match ctx.mode {
+                        ElementKind::Solid | ElementKind::Face | ElementKind::Point => {
+                            let elements = ctx.scene.take_solids(ctx.mode);
+                            return Some(Box::new(GizmoMove::new(
+                                ctx.graphics,
+                                &ray,
+                                center,
+                                ctx.mode,
+                                axis,
+                                elements,
+                            )));
+                        }
+                        ElementKind::Prop => {
+                            let elements = ctx.scene.take_props();
+                            return Some(Box::new(GizmoMove::new(
+                                ctx.graphics,
+                                &ray,
+                                center,
+                                ctx.mode,
+                                axis,
+                                elements,
+                            )));
+                        }
+                    }
+                }
             }
-        } else {
-            self.translation_gizmo.set_visible(false);
         }
 
         None
