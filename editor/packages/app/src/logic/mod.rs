@@ -4,13 +4,13 @@ mod elements;
 mod input;
 mod scene;
 
-use asset::{PropID, TextureID};
-use cgmath::vec2;
+use asset::{GizmoID, PropID, TextureID};
+use cgmath::{vec2, Matrix4, Zero};
 use winit::event::{ElementState, MouseButton, VirtualKeyCode};
 
 use crate::{
     data::PropInfoContainer,
-    graphics::{Canvas, Graphics},
+    graphics::{structures::GizmoInstance, Canvas, GizmoGroup, GizmoInstances, Graphics, Share},
     Host, ToHost,
 };
 
@@ -23,6 +23,7 @@ pub struct Logic {
     camera: Camera,
     scene: Scene,
     editor: Editor,
+    dummy: GizmoInstances,
 }
 
 impl Logic {
@@ -41,11 +42,22 @@ impl Logic {
             delta: ctx.delta,
         });
 
+        // HACK: Drawing an invisible gizmo at all times prevents the weird whiteout bug on web
+        let dummy = ctx.graphics.create_gizmo_instances(1);
+        ctx.graphics.write_gizmo_instances(
+            &dummy,
+            &[GizmoInstance {
+                matrix: Matrix4::zero(),
+                color: [0.0; 3],
+            }],
+        );
+
         Self {
             input,
             camera,
             scene,
             editor,
+            dummy,
         }
     }
 
@@ -133,6 +145,10 @@ impl Logic {
         canvas.set_camera_matrices(self.camera.matrices());
         self.scene.render(canvas, self.editor.mode());
         self.editor.render(canvas);
+        canvas.draw_gizmos(GizmoGroup {
+            gizmo: GizmoID(0),
+            instances: self.dummy.share(),
+        })
     }
 }
 
