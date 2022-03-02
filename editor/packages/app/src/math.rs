@@ -202,6 +202,7 @@ impl Line {
         //
 
         let v3 = other.direction.cross(self.direction);
+        todo!()
     }
 }
 

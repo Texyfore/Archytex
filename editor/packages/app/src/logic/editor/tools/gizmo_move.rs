@@ -37,4 +37,8 @@ impl Tool for GizmoMove {
     fn render(&self, canvas: &mut Canvas) {
         self.graphics.render(canvas);
     }
+
+    fn keep_old(&self) -> bool {
+        true
+    }
 }
