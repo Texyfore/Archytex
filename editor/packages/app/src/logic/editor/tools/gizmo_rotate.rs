@@ -76,8 +76,9 @@ impl Tool for GizmoRotate {
         if ctx.input.was_button_down_once(MouseButton::Left) {
             let props = self.props.drain(..).collect();
 
+            let delta = snap.snap(delta) as f32;
             ctx.scene
-                .insert_props_with_rotate(props, self.axis.angle(delta as f32));
+                .insert_props_with_rotate(props, self.axis.angle(delta));
 
             return Some(Box::new(CameraTool::new(ctx.graphics, false)));
         }
