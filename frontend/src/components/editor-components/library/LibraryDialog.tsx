@@ -136,7 +136,7 @@ export default function LibraryDialog({
       onClose={handleClose}
       scroll='paper'
       PaperComponent={PaperComponent}
-      PaperProps={{ style: { minHeight: "855px" } }}
+      PaperProps={{ style: { minHeight: "95%", maxHeight: "95%" } }}
     >
       <IconButton
         onClick={handleClose}

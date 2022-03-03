@@ -66,7 +66,31 @@ export default function Editor() {
     import("viewport").then((viewport) => {
       const channel = new viewport.Channel();
       setSender(channel.sender());
-      const callback = new viewport.Callback((_: any) => {});
+      const callback = new viewport.Callback(
+        (_: any) => {},
+        (modeIndex: number) => {
+          let mode: EditorMode = "solid";
+          switch (modeIndex) {
+            case 0:
+              mode = "solid";
+              break;
+            case 1:
+              mode = "face";
+              break;
+            case 2:
+              mode = "vertex";
+              break;
+            case 3:
+              mode = "prop";
+              break;
+            default:
+              mode = "solid";
+              break;
+          }
+          handleEditorModeChange(mode);
+          console.log(`mode ${mode}`);
+        }
+      );
       const resources = new viewport.Resources();
       viewport.run(channel, callback, resources);
     });
@@ -74,12 +98,37 @@ export default function Editor() {
 
   //Editor mode
   const [editorMode, setEditorMode] = useState<EditorMode>("solid");
-  const handleEditorModeChange = (e: any) => {
-    if (e.target.value != null) {
-      setEditorMode(e.target.value);
+  const handleEditorModeChange = (mode: EditorMode, send: boolean = false) => {
+    if (mode != null) {
+      //solid : 0
+      //face : 1
+      //vertex : 2
+      //prop : 3
+      //move : 4
+      //rotate : 5
+      setEditorMode(mode);
+      if (send) {
+        let modeIndex = 0;
+        switch (mode) {
+          case "solid":
+            modeIndex = 0;
+            break;
+          case "face":
+            modeIndex = 1;
+            break;
+          case "vertex":
+            modeIndex = 2;
+            break;
+          case "prop":
+            modeIndex = 3;
+            break;
+          default:
+            break;
+        }
+        sender.button(modeIndex);
+      }
     }
   };
-
   //Camera speed
   const [cameraSpeed, setCameraSpeed] = useState(50);
   const handleCameraSpeedChange = (e: any) => {
