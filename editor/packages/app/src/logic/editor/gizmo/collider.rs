@@ -1,11 +1,11 @@
-use cgmath::{vec3, MetricSpace, Vector2, Vector3};
+use cgmath::{vec3, MetricSpace, Vector2, Vector3, Zero};
 
 use crate::{
     logic::{
         camera::Camera,
         editor::{common::Axis, gizmo::Selection},
     },
-    math::{Aabb, Intersects},
+    math::{Aabb, Intersects, Torus2D},
 };
 
 pub struct ArrowCollider {
@@ -86,6 +86,57 @@ impl ArrowCollider {
         });
 
         hits.first().map(|hit| hit.selection)
+    }
+}
+
+pub struct ArcCollider {
+    tori: [Torus2D; 3],
+}
+
+impl Default for ArcCollider {
+    fn default() -> Self {
+        Self {
+            tori: Axis::all().map(|axis| Torus2D {
+                origin: Vector3::zero(),
+                normal: axis.unit(),
+                inner_radius: 0.35,
+                outer_radius: 0.6,
+            }),
+        }
+    }
+}
+
+impl ArcCollider {
+    pub fn hover_check(&self, info: HoverCheckInfo) -> Option<Axis> {
+        struct Hit {
+            axis: Axis,
+            point: Vector3<f32>,
+        }
+
+        let ray = info.camera.screen_ray(info.mouse_position);
+        let scale = info.camera.position().distance(info.gizmo_position) * 0.01 * 15.0;
+        let mut hits = Vec::new();
+
+        for (torus, axis) in self.tori.iter().zip(Axis::all().into_iter()) {
+            let torus = torus
+                .scale_from_origin(scale)
+                .translate(info.gizmo_position);
+
+            if let Some(intersection) = ray.intersects(&torus) {
+                hits.push(Hit {
+                    axis,
+                    point: intersection.point,
+                });
+            }
+        }
+
+        hits.sort_unstable_by(|a, b| {
+            let dist_a = ray.start.distance2(a.point);
+            let dist_b = ray.start.distance2(b.point);
+            dist_a.partial_cmp(&dist_b).unwrap()
+        });
+
+        hits.first().map(|hit| hit.axis)
     }
 }
 

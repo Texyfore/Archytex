@@ -115,3 +115,75 @@ impl ArrowGraphics {
         });
     }
 }
+
+pub struct ArcGraphics {
+    arcs: GizmoInstances,
+    sphere: GizmoInstances,
+}
+
+impl ArcGraphics {
+    pub fn new(graphics: &Graphics) -> Self {
+        Self {
+            arcs: graphics.create_gizmo_instances(3),
+            sphere: graphics.create_gizmo_instances(1),
+        }
+    }
+
+    pub fn modify(
+        &self,
+        graphics: &Graphics,
+        position: Vector3<f32>,
+        selected: Option<Axis>,
+        pressed: bool,
+    ) {
+        let translation = Matrix4::from_translation(position);
+
+        let arc_instances = Axis::all()
+            .into_iter()
+            .map(|axis| {
+                let mut color = axis.color();
+                let mut scale = 15.0;
+
+                if let Some(selected) = selected {
+                    if axis == selected {
+                        if pressed {
+                            color = [1.0; 3];
+                            scale = 18.0;
+                        } else {
+                            color[0] += 0.1;
+                            color[1] += 0.1;
+                            color[1] += 0.1;
+                            scale = 16.0;
+                        }
+                    }
+                }
+
+                GizmoInstance {
+                    matrix: translation * axis.rotation_from_y() * Matrix4::from_scale(scale),
+                    color,
+                }
+            })
+            .collect::<Vec<_>>();
+
+        graphics.write_gizmo_instances(&self.arcs, &arc_instances);
+        graphics.write_gizmo_instances(
+            &self.sphere,
+            &[GizmoInstance {
+                matrix: translation,
+                color: [1.0; 3],
+            }],
+        );
+    }
+
+    pub fn render(&self, canvas: &mut Canvas) {
+        canvas.draw_gizmos_no_depth(GizmoGroup {
+            gizmo: GizmoID(3),
+            instances: self.arcs.share(),
+        });
+
+        canvas.draw_gizmos_no_depth(GizmoGroup {
+            gizmo: GizmoID(0),
+            instances: self.sphere.share(),
+        });
+    }
+}

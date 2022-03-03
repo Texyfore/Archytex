@@ -1,12 +1,10 @@
-use std::f32::consts::PI;
-
-use cgmath::{Deg, Quaternion, Rotation3, Vector2, Vector3, Zero};
+use cgmath::{Quaternion, Vector2, Vector3, Zero};
 use winit::event::{MouseButton, VirtualKeyCode};
 
 use crate::{
     graphics::{structures::LineVertex, Canvas, LineMesh, LineMeshDescriptor, Share},
     logic::{
-        editor::common::Axis,
+        editor::common::{calc_angle, Axis, Snap},
         elements::{ElementKind, Movable, Prop},
         scene::{self, Action},
     },
@@ -178,35 +176,9 @@ impl Orientation {
     }
 
     fn angle(&self, angle: i32) -> Quaternion<f32> {
-        let angle = Deg(angle as f32);
         match self {
             Self::Undecided => Quaternion::new(1.0, 0.0, 0.0, 0.0),
-            Self::Decided { axis, .. } => match axis {
-                Axis::X => Quaternion::from_angle_x(angle),
-                Axis::Y => Quaternion::from_angle_y(angle),
-                Axis::Z => Quaternion::from_angle_z(angle),
-            },
+            Self::Decided { axis, .. } => axis.angle(angle as f32),
         }
     }
-}
-
-enum Snap {
-    None,
-    Deg15,
-}
-
-impl Snap {
-    fn snap(&self, x: i32) -> i32 {
-        match self {
-            Snap::None => x,
-            Snap::Deg15 => (x as f32 / 15.0) as i32 * 15,
-        }
-    }
-}
-
-fn calc_angle(origin: Vector2<f32>, pos: Vector2<f32>) -> i32 {
-    let vector = pos - origin;
-    let rad = vector.y.atan2(vector.x);
-    let deg = rad * (180.0 / PI);
-    -deg as i32
 }

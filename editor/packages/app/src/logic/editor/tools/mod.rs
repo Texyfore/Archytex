@@ -1,5 +1,6 @@
 mod camera;
 mod gizmo_move;
+mod gizmo_rotate;
 mod move_tool;
 mod new_solid;
 mod rotate_tool;

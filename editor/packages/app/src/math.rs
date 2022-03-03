@@ -1,4 +1,4 @@
-use cgmath::{ElementWise, InnerSpace, Matrix3, SquareMatrix, Vector3, Zero};
+use cgmath::{ElementWise, InnerSpace, Matrix3, MetricSpace, SquareMatrix, Vector3, Zero};
 
 pub struct Ray {
     pub start: Vector3<f32>,
@@ -25,6 +25,14 @@ pub struct Sphere {
 pub struct Aabb {
     pub center: Vector3<f32>,
     pub half_extent: Vector3<f32>,
+}
+
+#[derive(Clone, Copy)]
+pub struct Torus2D {
+    pub origin: Vector3<f32>,
+    pub normal: Vector3<f32>,
+    pub inner_radius: f32,
+    pub outer_radius: f32,
 }
 
 pub trait Intersects<O> {
@@ -154,6 +162,33 @@ impl Intersects<Aabb> for Ray {
     }
 }
 
+impl Intersects<Torus2D> for Ray {
+    fn intersects(&self, other: &Torus2D) -> Option<Intersection> {
+        let denom = other.normal.dot(self.direction());
+        if denom.abs() > 0.0001 {
+            let t = (other.origin - self.start).dot(other.normal) / denom;
+            if t >= 0.0 {
+                let point = self.start + self.direction() * t;
+                let dist = other.origin.distance2(point);
+                let range = {
+                    let a = other.inner_radius * other.inner_radius;
+                    let b = other.outer_radius * other.outer_radius;
+                    a..b
+                };
+
+                if range.contains(&dist) {
+                    return Some(Intersection {
+                        point,
+                        normal: other.normal,
+                    });
+                }
+            }
+        }
+
+        None
+    }
+}
+
 impl Triangle {
     pub fn normal(&self) -> Vector3<f32> {
         let edge0 = self.b - self.a;
@@ -182,6 +217,26 @@ impl Aabb {
         Self {
             center: self.center * scale,
             half_extent: self.half_extent * scale,
+        }
+    }
+}
+
+impl Torus2D {
+    pub fn translate(self, position: Vector3<f32>) -> Self {
+        Self {
+            origin: self.origin + position,
+            normal: self.normal,
+            inner_radius: self.inner_radius,
+            outer_radius: self.outer_radius,
+        }
+    }
+
+    pub fn scale_from_origin(self, scale: f32) -> Self {
+        Self {
+            origin: self.origin * scale,
+            normal: self.normal,
+            inner_radius: self.inner_radius * scale,
+            outer_radius: self.outer_radius * scale,
         }
     }
 }

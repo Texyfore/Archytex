@@ -1,4 +1,6 @@
-use cgmath::{vec3, Deg, Matrix4, SquareMatrix, Vector3};
+use std::f32::consts::PI;
+
+use cgmath::{vec3, Deg, Matrix4, Quaternion, Rotation3, SquareMatrix, Vector2, Vector3};
 
 use crate::graphics::structures::LineVertex;
 
@@ -78,4 +80,33 @@ impl Axis {
             Self::Z => Matrix4::identity(),
         }
     }
+
+    pub fn angle(&self, angle: f32) -> Quaternion<f32> {
+        match self {
+            Self::X => Quaternion::from_angle_x(Deg(angle)),
+            Self::Y => Quaternion::from_angle_y(Deg(angle)),
+            Self::Z => Quaternion::from_angle_z(Deg(angle)),
+        }
+    }
+}
+
+pub enum Snap {
+    None,
+    Deg15,
+}
+
+impl Snap {
+    pub fn snap(&self, x: i32) -> i32 {
+        match self {
+            Snap::None => x,
+            Snap::Deg15 => (x as f32 / 15.0) as i32 * 15,
+        }
+    }
+}
+
+pub fn calc_angle(origin: Vector2<f32>, pos: Vector2<f32>) -> i32 {
+    let vector = pos - origin;
+    let rad = vector.y.atan2(vector.x);
+    let deg = rad * (180.0 / PI);
+    -deg as i32
 }

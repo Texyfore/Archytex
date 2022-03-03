@@ -4,7 +4,10 @@ use winit::event::{MouseButton, VirtualKeyCode};
 use crate::{
     graphics::{Canvas, Graphics},
     logic::{
-        editor::{gizmo::TranslationGizmo, grid},
+        editor::{
+            gizmo::{RotationGizmo, TranslationGizmo},
+            grid,
+        },
         elements::{ElementKind, Movable, Prop, RaycastEndpoint, RaycastEndpointKind, Solid},
         scene::{self, Action},
     },
@@ -12,13 +15,15 @@ use crate::{
 };
 
 use super::{
-    gizmo_move::GizmoMove, move_tool::MoveTool, rotate_tool::RotateTool, Context, NewSolid, Tool,
+    gizmo_move::GizmoMove, gizmo_rotate::GizmoRotate, move_tool::MoveTool, rotate_tool::RotateTool,
+    Context, NewSolid, Tool,
 };
 
 pub struct CameraTool {
     last_click: Option<Vector2<f32>>,
     was_rotating: bool,
     translation_gizmo: TranslationGizmo,
+    rotation_gizmo: RotationGizmo,
 }
 
 impl CameraTool {
@@ -27,6 +32,7 @@ impl CameraTool {
             last_click: None,
             was_rotating,
             translation_gizmo: TranslationGizmo::new(graphics),
+            rotation_gizmo: RotationGizmo::new(graphics),
         }
     }
 
@@ -230,6 +236,29 @@ impl CameraTool {
 
         // Gizmos
 
+        self.rotation_gizmo.set_visible(false);
+        if ctx.mode == ElementKind::Prop && !ctx.input.is_key_down(VirtualKeyCode::LShift) {
+            if let Some(center) = ctx.scene.calc_center(ElementKind::Prop) {
+                self.rotation_gizmo.set_position(center);
+                self.rotation_gizmo.set_visible(true);
+
+                if let Some(axis) = self
+                    .rotation_gizmo
+                    .process(ctx.graphics, ctx.camera, ctx.input)
+                {
+                    let props = ctx.scene.take_props();
+                    return Some(Box::new(GizmoRotate::new(
+                        ctx.graphics,
+                        ctx.camera,
+                        ctx.input,
+                        props,
+                        center,
+                        axis,
+                    )));
+                }
+            }
+        }
+
         self.translation_gizmo.set_visible(false);
         if let Some(center) = ctx.scene.calc_center(ctx.mode) {
             if !ctx.input.is_key_down(VirtualKeyCode::LShift) {
@@ -339,6 +368,10 @@ impl Tool for CameraTool {
                 );
             }
 
+            if let Some(ret) = self.common(&mut ctx) {
+                return Some(ret);
+            }
+
             if matches!(ctx.mode, ElementKind::Prop) {
                 // New prop
                 if ctx.input.is_key_down(VirtualKeyCode::LControl)
@@ -375,12 +408,13 @@ impl Tool for CameraTool {
                 }
             }
 
-            self.common(&mut ctx)
+            None
         }
     }
 
     fn render(&self, canvas: &mut Canvas) {
         self.translation_gizmo.render(canvas);
+        self.rotation_gizmo.render(canvas);
     }
 
     fn can_switch(&self) -> bool {
