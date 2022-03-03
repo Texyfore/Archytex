@@ -4,22 +4,26 @@ use winit::event::MouseButton;
 use crate::{
     graphics::{Canvas, Graphics, LineMesh, LineMeshDescriptor, Share},
     logic::{
-        editor::{common::Axis, gizmo::ArrowGraphics, grid},
+        editor::{
+            gizmo::{ArrowGraphics, Selection},
+            grid,
+        },
         elements::Movable,
         ElementKind,
     },
-    math::{Ray, Snap},
+    math::{Intersects, Plane, Ray, Snap},
 };
 
 use super::{CameraTool, Context, Tool};
 
 pub struct GizmoMove<E> {
     mask: ElementKind,
-    axis: Axis,
+    selection: Selection,
     elements: Vec<(usize, E)>,
     center: Vector3<f32>,
     prev_delta: Vector3<i32>,
     correction: Vector3<f32>,
+    plane: Option<Plane>,
     graphics: ArrowGraphics,
     line: LineMesh,
 }
@@ -33,26 +37,46 @@ where
         ray: &Ray,
         center: Vector3<f32>,
         mask: ElementKind,
-        axis: Axis,
+        selection: Selection,
         elements: Vec<(usize, E)>,
-    ) -> Self {
+    ) -> Result<Self, Vec<(usize, E)>> {
         let arrows = ArrowGraphics::new_empty(graphics);
-        arrows.modify(graphics, center, Some(axis), true);
+        arrows.modify(graphics, center, Some(selection), true);
 
         let line = graphics.create_line_mesh(LineMeshDescriptor {
-            vertices: &axis.line_vertices(center),
+            vertices: &selection.line_vertices(center),
         });
 
-        Self {
+        let (correction, plane) = if selection.is_axis() {
+            (
+                ray.closest_point_on_line(center, selection.axis().unit()),
+                None,
+            )
+        } else {
+            let plane = Plane {
+                origin: center,
+                normal: selection.axis().unit(),
+            };
+
+            if let Some(intersection) = ray.intersects(&plane) {
+                let correction = intersection.point;
+                (correction, Some(plane))
+            } else {
+                return Err(elements);
+            }
+        };
+
+        Ok(Self {
             mask,
-            axis,
+            selection,
             elements,
             center,
             prev_delta: Vector3::zero(),
-            correction: ray.closest_point_on_line(center, axis.unit()),
+            correction,
+            plane,
             graphics: arrows,
             line,
-        }
+        })
     }
 }
 
@@ -62,7 +86,18 @@ where
 {
     fn process(&mut self, ctx: Context) -> Option<Box<dyn Tool>> {
         let ray = ctx.camera.screen_ray(ctx.input.mouse_pos());
-        let point = ray.closest_point_on_line(self.center, self.axis.unit()) - self.correction;
+
+        let point = if let Some(plane) = &self.plane {
+            let ray = ctx.camera.screen_ray(ctx.input.mouse_pos());
+            if let Some(intersection) = ray.intersects(plane) {
+                intersection.point - self.correction + intersection.normal * 0.001
+            } else {
+                return None;
+            }
+        } else {
+            ray.closest_point_on_line(self.center, self.selection.axis().unit()) - self.correction
+        };
+
         let delta = point.snap(grid(*ctx.grid));
         if delta != self.prev_delta {
             let delta2 = delta - self.prev_delta;
@@ -76,7 +111,7 @@ where
             self.graphics.modify(
                 ctx.graphics,
                 self.center + delta.map(|e| e as f32 * 0.01),
-                Some(self.axis),
+                Some(self.selection),
                 true,
             );
         }

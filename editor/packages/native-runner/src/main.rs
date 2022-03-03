@@ -77,6 +77,11 @@ fn resources() -> Vec<Resource> {
         },
         Resource {
             id: 2,
+            buf: include_bytes!("../../../assets/plane.agzm").to_vec(),
+            kind: ResourceKind::Gizmo,
+        },
+        Resource {
+            id: 3,
             buf: include_bytes!("../../../assets/arc.agzm").to_vec(),
             kind: ResourceKind::Gizmo,
         },

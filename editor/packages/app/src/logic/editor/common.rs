@@ -70,4 +70,12 @@ impl Axis {
             Self::Z => Matrix4::from_angle_x(Deg(90.0)),
         }
     }
+
+    pub fn plane_rotation_from_y(&self) -> Matrix4<f32> {
+        match self {
+            Self::X => Matrix4::from_angle_y(Deg(-90.0)),
+            Self::Y => Matrix4::from_angle_x(Deg(90.0)),
+            Self::Z => Matrix4::identity(),
+        }
+    }
 }

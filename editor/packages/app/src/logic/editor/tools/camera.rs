@@ -236,7 +236,7 @@ impl CameraTool {
                 self.translation_gizmo.set_position(center);
                 self.translation_gizmo.set_visible(true);
 
-                if let Some(axis) =
+                if let Some(selection) =
                     self.translation_gizmo
                         .process(ctx.graphics, ctx.camera, ctx.input)
                 {
@@ -245,25 +245,41 @@ impl CameraTool {
                     match ctx.mode {
                         ElementKind::Solid | ElementKind::Face | ElementKind::Point => {
                             let elements = ctx.scene.take_solids(ctx.mode);
-                            return Some(Box::new(GizmoMove::new(
+
+                            let tool = GizmoMove::new(
                                 ctx.graphics,
                                 &ray,
                                 center,
                                 ctx.mode,
-                                axis,
+                                selection,
                                 elements,
-                            )));
+                            );
+
+                            match tool {
+                                Ok(tool) => return Some(Box::new(tool)),
+                                Err(elements) => {
+                                    ctx.scene.insert_solids(elements);
+                                }
+                            };
                         }
                         ElementKind::Prop => {
                             let elements = ctx.scene.take_props();
-                            return Some(Box::new(GizmoMove::new(
+
+                            let tool = GizmoMove::new(
                                 ctx.graphics,
                                 &ray,
                                 center,
                                 ctx.mode,
-                                axis,
+                                selection,
                                 elements,
-                            )));
+                            );
+
+                            match tool {
+                                Ok(tool) => return Some(Box::new(tool)),
+                                Err(elements) => {
+                                    ctx.scene.insert_props(elements);
+                                }
+                            };
                         }
                     }
                 }
