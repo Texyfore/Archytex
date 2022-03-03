@@ -76,7 +76,7 @@ impl Tool for RotateTool {
                 ctx.scene
                     .insert_props_with_rotate(props, self.orientation.angle(delta));
 
-                return Some(Box::new(CameraTool::new(ctx.graphics, true)));
+                return Some(Box::new(CameraTool::new(ctx.graphics, false)));
             }
         } else {
             self.orientation.update(&ctx, &mut self.props);

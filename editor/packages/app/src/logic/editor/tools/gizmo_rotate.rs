@@ -79,7 +79,7 @@ impl Tool for GizmoRotate {
             ctx.scene
                 .insert_props_with_rotate(props, self.axis.angle(delta as f32));
 
-            return Some(Box::new(CameraTool::new(ctx.graphics, true)));
+            return Some(Box::new(CameraTool::new(ctx.graphics, false)));
         }
 
         None
