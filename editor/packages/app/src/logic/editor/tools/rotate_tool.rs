@@ -64,7 +64,9 @@ impl Tool for RotateTool {
             if delta != self.angle {
                 for ((_, prop), original) in self.props.iter_mut().zip(self.originals.iter()) {
                     let snapped = snap.snap(delta);
-                    prop.set_rotation(self.orientation.angle(snapped) * original);
+                    prop.set_rotation(
+                        self.orientation.angle(snapped, ctx.camera.forward()) * original,
+                    );
                     prop.recalc(ctx.graphics);
                 }
                 self.angle = delta;
@@ -73,7 +75,9 @@ impl Tool for RotateTool {
             if ctx.input.is_button_down_once(MouseButton::Left) {
                 let props = self.props.drain(..).collect();
 
-                let delta = self.orientation.angle(snap.snap(delta));
+                let delta = self
+                    .orientation
+                    .angle(snap.snap(delta), ctx.camera.forward());
                 ctx.scene.insert_props_with_rotate(props, delta);
 
                 return Some(Box::new(CameraTool::new(ctx.graphics, false)));
@@ -175,10 +179,10 @@ impl Orientation {
         }
     }
 
-    fn angle(&self, angle: i32) -> Quaternion<f32> {
+    fn angle(&self, angle: i32, forward: Vector3<f32>) -> Quaternion<f32> {
         match self {
             Self::Undecided => Quaternion::new(1.0, 0.0, 0.0, 0.0),
-            Self::Decided { axis, .. } => axis.angle(angle as f32),
+            Self::Decided { axis, .. } => axis.angle(angle as f32, forward),
         }
     }
 }

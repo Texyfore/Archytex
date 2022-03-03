@@ -81,11 +81,11 @@ impl Axis {
         }
     }
 
-    pub fn angle(&self, angle: f32) -> Quaternion<f32> {
+    pub fn angle(&self, angle: f32, forward: Vector3<f32>) -> Quaternion<f32> {
         match self {
-            Self::X => Quaternion::from_angle_x(Deg(angle)),
-            Self::Y => Quaternion::from_angle_y(Deg(angle)),
-            Self::Z => Quaternion::from_angle_z(Deg(angle)),
+            Self::X => Quaternion::from_angle_x(Deg(angle * -forward.x.signum())),
+            Self::Y => Quaternion::from_angle_y(Deg(angle * -forward.y.signum())),
+            Self::Z => Quaternion::from_angle_z(Deg(angle * -forward.z.signum())),
         }
     }
 }

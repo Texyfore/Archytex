@@ -67,7 +67,7 @@ impl Tool for GizmoRotate {
         if delta != self.angle {
             for ((_, prop), original) in self.props.iter_mut().zip(self.originals.iter()) {
                 let snapped = snap.snap(delta) as f32;
-                prop.set_rotation(self.axis.angle(snapped) * original);
+                prop.set_rotation(self.axis.angle(snapped, ctx.camera.forward()) * original);
                 prop.recalc(ctx.graphics);
             }
             self.angle = delta;
@@ -78,7 +78,7 @@ impl Tool for GizmoRotate {
 
             let delta = snap.snap(delta) as f32;
             ctx.scene
-                .insert_props_with_rotate(props, self.axis.angle(delta));
+                .insert_props_with_rotate(props, self.axis.angle(delta, ctx.camera.forward()));
 
             return Some(Box::new(CameraTool::new(ctx.graphics, false)));
         }
