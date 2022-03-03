@@ -121,12 +121,12 @@ impl Host for Callback {
             ToHost::SceneSaved(buf) => {
                 self.scene_saved
                     .call1(&JsValue::NULL, &Uint8Array::from(buf.as_slice()))
-                    .unwrap();
+                    .ok();
             }
             ToHost::Button(button) => {
                 self.button_feedback
                     .call1(&JsValue::NULL, &JsValue::from(button))
-                    .unwrap();
+                    .ok();
             }
         }
     }

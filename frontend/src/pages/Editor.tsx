@@ -14,16 +14,30 @@ import CameraSettingsButton from "../components/editor-components/CameraSettings
 import GridSettingsButton from "../components/editor-components/GridSettingsButton";
 
 import useNotification from "../services/hooks/useNotification";
+import Texture from "../services/types/Texture";
+import Prop from "../services/types/Prop";
+import getTextures from "../services/libraries/TextureItems";
+import getProps from "../services/libraries/PropItems";
 
 type EditorMode = "solid" | "face" | "vertex" | "prop";
-type LibraryType = "textureLibrary" | "propLibrary";
 
 export default function Editor() {
   // Get project ID
   const { projectId } = useParams<{ projectId: string }>();
 
-  // Library type
-  const [libraryType, setLibraryType] = useState<LibraryType>("textureLibrary");
+  // Selected texture
+  const textures = getTextures();
+  const [texture, setTexture] = useState<Texture>(textures[0]);
+  const handleTextureChange = (texture: Texture) => {
+    setTexture(texture);
+  };
+
+  // Selected prop
+  const props = getProps();
+  const [prop, setProp] = useState<Prop>(props[0]);
+  const handlePropChange = (prop: Prop) => {
+    setProp(prop);
+  };
 
   // App bar button click
   const handleAppBarButtonClick = () => {};
@@ -45,8 +59,6 @@ export default function Editor() {
         width * window.devicePixelRatio,
         height * window.devicePixelRatio
       );
-
-      console.log("width: ", width, " height: ", height);
     }
   }, [width, height, sender]);
 
@@ -54,7 +66,31 @@ export default function Editor() {
     import("viewport").then((viewport) => {
       const channel = new viewport.Channel();
       setSender(channel.sender());
-      const callback = new viewport.Callback((_: any) => {}, (_: any) => {});
+      const callback = new viewport.Callback(
+        (_: any) => {},
+        (modeIndex: number) => {
+          let mode: EditorMode = "solid";
+          switch (modeIndex) {
+            case 0:
+              mode = "solid";
+              break;
+            case 1:
+              mode = "face";
+              break;
+            case 2:
+              mode = "vertex";
+              break;
+            case 3:
+              mode = "prop";
+              break;
+            default:
+              mode = "solid";
+              break;
+          }
+          handleEditorModeChange(mode);
+          console.log(`mode ${mode}`);
+        }
+      );
       const resources = new viewport.Resources();
       viewport.run(channel, callback, resources);
     });
@@ -62,12 +98,37 @@ export default function Editor() {
 
   //Editor mode
   const [editorMode, setEditorMode] = useState<EditorMode>("solid");
-  const handleEditorModeChange = (e: any) => {
-    if (e.target.value != null) {
-      setEditorMode(e.target.value);
+  const handleEditorModeChange = (mode: EditorMode, send: boolean = false) => {
+    if (mode != null) {
+      //solid : 0
+      //face : 1
+      //vertex : 2
+      //prop : 3
+      //move : 4
+      //rotate : 5
+      setEditorMode(mode);
+      if (send) {
+        let modeIndex = 0;
+        switch (mode) {
+          case "solid":
+            modeIndex = 0;
+            break;
+          case "face":
+            modeIndex = 1;
+            break;
+          case "vertex":
+            modeIndex = 2;
+            break;
+          case "prop":
+            modeIndex = 3;
+            break;
+          default:
+            break;
+        }
+        sender.button(modeIndex);
+      }
     }
   };
-
   //Camera speed
   const [cameraSpeed, setCameraSpeed] = useState(50);
   const handleCameraSpeedChange = (e: any) => {
@@ -87,9 +148,15 @@ export default function Editor() {
     <>
       <EditorAppBar onSave={handleAppBarButtonClick} />
       <Box width='100%' height='48px'></Box>
+
       <Box display='flex' height={`calc(100vh - 48px)`} overflow='hidden'>
         <Box width='100%' height='100%' ref={observe} bgcolor='#0c0c0c' />
-        <EditorMenu libraryType={libraryType} />
+        <EditorMenu
+          texture={texture}
+          handleTextureChange={handleTextureChange}
+          prop={prop}
+          handlePropChange={handlePropChange}
+        />
       </Box>
 
       <canvas

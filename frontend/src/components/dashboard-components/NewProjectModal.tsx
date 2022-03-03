@@ -36,13 +36,11 @@ interface Parameters {
   modalOpen: boolean;
   handleModalOpen: () => void;
   handleModalClose: () => void;
-  feedbackSnackbar: (text: string, severity: AlertColor) => void;
 }
 
 export default function NewProjectModal({
   handleModalClose,
   modalOpen,
-  feedbackSnackbar,
 }: Parameters) {
   const { t } = useTranslation();
 
@@ -70,14 +68,15 @@ export default function NewProjectModal({
     projectsDispatch({
       type: "create",
       name: name,
-    }).then(()=>{
-      setName("");
-      handleClose();
-      addNotification(t("project_created_successfully"), "success");
-    }).catch((error) => {
-      handleError(error.message);
-    });
-
+    })
+      .then(() => {
+        setName("");
+        handleClose();
+        addNotification(t("project_created_successfully"), "success");
+      })
+      .catch((error) => {
+        handleError(error.message);
+      });
   };
 
   const handleClose = () => {

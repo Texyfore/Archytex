@@ -11,7 +11,7 @@ import Modal from "@mui/material/Modal";
 
 import { Close } from "@mui/icons-material";
 
-import { Render } from "../../../../services/projects";
+import { Render } from "../../../services/projects";
 
 import RenderDetailsStack from "./RenderDetailsStack";
 

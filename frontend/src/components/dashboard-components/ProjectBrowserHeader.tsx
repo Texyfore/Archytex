@@ -69,7 +69,6 @@ export default function ProjectBrowserHeader({
         modalOpen={newProjectModalOpen}
         handleModalOpen={handleNewProjectModalOpen}
         handleModalClose={handleNewProjectModalClose}
-        feedbackSnackbar={() => {}}
       />
     </>
   );

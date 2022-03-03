@@ -11,7 +11,6 @@ export default function ProjectBrowser() {
   const [query, setQuery] = useState("");
   const handleQueryChange = (query: string) => {
     setQuery(query);
-    console.log(query);
   };
   return (
     <ProjectsProvider>

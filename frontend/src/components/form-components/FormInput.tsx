@@ -19,12 +19,18 @@ import {
   VpnKey,
 } from "@mui/icons-material";
 
-type Variant = "regular" | "username" | "password" | "email" | "repeatPassword";
+type Variant =
+  | "regular"
+  | "username"
+  | "password"
+  | "email"
+  | "repeatPassword"
+  | "number";
 
 interface Props {
   variant: Variant;
   label: string;
-  input: string;
+  input: string | number;
   inputChange: (e: any) => void;
   error: string;
 }
@@ -65,20 +71,29 @@ export default function FormInput({
     <Box
       display='flex'
       alignItems='flex-end'
-      width={variant === "regular" ? "100%" : "304px"}
+      width={variant === "regular" || variant === "number" ? "100%" : "304px"}
       marginTop={2}
       marginBottom={1}
     >
       {getIcon(variant)}
       <FormControl
-        sx={{ width: variant === "regular" ? "100%" : "304px" }}
+        sx={{
+          width:
+            variant === "regular" || variant === "number" ? "100%" : "304px",
+        }}
         variant='standard'
       >
-        <InputLabel htmlFor='adornment-password'>
-          <Typography color={error !== "" ? "error" : "info"}>
-            {label}
-          </Typography>
-        </InputLabel>
+        {variant === "number" ? (
+          <InputLabel shrink>
+            <Typography color='info'>{label}</Typography>
+          </InputLabel>
+        ) : (
+          <InputLabel htmlFor='adornment-password'>
+            <Typography color={error !== "" ? "error" : "info"}>
+              {label}
+            </Typography>
+          </InputLabel>
+        )}
         <Input
           error={error !== ""}
           required
@@ -88,6 +103,8 @@ export default function FormInput({
               ? showPassword
                 ? "text"
                 : "password"
+              : variant === "number"
+              ? "number"
               : "text"
           }
           endAdornment={

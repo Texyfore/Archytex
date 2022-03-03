@@ -8,7 +8,7 @@ import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
 import Divider from "@mui/material/Divider";
 
-import { Render } from "../../../../services/projects";
+import { Render } from "../../../services/projects";
 
 const Item = styled(Paper)(({ theme }) => ({
   ...theme.typography.body1,
@@ -37,6 +37,15 @@ export default function RenderDetailsStack({ render }: Props) {
         <Item>
           {render.status === 1 ? t("finished") : `${render.status * 100}%`}
         </Item>
+        {/* TODO: get render resolution and samples */}
+        <Typography textAlign='center'>
+          {t("resolution").toUpperCase()}
+        </Typography>
+        <Item>resolution goes here</Item>
+        <Typography textAlign='center'>
+          {t("sample_count").toUpperCase()}
+        </Typography>
+        <Item>samples goes here</Item>
         <Typography textAlign='center'>{t("started").toUpperCase()}</Typography>
         <Item>
           {(render.started + "").split(" ").map((string, index) => {
