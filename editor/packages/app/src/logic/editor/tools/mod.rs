@@ -1,4 +1,6 @@
 mod camera;
+mod gizmo_move;
+mod gizmo_rotate;
 mod move_tool;
 mod new_solid;
 mod rotate_tool;
@@ -21,6 +23,10 @@ pub trait Tool {
     fn render(&self, _canvas: &mut Canvas) {}
 
     fn can_switch(&self) -> bool {
+        false
+    }
+
+    fn keep_old(&self) -> bool {
         false
     }
 }

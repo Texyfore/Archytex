@@ -134,7 +134,11 @@ impl Camera {
         self.rotation = camera.rotation;
     }
 
-    fn forward(&self) -> Vector3<f32> {
+    pub fn position(&self) -> Vector3<f32> {
+        self.position
+    }
+
+    pub fn forward(&self) -> Vector3<f32> {
         Matrix3::from_angle_y(Deg(self.rotation.y))
             * Matrix3::from_angle_x(Deg(self.rotation.x))
             * -Vector3::unit_z()

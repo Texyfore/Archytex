@@ -1,11 +1,10 @@
-use std::f32::consts::PI;
-
-use cgmath::{Deg, Quaternion, Rotation3, Vector2, Vector3, Zero};
+use cgmath::{Quaternion, Vector2, Vector3, Zero};
 use winit::event::{MouseButton, VirtualKeyCode};
 
 use crate::{
     graphics::{structures::LineVertex, Canvas, LineMesh, LineMeshDescriptor, Share},
     logic::{
+        editor::common::{calc_angle, Axis, Snap},
         elements::{ElementKind, Movable, Prop},
         scene::{self, Action},
     },
@@ -65,7 +64,9 @@ impl Tool for RotateTool {
             if delta != self.angle {
                 for ((_, prop), original) in self.props.iter_mut().zip(self.originals.iter()) {
                     let snapped = snap.snap(delta);
-                    prop.set_rotation(self.orientation.angle(snapped) * original);
+                    prop.set_rotation(
+                        self.orientation.angle(snapped, ctx.camera.forward()) * original,
+                    );
                     prop.recalc(ctx.graphics);
                 }
                 self.angle = delta;
@@ -73,11 +74,13 @@ impl Tool for RotateTool {
 
             if ctx.input.is_button_down_once(MouseButton::Left) {
                 let props = self.props.drain(..).collect();
-                
-                ctx.scene
-                    .insert_props_with_rotate(props, self.orientation.angle(delta));
 
-                return Some(Box::new(CameraTool::new(true)));
+                let delta = self
+                    .orientation
+                    .angle(snap.snap(delta), ctx.camera.forward());
+                ctx.scene.insert_props_with_rotate(props, delta);
+
+                return Some(Box::new(CameraTool::new(ctx.graphics, false)));
             }
         } else {
             self.orientation.update(&ctx, &mut self.props);
@@ -96,7 +99,7 @@ impl Tool for RotateTool {
                     Action::SetPropRotations(rotations),
                 );
 
-                return Some(Box::new(CameraTool::default()));
+                return Some(Box::new(CameraTool::new(ctx.graphics, false)));
             }
         }
 
@@ -110,7 +113,7 @@ impl Tool for RotateTool {
 
             let props = self.props.drain(..).collect();
             Prop::insert(ctx.scene, props);
-            return Some(Box::new(CameraTool::default()));
+            return Some(Box::new(CameraTool::new(ctx.graphics, false)));
         }
 
         None
@@ -176,60 +179,10 @@ impl Orientation {
         }
     }
 
-    fn angle(&self, angle: i32) -> Quaternion<f32> {
-        let angle = Deg(angle as f32);
+    fn angle(&self, angle: i32, forward: Vector3<f32>) -> Quaternion<f32> {
         match self {
             Self::Undecided => Quaternion::new(1.0, 0.0, 0.0, 0.0),
-            Self::Decided { axis, .. } => match axis {
-                Axis::X => Quaternion::from_angle_x(angle),
-                Axis::Y => Quaternion::from_angle_y(angle),
-                Axis::Z => Quaternion::from_angle_z(angle),
-            },
+            Self::Decided { axis, .. } => axis.angle(angle as f32, forward),
         }
     }
-}
-
-enum Axis {
-    X,
-    Y,
-    Z,
-}
-
-impl Axis {
-    fn unit(&self) -> Vector3<f32> {
-        match self {
-            Self::X => Vector3::unit_x(),
-            Self::Y => Vector3::unit_y(),
-            Self::Z => Vector3::unit_z(),
-        }
-    }
-
-    fn color(&self) -> [f32; 3] {
-        match self {
-            Self::X => [1.0, 0.0, 0.0],
-            Self::Y => [0.0, 1.0, 0.0],
-            Self::Z => [0.0, 0.0, 1.0],
-        }
-    }
-}
-
-enum Snap {
-    None,
-    Deg15,
-}
-
-impl Snap {
-    fn snap(&self, x: i32) -> i32 {
-        match self {
-            Snap::None => x,
-            Snap::Deg15 => (x as f32 / 15.0) as i32 * 15,
-        }
-    }
-}
-
-fn calc_angle(origin: Vector2<f32>, pos: Vector2<f32>) -> i32 {
-    let vector = pos - origin;
-    let rad = vector.y.atan2(vector.x);
-    let deg = rad * (180.0 / PI);
-    -deg as i32
 }

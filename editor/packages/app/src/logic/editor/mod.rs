@@ -1,3 +1,5 @@
+mod common;
+mod gizmo;
 mod tools;
 
 use asset::{PropID, TextureID};
@@ -25,6 +27,7 @@ use super::{
 
 pub struct Editor {
     tool: Box<dyn Tool>,
+    old_tool: Option<Box<dyn Tool>>,
     ground: Ground,
     mode: ElementKind,
     grid: i32,
@@ -35,7 +38,8 @@ pub struct Editor {
 impl Editor {
     pub fn init(ctx: Context) -> Self {
         Self {
-            tool: Box::new(CameraTool::default()),
+            tool: Box::new(CameraTool::new(ctx.graphics, false)),
+            old_tool: None,
             ground: Ground::new(ctx.graphics),
             mode: ElementKind::Solid,
             grid: 3,
@@ -45,6 +49,8 @@ impl Editor {
     }
 
     pub fn process(&mut self, ctx: Context) {
+        self.old_tool = None;
+
         let new = self.tool.process(tools::Context {
             input: ctx.input,
             graphics: ctx.graphics,
@@ -59,7 +65,11 @@ impl Editor {
         });
 
         if let Some(new) = new {
-            self.tool = new;
+            if self.tool.keep_old() {
+                self.old_tool = Some(std::mem::replace(&mut self.tool, new));
+            } else {
+                self.tool = new;
+            }
         }
 
         if self.tool.can_switch() {
@@ -112,7 +122,13 @@ impl Editor {
     }
 
     pub fn render(&self, canvas: &mut Canvas) {
-        self.tool.render(canvas);
+        let tool = if let Some(old) = &self.old_tool {
+            old
+        } else {
+            &self.tool
+        };
+
+        tool.render(canvas);
         self.ground.render(canvas);
     }
 }

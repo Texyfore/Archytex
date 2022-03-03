@@ -2,9 +2,9 @@ use cgmath::{vec3, Vector3, Zero};
 use winit::event::{MouseButton, VirtualKeyCode};
 
 use crate::{
-    graphics::{structures::LineVertex, Canvas, LineMesh, LineMeshDescriptor, Share},
+    graphics::{Canvas, LineMesh, LineMeshDescriptor, Share},
     logic::{
-        editor::grid,
+        editor::{common::Axis, grid},
         elements::{ElementKind, Movable},
         scene::{self, Action},
     },
@@ -87,14 +87,14 @@ where
         }
 
         self.line_mesh = Some(ctx.graphics.create_line_mesh(LineMeshDescriptor {
-            vertices: &axis.vertices(self.center),
+            vertices: &axis.line_vertices(self.center),
         }));
     }
 
     fn snap_exclude(&mut self, ctx: &Context, axis: Axis) {
         self.plane = Plane {
             origin: self.center,
-            normal: axis.to_vec3(),
+            normal: axis.unit(),
         };
 
         self.snap = MoveSnap::Plane(axis);
@@ -106,7 +106,7 @@ where
         let verts = axis
             .others()
             .into_iter()
-            .map(|axis| axis.vertices(self.center))
+            .map(|axis| axis.line_vertices(self.center))
             .flatten()
             .collect::<Vec<_>>();
 
@@ -168,7 +168,7 @@ where
                 E::insert_move(ctx.scene, elements, self.delta, self.mask);
             }
 
-            return Some(Box::new(CameraTool::default()));
+            return Some(Box::new(CameraTool::new(ctx.graphics, false)));
         }
 
         if ctx.input.is_button_down_once(MouseButton::Right)
@@ -193,7 +193,7 @@ where
                 );
             }
 
-            return Some(Box::new(CameraTool::default()));
+            return Some(Box::new(CameraTool::new(ctx.graphics, false)));
         }
 
         None
@@ -207,56 +207,6 @@ where
         if let Some(line_mesh) = &self.line_mesh {
             canvas.draw_lines(line_mesh.share());
         }
-    }
-}
-
-#[derive(Clone, Copy)]
-enum Axis {
-    X,
-    Y,
-    Z,
-}
-
-impl Axis {
-    fn others(&self) -> [Self; 2] {
-        match self {
-            Self::X => [Self::Y, Self::Z],
-            Self::Y => [Self::X, Self::Z],
-            Self::Z => [Self::X, Self::Y],
-        }
-    }
-
-    fn to_vec3(self) -> Vector3<f32> {
-        match self {
-            Self::X => Vector3::unit_x(),
-            Self::Y => Vector3::unit_y(),
-            Self::Z => Vector3::unit_z(),
-        }
-    }
-
-    fn vertices(&self, center: Vector3<f32>) -> [LineVertex; 2] {
-        let (min, max) = match self {
-            Self::X => (vec3(-1.0, 0.0, 0.0), vec3(1.0, 0.0, 0.0)),
-            Self::Y => (vec3(0.0, -1.0, 0.0), vec3(0.0, 1.0, 0.0)),
-            Self::Z => (vec3(0.0, 0.0, -1.0), vec3(0.0, 0.0, 1.0)),
-        };
-
-        let color = match self {
-            Self::X => [1.0, 0.0, 0.0],
-            Self::Y => [0.0, 1.0, 0.0],
-            Self::Z => [0.0, 0.0, 1.0],
-        };
-
-        [
-            LineVertex {
-                position: center + min * 1000.0,
-                color,
-            },
-            LineVertex {
-                position: center + max * 1000.0,
-                color,
-            },
-        ]
     }
 }
 
