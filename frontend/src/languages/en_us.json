@@ -65,7 +65,6 @@
     "about_section2_title": "Technologies",
     "about_section2_subtitle": "What did we use?",
     "about_section2_paragraph": "We used many technologies for this project such as Rust, React, Typescript, Material UI, WebGL, GO, Docker and Mongo DB. Many of the challanges during the project came from the fact that we tried to use fairly new frameworks that aren't necessarily stable yet.",
-    "launch_archytex": "Launch Archytex",
     "new_project": "New project",
     "loading_projects": "Loading projects…",
     "create_new_project": "Create new project",
