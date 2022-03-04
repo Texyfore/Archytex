@@ -159,7 +159,7 @@ export default function LibraryDialog({
               ? t("texture_library")
               : libraryType === "propLibrary"
               ? t("prop_library")
-              : t("library")}
+              : ""}
           </Typography>
         </Box>
         <Box display='flex' justifyContent='space-between'>

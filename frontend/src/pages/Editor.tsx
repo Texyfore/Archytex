@@ -9,7 +9,6 @@ import Box from "@mui/material/Box";
 import EditorMenu from "../components/editor-components/EditorMenu";
 import EditorAppBar from "../components/editor-components/EditorAppBar";
 import EditorModeButtons from "../components/editor-components/EditorModeButtons";
-import TranslateModeButtons from "../components/editor-components/TranslateModeButtons";
 import CameraSettingsButton from "../components/editor-components/CameraSettingsButton";
 import GridSettingsButton from "../components/editor-components/GridSettingsButton";
 
@@ -175,8 +174,6 @@ export default function Editor() {
         editorMode={editorMode}
         handleEditorModeChange={handleEditorModeChange}
       />
-
-      <TranslateModeButtons />
 
       <CameraSettingsButton
         cameraSpeed={cameraSpeed}
