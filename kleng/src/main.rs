@@ -1,17 +1,23 @@
-mod defs;
+mod compile;
+mod props;
 mod report;
-mod texture;
+mod textures;
 
-use clap::{ArgMatches, Command};
+use clap::{Arg, ArgMatches, Command};
+use compile::compile;
 
-use crate::{defs::parse_defs, texture::enumerate_textures};
+use crate::{props::parse_defs, textures::enumerate_textures};
 
 fn main() {
-    let _matches = cmd();
-    println!("{:?}", parse_defs("example/props/defs.json"));
-    println!("{:?}", enumerate_textures("example"));
+    let matches = cmd();
+    let root = matches.value_of("in").unwrap();
+    let textures = enumerate_textures(root);
+    let prop_defs = parse_defs(root);
+    compile(root, &textures, &prop_defs);
 }
 
 fn cmd() -> ArgMatches {
-    Command::new("kleng").get_matches()
+    Command::new("kleng")
+        .arg(Arg::new("in").required(true))
+        .get_matches()
 }

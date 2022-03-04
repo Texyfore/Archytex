@@ -1,4 +1,4 @@
-use std::{collections::HashMap, fs::File, path::Path};
+use std::{collections::HashMap, fs::File};
 
 use serde::{Deserialize, Serialize};
 
@@ -11,10 +11,8 @@ pub struct PropDef {
     pub textures: HashMap<String, String>,
 }
 
-pub fn parse_defs<P>(path: P) -> Vec<PropDef>
-where
-    P: AsRef<Path>,
-{
+pub fn parse_defs(root: &str) -> Vec<PropDef> {
+    let path = format!("{}/props/defs.json", root);
     let file = File::open(path).or_bail("couldn't open defs.json");
     serde_json::from_reader(&file).or_bail("couldn't parse defs.json")
 }

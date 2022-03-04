@@ -5,7 +5,7 @@ use std::{
     path::{Path, PathBuf},
 };
 
-use crate::report::{warn, OrBail};
+use crate::report::OrBail;
 
 #[derive(Debug)]
 pub struct Texture {
@@ -44,9 +44,7 @@ where
                 map.insert(name.to_owned(), Texture { id: *next_id, path });
                 *next_id += 1;
             }
-            _ => {
-                warn(&format!("skipping file `{:?}`", path));
-            }
+            _ => (),
         }
     }
 }
