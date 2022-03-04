@@ -117,7 +117,6 @@
     "save": "Save",
     "export": "Export",
     "render": "Render",
-    "outliner": "Outliner",
     "setup_render": "Setup render",
     "render_name": "Render name",
     "no_empty_render_name": "Render name can't be empty",
