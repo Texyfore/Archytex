@@ -4,7 +4,7 @@ mod resources;
 use std::rc::Rc;
 
 use asset::{GizmoID, PropID, TextureID};
-use gpu::{DepthBuffer, Gpu, InstanceConfig, Sampler, Surface, Uniform};
+use gpu::{DepthBuffer, Gpu, InstanceConfig, MsaaFramebuffer, Sampler, Surface, Uniform};
 
 use self::{pipelines::Pipelines, resources::Resources};
 
@@ -14,6 +14,7 @@ pub struct Renderer {
     gpu: Rc<Gpu>,
     surface: Rc<Surface>,
     depth_buffer: DepthBuffer,
+    msaa_buffer: MsaaFramebuffer,
     sampler: Sampler,
     pipelines: Pipelines,
     resources: Resources,
@@ -23,6 +24,7 @@ pub struct Renderer {
 impl Renderer {
     pub(super) fn new(gpu: Rc<Gpu>, surface: Rc<Surface>) -> Self {
         let depth_buffer = gpu.create_depth_buffer(800, 600);
+        let msaa_buffer = gpu.create_msaa_framebuffer(&surface, 800, 600);
         let sampler = gpu.create_sampler();
         let pipelines = Pipelines::new(&gpu, &surface);
         let resources = Resources::default();
@@ -32,6 +34,7 @@ impl Renderer {
             gpu,
             surface,
             depth_buffer,
+            msaa_buffer,
             sampler,
             pipelines,
             resources,
@@ -55,6 +58,9 @@ impl Renderer {
     pub fn resize(&mut self, width: u32, height: u32) {
         self.surface.configure(&self.gpu, width, height);
         self.depth_buffer = self.gpu.create_depth_buffer(width, height);
+        self.msaa_buffer = self
+            .gpu
+            .create_msaa_framebuffer(&self.surface, width, height);
     }
 
     pub fn render(&self, canvas: Canvas) {
@@ -62,7 +68,9 @@ impl Renderer {
         let mut frame = self.gpu.begin_frame(&self.surface);
 
         {
-            let mut pass = frame.begin_pass(&self.depth_buffer, &[0.537, 0.847, 1.0]);
+            let mut pass =
+                frame.begin_pass(&self.depth_buffer, &self.msaa_buffer, &[0.537, 0.847, 1.0]);
+
             pass.set_uniform(0, &self.camera);
 
             pass.set_pipeline(&self.pipelines.line);
@@ -119,7 +127,7 @@ impl Renderer {
         }
 
         {
-            let mut pass = frame.begin_pass_no_clear(&self.depth_buffer);
+            let mut pass = frame.begin_pass_no_clear(&self.depth_buffer, &self.msaa_buffer);
             pass.set_uniform(0, &self.camera);
 
             pass.set_pipeline(&self.pipelines.gizmo);

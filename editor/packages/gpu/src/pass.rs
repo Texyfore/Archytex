@@ -5,7 +5,7 @@ use wgpu::{
     RenderPassDepthStencilAttachment, RenderPassDescriptor, SurfaceTexture, TextureView,
 };
 
-use crate::{Buffer, DepthBuffer, Gpu, Pipeline, Surface, Texture, Uniform};
+use crate::{Buffer, DepthBuffer, Gpu, MsaaFramebuffer, Pipeline, Surface, Texture, Uniform};
 
 pub struct Frame {
     texture: SurfaceTexture,
@@ -26,15 +26,16 @@ pub struct InstanceConfig<'a, I> {
 impl Frame {
     pub fn begin_pass<'a>(
         &'a mut self,
-        depth_buffer: &'a DepthBuffer,
+        depth: &'a DepthBuffer,
+        msaa: &'a MsaaFramebuffer,
         clear_color: &[f32; 3],
     ) -> RenderPass {
         RenderPass {
             pass: self.encoder.begin_render_pass(&RenderPassDescriptor {
                 label: None,
                 color_attachments: &[RenderPassColorAttachment {
-                    view: &self.view,
-                    resolve_target: None,
+                    view: &msaa.view,
+                    resolve_target: Some(&self.view),
                     ops: Operations {
                         load: LoadOp::Clear(Color {
                             r: clear_color[0] as f64,
@@ -46,7 +47,7 @@ impl Frame {
                     },
                 }],
                 depth_stencil_attachment: Some(RenderPassDepthStencilAttachment {
-                    view: &depth_buffer.view,
+                    view: &depth.view,
                     depth_ops: Some(Operations {
                         load: LoadOp::Clear(1.0),
                         store: true,
@@ -57,20 +58,24 @@ impl Frame {
         }
     }
 
-    pub fn begin_pass_no_clear<'a>(&'a mut self, depth_buffer: &'a DepthBuffer) -> RenderPass {
+    pub fn begin_pass_no_clear<'a>(
+        &'a mut self,
+        depth: &'a DepthBuffer,
+        msaa: &'a MsaaFramebuffer,
+    ) -> RenderPass {
         RenderPass {
             pass: self.encoder.begin_render_pass(&RenderPassDescriptor {
                 label: None,
                 color_attachments: &[RenderPassColorAttachment {
-                    view: &self.view,
-                    resolve_target: None,
+                    view: &msaa.view,
+                    resolve_target: Some(&self.view),
                     ops: Operations {
                         load: LoadOp::Load,
                         store: true,
                     },
                 }],
                 depth_stencil_attachment: Some(RenderPassDepthStencilAttachment {
-                    view: &depth_buffer.view,
+                    view: &depth.view,
                     depth_ops: Some(Operations {
                         load: LoadOp::Clear(1.0),
                         store: true,
