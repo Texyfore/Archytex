@@ -1,8 +1,6 @@
 {
     "archytex": "Archytex",
     "just_a_moment": "Egy pillanat…",
-    "motto": "Emelje magasabb szintre építészeti látványterveit",
-    "learn_more": "Tudj meg többet",
     "what_is_archytex": "Mi az Archytex?",
     "p1": "Az Archytex egy alacsony hardverigényű 3 dimenziós építészeti design eszköz, egy gyors és erős sugárkövetéses renderelőmotorral összefűzve. Mindez végig a böngészőben.",
     "archviz_in_your_browser": "Építészeti látványterv a böngészőben",
@@ -22,12 +20,9 @@
     "product": "A termék",
     "features": "Funkciók",
     "pricing": "Ár",
-    "faq": "GyIK",
     "company": "Cég",
     "about": "Rólunk",
-    "contact": "Kapcsolat",
     "copyright": "Copyright",
-    "account": "Fiók",
     "subscription": "Előfizetés",
     "username": "Felhasználónév",
     "password": "Jelszó",
@@ -37,7 +32,6 @@
     "sign_up": "Regisztráció",
     "log_out": "Kilépés",
     "log_in_to_archytex": "Lépj be az Archytex-be",
-    "get_started_with_archytex": "Ismert meg az Archytex-et",
     "dont_have_an_account": "Nincs még fiókod?",
     "already_have_an_account": "Van már fiókod?",
     "or": "Vagy",
@@ -49,7 +43,6 @@
     "lbl1": "Kezd el most",
     "lbl2_title": "Villámgyors renderelő",
     "lbl2_button": "Feliratkozás",
-    "launch_archytex": "Archytex indítása",
     "email": "Email",
     "lbl2_subtitle": "Próbáld ki a szerver-oldali ray-tracing technológiánkat, most egy hónap ingyenes próba verzióval",
     "rotate_translate_mode": "Forgatás (E)",
@@ -112,5 +105,8 @@
     "accept": "Elfogadás",
     "recent": "Legutóbbi",
     "grid_settings": "Rács beállításai",
-    "camera_settings": "Kamera beállításai"
+    "camera_settings": "Kamera beállításai",
+    "texyfore": "Texyfore",
+    "logged_out": "Kiléptetett",
+    "successful_login": "Bejelentkeztél"
 }
