@@ -112,5 +112,8 @@
     "accept": "Elfogadás",
     "recent": "Legutóbbi",
     "grid_settings": "Rács beállításai",
-    "camera_settings": "Kamera beállításai"
+    "camera_settings": "Kamera beállításai",
+    "texyfore": "Texyfore",
+    "logged_out": "Kiléptetett",
+    "successful_login": "Bejelentkeztél"
 }
