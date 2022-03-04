@@ -88,7 +88,6 @@
     "vertex_select_mode": "Csúcs kijelölési mód (3)",
     "face_select_mode": "Lap kijelölési mód (2)",
     "mesh_select_mode": "Test kijelölési mód (1)",
-    "select_translate_mode": "Kijelölés (V)",
     "move_translate_mode": "Mozgatás (W)",
     "camera_speed": "Kamera sebesség",
     "grid_resolution": "Rács felbontás",
