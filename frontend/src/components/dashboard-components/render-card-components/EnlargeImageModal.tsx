@@ -11,6 +11,7 @@ import Grow from "@mui/material/Grow";
 import { Close } from "@mui/icons-material";
 
 import { Render } from "../../../services/projects";
+import Environment from "../../../env";
 
 interface Props {
   render: undefined | Render;
@@ -53,7 +54,7 @@ export default function EnlargeImageModal({ render, handleClose }: Props) {
               width='100%'
               height='undefined'
               style={{ objectFit: "scale-down" }}
-              src={render?.icon}
+              src={render !== undefined ? `${Environment.base_url}render/${render.icon}` : ""}
               alt={render?.name}
             />
           </Box>
