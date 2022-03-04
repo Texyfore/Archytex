@@ -78,8 +78,7 @@ var t_diffuse: texture_2d<f32>;
 [[group(2), binding(1)]]
 var s_diffuse: sampler;
 
-let GRID_DIST = 60.0;
-let GRID_STRENGTH = 0.2;
+let GRID_DIST = 30.0;
 
 [[stage(fragment)]]
 fn fragment(vertex: Vertex) -> Fragment {
@@ -96,14 +95,16 @@ fn fragment(vertex: Vertex) -> Fragment {
         var len = f32(vertex.grid_len) * 0.01;
         var gdist = GRID_DIST * len;
 
-        var x = (((vertex.texcoord.x * 4.0) % len + len) % len) / len;
-        var y = (((vertex.texcoord.y * 4.0) % len + len) % len) / len;
+        var x = (((vertex.texcoord.x * 5.0) % len + len) % len) / len;
+        var y = (((vertex.texcoord.y * 5.0) % len + len) % len) / len;
 
         var dist = distance(vertex.world_position, vertex.camera_position);
         var fade = (gdist - clamp(dist, 0.0, gdist)) / gdist;
+        var tovert = normalize(vertex.camera_position - vertex.world_position);
+        var flatness = dot(tovert, vertex.normal);
 
         if (x < 0.05 || x > 0.95 || y < 0.05 || y > 0.95) {
-            color_rgb = color_rgb + vec3<f32>(GRID_STRENGTH) * fade;
+            color_rgb = mix(color_rgb, vec3<f32>(1.0), fade * flatness);
         }
     }
 
