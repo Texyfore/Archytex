@@ -356,7 +356,7 @@ impl SolidGraphics {
                     vec2(position.x, position.z)
                 } else {
                     vec2(position.x, position.y)
-                } / 4.0;
+                } / 5.0;
 
                 vertices.push(SolidVertex {
                     position,
