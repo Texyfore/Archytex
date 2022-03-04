@@ -1,10 +1,10 @@
 use wgpu::{
-    CompareFunction, DepthStencilState, Face, FragmentState, FrontFace, PipelineLayoutDescriptor,
-    PolygonMode, PrimitiveState, PrimitiveTopology, RenderPipeline, RenderPipelineDescriptor,
-    ShaderModuleDescriptor, ShaderSource, TextureFormat, VertexState,
+    CompareFunction, DepthStencilState, Face, FragmentState, FrontFace, MultisampleState,
+    PipelineLayoutDescriptor, PolygonMode, PrimitiveState, PrimitiveTopology, RenderPipeline,
+    RenderPipelineDescriptor, ShaderModuleDescriptor, ShaderSource, TextureFormat, VertexState,
 };
 
-use crate::{Gpu, Surface};
+use crate::{Gpu, Surface, MSAA_SAMPLE_COUNT};
 
 pub use wgpu::{vertex_attr_array, VertexBufferLayout, VertexStepMode};
 
@@ -83,7 +83,11 @@ impl Gpu {
                         stencil: Default::default(),
                         bias: Default::default(),
                     }),
-                    multisample: Default::default(),
+                    multisample: MultisampleState {
+                        count: MSAA_SAMPLE_COUNT,
+                        mask: !0,
+                        alpha_to_coverage_enabled: false,
+                    },
                     fragment: Some(FragmentState {
                         module: &shader,
                         entry_point: "fragment",
