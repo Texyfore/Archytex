@@ -44,16 +44,6 @@ export default function RednerSetupModal({
 
   const { addNotification } = useNotification();
 
-  //Render name
-  const [name, setName] = useState("projectname_render_1");
-  const handleNameChange = (e: any) => {
-    clearErrors();
-    setName(e.target.value);
-  };
-  const [nameError, setNameError] = useState("");
-  const handleNameError = (message: string) => {
-    setNameError(message);
-  };
 
   //Image width
   const [imageWidth, setImageWidth] = useState(1920);
@@ -90,19 +80,15 @@ export default function RednerSetupModal({
 
   const onCreate = () => {
     let errored = false;
-    if (name.trim() === "") {
-      handleNameError(t("no_empty_render_name"));
-      errored = true;
-    }
     if (samples < 1) {
       handleSamplesError(t("invalid_sample_count"));
       errored = true;
     }
-    if (imageWidth < 100 || imageWidth > 4096) {
+    if (imageWidth < 100 || imageWidth > 4096 || imageWidth % 4 !== 0) {
       handleWidthError("invalid_image_width");
       errored = true;
     }
-    if (imageHeight < 100 || imageHeight > 4096) {
+    if (imageHeight < 100 || imageHeight > 4096 || imageHeight % 4 !== 0) {
       handleHeightError(t("invalid_image_height"));
       errored = true;
     }
@@ -115,7 +101,6 @@ export default function RednerSetupModal({
   };
 
   const clearErrors = () => {
-    setNameError("");
     setHeightError("");
     setWidthError("");
     setSamplesError("");
@@ -152,14 +137,6 @@ export default function RednerSetupModal({
               <Close />
             </IconButton>
           </Box>
-
-          <FormInput
-            variant='regular'
-            label={t("render_name")}
-            input={name}
-            inputChange={handleNameChange}
-            error={nameError}
-          />
           <Box display='flex' justifyContent='space-evenly' gap={2}>
             <Box>
               <FormInput
