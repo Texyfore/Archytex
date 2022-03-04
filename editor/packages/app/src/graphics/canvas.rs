@@ -19,6 +19,7 @@ pub struct Canvas {
     pub(super) prop_instances: Vec<PropInstance>,
     pub(super) gizmo_groups: Vec<GizmoGroup>,
     pub(super) gizmo_groups_no_depth: Vec<GizmoGroup>,
+    pub(super) grid_len: i32,
 }
 
 impl Canvas {
@@ -48,6 +49,10 @@ impl Canvas {
 
     pub fn draw_gizmos_no_depth(&mut self, group: GizmoGroup) {
         self.gizmo_groups_no_depth.push(group);
+    }
+
+    pub fn set_grid_len(&mut self, len: i32) {
+        self.grid_len = len;
     }
 }
 
