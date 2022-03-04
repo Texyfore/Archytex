@@ -85,7 +85,6 @@
     "set_the_application_theme_to_dark": "Az alkalmazás sötét módra váltása",
     "dark_mode": "Sötét mód",
     "prop_mode": "Berendező mód",
-    "solid_mode": "Építő mód",
     "vertex_select_mode": "Csúcs kijelölési mód (3)",
     "face_select_mode": "Lap kijelölési mód (2)",
     "mesh_select_mode": "Test kijelölési mód (1)",
