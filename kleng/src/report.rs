@@ -1,5 +1,7 @@
 use std::fmt::Display;
 
+use colored::Colorize;
+
 pub trait OrBail<T, E> {
     fn or_bail(self, message: &str) -> T;
 }
@@ -12,9 +14,8 @@ where
         match self {
             Ok(ok) => ok,
             Err(err) => {
-                println!("Fatal error: {}", message);
-                println!();
-                println!("Caused by:");
+                println!("{}: {}", "Error".bold().red(), message);
+                println!("{}:", "Caused by".bold().red());
 
                 let err = format!("{}", err);
                 for line in err.lines() {
@@ -25,4 +26,13 @@ where
             }
         }
     }
+}
+
+pub fn bail(message: &str) {
+    println!("{}: {}", "Error".bold().red(), message);
+    std::process::exit(-1);
+}
+
+pub fn warn(message: &str) {
+    println!("{}: {}", "Warning".bold().yellow(), message);
 }

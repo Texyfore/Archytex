@@ -1,0 +1,10 @@
+[
+    {
+        "name": "tree",
+        "source": "tree.blend",
+        "textures": {
+            "Cylinder": "tree_trunk.png",
+            "Icosphere": "tree_leaves.png"
+        }
+    }
+]
