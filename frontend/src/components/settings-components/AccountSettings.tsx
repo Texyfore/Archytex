@@ -44,33 +44,6 @@ export default function AccountSettings() {
       </Box>
       <Divider />
       <List>
-        {/* Profile picture */}
-        <Box
-          display='flex'
-          justifyContent='start'
-          flexWrap='wrap'
-          paddingX={2}
-          alignItems='center'
-          gap={2}
-          mb={2}
-        >
-          <Avatar sx={{ height: 60, width: 60 }} />
-          <Box>
-            <Typography gutterBottom>{t("profile_picture")}</Typography>
-            <label htmlFor='contained-button-file'>
-              <Input
-                accept='image/*'
-                id='contained-button-file'
-                multiple
-                type='file'
-              />
-              <Button variant='contained' component='span'>
-                {t("upload")}
-              </Button>
-            </label>
-          </Box>
-        </Box>
-
         {/* Username */}
         <Box display='flex' justifyContent='start' flexWrap='wrap'>
           <ListItem
