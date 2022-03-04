@@ -112,7 +112,6 @@
     "mesh_select_mode": "Mesh select mode (1)",
     "face_select_mode": "Face select mode (2)",
     "vertex_select_mode": "Vertex select mode (3)",
-    "rotate_translate_mode": "Rotate (E)",
     "scale_translate_mode": "Scale (R)",
     "camera_speed": "Camera speed",
     "grid_resolution": "Grid resolution",
