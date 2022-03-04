@@ -30,6 +30,9 @@ struct Vertex {
 
     [[location(4)]]
     world_position: vec3<f32>;
+
+    [[location(5)]]
+    grid_len: i32;
 };
 
 struct Fragment {
@@ -42,8 +45,16 @@ struct Camera {
     view_to_world: mat4x4<f32>;
 };
 
+struct GridParams {
+    len: i32;
+};
+
 [[group(0), binding(0)]]
 var<uniform> camera: Camera;
+
+[[group(1), binding(0)]]
+var<uniform> grid: GridParams;
+
 
 [[stage(vertex)]]
 fn vertex(attribs: Attribs) -> Vertex {
@@ -56,15 +67,19 @@ fn vertex(attribs: Attribs) -> Vertex {
     
     vertex.camera_position = (camera.view_to_world * vec4<f32>(0.0, 0.0, 0.0, 1.0)).xyz;
     vertex.world_position = attribs.position;
+    vertex.grid_len = grid.len;
 
     return vertex;
 }
 
-[[group(1), binding(0)]]
+[[group(2), binding(0)]]
 var t_diffuse: texture_2d<f32>;
 
-[[group(1), binding(1)]]
+[[group(2), binding(1)]]
 var s_diffuse: sampler;
+
+let GRID_DIST = 60.0;
+let GRID_STRENGTH = 0.2;
 
 [[stage(fragment)]]
 fn fragment(vertex: Vertex) -> Fragment {
@@ -75,6 +90,22 @@ fn fragment(vertex: Vertex) -> Fragment {
     var light_dir = normalize(vertex.camera_position - vertex.world_position);
     var diffuse = (max(dot(light_dir, vertex.normal), 0.0) + 0.8) * 0.4;
     color_rgb = color_rgb * diffuse;
+
+    // Grid
+    {
+        var len = f32(vertex.grid_len) * 0.01;
+        var gdist = GRID_DIST * len;
+
+        var x = (((vertex.texcoord.x * 4.0) % len + len) % len) / len;
+        var y = (((vertex.texcoord.y * 4.0) % len + len) % len) / len;
+
+        var dist = distance(vertex.world_position, vertex.camera_position);
+        var fade = (gdist - clamp(dist, 0.0, gdist)) / gdist;
+
+        if (x < 0.05 || x > 0.95 || y < 0.05 || y > 0.95) {
+            color_rgb = color_rgb + vec3<f32>(GRID_STRENGTH) * fade;
+        }
+    }
 
     var fragment: Fragment;
     fragment.color = vec4<f32>(color_rgb + vertex.tint.xyz * vertex.tint.w, color_a);
