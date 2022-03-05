@@ -90,7 +90,7 @@ fn save_amdl(root: &str, prop: &Prop) {
             path,
         );
 
-        let blender = Command::new("blender")
+        Command::new("blender")
             .arg(prop.source.canonicalize().unwrap().as_os_str())
             .arg("-b")
             .arg("--python-expr")
