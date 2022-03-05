@@ -23,7 +23,7 @@ pub fn compile(root: &str, textures: HashMap<String, Texture>, props: Vec<Prop>)
         save_images(root, &name, &texture);
         db.textures.push(DbTexture {
             id: texture.id,
-            name,
+            url: format!("{}.png", name),
             public: texture.public,
         });
     }
@@ -32,7 +32,7 @@ pub fn compile(root: &str, textures: HashMap<String, Texture>, props: Vec<Prop>)
         save_amdl(root, &prop);
         db.props.push(DbProp {
             id: prop.id,
-            name: prop.name,
+            url: format!("{}.amdl", prop.name),
         });
     }
 

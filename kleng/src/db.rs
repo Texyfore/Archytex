@@ -9,12 +9,12 @@ pub struct Db {
 #[derive(Serialize, Deserialize)]
 pub struct DbTexture {
     pub id: u32,
-    pub name: String,
+    pub url: String,
     pub public: bool,
 }
 
 #[derive(Serialize, Deserialize)]
 pub struct DbProp {
     pub id: u32,
-    pub name: String,
+    pub url: String,
 }
