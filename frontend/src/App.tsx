@@ -46,7 +46,7 @@ function App() {
   return (
     <Suspense fallback={<SuspenseFallback />}>
       <CssBaseline />
-      <DummyProvider fallback={<SuspenseFallback />}>
+      <RestProvider fallback={<SuspenseFallback />}>
         <NotificationProvider>
           <Router>
             <ArchytexAppBar />
@@ -87,7 +87,7 @@ function App() {
           </Router>
           <NotificationSnackBar />
         </NotificationProvider>
-      </DummyProvider>
+      </RestProvider>
     </Suspense>
   );
 }

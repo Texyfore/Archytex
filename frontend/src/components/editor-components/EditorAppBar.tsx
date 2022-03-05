@@ -23,10 +23,11 @@ const CustomEditorAppBar = styled(AppBar)(({ theme }) => ({
 }));
 
 interface EditorAppBarProps {
-  onSave: (type: "export" | "save" | "render") => void;
+  onSave:  (type: "export" | "save") => Promise<void>;
+  onRender: (width: number, height: number, samples: number) => Promise<void>;
 }
 
-export default function EditorAppBar({ onSave }: EditorAppBarProps) {
+export default function EditorAppBar({ onSave, onRender }: EditorAppBarProps) {
   const { t } = useTranslation();
   const tooltipText: string =
     t("archytex") + " " + t("version") + " " + t("version_number");
@@ -104,6 +105,7 @@ export default function EditorAppBar({ onSave }: EditorAppBarProps) {
         modalOpen={renderSetupModalOpen}
         handleModalOpen={handleRenderSetupModalOpen}
         handleModalClose={handleRenderSetupModalClose}
+        onRender={onRender}
       />
     </>
   );

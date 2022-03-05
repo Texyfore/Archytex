@@ -18,7 +18,7 @@ interface UserLoggedIn {
   };
   save: (data: Uint8Array, id: string) => Promise<void>;
   load: (id: string) => Promise<Uint8Array | undefined>;
-  render: (data: Uint8Array, id: string) => Promise<void>;
+  render: (data: Uint8Array, id: string, width: number, height: number, samples: number) => Promise<void>;
 }
 interface UserNotLoggedIn {
   state: "not-logged-in";
