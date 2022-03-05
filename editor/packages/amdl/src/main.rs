@@ -1,6 +1,6 @@
 use std::fs::{self, read_dir, write};
 
-use clap::{Command, Arg};
+use clap::{Arg, Command};
 
 use asset::{BoundingBox, Prop, PropMesh, PropVertex, TextureID};
 use gltf::mesh::util::{ReadIndices, ReadTexCoords};

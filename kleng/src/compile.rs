@@ -1,4 +1,6 @@
-use std::{collections::HashMap, fs};
+use std::{collections::HashMap, fs, process::Command};
+
+use tempfile::{tempdir, tempfile};
 
 use crate::{
     db::{Db, DbProp, DbTexture},
@@ -77,7 +79,29 @@ fn save_images(root: &str, name: &str, texture: &Texture) {
 }
 
 fn save_amdl(root: &str, prop: &Prop) {
-    let amdl = parse_gltf(prop);
+    let temp_dir = tempdir().or_bail("couldn't create temp dir");
+
+    let gltf = {
+        let path = temp_dir.path().join(format!("{}.gltf", prop.name));
+        let path = path.to_str().unwrap().to_string();
+
+        let py = format!(
+            "import bpy; bpy.ops.export_scene.gltf(filepath='{}',export_format='GLTF_EMBEDDED')",
+            path,
+        );
+
+        let blender = Command::new("blender")
+            .arg(prop.source.canonicalize().unwrap().as_os_str())
+            .arg("-b")
+            .arg("--python-expr")
+            .arg(py)
+            .output()
+            .or_bail(&format!("blender failed at `{}`", prop.name));
+
+        path
+    };
+
+    let amdl = parse_gltf(&gltf, prop);
     let buf = amdl.encode().unwrap();
 
     fs::write(
