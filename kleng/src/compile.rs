@@ -1,6 +1,6 @@
 use std::{collections::HashMap, fs, process::Command};
 
-use tempfile::{tempdir, tempfile};
+use tempfile::tempdir;
 
 use crate::{
     db::{Db, DbProp, DbTexture},
