@@ -8,15 +8,13 @@ pub struct Db {
 
 #[derive(Serialize, Deserialize)]
 pub struct DbTexture {
-    pub name: String,
     pub id: u32,
+    pub name: String,
     pub public: bool,
-    pub path: String,
 }
 
 #[derive(Serialize, Deserialize)]
 pub struct DbProp {
-    pub name: String,
     pub id: u32,
-    pub path: String,
+    pub name: String,
 }

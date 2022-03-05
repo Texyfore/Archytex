@@ -20,7 +20,7 @@ fn main() {
         enumerate_props(root, defs, &textures)
     };
 
-    compile(root, &textures, &props);
+    compile(root, textures, props);
 }
 
 fn cmd() -> ArgMatches {

@@ -11,19 +11,31 @@ use crate::report::OrBail;
 pub struct Texture {
     pub id: u32,
     pub path: PathBuf,
+    pub public: bool,
 }
 
 pub fn enumerate_textures(root: &str) -> HashMap<String, Texture> {
     let mut next_id = 2;
     let mut textures = HashMap::new();
 
-    traverse(format!("{}/textures", root), &mut next_id, &mut textures);
-    traverse(format!("{}/props", root), &mut next_id, &mut textures);
+    traverse(
+        format!("{}/textures", root),
+        &mut next_id,
+        &mut textures,
+        true,
+    );
+
+    traverse(
+        format!("{}/props", root),
+        &mut next_id,
+        &mut textures,
+        false,
+    );
 
     textures
 }
 
-fn traverse<P>(path: P, next_id: &mut u32, map: &mut HashMap<String, Texture>)
+fn traverse<P>(path: P, next_id: &mut u32, map: &mut HashMap<String, Texture>, public: bool)
 where
     P: AsRef<Path> + Display,
 {
@@ -41,7 +53,14 @@ where
 
         match (name, ext) {
             (Some(name), Some("png" | "jpg")) => {
-                map.insert(name.to_owned(), Texture { id: *next_id, path });
+                map.insert(
+                    name.to_owned(),
+                    Texture {
+                        id: *next_id,
+                        path,
+                        public,
+                    },
+                );
                 *next_id += 1;
             }
             _ => (),

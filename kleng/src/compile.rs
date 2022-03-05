@@ -1,13 +1,13 @@
 use std::{collections::HashMap, fs};
 
 use crate::{
-    db::{Db, DbTexture},
+    db::{Db, DbProp, DbTexture},
     props::Prop,
     report::OrBail,
     textures::Texture,
 };
 
-pub fn compile(root: &str, textures: &HashMap<String, Texture>, props: &[Prop]) {
+pub fn compile(root: &str, textures: HashMap<String, Texture>, props: Vec<Prop>) {
     mkdir(root, "out/textures/editor");
     mkdir(root, "out/textures/raytracer");
     mkdir(root, "out/props");
@@ -19,13 +19,19 @@ pub fn compile(root: &str, textures: &HashMap<String, Texture>, props: &[Prop]) 
 
     for (name, texture) in textures {
         db.textures.push(DbTexture {
-            name: name.to_owned(),
             id: texture.id,
-            public: false,
-            path: format!("{}.png", name),
+            name: name.to_owned(),
+            public: texture.public,
         });
 
-        save_images(root, name, texture);
+        save_images(root, &name, &texture);
+    }
+
+    for prop in props {
+        db.props.push(DbProp {
+            id: prop.id,
+            name: prop.name,
+        });
     }
 
     fs::write(
