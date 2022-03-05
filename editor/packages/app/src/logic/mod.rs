@@ -98,14 +98,14 @@ impl Logic {
         self.input.scroll(delta);
     }
 
-    pub fn save_scene(&self, ctx: Context) {
+    pub fn save_scene(&self, ctx: Context, id: i32) {
         let scene = asset::scene::Scene {
             camera: self.camera.save(),
             world: self.scene.save(),
         };
 
         let buf = scene.encode().unwrap();
-        ctx.host.callback(ToHost::SceneSaved(buf));
+        ctx.host.callback(ToHost::SceneSaved(id, buf));
     }
 
     pub fn load_scene(&mut self, ctx: Context, scene: &asset::scene::Scene) {
