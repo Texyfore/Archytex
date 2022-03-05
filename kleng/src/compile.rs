@@ -2,12 +2,12 @@ use std::{collections::HashMap, fs};
 
 use crate::{
     db::{Db, DbTexture},
-    props::PropDef,
+    props::Prop,
     report::OrBail,
     textures::Texture,
 };
 
-pub fn compile(root: &str, textures: &HashMap<String, Texture>, defs: &[PropDef]) {
+pub fn compile(root: &str, textures: &HashMap<String, Texture>, props: &[Prop]) {
     mkdir(root, "out/textures/editor");
     mkdir(root, "out/textures/raytracer");
     mkdir(root, "out/props");
@@ -25,28 +25,7 @@ pub fn compile(root: &str, textures: &HashMap<String, Texture>, defs: &[PropDef]
             path: format!("{}.png", name),
         });
 
-        let image = {
-            let buf = fs::read(&texture.path)
-                .or_bail(&format!("couldn't read file `{:?}`", &texture.path));
-
-            image::load_from_memory(&buf).or_bail(&format!("couldn't parse texture `{}`", name))
-        };
-
-        let small = image.resize_exact(256, 256, image::imageops::FilterType::CatmullRom);
-
-        image
-            .save_with_format(
-                format!("{}/out/textures/raytracer/{}.png", root, name),
-                image::ImageFormat::Png,
-            )
-            .or_bail(&format!("failed to save texture `{}`", name));
-
-        small
-            .save_with_format(
-                format!("{}/out/textures/editor/{}.png", root, name),
-                image::ImageFormat::Png,
-            )
-            .or_bail(&format!("failed to save texture `{}`", name));
+        save_images(root, name, texture);
     }
 
     fs::write(
@@ -62,4 +41,29 @@ fn mkdir(root: &str, path: &str) {
         fs::create_dir_all(&path),
         &format!("couldn't create directory `{}`", path),
     );
+}
+
+fn save_images(root: &str, name: &str, texture: &Texture) {
+    let large = {
+        let buf =
+            fs::read(&texture.path).or_bail(&format!("couldn't read file `{:?}`", &texture.path));
+
+        image::load_from_memory(&buf).or_bail(&format!("couldn't parse texture `{}`", name))
+    };
+
+    let small = large.resize_exact(256, 256, image::imageops::FilterType::CatmullRom);
+
+    large
+        .save_with_format(
+            format!("{}/out/textures/raytracer/{}.png", root, name),
+            image::ImageFormat::Png,
+        )
+        .or_bail(&format!("failed to save texture `{}`", name));
+
+    small
+        .save_with_format(
+            format!("{}/out/textures/editor/{}.png", root, name),
+            image::ImageFormat::Png,
+        )
+        .or_bail(&format!("failed to save texture `{}`", name));
 }

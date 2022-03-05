@@ -28,7 +28,7 @@ where
     }
 }
 
-pub fn bail(message: &str) {
+pub fn bail(message: &str) -> ! {
     println!("{}: {}", "Error".bold().red(), message);
     std::process::exit(-1);
 }
