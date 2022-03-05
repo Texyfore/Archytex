@@ -3,8 +3,8 @@ use gltf::mesh::util::{ReadIndices, ReadTexCoords};
 
 use crate::report::bail;
 
-pub fn parse_gltf(path: &str, prop: &crate::props::Prop) -> asset::Prop {
-    let (document, buffers, _) = gltf::import(&path).unwrap();
+pub fn parse_gltf(prop: &crate::props::Prop) -> asset::Prop {
+    let (document, buffers, _) = gltf::import(&prop.source).unwrap();
     let mut box_min = [std::f32::INFINITY; 3];
     let mut box_max = [std::f32::NEG_INFINITY; 3];
     let mut meshes = Vec::new();
