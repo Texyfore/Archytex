@@ -89,9 +89,6 @@ export default function Footer() {
           <Link variant='body2' to='/about' component={L}>
             {t("about")}
           </Link>
-          <Link variant='body2' to='/contact' component={L}>
-            {t("contact")}
-          </Link>
         </Box>
       </Box>
 

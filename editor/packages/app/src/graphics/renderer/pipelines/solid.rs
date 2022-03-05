@@ -14,6 +14,7 @@ pub fn pipeline(gpu: &Gpu, surface: &Surface) -> Pipeline {
             shader_source: include_str!("shaders/solid.wgsl"),
             inputs: &[
                 PipelineInput::Uniform, // Camera
+                PipelineInput::Uniform, // Grid
                 PipelineInput::Texture, // Texture
             ],
             vertex_buffers: &[VertexBufferLayout {

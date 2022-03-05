@@ -13,14 +13,14 @@ import { Project, useProjects } from "../../services/projects";
 import ProjectListItem from "./project-components/ProjectListItem";
 
 const ProjectListContainer = styled(Box)(({ theme }) => ({
-  height: "calc(100vh - 65px - 60px)",
+  height: "calc(100vh - 65px)",
   overflowY: "scroll",
 
   [`${theme.breakpoints.up("xs")} and (orientation: landscape)`]: {
-    height: "calc(100vh - 49px - 60px - 48px)",
+    height: "calc(100vh - 49px - 60px)",
   },
   [theme.breakpoints.up("sm")]: {
-    height: "calc(100vh - 65px - 60px - 48px)",
+    height: "calc(100vh - 65px - 60px)",
   },
   [theme.breakpoints.up("md")]: {
     height: "calc(100vh - 65px - 60px)",

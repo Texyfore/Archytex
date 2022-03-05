@@ -36,7 +36,7 @@ export default function RenderCard({ render, project }: RenderCardProps) {
     <>
       <Card sx={{ maxWidth: 345 }} key={render.id}>
         <CardActionArea
-          disabled={render.status < 100}
+          disabled={render.status < 1}
           onClick={() => handleOpenEnlargeRenderModal(render)}
         >
           <CardMedia
