@@ -219,8 +219,8 @@ const RestProvider = ({
           headers: { "Content-Type": "application/octet-stream" },
         });
       },
-      render: async (data: Uint8Array, id: string) => {
-        internal.fetch(`${Environment.base_url}auth/project/${id}/render`, {
+      render: async (data: Uint8Array, id: string, width: number, height: number, samples: number) => {
+        internal.fetch(`${Environment.base_url}auth/project/${id}/render/${width}/${height}/${samples}`, {
           method: "POST",
           body: data,
           headers: { "Content-Type": "application/octet-stream" },

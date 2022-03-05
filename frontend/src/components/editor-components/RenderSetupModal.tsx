@@ -34,11 +34,13 @@ interface Parameters {
   modalOpen: boolean;
   handleModalOpen: () => void;
   handleModalClose: () => void;
+  onRender: (width: number, height: number, samples: number) => Promise<void>;
 }
 
 export default function RednerSetupModal({
   handleModalClose,
   modalOpen,
+  onRender
 }: Parameters) {
   const { t } = useTranslation();
 
@@ -93,9 +95,8 @@ export default function RednerSetupModal({
       errored = true;
     }
     if (!errored) {
-      //TODO: Send settings and start render
       handleClose();
-      addNotification(t("rendering_started"), "info");
+      onRender(imageWidth, imageHeight, samples)
     }
     return;
   };

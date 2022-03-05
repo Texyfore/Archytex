@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 
 import { useParams } from "react-router-dom";
 
@@ -18,12 +18,20 @@ import Texture from "../services/types/Texture";
 import Prop from "../services/types/Prop";
 import getTextures from "../services/libraries/TextureItems";
 import getProps from "../services/libraries/PropItems";
+import { useApi } from "../services/user/api";
+import { useTranslation } from "react-i18next";
 
 type EditorMode = "solid" | "face" | "vertex" | "prop";
 
+let current_event = 0;
+let listeners: {[key: number]: (value: Uint8Array) => void} = {};
+
 export default function Editor() {
+  const { t } = useTranslation();
   // Get project ID
   const { projectId } = useParams<{ projectId: string }>();
+
+  const api = useApi(false);
 
   // Selected texture
   const textures = getTextures();
@@ -38,9 +46,6 @@ export default function Editor() {
   const handlePropChange = (prop: Prop) => {
     setProp(prop);
   };
-
-  // App bar button click
-  const handleAppBarButtonClick = () => {};
 
   const [sender, setSender] = useState<any | null>(null);
   const [width, setWidth] = useState(1);
@@ -62,12 +67,15 @@ export default function Editor() {
     }
   }, [width, height, sender]);
 
+  
   useEffect(() => {
     import("viewport").then((viewport) => {
       const channel = new viewport.Channel();
       setSender(channel.sender());
       const callback = new viewport.Callback(
-        (_: any) => {},
+        (id: number, scene: Uint8Array) => {
+          listeners[id](scene)
+        },
         (modeIndex: number) => {
           let mode: EditorMode = "solid";
           switch (modeIndex) {
@@ -95,6 +103,44 @@ export default function Editor() {
       viewport.run(channel, callback, resources);
     });
   }, []);
+
+  let save = useCallback(()=>new Promise((resolve: (value: Uint8Array) => void)=>{
+    const n = current_event;
+    current_event++;
+    listeners[n] = resolve;
+    console.log(`Sending save request #${n}`)
+    sender.saveScene(n);
+  }), [sender]);
+
+  const onRender = async(width: number, height: number, samples: number) =>{
+    if (api?.state == "logged-in") {
+      addNotification(t("rendering_started"), "info");
+      const data = await save();
+      await api.render(data, projectId, width, height, samples);
+    }else{
+      addNotification(t("not_logged_in"), "error")
+    }
+  }
+
+  // App bar button click
+  const handleAppBarButtonClick = async (type: "export" | "save") => {
+    console.log("Got Save event")
+    const data = await save();
+    switch (type) {
+      case "export":
+      
+      break;
+      case "save":
+        if (api?.state == "logged-in") {
+          await (api.save(data, projectId).catch(()=>{
+            addNotification("Could not save project", "error")
+          }));
+        }else{
+          addNotification("You are not logged in.", "error")
+        }
+        break;
+    }
+  };
 
   //Editor mode
   const [editorMode, setEditorMode] = useState<EditorMode>("solid");
@@ -146,7 +192,7 @@ export default function Editor() {
 
   return (
     <>
-      <EditorAppBar onSave={handleAppBarButtonClick} />
+      <EditorAppBar onSave={handleAppBarButtonClick} onRender={onRender} />
       <Box width='100%' height='48px'></Box>
 
       <Box display='flex' height={`calc(100vh - 48px)`} overflow='hidden'>
