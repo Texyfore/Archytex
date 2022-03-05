@@ -32,7 +32,7 @@ impl AsyncStdin {
                             println!("[native-runner] changed resolution");
                         }
                         "save" => {
-                            sender.send(FromHost::SaveScene).unwrap();
+                            sender.send(FromHost::SaveScene(0)).unwrap();
                             println!("[native-runner] requested save");
                         }
                         "load" => {

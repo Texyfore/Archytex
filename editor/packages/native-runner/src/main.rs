@@ -26,7 +26,7 @@ pub struct NativeHost;
 impl Host for NativeHost {
     fn callback(&self, data: ToHost) {
         match data {
-            ToHost::SceneSaved(scene) => {
+            ToHost::SceneSaved(_, scene) => {
                 let stamp = SystemTime::now()
                     .duration_since(UNIX_EPOCH)
                     .unwrap()

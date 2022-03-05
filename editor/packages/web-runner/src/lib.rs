@@ -64,8 +64,8 @@ impl Sender {
     }
 
     #[wasm_bindgen(js_name = "saveScene")]
-    pub fn save_scene(&self) {
-        self.tx.send(FromHost::SaveScene).unwrap();
+    pub fn save_scene(&self, id: i32) {
+        self.tx.send(FromHost::SaveScene(id)).unwrap();
     }
 
     #[wasm_bindgen(js_name = "loadScene")]
@@ -118,9 +118,13 @@ impl Callback {
 impl Host for Callback {
     fn callback(&self, data: ToHost) {
         match data {
-            ToHost::SceneSaved(buf) => {
+            ToHost::SceneSaved(id, buf) => {
                 self.scene_saved
-                    .call1(&JsValue::NULL, &Uint8Array::from(buf.as_slice()))
+                    .call2(
+                        &JsValue::NULL,
+                        &JsValue::from(id),
+                        &Uint8Array::from(buf.as_slice()),
+                    )
                     .ok();
             }
             ToHost::Button(button) => {

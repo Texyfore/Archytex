@@ -120,13 +120,16 @@ pub fn run(init: Init) {
                         FromHost::Resolution { width, height } => {
                             window.set_inner_size(PhysicalSize { width, height })
                         }
-                        FromHost::SaveScene => {
-                            logic.save_scene(logic::Context {
-                                host: host.as_ref(),
-                                graphics: &graphics,
-                                prop_infos: &prop_info,
-                                delta,
-                            });
+                        FromHost::SaveScene(id) => {
+                            logic.save_scene(
+                                logic::Context {
+                                    host: host.as_ref(),
+                                    graphics: &graphics,
+                                    prop_infos: &prop_info,
+                                    delta,
+                                },
+                                id,
+                            );
                         }
                         FromHost::LoadScene(buf) => {
                             let scene = Scene::decode(&buf).unwrap();
@@ -249,13 +252,13 @@ pub trait Host {
 }
 
 pub enum ToHost {
-    SceneSaved(Vec<u8>),
+    SceneSaved(i32, Vec<u8>),
     Button(i32),
 }
 
 pub enum FromHost {
     Resolution { width: u32, height: u32 },
-    SaveScene,
+    SaveScene(i32),
     LoadScene(Vec<u8>),
     Prop(u32),
     Texture(u32),

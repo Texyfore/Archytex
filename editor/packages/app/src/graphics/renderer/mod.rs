@@ -4,7 +4,6 @@ mod resources;
 use std::rc::Rc;
 
 use asset::{GizmoID, PropID, TextureID};
-use bytemuck::{Pod, Zeroable};
 use gpu::{DepthBuffer, Gpu, InstanceConfig, MsaaFramebuffer, Sampler, Surface, Uniform};
 
 use self::{pipelines::Pipelines, resources::Resources};
@@ -20,7 +19,7 @@ pub struct Renderer {
     pipelines: Pipelines,
     resources: Resources,
     camera: Uniform<CameraMatrices>,
-    grid: Uniform<GridParams>,
+    grid: Uniform<i32>,
 }
 
 impl Renderer {
@@ -31,7 +30,7 @@ impl Renderer {
         let pipelines = Pipelines::new(&gpu, &surface);
         let resources = Resources::default();
         let camera = gpu.create_uniform(&CameraMatrices::default());
-        let grid = gpu.create_uniform(&GridParams { len: 100 });
+        let grid = gpu.create_uniform(&100);
 
         Self {
             gpu,
@@ -69,12 +68,7 @@ impl Renderer {
 
     pub fn render(&self, canvas: Canvas) {
         self.gpu.set_uniform(&self.camera, &canvas.camera_matrices);
-        self.gpu.set_uniform(
-            &self.grid,
-            &GridParams {
-                len: canvas.grid_len,
-            },
-        );
+        self.gpu.set_uniform(&self.grid, &canvas.grid_len);
 
         let mut frame = self.gpu.begin_frame(&self.surface);
 
@@ -162,11 +156,3 @@ impl Renderer {
         self.gpu.end_frame(frame);
     }
 }
-
-#[derive(Clone, Copy)]
-struct GridParams {
-    len: i32,
-}
-
-unsafe impl Zeroable for GridParams {}
-unsafe impl Pod for GridParams {}
