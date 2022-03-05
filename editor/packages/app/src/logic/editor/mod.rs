@@ -122,6 +122,8 @@ impl Editor {
     }
 
     pub fn render(&self, canvas: &mut Canvas) {
+        canvas.set_grid_len(grid(self.grid));
+
         let tool = if let Some(old) = &self.old_tool {
             old
         } else {

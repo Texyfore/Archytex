@@ -106,6 +106,7 @@ impl Scene {
             kind: mask,
             delta: -delta,
         });
+        self.redo_stack.clear();
     }
 
     pub fn insert_solids(&mut self, solids: Vec<(usize, Solid)>) {
@@ -123,6 +124,7 @@ impl Scene {
             ids.push(id);
         }
         self.undo_stack.push(Action::RemoveSolids(ids));
+        self.redo_stack.clear();
     }
 
     pub fn take_props(&mut self) -> Vec<(usize, Prop)> {
@@ -155,6 +157,7 @@ impl Scene {
                 kind: ElementKind::Prop,
                 delta: -delta,
             });
+            self.redo_stack.clear();
         }
     }
 
@@ -164,6 +167,7 @@ impl Scene {
         }
 
         self.undo_stack.push(Action::RotateProps(delta.invert()));
+        self.redo_stack.clear();
     }
 
     pub fn insert_props(&mut self, props: Vec<(usize, Prop)>) {
@@ -183,6 +187,7 @@ impl Scene {
         }
 
         self.undo_stack.push(Action::RemoveProps(ids));
+        self.redo_stack.clear();
     }
 
     pub fn calc_center(&self, mask: ElementKind) -> Option<Vector3<f32>> {
