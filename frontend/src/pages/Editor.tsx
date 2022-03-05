@@ -103,6 +103,17 @@ export default function Editor() {
     });
   }, []);
 
+  useEffect(()=>{
+    (async ()=>{
+      if(api?.state === "logged-in" && sender !== null){
+        const data = await api.load(projectId);
+        if (data !== undefined && data.length > 0) {
+          sender.loadScene(data);
+        }
+      }
+    })()
+  }, [api, sender]);
+
   let save = useCallback(()=>new Promise((resolve: (value: Uint8Array) => void)=>{
     const n = current_event;
     current_event++;
