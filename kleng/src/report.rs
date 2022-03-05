@@ -32,7 +32,3 @@ pub fn bail(message: &str) -> ! {
     println!("{}: {}", "Error".bold().red(), message);
     std::process::exit(-1);
 }
-
-pub fn warn(message: &str) {
-    println!("{}: {}", "Warning".bold().yellow(), message);
-}
