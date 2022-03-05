@@ -2,6 +2,7 @@ use std::{collections::HashMap, fs};
 
 use crate::{
     db::{Db, DbProp, DbTexture},
+    model::parse_gltf,
     props::Prop,
     report::OrBail,
     textures::Texture,
@@ -18,16 +19,16 @@ pub fn compile(root: &str, textures: HashMap<String, Texture>, props: Vec<Prop>)
     };
 
     for (name, texture) in textures {
+        save_images(root, &name, &texture);
         db.textures.push(DbTexture {
             id: texture.id,
-            name: name.to_owned(),
+            name,
             public: texture.public,
         });
-
-        save_images(root, &name, &texture);
     }
 
     for prop in props {
+        save_amdl(root, &prop);
         db.props.push(DbProp {
             id: prop.id,
             name: prop.name,
@@ -64,12 +65,20 @@ fn save_images(root: &str, name: &str, texture: &Texture) {
             format!("{}/out/textures/raytracer/{}.png", root, name),
             image::ImageFormat::Png,
         )
-        .or_bail(&format!("failed to save texture `{}`", name));
+        .or_bail(&format!("couldn't save texture `{}`", name));
 
     small
         .save_with_format(
             format!("{}/out/textures/editor/{}.png", root, name),
             image::ImageFormat::Png,
         )
-        .or_bail(&format!("failed to save texture `{}`", name));
+        .or_bail(&format!("couldn't save texture `{}`", name));
+}
+
+fn save_amdl(root: &str, prop: &Prop) {
+    let amdl = parse_gltf(prop);
+    let buf = amdl.encode().unwrap();
+
+    fs::write(format!("{}/out/props/{}.amdl", root, prop.name), &buf)
+        .or_bail(&format!("couldn't save prop `{}`", prop.name));
 }

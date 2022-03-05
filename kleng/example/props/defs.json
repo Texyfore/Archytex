@@ -1,7 +1,7 @@
 [
     {
         "name": "tree",
-        "source": "tree.blend",
+        "source": "tree.gltf",
         "textures": {
             "Cylinder": "tree_trunk",
             "Icosphere": "tree_leaves"

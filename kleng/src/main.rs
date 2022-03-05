@@ -1,5 +1,6 @@
 mod compile;
 mod db;
+mod model;
 mod props;
 mod report;
 mod textures;
