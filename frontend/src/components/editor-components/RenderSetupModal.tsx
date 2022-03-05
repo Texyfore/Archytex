@@ -99,7 +99,7 @@ export default function RednerSetupModal({
       errored = true;
     }
     if (imageWidth < 100 || imageWidth > 4096) {
-      handleWidthError("invalid_image_width");
+      handleWidthError(t("invalid_image_width"));
       errored = true;
     }
     if (imageHeight < 100 || imageHeight > 4096) {

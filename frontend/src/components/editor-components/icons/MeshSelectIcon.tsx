@@ -1,5 +1,6 @@
 import React from "react";
-import { SvgIcon } from "@mui/material";
+
+import SvgIcon from "@mui/material/SvgIcon";
 
 export default function MeshSelectIcon() {
   return (

@@ -31,9 +31,7 @@ export default function ProjectDetailsStack({ project }: Props) {
           {project.title}
         </Typography>
         <Divider />
-        <Typography textAlign='center'>
-          {t("renders_count").toUpperCase()}
-        </Typography>
+        <Typography textAlign='center'>{t("renders").toUpperCase()}</Typography>
         <Item>{project.renders.length}</Item>
         <Typography textAlign='center'>{t("created").toUpperCase()}</Typography>
         <Item>
