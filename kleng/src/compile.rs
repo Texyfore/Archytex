@@ -9,9 +9,10 @@ use crate::{
 };
 
 pub fn compile(root: &str, textures: HashMap<String, Texture>, props: Vec<Prop>) {
-    mkdir(root, "out/textures/editor");
-    mkdir(root, "out/textures/raytracer");
-    mkdir(root, "out/props");
+    mkdir(root, "out/public/textures");
+    mkdir(root, "out/public/props");
+    mkdir(root, "out/raytracer/textures");
+    mkdir(root, "out/raytracer/props");
 
     let mut db = Db {
         textures: Vec::new(),
@@ -62,14 +63,14 @@ fn save_images(root: &str, name: &str, texture: &Texture) {
 
     large
         .save_with_format(
-            format!("{}/out/textures/raytracer/{}.png", root, name),
+            format!("{}/out/raytracer/textures/{}.png", root, name),
             image::ImageFormat::Png,
         )
         .or_bail(&format!("couldn't save texture `{}`", name));
 
     small
         .save_with_format(
-            format!("{}/out/textures/editor/{}.png", root, name),
+            format!("{}/out/public/textures/{}.png", root, name),
             image::ImageFormat::Png,
         )
         .or_bail(&format!("couldn't save texture `{}`", name));
@@ -79,6 +80,15 @@ fn save_amdl(root: &str, prop: &Prop) {
     let amdl = parse_gltf(prop);
     let buf = amdl.encode().unwrap();
 
-    fs::write(format!("{}/out/props/{}.amdl", root, prop.name), &buf)
-        .or_bail(&format!("couldn't save prop `{}`", prop.name));
+    fs::write(
+        format!("{}/out/public/props/{}.amdl", root, prop.name),
+        &buf,
+    )
+    .or_bail(&format!("couldn't save prop `{}`", prop.name));
+
+    fs::write(
+        format!("{}/out/raytracer/props/{}.amdl", root, prop.name),
+        &buf,
+    )
+    .or_bail(&format!("couldn't save prop `{}`", prop.name));
 }
