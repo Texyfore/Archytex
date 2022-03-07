@@ -1,15 +1,38 @@
-\documentclass[a4paper, twoside]{report}
+\documentclass[12pt, twoside]{report}
+\usepackage[utf8]{inputenc}
+\usepackage{graphicx}
+\usepackage{geometry}
 
-\usepackage{t1enc}
-\usepackage[hungarian]{babel}
-\usepackage[pdfborder={0 0 0}]{hyperref}
+\newgeometry{
+  top=0.75cm,
+  bottom=0.75cm,
+  outer=0.75cm,
+  inner=0.75cm
+}
 
-\author{Gulyás Arnold \and Marton Zoltán \and Szabó Dániel}
-\title{Archytex}
+\fontfamily{fonts/LibreBaskerville-Regular.ttf}
+
+\title{\LARGE Archytex\\
+\large Jedlik Ányos Gépipari és Informatikai Technikum és Kollégium}
+\author{Gulyás Arnold, Marton Zoltán, Szabó Dániel}
+\date{2021/2022}
 
 \begin{document}
-    \maketitle
-    \tableofcontents
-    \include{chapters/backend.tex}
-    \include{chapters/frontend.tex}
+
+\maketitle
+
+\include{chapters/ch-Abstract.tex}
+
+\include{chapters/ch-Dedication.tex}
+
+\tableofcontents
+
+\include{chapters/backend/ch-Backend.tex}
+
+\include{chapters/frontend/ch-Frontend.tex}
+
+\include{chapters/editor/ch-Editor.tex}
+
+\include{chapters/ray-tracer/ch-Ray-tracer.tex}
+
 \end{document}
