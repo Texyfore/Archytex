@@ -5,7 +5,7 @@ use std::sync::mpsc;
 use js_sys::{Function, Uint8Array};
 use wasm_bindgen::{prelude::*, JsCast};
 
-use app::{FromHost, Host, Init, ToHost, Winit};
+use app::{builtin_resources, FromHost, Host, Init, ToHost, Winit};
 use winit::{event_loop::EventLoop, platform::web::WindowBuilderExtWebSys, window::WindowBuilder};
 
 #[wasm_bindgen]
@@ -31,6 +31,11 @@ impl Channel {
     #[wasm_bindgen(constructor)]
     pub fn new() -> Self {
         let (tx, rx) = mpsc::channel();
+
+        for resource in builtin_resources() {
+            tx.send(FromHost::LoadResource(resource)).unwrap();
+        }
+
         Self {
             tx: Some(tx),
             rx: Some(rx),

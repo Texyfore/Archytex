@@ -20,7 +20,7 @@ pub struct Renderer {
     pipelines: Pipelines,
     resources: Resources,
     camera: Uniform<CameraMatrices>,
-    grid: Uniform<i32>,
+    grid: Uniform<[i32; 4]>,
 }
 
 impl Renderer {
@@ -30,7 +30,7 @@ impl Renderer {
         let pipelines = Pipelines::new(&gpu, &surface);
         let resources = Resources::default();
         let camera = gpu.create_uniform(&CameraMatrices::default());
-        let grid = gpu.create_uniform(&100);
+        let grid = gpu.create_uniform(&[100; 4]);
 
         Self {
             gpu,
@@ -66,7 +66,7 @@ impl Renderer {
 
     pub fn render(&self, canvas: Canvas) {
         self.gpu.set_uniform(&self.camera, &canvas.camera_matrices);
-        self.gpu.set_uniform(&self.grid, &canvas.grid_len);
+        self.gpu.set_uniform(&self.grid, &[canvas.grid_len; 4]);
 
         let mut frame = self.gpu.begin_frame(&self.surface);
 
@@ -82,13 +82,13 @@ impl Renderer {
             }
 
             pass.set_pipeline(&self.pipelines.solid);
-            pass.set_uniform(1, &self.grid);
+            pass.set_uniform(2, &self.grid);
 
             for mesh in &canvas.solid_meshes {
                 pass.set_geometry(&mesh.vertices, &mesh.triangles);
                 for face in 0..6 {
                     if let Some(texture) = self.resources.texture(mesh.textures[face]) {
-                        pass.set_texture(2, texture);
+                        pass.set_texture(1, texture);
                         pass.draw_face(face as u32);
                     }
                 }

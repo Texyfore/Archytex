@@ -261,3 +261,24 @@ pub enum ResourceKind {
     Prop,
     Gizmo,
 }
+
+macro_rules! resource {
+    ($ty:ident $id:literal -> $path:literal) => {
+        Resource {
+            id: $id,
+            buf: include_bytes!(concat!("../../../assets/", $path)).to_vec(),
+            kind: ResourceKind::$ty,
+        }
+    };
+}
+
+pub fn builtin_resources() -> Vec<Resource> {
+    vec![
+        resource!(Texture 0 -> "nodraw.png"),
+        resource!(Texture 1 -> "ground.png"),
+        resource!(Gizmo 0 -> "vertex.agzm"),
+        resource!(Gizmo 1 -> "arrow.agzm"),
+        resource!(Gizmo 2 -> "plane.agzm"),
+        resource!(Gizmo 3 -> "arc.agzm"),
+    ]
+}
