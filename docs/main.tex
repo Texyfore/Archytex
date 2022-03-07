@@ -1,38 +1,77 @@
 \documentclass[12pt, twoside]{report}
+
 \usepackage[utf8]{inputenc}
+\usepackage{t1enc}
+\usepackage[hungarian]{babel}
 \usepackage{graphicx}
 \usepackage{geometry}
+\usepackage{fancyhdr}
+\usepackage{hyperref}
+\usepackage{lipsum}
 
 \newgeometry{
-  top=0.75cm,
-  bottom=0.75cm,
-  outer=0.75cm,
-  inner=0.75cm
+  top=2.5cm,
+  bottom=2.5cm,
+  outer=2.5cm,
+  inner=2.5cm
+}
+\linespread{1.25}
+\pagestyle{fancy}
+\headheight=14.5pt
+\fancyhead{}
+\lhead{Archytex}
+\fancyfoot[C]{\thepage}
+\hypersetup{
+    colorlinks,
+    citecolor=black,
+    filecolor=black,
+    linkcolor=black,
+    urlcolor=black
 }
 
-\fontfamily{fonts/LibreBaskerville-Regular.ttf}
-
-\title{\LARGE Archytex\\
-\large Jedlik Ányos Gépipari és Informatikai Technikum és Kollégium}
-\author{Gulyás Arnold, Marton Zoltán, Szabó Dániel}
-\date{2021/2022}
 
 \begin{document}
 
-\maketitle
+\begin{titlepage}
+  \centering
+  \includegraphics[width=0.15\textwidth]{images/jedlik_logo.png}\par\vspace{1cm}
+  {\Large Győri Szakképzési Centrum Jedlik Ányos Gépipari és Informatikai Technikum és Kollégium\par}
+  \vspace{2cm}
+  \includegraphics[width=0.25\textwidth]{images/archytex_logo.png}\par\vspace{1cm}
+  {\huge\sffamily\textbf{ARCHYTEX}\par}
+  \vspace{1cm}
+  {\Large Szakdolgozat dokumentáció\par}
+  \vfill
+  Készítették:\par
+  Gulyás Arnold, Marton Zoltán, Szabó Dániel
 
+  \vfill
+
+  \vfill
+  % Bottom of the page
+  {\large \today\par}
+\end{titlepage}
+
+% Abstract
 \include{chapters/ch-Abstract.tex}
-
-\include{chapters/ch-Dedication.tex}
 
 \tableofcontents
 
+% Backend
 \include{chapters/backend/ch-Backend.tex}
 
+% Frontend
 \include{chapters/frontend/ch-Frontend.tex}
 
+% Editor
 \include{chapters/editor/ch-Editor.tex}
 
+% Ray-tracer
 \include{chapters/ray-tracer/ch-Ray-tracer.tex}
 
+\appendix
+\include{appendix.tex}
+
+\bibliographystyle{plain}
+\bibliography{ref}
 \end{document}
