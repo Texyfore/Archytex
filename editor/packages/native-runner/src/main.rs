@@ -6,13 +6,19 @@ use std::{
     time::{SystemTime, UNIX_EPOCH},
 };
 
-use app::{run, Host, Init, ToHost, Winit};
+use app::{run, FromHost, Host, Init, Resource, ToHost, Winit};
 use comms::AsyncStdin;
 use winit::{event_loop::EventLoop, window::WindowBuilder};
 
 fn main() {
     let (sender, receiver) = channel();
+
+    for resource in builtin_resources() {
+        sender.send(FromHost::LoadResource(resource)).unwrap();
+    }
+
     let _stdin = AsyncStdin::new(sender);
+
     run(Init {
         winit: winit(),
         host: Box::new(NativeHost),
@@ -50,4 +56,25 @@ fn winit() -> Winit {
         .unwrap();
 
     Winit { event_loop, window }
+}
+
+macro_rules! resource {
+    ($ty:ident $id:literal -> $path:literal) => {
+        app::Resource {
+            id: $id,
+            buf: include_bytes!(concat!("../../../assets/", $path)).to_vec(),
+            kind: app::ResourceKind::$ty,
+        }
+    };
+}
+
+fn builtin_resources() -> Vec<Resource> {
+    vec![
+        resource!(Texture 0 -> "nodraw.png"),
+        resource!(Texture 1 -> "ground.png"),
+        resource!(Gizmo 0 -> "vertex.agzm"),
+        resource!(Gizmo 1 -> "arrow.agzm"),
+        resource!(Gizmo 2 -> "plane.agzm"),
+        resource!(Gizmo 3 -> "arc.agzm"),
+    ]
 }

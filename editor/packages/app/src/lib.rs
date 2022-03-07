@@ -26,31 +26,7 @@ pub fn run(init: Init) {
     let from_host = init.receiver;
 
     let (mut renderer, graphics) = graphics::init(&window);
-    let prop_info = PropInfoContainer::default();
-
-    {
-        // let resources = init.resources;
-        // for resource in resources {
-        //     match resource.kind {
-        //         ResourceKind::Texture => {
-        //             let id = TextureID(resource.id);
-        //             let texture = Texture::new(&resource.buf);
-        //             renderer.add_texture(id, texture);
-        //         }
-        //         ResourceKind::Prop => {
-        //             let id = PropID(resource.id);
-        //             let prop = Prop::decode(&resource.buf).unwrap();
-        //             prop_info.insert(id, &prop);
-        //             renderer.add_prop(id, prop);
-        //         }
-        //         ResourceKind::Gizmo => {
-        //             let id = GizmoID(resource.id);
-        //             let gizmo = Gizmo::decode(&resource.buf).unwrap();
-        //             renderer.add_gizmo(id, gizmo);
-        //         }
-        //     }
-        // }
-    }
+    let mut prop_info = PropInfoContainer::default();
 
     let mut logic = Logic::init(logic::Context {
         host: host.as_ref(),
@@ -204,7 +180,24 @@ pub fn run(init: Init) {
                         FromHost::LockPointer(lock) => {
                             lock_pointer = lock;
                         }
-                        FromHost::LoadResource(_) => {}
+                        FromHost::LoadResource(resource) => match resource.kind {
+                            ResourceKind::Texture => {
+                                let id = TextureID(resource.id);
+                                let texture = Texture::new(&resource.buf);
+                                renderer.add_texture(id, texture);
+                            }
+                            ResourceKind::Prop => {
+                                let id = PropID(resource.id);
+                                let prop = Prop::decode(&resource.buf).unwrap();
+                                prop_info.insert(id, &prop);
+                                renderer.add_prop(id, prop);
+                            }
+                            ResourceKind::Gizmo => {
+                                let id = GizmoID(resource.id);
+                                let gizmo = Gizmo::decode(&resource.buf).unwrap();
+                                renderer.add_gizmo(id, gizmo);
+                            }
+                        },
                     }
                 }
 
