@@ -17,7 +17,7 @@ ADD frontend /archytex/frontend
 
 WORKDIR /archytex/frontend
 ENV STAGE=production
-RUN yarn
+RUN yarn --network-timeout 1000000
 RUN yarn build
 
 FROM nginx:alpine
