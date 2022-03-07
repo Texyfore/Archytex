@@ -18,7 +18,7 @@ ADD frontend /archytex/frontend
 
 
 WORKDIR /archytex/frontend
-RUN yarn
+RUN yarn --network-timeout 1000000
 ENV REACT_APP_STAGE=production
 RUN yarn build
 
