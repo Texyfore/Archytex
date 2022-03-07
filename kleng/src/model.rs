@@ -58,12 +58,11 @@ pub fn parse_gltf(prop: &crate::props::Prop) -> asset::Prop {
             })
             .collect::<Vec<_>>();
 
-        let indices = if let ReadIndices::U16(indices) = reader.read_indices().unwrap() {
-            indices
-        } else {
-            panic!("Bad indices")
-        }
-        .collect::<Vec<_>>();
+        let indices = match reader.read_indices().unwrap() {
+            ReadIndices::U8(indices) => indices.into_iter().map(|i| i as u16).collect::<Vec<_>>(),
+            ReadIndices::U16(indices) => indices.collect::<Vec<_>>(),
+            ReadIndices::U32(indices) => indices.into_iter().map(|i| i as u16).collect::<Vec<_>>(),
+        };
 
         let triangles = indices
             .chunks_exact(3)
