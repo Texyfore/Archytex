@@ -5,20 +5,15 @@ use std::sync::mpsc;
 use js_sys::{Function, Uint8Array};
 use wasm_bindgen::{prelude::*, JsCast};
 
-use app::{FromHost, Host, Init, Resource, ResourceKind, ToHost, Winit};
+use app::{builtin_resources, FromHost, Host, Init, ToHost, Winit};
 use winit::{event_loop::EventLoop, platform::web::WindowBuilderExtWebSys, window::WindowBuilder};
 
 #[wasm_bindgen]
-pub fn run(mut channel: Channel, callback: Callback, resources: Resources) {
+pub fn run(mut channel: Channel, callback: Callback) {
     console_error_panic_hook::set_once();
-
-    let mut imported = resources.vec;
-    let mut resources = builtin_resources();
-    resources.append(&mut imported);
 
     app::run(Init {
         winit: winit(),
-        resources,
         host: Box::new(callback),
         receiver: channel.rx.take().unwrap(),
     });
@@ -36,6 +31,11 @@ impl Channel {
     #[wasm_bindgen(constructor)]
     pub fn new() -> Self {
         let (tx, rx) = mpsc::channel();
+
+        for resource in builtin_resources() {
+            tx.send(FromHost::LoadResource(resource)).unwrap();
+        }
+
         Self {
             tx: Some(tx),
             rx: Some(rx),
@@ -136,47 +136,6 @@ impl Host for Callback {
     }
 }
 
-#[wasm_bindgen]
-pub struct Resources {
-    vec: Vec<Resource>,
-}
-
-#[wasm_bindgen]
-impl Resources {
-    #[allow(clippy::new_without_default)]
-    #[wasm_bindgen(constructor)]
-    pub fn new() -> Self {
-        Self { vec: Vec::new() }
-    }
-
-    #[wasm_bindgen(js_name = "addTexture")]
-    pub fn add_texture(&mut self, id: u32, buf: Vec<u8>) {
-        self.vec.push(Resource {
-            id,
-            buf,
-            kind: ResourceKind::Texture,
-        });
-    }
-
-    #[wasm_bindgen(js_name = "addProp")]
-    pub fn add_prop(&mut self, id: u32, buf: Vec<u8>) {
-        self.vec.push(Resource {
-            id,
-            buf,
-            kind: ResourceKind::Prop,
-        });
-    }
-
-    #[wasm_bindgen(js_name = "addGizmo")]
-    pub fn add_gizmo(&mut self, id: u32, buf: Vec<u8>) {
-        self.vec.push(Resource {
-            id,
-            buf,
-            kind: ResourceKind::Gizmo,
-        });
-    }
-}
-
 fn winit() -> Winit {
     let event_loop = EventLoop::new();
     let window = WindowBuilder::default()
@@ -194,39 +153,4 @@ fn winit() -> Winit {
         .unwrap();
 
     Winit { event_loop, window }
-}
-
-fn builtin_resources() -> Vec<Resource> {
-    vec![
-        Resource {
-            id: 0,
-            buf: include_bytes!("../../../assets/nodraw.png").to_vec(),
-            kind: ResourceKind::Texture,
-        },
-        Resource {
-            id: 1,
-            buf: include_bytes!("../../../assets/ground.png").to_vec(),
-            kind: ResourceKind::Texture,
-        },
-        Resource {
-            id: 0,
-            buf: include_bytes!("../../../assets/vertex.agzm").to_vec(),
-            kind: ResourceKind::Gizmo,
-        },
-        Resource {
-            id: 1,
-            buf: include_bytes!("../../../assets/arrow.agzm").to_vec(),
-            kind: ResourceKind::Gizmo,
-        },
-        Resource {
-            id: 2,
-            buf: include_bytes!("../../../assets/plane.agzm").to_vec(),
-            kind: ResourceKind::Gizmo,
-        },
-        Resource {
-            id: 3,
-            buf: include_bytes!("../../../assets/arc.agzm").to_vec(),
-            kind: ResourceKind::Gizmo,
-        },
-    ]
 }
