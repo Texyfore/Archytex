@@ -16,6 +16,6 @@ const prod: Environment = {
   asset_url: "/assets",
 };
 
-const Environment = process.env.STAGE === "production" ? prod : dev;
+const Environment = process.env.REACT_APP_STAGE === "production" ? prod : dev;
 
 export default Environment;

@@ -1,13 +1,15 @@
 FROM rust:alpine AS viewport
 
 RUN apk update
-RUN apk add --no-cache curl musl-dev
-RUN curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
+RUN apk add --no-cache curl musl-dev perl openssl-dev alpine-sdk
+#RUN curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
+RUN cargo install wasm-pack
 
 ADD editor /archytex/editor
 
 WORKDIR /archytex/editor/packages/web-runner
-RUN wasm-pack build --debug --out-dir /archytex/pkg
+RUN apk add --no-cache binaryen
+RUN wasm-pack build --release --out-dir /archytex/pkg
 
 FROM node:16-alpine AS frontend
 
@@ -16,8 +18,8 @@ ADD frontend /archytex/frontend
 
 
 WORKDIR /archytex/frontend
-ENV STAGE=production
 RUN yarn
+ENV REACT_APP_STAGE=production
 RUN yarn build
 
 FROM nginx:alpine
