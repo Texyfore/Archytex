@@ -4,7 +4,7 @@ mod renderer;
 
 pub mod structures;
 
-use std::{mem::size_of, rc::Rc, sync::Arc};
+use std::{mem::size_of, rc::Rc};
 
 use asset::TextureID;
 use gpu::{BufferUsages, Gpu};
@@ -20,7 +20,7 @@ use self::structures::{GizmoInstance, GroundVertex, LineVertex, SolidVertex, Tra
 
 pub fn init(window: &Window) -> (Renderer, Graphics, ResourceLoader) {
     let (gpu, surface) = gpu::init(window);
-    let gpu = Arc::new(gpu);
+    let gpu = Rc::new(gpu);
     let surface = Rc::new(surface);
     let sampler = gpu.create_sampler();
 
@@ -37,7 +37,7 @@ pub fn init(window: &Window) -> (Renderer, Graphics, ResourceLoader) {
 }
 
 pub struct Graphics {
-    gpu: Arc<Gpu>,
+    gpu: Rc<Gpu>,
 }
 
 impl Graphics {

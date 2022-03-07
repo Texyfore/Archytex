@@ -26,7 +26,7 @@ pub fn run(init: Init) {
     let host = init.host;
     let from_host = init.receiver;
 
-    let (mut renderer, graphics, loader) = graphics::init(&window);
+    let (mut renderer, graphics, mut loader) = graphics::init(&window);
     let mut prop_info = PropInfoContainer::default();
 
     let mut logic = Logic::init(logic::Context {
@@ -187,7 +187,7 @@ pub fn run(init: Init) {
                     }
                 }
 
-                while let Some(resource) = loader.poll() {
+                while let Some(resource) = loader.process() {
                     match resource {
                         LoadedResource::Texture { id, texture } => {
                             renderer.add_texture(id, texture);

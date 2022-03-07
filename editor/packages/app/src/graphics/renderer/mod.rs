@@ -1,7 +1,7 @@
 mod pipelines;
 mod resources;
 
-use std::{rc::Rc, sync::Arc};
+use std::rc::Rc;
 
 use asset::{GizmoID, PropID, TextureID};
 use gpu::{DepthBuffer, Gpu, InstanceConfig, MsaaFramebuffer, Surface, Texture, Uniform};
@@ -13,7 +13,7 @@ use super::{structures::CameraMatrices, Canvas};
 pub use resources::{GizmoMesh, PropMesh, PropModel};
 
 pub struct Renderer {
-    gpu: Arc<Gpu>,
+    gpu: Rc<Gpu>,
     surface: Rc<Surface>,
     depth_buffer: DepthBuffer,
     msaa_buffer: MsaaFramebuffer,
@@ -24,7 +24,7 @@ pub struct Renderer {
 }
 
 impl Renderer {
-    pub(super) fn new(gpu: Arc<Gpu>, surface: Rc<Surface>) -> Self {
+    pub(super) fn new(gpu: Rc<Gpu>, surface: Rc<Surface>) -> Self {
         let depth_buffer = gpu.create_depth_buffer(800, 600);
         let msaa_buffer = gpu.create_msaa_framebuffer(&surface, 800, 600);
         let pipelines = Pipelines::new(&gpu, &surface);
