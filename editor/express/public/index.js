@@ -1,4 +1,4 @@
-import init, { Callback, Channel, Resources, run } from "./pkg/web_runner.js";
+import init, { Callback, Channel, run } from "./pkg/web_runner.js";
 
 const canvas = document.getElementById("viewport-canvas");
 let rightDown = false;
@@ -12,7 +12,7 @@ init().then(() => {
     }, (button) => {
         console.log(`[wasm] button feedback ${button}`);
     });
-    const resources = new Resources();
+
     const sender = channel.sender();
 
     canvas.addEventListener("mousedown", ev => {
@@ -37,19 +37,5 @@ init().then(() => {
         }
     });
 
-
-    Promise.all([
-        resource("/assets/bricks.png"),
-        resource("/assets/table.amdl"),
-    ]).then(([bricks, table]) => {
-        resources.addTexture(2, bricks);
-        resources.addProp(0, table);
-        run(channel, callback, resources);
-    });
+    run(channel, callback);
 });
-
-async function resource(url) {
-    const res = await fetch(url);
-    const buf = await res.arrayBuffer();
-    return new Uint8Array(buf);
-}
