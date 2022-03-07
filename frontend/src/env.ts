@@ -11,9 +11,9 @@ const dev: Environment = {
 };
 
 const prod: Environment = {
-  base_url: "TODO",
-  ws_url: "TODO",
-  asset_url: "TODO",
+  base_url: "/api/",
+  ws_url: "/api/ws",
+  asset_url: "/assets",
 };
 
 const Environment = process.env.STAGE === "production" ? prod : dev;

@@ -1,0 +1,1 @@
+docker build -t archytex-frontend -f frontend/Dockerfile .
