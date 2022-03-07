@@ -4,40 +4,39 @@ mod resources;
 use std::rc::Rc;
 
 use asset::{GizmoID, PropID, TextureID};
-use gpu::{DepthBuffer, Gpu, InstanceConfig, MsaaFramebuffer, Sampler, Surface, Uniform};
+use gpu::{DepthBuffer, Gpu, InstanceConfig, MsaaFramebuffer, Surface, Texture, Uniform};
 
 use self::{pipelines::Pipelines, resources::Resources};
 
 use super::{structures::CameraMatrices, Canvas};
+
+pub use resources::{GizmoMesh, PropMesh, PropModel};
 
 pub struct Renderer {
     gpu: Rc<Gpu>,
     surface: Rc<Surface>,
     depth_buffer: DepthBuffer,
     msaa_buffer: MsaaFramebuffer,
-    sampler: Sampler,
     pipelines: Pipelines,
     resources: Resources,
     camera: Uniform<CameraMatrices>,
-    grid: Uniform<i32>,
+    grid: Uniform<[i32; 4]>,
 }
 
 impl Renderer {
     pub(super) fn new(gpu: Rc<Gpu>, surface: Rc<Surface>) -> Self {
         let depth_buffer = gpu.create_depth_buffer(800, 600);
         let msaa_buffer = gpu.create_msaa_framebuffer(&surface, 800, 600);
-        let sampler = gpu.create_sampler();
         let pipelines = Pipelines::new(&gpu, &surface);
         let resources = Resources::default();
         let camera = gpu.create_uniform(&CameraMatrices::default());
-        let grid = gpu.create_uniform(&100);
+        let grid = gpu.create_uniform(&[100; 4]);
 
         Self {
             gpu,
             surface,
             depth_buffer,
             msaa_buffer,
-            sampler,
             pipelines,
             resources,
             camera,
@@ -45,17 +44,16 @@ impl Renderer {
         }
     }
 
-    pub fn add_texture(&mut self, id: TextureID, texture: asset::Texture) {
-        self.resources
-            .add_texture(&self.gpu, &self.sampler, id, texture);
+    pub fn add_texture(&mut self, id: TextureID, texture: Texture) {
+        self.resources.add_texture(id, texture);
     }
 
-    pub fn add_prop(&mut self, id: PropID, prop: asset::Prop) {
-        self.resources.add_prop(&self.gpu, id, prop);
+    pub fn add_prop(&mut self, id: PropID, model: PropModel) {
+        self.resources.add_prop(id, model);
     }
 
-    pub fn add_gizmo(&mut self, id: GizmoID, gizmo: asset::Gizmo) {
-        self.resources.add_gizmo(&self.gpu, id, gizmo);
+    pub fn add_gizmo(&mut self, id: GizmoID, mesh: GizmoMesh) {
+        self.resources.add_gizmo(id, mesh);
     }
 
     pub fn resize(&mut self, width: u32, height: u32) {
@@ -68,7 +66,7 @@ impl Renderer {
 
     pub fn render(&self, canvas: Canvas) {
         self.gpu.set_uniform(&self.camera, &canvas.camera_matrices);
-        self.gpu.set_uniform(&self.grid, &canvas.grid_len);
+        self.gpu.set_uniform(&self.grid, &[canvas.grid_len; 4]);
 
         let mut frame = self.gpu.begin_frame(&self.surface);
 
@@ -84,13 +82,13 @@ impl Renderer {
             }
 
             pass.set_pipeline(&self.pipelines.solid);
-            pass.set_uniform(1, &self.grid);
+            pass.set_uniform(2, &self.grid);
 
             for mesh in &canvas.solid_meshes {
                 pass.set_geometry(&mesh.vertices, &mesh.triangles);
                 for face in 0..6 {
                     if let Some(texture) = self.resources.texture(mesh.textures[face]) {
-                        pass.set_texture(2, texture);
+                        pass.set_texture(1, texture);
                         pass.draw_face(face as u32);
                     }
                 }

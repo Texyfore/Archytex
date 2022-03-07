@@ -47,12 +47,15 @@ struct Camera {
 
 struct GridParams {
     len: i32;
+    pad1: i32;
+    pad2: i32;
+    pad3: i32;
 };
 
 [[group(0), binding(0)]]
 var<uniform> camera: Camera;
 
-[[group(1), binding(0)]]
+[[group(2), binding(0)]]
 var<uniform> grid: GridParams;
 
 
@@ -72,10 +75,10 @@ fn vertex(attribs: Attribs) -> Vertex {
     return vertex;
 }
 
-[[group(2), binding(0)]]
+[[group(1), binding(0)]]
 var t_diffuse: texture_2d<f32>;
 
-[[group(2), binding(1)]]
+[[group(1), binding(1)]]
 var s_diffuse: sampler;
 
 let GRID_DIST = 30.0;

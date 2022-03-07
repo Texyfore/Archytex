@@ -23,7 +23,8 @@ import { useTranslation } from "react-i18next";
 type EditorMode = "solid" | "face" | "vertex" | "prop";
 
 let current_event = 0;
-let listeners: {[key: number]: (value: Uint8Array) => void} = {};
+let listeners: { [key: number]: (value: Uint8Array) => void } = {};
+let rightDown = false;
 
 export default function Editor() {
   const { t } = useTranslation();
@@ -66,7 +67,7 @@ export default function Editor() {
     }
   }, [width, height, sender]);
 
-  
+
   useEffect(() => {
     import("viewport").then((viewport) => {
       const channel = new viewport.Channel();
@@ -98,14 +99,46 @@ export default function Editor() {
           console.log(`mode ${mode}`);
         }
       );
-      const resources = new viewport.Resources();
-      viewport.run(channel, callback, resources);
+
+
+      viewport.run(channel, callback);
     });
   }, []);
 
-  useEffect(()=>{
-    (async ()=>{
-      if(api?.state === "logged-in" && sender !== null){
+  useEffect(() => {
+    if (sender === null) {
+      return;
+    }
+    const canvas = document.getElementById("viewport-canvas");
+
+    if (canvas !== null) {
+      canvas.addEventListener("mousedown", ev => {
+        if (ev.button === 2) {
+          canvas.requestPointerLock();
+          sender.setPointerLock(true);
+          rightDown = true;
+        }
+      });
+
+      canvas.addEventListener("mouseup", ev => {
+        if (ev.button == 2) {
+          document.exitPointerLock();
+          sender.setPointerLock(false);
+          rightDown = false;
+        }
+      })
+
+      canvas.addEventListener("mousemove", ev => {
+        if (rightDown) {
+          sender.movement(ev.movementX, ev.movementY);
+        }
+      });
+    }
+  }, [sender])
+
+  useEffect(() => {
+    (async () => {
+      if (api?.state === "logged-in" && sender !== null) {
         const data = await api.load(projectId);
         if (data !== undefined && data.length > 0) {
           sender.loadScene(data);
@@ -114,7 +147,7 @@ export default function Editor() {
     })()
   }, [api, sender]);
 
-  let save = useCallback(()=>new Promise((resolve: (value: Uint8Array) => void)=>{
+  let save = useCallback(() => new Promise((resolve: (value: Uint8Array) => void) => {
     const n = current_event;
     current_event++;
     listeners[n] = resolve;
@@ -122,12 +155,12 @@ export default function Editor() {
     sender.saveScene(n);
   }), [sender]);
 
-  const onRender = async(width: number, height: number, samples: number) =>{
+  const onRender = async (width: number, height: number, samples: number) => {
     if (api?.state == "logged-in") {
       addNotification(t("rendering_started"), "info");
       const data = await save();
       await api.render(data, projectId, width, height, samples);
-    }else{
+    } else {
       addNotification(t("not_logged_in"), "error")
     }
   }
@@ -138,14 +171,14 @@ export default function Editor() {
     const data = await save();
     switch (type) {
       case "export":
-      
-      break;
+
+        break;
       case "save":
         if (api?.state == "logged-in") {
-          await (api.save(data, projectId).catch(()=>{
+          await (api.save(data, projectId).catch(() => {
             addNotification("Could not save project", "error")
           }));
-        }else{
+        } else {
           addNotification("You are not logged in.", "error")
         }
         break;

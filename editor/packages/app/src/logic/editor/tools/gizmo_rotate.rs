@@ -36,7 +36,10 @@ impl GizmoRotate {
         center: Vector3<f32>,
         axis: Axis,
     ) -> Self {
-        let origin = camera.project(center).unwrap_or(Vector3::zero()).truncate();
+        let origin = camera
+            .project(center)
+            .unwrap_or_else(Vector3::zero)
+            .truncate();
         let originals = props.iter().map(|(_, prop)| prop.rotation()).collect();
         let init_angle = calc_angle(origin, input.mouse_pos());
 
