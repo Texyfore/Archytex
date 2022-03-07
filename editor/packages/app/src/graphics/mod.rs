@@ -1,34 +1,43 @@
 mod canvas;
+mod loader;
 mod renderer;
 
 pub mod structures;
 
-use std::{mem::size_of, rc::Rc};
+use std::{mem::size_of, rc::Rc, sync::Arc};
 
 use asset::TextureID;
 use gpu::{BufferUsages, Gpu};
 use winit::window::Window;
 
 pub use canvas::*;
+pub use loader::*;
 pub use renderer::Renderer;
+
+use loader::ResourceLoader;
 
 use self::structures::{GizmoInstance, GroundVertex, LineVertex, SolidVertex, TransformTint};
 
-pub fn init(window: &Window) -> (Renderer, Graphics) {
+pub fn init(window: &Window) -> (Renderer, Graphics, ResourceLoader) {
     let (gpu, surface) = gpu::init(window);
-    let gpu = Rc::new(gpu);
+    let gpu = Arc::new(gpu);
     let surface = Rc::new(surface);
+    let sampler = gpu.create_sampler();
 
     {
         let (width, height) = window.inner_size().into();
         surface.configure(&gpu, width, height);
     }
 
-    (Renderer::new(gpu.clone(), surface), Graphics { gpu })
+    (
+        Renderer::new(gpu.clone(), surface),
+        Graphics { gpu: gpu.clone() },
+        ResourceLoader::new(gpu, sampler),
+    )
 }
 
 pub struct Graphics {
-    gpu: Rc<Gpu>,
+    gpu: Arc<Gpu>,
 }
 
 impl Graphics {

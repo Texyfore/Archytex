@@ -1,21 +1,22 @@
 mod pipelines;
 mod resources;
 
-use std::rc::Rc;
+use std::{rc::Rc, sync::Arc};
 
 use asset::{GizmoID, PropID, TextureID};
-use gpu::{DepthBuffer, Gpu, InstanceConfig, MsaaFramebuffer, Sampler, Surface, Uniform};
+use gpu::{DepthBuffer, Gpu, InstanceConfig, MsaaFramebuffer, Surface, Texture, Uniform};
 
 use self::{pipelines::Pipelines, resources::Resources};
 
 use super::{structures::CameraMatrices, Canvas};
 
+pub use resources::{GizmoMesh, PropMesh, PropModel};
+
 pub struct Renderer {
-    gpu: Rc<Gpu>,
+    gpu: Arc<Gpu>,
     surface: Rc<Surface>,
     depth_buffer: DepthBuffer,
     msaa_buffer: MsaaFramebuffer,
-    sampler: Sampler,
     pipelines: Pipelines,
     resources: Resources,
     camera: Uniform<CameraMatrices>,
@@ -23,10 +24,9 @@ pub struct Renderer {
 }
 
 impl Renderer {
-    pub(super) fn new(gpu: Rc<Gpu>, surface: Rc<Surface>) -> Self {
+    pub(super) fn new(gpu: Arc<Gpu>, surface: Rc<Surface>) -> Self {
         let depth_buffer = gpu.create_depth_buffer(800, 600);
         let msaa_buffer = gpu.create_msaa_framebuffer(&surface, 800, 600);
-        let sampler = gpu.create_sampler();
         let pipelines = Pipelines::new(&gpu, &surface);
         let resources = Resources::default();
         let camera = gpu.create_uniform(&CameraMatrices::default());
@@ -37,7 +37,6 @@ impl Renderer {
             surface,
             depth_buffer,
             msaa_buffer,
-            sampler,
             pipelines,
             resources,
             camera,
@@ -45,17 +44,16 @@ impl Renderer {
         }
     }
 
-    pub fn add_texture(&mut self, id: TextureID, texture: asset::Texture) {
-        self.resources
-            .add_texture(&self.gpu, &self.sampler, id, texture);
+    pub fn add_texture(&mut self, id: TextureID, texture: Texture) {
+        self.resources.add_texture(id, texture);
     }
 
-    pub fn add_prop(&mut self, id: PropID, prop: asset::Prop) {
-        self.resources.add_prop(&self.gpu, id, prop);
+    pub fn add_prop(&mut self, id: PropID, model: PropModel) {
+        self.resources.add_prop(id, model);
     }
 
-    pub fn add_gizmo(&mut self, id: GizmoID, gizmo: asset::Gizmo) {
-        self.resources.add_gizmo(&self.gpu, id, gizmo);
+    pub fn add_gizmo(&mut self, id: GizmoID, mesh: GizmoMesh) {
+        self.resources.add_gizmo(id, mesh);
     }
 
     pub fn resize(&mut self, width: u32, height: u32) {

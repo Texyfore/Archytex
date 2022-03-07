@@ -6,8 +6,9 @@ mod math;
 
 use std::sync::mpsc::Receiver;
 
-use asset::{scene::Scene, Gizmo, GizmoID, Prop, PropID, Texture, TextureID};
+use asset::{scene::Scene, PropID, TextureID};
 use data::PropInfoContainer;
+use graphics::LoadedResource;
 use instant::Instant;
 use logic::{ElementKind, Logic};
 use winit::{
@@ -25,7 +26,7 @@ pub fn run(init: Init) {
     let host = init.host;
     let from_host = init.receiver;
 
-    let (mut renderer, graphics) = graphics::init(&window);
+    let (mut renderer, graphics, loader) = graphics::init(&window);
     let mut prop_info = PropInfoContainer::default();
 
     let mut logic = Logic::init(logic::Context {
@@ -180,24 +181,24 @@ pub fn run(init: Init) {
                         FromHost::LockPointer(lock) => {
                             lock_pointer = lock;
                         }
-                        FromHost::LoadResource(resource) => match resource.kind {
-                            ResourceKind::Texture => {
-                                let id = TextureID(resource.id);
-                                let texture = Texture::new(&resource.buf);
-                                renderer.add_texture(id, texture);
-                            }
-                            ResourceKind::Prop => {
-                                let id = PropID(resource.id);
-                                let prop = Prop::decode(&resource.buf).unwrap();
-                                prop_info.insert(id, &prop);
-                                renderer.add_prop(id, prop);
-                            }
-                            ResourceKind::Gizmo => {
-                                let id = GizmoID(resource.id);
-                                let gizmo = Gizmo::decode(&resource.buf).unwrap();
-                                renderer.add_gizmo(id, gizmo);
-                            }
-                        },
+                        FromHost::LoadResource(resource) => {
+                            loader.push_job(resource);
+                        }
+                    }
+                }
+
+                while let Some(resource) = loader.poll() {
+                    match resource {
+                        LoadedResource::Texture { id, texture } => {
+                            renderer.add_texture(id, texture);
+                        }
+                        LoadedResource::Prop { id, bounds, model } => {
+                            renderer.add_prop(id, model);
+                            prop_info.insert(id, bounds);
+                        }
+                        LoadedResource::Gizmo { id, mesh } => {
+                            renderer.add_gizmo(id, mesh);
+                        }
                     }
                 }
 
