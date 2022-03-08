@@ -1,5 +1,6 @@
 mod compile;
 mod db;
+mod fsutil;
 mod model;
 mod props;
 mod report;
