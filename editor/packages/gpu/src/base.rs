@@ -50,9 +50,11 @@ where
             .await
             .unwrap();
 
-        let format = surface
-            .get_preferred_format(&adapter)
-            .unwrap_or(TextureFormat::Bgra8UnormSrgb);
+        // let format = surface
+        //     .get_preferred_format(&adapter)
+        //     .unwrap_or(TextureFormat::Bgra8UnormSrgb);
+
+        let format = TextureFormat::Bgra8UnormSrgb;
 
         let (device, queue) = adapter
             .request_device(
