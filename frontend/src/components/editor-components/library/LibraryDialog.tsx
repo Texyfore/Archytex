@@ -136,18 +136,20 @@ export default function LibraryDialog({
       : setCheckedCategories([]);
   };
 
-  useEffect(() => {
-    if (open) {
-      setCheckedCategories(categories);
-    }
-  }, [open]);
-
-  //Seach bar
+  // Seach bar
   const [query, setQuery] = useState("");
   const handleQueryChange = (query: string) => {
     setQuery(query);
     handleSelectionChange(undefined);
   };
+
+  // Reset dialog on every open
+  useEffect(() => {
+    if (open) {
+      setCheckedCategories(categories);
+      setQuery("");
+    }
+  }, [open]);
 
   return (
     <Dialog

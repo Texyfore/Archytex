@@ -90,8 +90,26 @@ export default function Editor() {
         (id: number, scene: Uint8Array) => {
           listeners[id](scene);
         },
-        () => {
-          handleEditorModeChange("solid");
+        (modeIndex: number) => {
+          let mode: EditorMode = "solid";
+          switch (modeIndex) {
+            case 0:
+              mode = "solid";
+              break;
+            case 1:
+              mode = "face";
+              break;
+            case 2:
+              mode = "vertex";
+              break;
+            case 3:
+              mode = "prop";
+              break;
+            default:
+              mode = "solid";
+              break;
+          }
+          handleEditorModeChange(mode);
         }
       );
       viewport.run(channel, callback);
