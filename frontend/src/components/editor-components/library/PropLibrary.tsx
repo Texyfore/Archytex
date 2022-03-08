@@ -2,7 +2,8 @@ import React from "react";
 
 import Box from "@mui/material/Box";
 
-import LibraryCard from "./LibraryCard";
+import PropLibraryCard from "./PropLibraryCard";
+
 import { Prop } from "../../../services/Library";
 
 interface Props {
@@ -44,10 +45,9 @@ export default function PropLibrary({
             matchesFilter(p)
         )
         .map((prop, index) => (
-          <LibraryCard
+          <PropLibraryCard
             key={index}
-            cardType='prop'
-            item={prop}
+            prop={prop}
             isSelected={
               selected === undefined ? false : selected.id === prop.id
             }

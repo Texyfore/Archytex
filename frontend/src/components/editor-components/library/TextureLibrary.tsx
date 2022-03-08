@@ -2,7 +2,8 @@ import React from "react";
 
 import Box from "@mui/material/Box";
 
-import LibraryCard from "./LibraryCard";
+import TextureLibraryCard from "./TextureLibraryCard";
+
 import { Texture } from "../../../services/Library";
 
 interface Props {
@@ -45,10 +46,9 @@ export default function TextureLibrary({
             matchesFilter(t)
         )
         .map((texture, index) => (
-          <LibraryCard
+          <TextureLibraryCard
             key={index}
-            cardType='texture'
-            item={texture}
+            texture={texture}
             isSelected={
               selected === undefined ? false : selected.id === texture.id
             }

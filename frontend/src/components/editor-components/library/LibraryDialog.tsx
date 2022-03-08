@@ -71,25 +71,36 @@ export default function LibraryDialog({
       if (descriptionElement !== null) {
         descriptionElement.focus();
       }
-      handleSelectionChange(libraryType === "textureLibrary" ? texture : prop);
+      if (libraryType === "textureLibrary") {
+        handleTextureSelectionChange(texture);
+      } else if (libraryType === "propLibrary") {
+        handlePropSelectionChange(prop);
+      }
     }
   }, [open, libraryType, texture, prop]);
 
-  //Selection handling
-  const [selected, setSelected] = useState<Texture | Prop | undefined>(
+  // Texture selection handling
+  const [selectedTexture, setSelectedTexture] = useState<Texture | undefined>(
     undefined
   );
-  const handleSelectionChange = (item: Texture | Prop | undefined) => {
-    setSelected(item);
+  const handleTextureSelectionChange = (item: Texture | undefined) => {
+    setSelectedTexture(item);
+  };
+
+  // Prop selection handling
+  const [selectedProp, setSelectedProp] = useState<Prop | undefined>(undefined);
+  const handlePropSelectionChange = (item: Prop | undefined) => {
+    setSelectedProp(item);
   };
 
   //Apply new item
   const handleApplyNewItem = () => {
-    if (selected !== undefined) {
-      libraryType === "textureLibrary"
-        ? handleTextureChange(selected)
-        : handlePropChange(selected);
+    if (libraryType === "textureLibrary" && selectedTexture !== undefined) {
+      handleTextureChange(selectedTexture);
+    } else if (libraryType === "propLibrary" && selectedProp !== undefined) {
+      handlePropChange(selectedProp);
     }
+
     handleClose();
   };
 
@@ -140,7 +151,8 @@ export default function LibraryDialog({
   const [query, setQuery] = useState("");
   const handleQueryChange = (query: string) => {
     setQuery(query);
-    handleSelectionChange(undefined);
+    handleTextureSelectionChange(undefined);
+    handlePropSelectionChange(undefined);
   };
 
   // Reset dialog on every open
@@ -200,35 +212,38 @@ export default function LibraryDialog({
             <TextureLibrary
               query={query}
               checkedCategories={checkedCategories}
-              selected={selected}
-              handleSelectionChange={handleSelectionChange}
+              selected={selectedTexture}
+              handleSelectionChange={handleTextureSelectionChange}
               textures={textures}
             />
           ) : (
             <PropLibrary
               query={query}
               checkedCategories={checkedCategories}
-              selected={selected}
-              handleSelectionChange={handleSelectionChange}
+              selected={selectedProp}
+              handleSelectionChange={handlePropSelectionChange}
               props={props}
             />
           )}
         </Box>
       </DialogContent>
       <DialogActions>
-        <Box display={selected === undefined ? "block" : "none"}>
+        <Box display={selectedTexture === undefined ? "block" : "none"}>
           <Tooltip title={tooltipText} followCursor>
             <span>
-              <Button onClick={handleClose} disabled={selected === undefined}>
+              <Button
+                onClick={handleClose}
+                disabled={selectedTexture === undefined}
+              >
                 {t("accept")}
               </Button>
             </span>
           </Tooltip>
         </Box>
-        <Box display={selected !== undefined ? "block" : "none"}>
+        <Box display={selectedTexture !== undefined ? "block" : "none"}>
           <Button
             onClick={handleApplyNewItem}
-            disabled={selected === undefined}
+            disabled={selectedTexture === undefined}
           >
             {t("accept")}
           </Button>

@@ -9,23 +9,23 @@ import Chip from "@mui/material/Chip";
 import Tooltip from "@mui/material/Tooltip";
 import Typography from "@mui/material/Typography";
 
-import { Prop, Texture } from "../../../services/Library";
+import { Texture } from "../../../services/Library";
 
 interface Props {
-  cardType: "prop" | "texture";
-  item: Texture | Prop;
+  texture: Texture;
   isSelected: boolean;
-  handleSelectionChange: (item: Texture | Prop | undefined) => void;
+  handleSelectionChange: (item: Texture | undefined) => void;
 }
 
-export default function LibraryCard({
-  cardType,
-  item,
+export default function TextureLibraryCard({
+  texture,
   isSelected,
   handleSelectionChange,
 }: Props) {
   const handleClick = () => {
-    isSelected ? handleSelectionChange(undefined) : handleSelectionChange(item);
+    isSelected
+      ? handleSelectionChange(undefined)
+      : handleSelectionChange(texture);
   };
 
   return (
@@ -45,30 +45,27 @@ export default function LibraryCard({
           component='img'
           height='140'
           image={
-            require(`../../../../public/assets/thumbnails/${item.name}.webp`)
+            require(`../../../../public/assets/thumbnails/${texture.name}.webp`)
               .default
           }
           alt='item'
-          sx={
-            cardType === "prop" ? { objectFit: "contain", padding: "10px" } : {}
-          }
         />
         <CardContent>
           <Tooltip
             title={
-              item.name.charAt(0).toUpperCase() +
-              item.name.replaceAll("_", " ").slice(1)
+              texture.name.charAt(0).toUpperCase() +
+              texture.name.replaceAll("_", " ").slice(1)
             }
             placement='top'
           >
             <Typography gutterBottom width='100%' noWrap>
-              {item.name.charAt(0).toUpperCase() +
-                item.name.replaceAll("_", " ").slice(1)}
+              {texture.name.charAt(0).toUpperCase() +
+                texture.name.replaceAll("_", " ").slice(1)}
             </Typography>
           </Tooltip>
           <Box display='flex' flexWrap='wrap' justifyContent='start' gap={1}>
-            {item.public !== null &&
-              item.public.categories.map((category) => (
+            {texture.public !== null &&
+              texture.public.categories.map((category) => (
                 <Chip
                   size='small'
                   label={category.charAt(0).toUpperCase() + category.slice(1)}
