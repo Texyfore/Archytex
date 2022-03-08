@@ -15,6 +15,7 @@ import useNotification from "../services/hooks/useNotification";
 import { useApi } from "../services/user/api";
 import { getAssets, Prop, Texture } from "../services/Library";
 import EditorMenu from "../components/editor-components/EditorMenu";
+import Environment from "../env";
 
 type EditorMode = "solid" | "face" | "vertex" | "prop";
 
@@ -28,6 +29,9 @@ export default function Editor() {
   const { projectId } = useParams<{ projectId: string }>();
 
   const api = useApi(false);
+
+  // Initialise sender
+  const [sender, setSender] = useState<any | null>(null);
 
   // Asset management
   const [_assets, _] = useState(() => getAssets());
@@ -52,6 +56,20 @@ export default function Editor() {
   const handleTextureChange = (texture: Texture) => {
     setTexture(texture);
   };
+  useEffect(() => {
+    if (sender !== null) {
+      (async () => {
+        const res = await fetch(
+          Environment.asset_url + `/textures/${texture.name}.png`
+        );
+        const arrayBuffer = await res.arrayBuffer();
+        return new Uint8Array(arrayBuffer);
+      })().then((buffer) => {
+        sender.loadTexture(texture.id, buffer);
+      });
+      sender.setTexture(texture.id);
+    }
+  }, [texture, sender]);
 
   // Selected prop
   const [prop, setProp] = useState<Prop>(props[0]);
@@ -61,8 +79,22 @@ export default function Editor() {
   const handlePropChange = (prop: Prop) => {
     setProp(prop);
   };
+  useEffect(() => {
+    if (sender !== null) {
+      (async () => {
+        const res = await fetch(
+          Environment.asset_url + `/props/${prop.name}.amdl`
+        );
+        const arrayBuffer = await res.arrayBuffer();
+        return new Uint8Array(arrayBuffer);
+      })().then((buffer) => {
+        sender.loadProp(prop.id, buffer);
+        console.log(buffer);
+      });
+      sender.setProp(prop.id);
+    }
+  }, [prop, sender]);
 
-  const [sender, setSender] = useState<any | null>(null);
   const [width, setWidth] = useState(1);
   const [height, setHeight] = useState(1);
 

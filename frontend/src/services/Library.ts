@@ -8,14 +8,12 @@ interface AssetDb {
 interface Texture {
   id: number;
   name: string;
-  url: string;
   public: Public | null;
 }
 
 interface Prop {
   id: number;
   name: string;
-  url: string;
   public: Public | null;
 }
 
