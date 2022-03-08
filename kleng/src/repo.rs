@@ -19,7 +19,7 @@ pub struct Texture {
 pub struct Prop {
     pub name: String,
     pub id: u32,
-    pub dependencies: Vec<u32>,
+    pub dependencies: Vec<String>,
     pub public: Option<Public>,
 }
 

@@ -25,7 +25,7 @@ pub struct Prop {
     pub path: CanonPath,
     pub categories: Option<Vec<String>>,
     pub textures: Option<HashMap<String, String>>,
-    pub dependencies: Vec<u32>,
+    pub dependencies: Vec<String>,
 }
 
 pub fn index(
@@ -33,7 +33,7 @@ pub fn index(
     textures: HashMap<String, Vec<String>>,
     props: HashMap<String, PropDef>,
 ) -> Indexed {
-    let mut prop_deps: HashMap<String, Vec<u32>> = HashMap::new();
+    let mut prop_deps: HashMap<String, Vec<String>> = HashMap::new();
 
     let textures = {
         let mut next_id = 2;
@@ -68,6 +68,11 @@ pub fn index(
                 let path = root.join(format!("props/{}.png", texture));
                 let path = CanonPath::new(path).require();
 
+                prop_deps
+                    .entry(name.clone())
+                    .or_default()
+                    .push(texture.clone());
+
                 entries.push(Texture {
                     name: texture,
                     id: next_id,
@@ -75,7 +80,6 @@ pub fn index(
                     categories: None,
                 });
 
-                prop_deps.entry(name.clone()).or_default().push(next_id);
                 next_id += 1;
             }
         }
