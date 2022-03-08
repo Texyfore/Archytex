@@ -44,22 +44,35 @@ export default function LibraryCard({
         <CardMedia
           component='img'
           height='140'
-          image={item.thumbnail}
+          image={
+            require(`../../../../public/assets/thumbnails/${item.name}.webp`)
+              .default
+          }
           alt='item'
           sx={
             cardType === "prop" ? { objectFit: "contain", padding: "10px" } : {}
           }
         />
         <CardContent>
-          <Tooltip title={item.name} placement='top'>
+          <Tooltip
+            title={
+              item.name.charAt(0).toUpperCase() +
+              item.name.replaceAll("_", " ").slice(1)
+            }
+            placement='top'
+          >
             <Typography gutterBottom width='100%' noWrap>
-              {item.name}
+              {item.name.charAt(0).toUpperCase() +
+                item.name.replaceAll("_", " ").slice(1)}
             </Typography>
           </Tooltip>
           <Box display='flex' flexWrap='wrap' justifyContent='start' gap={1}>
             {item.public !== null &&
               item.public.categories.map((category) => (
-                <Chip size='small' label={category} />
+                <Chip
+                  size='small'
+                  label={category.charAt(0).toUpperCase() + category.slice(1)}
+                />
               ))}
           </Box>
         </CardContent>

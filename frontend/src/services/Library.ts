@@ -10,7 +10,6 @@ interface Texture {
   name: string;
   url: string;
   public: Public | null;
-  thumbnail: string;
 }
 
 interface Prop {
@@ -18,7 +17,6 @@ interface Prop {
   name: string;
   url: string;
   public: Public | null;
-  thumbnail: string;
 }
 
 interface Public {

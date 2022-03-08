@@ -82,12 +82,15 @@ export default function EditorMenu({
 
         <Box display='flex' p={1}>
           <TextureIcon />
-          <Typography ml={1}>Texture</Typography>
+          <Typography ml={1}>{t("texture")}</Typography>
         </Box>
         <Box p={1} mb={1} display='flex'>
           <Box width={100} height={100} mr={2}>
             <img
-              src={texture.thumbnail}
+              src={
+                require(`../../../public/assets/thumbnails/${texture.name}.webp`)
+                  .default
+              }
               alt='texture'
               style={{ objectFit: "cover", borderRadius: 2 }}
               height='100%'
@@ -101,7 +104,10 @@ export default function EditorMenu({
             gap={1}
           >
             <Typography variant='caption'>{t("selected_texture")}</Typography>
-            <Typography>{texture.name}</Typography>
+            <Typography>
+              {texture.name.charAt(0).toUpperCase() +
+                texture.name.replaceAll("_", " ").slice(1)}
+            </Typography>
             <Button
               variant='outlined'
               onClick={() => handleLibraryClickOpen("textureLibrary")}
@@ -115,18 +121,15 @@ export default function EditorMenu({
 
         <Box display='flex' p={1}>
           <Chair />
-          <Typography ml={1}>Prop</Typography>
+          <Typography ml={1}>{t("prop")}</Typography>
         </Box>
         <Box p={1} display='flex'>
-          <Box
-            width={100}
-            height={100}
-            bgcolor='#F4F4F4'
-            borderRadius={1}
-            mr={2}
-          >
+          <Box width={100} height={100} borderRadius={1} mr={2}>
             <img
-              src={prop.thumbnail}
+              src={
+                require(`../../../public/assets/thumbnails/${prop.name}.webp`)
+                  .default
+              }
               alt='prop'
               style={{ objectFit: "contain", padding: 10, borderRadius: 1 }}
               height='100%'
@@ -140,7 +143,10 @@ export default function EditorMenu({
             gap={1}
           >
             <Typography variant='caption'>{t("selected_prop")}</Typography>
-            <Typography>{prop.name}</Typography>
+            <Typography>
+              {prop.name.charAt(0).toUpperCase() +
+                prop.name.replaceAll("_", " ").slice(1)}
+            </Typography>
             <Button
               variant='outlined'
               onClick={() => handleLibraryClickOpen("propLibrary")}

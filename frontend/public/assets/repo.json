@@ -4,30 +4,21 @@
       "name": "weathered_planks",
       "id": 2,
       "public": {
-        "categories": [
-          "floor",
-          "wood"
-        ]
+        "categories": ["floor", "wood"]
       }
     },
     {
       "name": "concrete_floor",
       "id": 3,
       "public": {
-        "categories": [
-          "floor",
-          "concrete"
-        ]
+        "categories": ["floor", "concrete"]
       }
     },
     {
       "name": "concrete_wall",
       "id": 4,
       "public": {
-        "categories": [
-          "wall",
-          "concrete"
-        ]
+        "categories": ["wall", "concrete"]
       }
     },
     {
@@ -38,34 +29,10 @@
       }
     },
     {
-<<<<<<< HEAD
-      "name": "roof",
-      "id": 4,
-      "public": {
-        "categories": ["roof"]
-      }
-    },
-    {
-      "name": "weathered_planks",
-      "id": 5,
-      "public": {
-        "categories": ["floor", "wood"]
-      }
-    },
-    {
-      "name": "concrete_floor",
-      "id": 6,
-      "public": {
-        "categories": ["floor", "concrete"]
-=======
       "name": "brown_planks",
       "id": 6,
       "public": {
-        "categories": [
-          "floor",
-          "wood"
-        ]
->>>>>>> f52af7ac5b0f86b89714aaef21f35944748724b3
+        "categories": ["floor", "wood"]
       }
     },
     {
@@ -79,13 +46,7 @@
       "name": "roof",
       "id": 8,
       "public": {
-<<<<<<< HEAD
-        "categories": ["floor", "wood"]
-=======
-        "categories": [
-          "roof"
-        ]
->>>>>>> f52af7ac5b0f86b89714aaef21f35944748724b3
+        "categories": ["roof"]
       }
     },
     {
@@ -155,41 +116,8 @@
       }
     },
     {
-<<<<<<< HEAD
-      "name": "wooden_chair",
-      "id": 2,
-      "public": {
-        "categories": ["furniture"]
-      }
-    },
-    {
-      "name": "shelves",
-      "id": 3,
-      "public": {
-        "categories": ["furniture"]
-      }
-    },
-    {
-      "name": "picture",
-      "id": 4,
-      "public": {
-        "categories": ["details"]
-      }
-    },
-    {
-      "name": "alarm_clock",
-      "id": 5,
-      "public": {
-        "categories": ["details"]
-      }
-    },
-    {
-      "name": "ceramic_vase",
-      "id": 6,
-=======
       "name": "alarm_clock",
       "id": 2,
->>>>>>> f52af7ac5b0f86b89714aaef21f35944748724b3
       "public": {
         "categories": ["details"]
       }
@@ -198,18 +126,14 @@
       "name": "potted_plant",
       "id": 3,
       "public": {
-        "categories": [
-          "details"
-        ]
+        "categories": ["details"]
       }
     },
     {
       "name": "shelves",
       "id": 4,
       "public": {
-        "categories": [
-          "furniture"
-        ]
+        "categories": ["furniture"]
       }
     },
     {
@@ -223,18 +147,14 @@
       "name": "table",
       "id": 6,
       "public": {
-        "categories": [
-          "furniture"
-        ]
+        "categories": ["furniture"]
       }
     },
     {
       "name": "ceramic_vase",
       "id": 7,
       "public": {
-        "categories": [
-          "details"
-        ]
+        "categories": ["details"]
       }
     },
     {
