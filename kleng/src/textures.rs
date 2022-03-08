@@ -51,19 +51,16 @@ where
 
         let ext = path.extension().and_then(|ext| ext.to_str());
 
-        match (name, ext) {
-            (Some(name), Some("png" | "jpg")) => {
-                map.insert(
-                    name.to_owned(),
-                    Texture {
-                        id: *next_id,
-                        path,
-                        public,
-                    },
-                );
-                *next_id += 1;
-            }
-            _ => (),
+        if let (Some(name), Some("png" | "jpg")) = (name, ext) {
+            map.insert(
+                name.to_owned(),
+                Texture {
+                    id: *next_id,
+                    path,
+                    public,
+                },
+            );
+            *next_id += 1;
         }
     }
 }
