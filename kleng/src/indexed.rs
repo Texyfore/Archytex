@@ -6,22 +6,26 @@ use crate::{defs::PropDef, fsutil::CanonPath, require::Require};
 
 #[derive(Debug)]
 pub struct Indexed {
-    pub textures: Vec<Entry>,
-    pub props: Vec<PropEntry>,
+    pub textures: Vec<Texture>,
+    pub props: Vec<Prop>,
 }
 
 #[derive(Debug)]
-pub struct PropEntry {
-    pub entry: Entry,
-    pub textures: Option<HashMap<String, String>>,
-}
-
-#[derive(Debug)]
-pub struct Entry {
+pub struct Texture {
     pub name: String,
     pub id: u32,
     pub path: CanonPath,
     pub categories: Option<Vec<String>>,
+}
+
+#[derive(Debug)]
+pub struct Prop {
+    pub name: String,
+    pub id: u32,
+    pub path: CanonPath,
+    pub categories: Option<Vec<String>>,
+    pub textures: Option<HashMap<String, String>>,
+    pub dependencies: Vec<String>,
 }
 
 pub fn index(
@@ -29,6 +33,8 @@ pub fn index(
     textures: HashMap<String, Vec<String>>,
     props: HashMap<String, PropDef>,
 ) -> Indexed {
+    let mut prop_deps: HashMap<String, Vec<String>> = HashMap::new();
+
     let textures = {
         let mut next_id = 2;
         let mut entries = Vec::new();
@@ -41,7 +47,7 @@ pub fn index(
             let path = root.join(format!("textures/{}.png", name));
             let path = CanonPath::new(path).require();
 
-            entries.push(Entry {
+            entries.push(Texture {
                 name,
                 id: next_id,
                 path,
@@ -62,7 +68,12 @@ pub fn index(
                 let path = root.join(format!("props/{}.png", texture));
                 let path = CanonPath::new(path).require();
 
-                entries.push(Entry {
+                prop_deps
+                    .entry(name.clone())
+                    .or_default()
+                    .push(texture.clone());
+
+                entries.push(Texture {
                     name: texture,
                     id: next_id,
                     path,
@@ -88,15 +99,15 @@ pub fn index(
 
             let path = root.join(format!("props/{}.gltf", name));
             let path = CanonPath::new(path).require();
+            let dependencies = prop_deps.remove(&name).unwrap();
 
-            entries.push(PropEntry {
-                entry: Entry {
-                    name,
-                    id: next_id,
-                    path,
-                    categories: Some(prop.categories),
-                },
+            entries.push(Prop {
+                name,
+                id: next_id,
+                path,
+                categories: Some(prop.categories),
                 textures: prop.textures,
+                dependencies,
             });
 
             next_id += 1;
