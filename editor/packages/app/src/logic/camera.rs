@@ -68,7 +68,7 @@ impl Camera {
     }
 
     pub fn look(&mut self, mouse_delta: Vector2<f32>, delta: f32) {
-        const SENSITIVITY: f32 = 6.0;
+        const SENSITIVITY: f32 = 10.0;
         self.rotation.y -= mouse_delta.x * SENSITIVITY * delta;
         self.rotation.x =
             (self.rotation.x - mouse_delta.y * SENSITIVITY * delta).clamp(-90.0, 90.0);
