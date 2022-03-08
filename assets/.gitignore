@@ -1,9 +1,0 @@
-gizmos/export/*.agzm
-gizmos/*.blend1
-gizmos/*.gltf
-
-props/export/*.amdl
-props/*.gltf
-props/*.blend1
-
-textures/export/*.png
