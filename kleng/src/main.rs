@@ -4,6 +4,7 @@ use clap::{Arg, ArgMatches, Command};
 
 mod defs;
 mod fsutil;
+mod repo;
 mod require;
 
 fn main() {
