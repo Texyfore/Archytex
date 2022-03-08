@@ -81,7 +81,7 @@ var t_diffuse: texture_2d<f32>;
 [[group(1), binding(1)]]
 var s_diffuse: sampler;
 
-let GRID_DIST = 30.0;
+let GRID_DIST = 40.0;
 
 [[stage(fragment)]]
 fn fragment(vertex: Vertex) -> Fragment {
@@ -95,11 +95,11 @@ fn fragment(vertex: Vertex) -> Fragment {
 
     // Grid
     {
-        var len = f32(vertex.grid_len) * 0.01;
+        var len = f32(vertex.grid_len) / 128.0;
         var gdist = GRID_DIST * len;
 
-        var x = (((vertex.texcoord.x * 5.0) % len + len) % len) / len;
-        var y = (((vertex.texcoord.y * 5.0) % len + len) % len) / len;
+        var x = (((vertex.texcoord.x * 4.0) % len + len) % len) / len;
+        var y = (((vertex.texcoord.y * 4.0) % len + len) % len) / len;
 
         var dist = distance(vertex.world_position, vertex.camera_position);
         var fade = (gdist - clamp(dist, 0.0, gdist)) / gdist;

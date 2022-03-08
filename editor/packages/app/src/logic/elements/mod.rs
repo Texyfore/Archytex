@@ -151,7 +151,7 @@ impl From<Vector3<i32>> for Point {
 
 impl Point {
     pub fn meters(&self) -> Vector3<f32> {
-        self.position.map(|e| e as f32 * 0.01)
+        self.position.map(|e| e as f32 / 128.0)
     }
 }
 
@@ -356,7 +356,7 @@ impl SolidGraphics {
                     vec2(position.x, position.z)
                 } else {
                     vec2(position.x, position.y)
-                } / 5.0;
+                } / 4.0;
 
                 vertices.push(SolidVertex {
                     position,
@@ -459,7 +459,7 @@ impl Prop {
     }
 
     pub fn meters(&self) -> Vector3<f32> {
-        self.position.map(|e| e as f32 * 0.01)
+        self.position.map(|e| e as f32 / 128.0)
     }
 
     pub fn rotation(&self) -> Quaternion<f32> {
@@ -593,7 +593,7 @@ impl Movable for Solid {
 
 impl Movable for Prop {
     fn center(&self, _mask: ElementKind) -> Vector3<f32> {
-        self.position.map(|e| e as f32 * 0.01)
+        self.position.map(|e| e as f32 / 128.0)
     }
 
     fn displace(&mut self, delta: Vector3<i32>, _mask: ElementKind) -> bool {
@@ -642,5 +642,5 @@ impl Movable for Prop {
 }
 
 fn prop_transform(position: Vector3<i32>, rotation: Quaternion<f32>) -> Matrix4<f32> {
-    Matrix4::from_translation(position.map(|e| e as f32 * 0.01)) * Matrix4::from(rotation)
+    Matrix4::from_translation(position.map(|e| e as f32 / 128.0)) * Matrix4::from(rotation)
 }

@@ -42,7 +42,7 @@ impl Editor {
             old_tool: None,
             ground: Ground::new(ctx.graphics),
             mode: ElementKind::Solid,
-            grid: 3,
+            grid: 128,
             texture: TextureID(2),
             prop: PropID(0),
         }
@@ -122,7 +122,7 @@ impl Editor {
     }
 
     pub fn render(&self, canvas: &mut Canvas) {
-        canvas.set_grid_len(grid(self.grid));
+        canvas.set_grid_len(self.grid);
 
         let tool = if let Some(old) = &self.old_tool {
             old
@@ -199,8 +199,4 @@ impl Ground {
         canvas.draw_ground(self.mesh.share());
         canvas.draw_lines(self.lines.share());
     }
-}
-
-fn grid(x: i32) -> i32 {
-    [5, 10, 50, 100, 500, 1000][x as usize]
 }

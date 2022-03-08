@@ -4,10 +4,7 @@ use winit::event::MouseButton;
 use crate::{
     graphics::{Canvas, Graphics, LineMesh, LineMeshDescriptor, Share},
     logic::{
-        editor::{
-            gizmo::{ArrowGraphics, Selection},
-            grid,
-        },
+        editor::gizmo::{ArrowGraphics, Selection},
         elements::Movable,
         ElementKind,
     },
@@ -98,7 +95,7 @@ where
             ray.closest_point_on_line(self.center, self.selection.axis().unit()) - self.correction
         };
 
-        let delta = point.snap(grid(*ctx.grid));
+        let delta = point.snap(*ctx.grid);
         if delta != self.prev_delta {
             let delta2 = delta - self.prev_delta;
             self.prev_delta = delta;
@@ -110,7 +107,7 @@ where
 
             self.graphics.modify(
                 ctx.graphics,
-                self.center + delta.map(|e| e as f32 * 0.01),
+                self.center + delta.map(|e| e as f32 / 128.0),
                 Some(self.selection),
                 true,
             );
