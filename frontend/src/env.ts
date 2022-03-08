@@ -12,7 +12,7 @@ const dev: Environment = {
 
 const prod: Environment = {
   base_url: "/api/",
-  ws_url: "/api/ws",
+  ws_url: `${window.location.protocol === "https:" ? "wss" : "ws"}://${window.location.host}/api/ws`,
   asset_url: "/assets",
 };
 
