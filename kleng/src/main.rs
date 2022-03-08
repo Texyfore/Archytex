@@ -1,7 +1,9 @@
-use std::path::PathBuf;
+use std::{fs, path::PathBuf};
 
 use clap::{Arg, ArgMatches, Command};
+use require::Require;
 
+mod compiler;
 mod defs;
 mod fsutil;
 mod indexed;
@@ -14,7 +16,14 @@ fn main() {
 
     let (textures, props) = defs::read(&root);
     let indexed = indexed::index(&root, textures, props);
-    println!("{:#?}", indexed);
+
+    compiler::save(&root, &indexed);
+
+    {
+        let repo = repo::create(indexed);
+        let json = serde_json::to_string_pretty(&repo).require();
+        fs::write(root.join("out/repo.json"), json).require();
+    }
 }
 
 fn cmd() -> ArgMatches {

@@ -7,11 +7,18 @@ use crate::{defs::PropDef, fsutil::CanonPath, require::Require};
 #[derive(Debug)]
 pub struct Indexed {
     pub textures: Vec<Entry>,
-    pub props: Vec<Entry>,
+    pub props: Vec<PropEntry>,
+}
+
+#[derive(Debug)]
+pub struct PropEntry {
+    pub entry: Entry,
+    pub textures: Option<HashMap<String, String>>,
 }
 
 #[derive(Debug)]
 pub struct Entry {
+    pub name: String,
     pub id: u32,
     pub path: CanonPath,
     pub categories: Option<Vec<String>>,
@@ -35,6 +42,7 @@ pub fn index(
             let path = CanonPath::new(path).require();
 
             entries.push(Entry {
+                name,
                 id: next_id,
                 path,
                 categories: Some(categories),
@@ -47,14 +55,15 @@ pub fn index(
             let textures = prop
                 .textures
                 .as_ref()
-                .map(|textures| textures.values().map(|v| v.as_str()).collect())
-                .unwrap_or_else(|| vec![name.as_str()]);
+                .map(|textures| textures.values().cloned().collect())
+                .unwrap_or_else(|| vec![name.clone()]);
 
             for texture in textures {
                 let path = root.join(format!("props/{}.png", texture));
                 let path = CanonPath::new(path).require();
 
                 entries.push(Entry {
+                    name: texture,
                     id: next_id,
                     path,
                     categories: None,
@@ -80,10 +89,14 @@ pub fn index(
             let path = root.join(format!("props/{}.gltf", name));
             let path = CanonPath::new(path).require();
 
-            entries.push(Entry {
-                id: next_id,
-                path,
-                categories: Some(prop.categories),
+            entries.push(PropEntry {
+                entry: Entry {
+                    name,
+                    id: next_id,
+                    path,
+                    categories: Some(prop.categories),
+                },
+                textures: prop.textures,
             });
 
             next_id += 1;
