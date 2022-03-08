@@ -49,11 +49,11 @@ impl CameraTool {
 
         // Grid
         if ctx.input.is_key_down_once(VirtualKeyCode::O) {
-            *ctx.grid = (*ctx.grid / 2).clamp(1, 512);
+            *ctx.grid = (*ctx.grid / 2).clamp(2, 512);
             println!("grid: {}cm", *ctx.grid);
         }
         if ctx.input.is_key_down_once(VirtualKeyCode::P) {
-            *ctx.grid = (*ctx.grid * 2).clamp(1, 512);
+            *ctx.grid = (*ctx.grid * 2).clamp(2, 512);
             println!("grid: {}cm", *ctx.grid);
         }
 
