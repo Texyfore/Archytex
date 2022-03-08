@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 
 use asset::{GizmoID, GizmoVertex, PropID, PropVertex, TextureID};
-use gpu::{Buffer, BufferUsages, Gpu, Image, Sampler, Texture};
+use gpu::{Buffer, Texture};
 
 #[derive(Default)]
 pub struct Resources {
@@ -11,51 +11,16 @@ pub struct Resources {
 }
 
 impl Resources {
-    pub fn add_texture(
-        &mut self,
-        gpu: &Gpu,
-        sampler: &Sampler,
-        id: TextureID,
-        texture: asset::Texture,
-    ) {
-        self.textures.insert(
-            id,
-            gpu.create_texture(
-                sampler,
-                Image {
-                    width: texture.width,
-                    height: texture.height,
-                    buf: &texture.rgba8,
-                },
-            ),
-        );
+    pub fn add_texture(&mut self, id: TextureID, texture: Texture) {
+        self.textures.insert(id, texture);
     }
 
-    pub fn add_prop(&mut self, gpu: &Gpu, id: PropID, prop: asset::Prop) {
-        self.props.insert(
-            id,
-            PropModel {
-                meshes: prop
-                    .meshes
-                    .into_iter()
-                    .map(|mesh| PropMesh {
-                        texture: mesh.texture,
-                        vertices: gpu.create_buffer(&mesh.vertices, BufferUsages::VERTEX),
-                        triangles: gpu.create_buffer(&mesh.triangles, BufferUsages::INDEX),
-                    })
-                    .collect(),
-            },
-        );
+    pub fn add_prop(&mut self, id: PropID, model: PropModel) {
+        self.props.insert(id, model);
     }
 
-    pub fn add_gizmo(&mut self, gpu: &Gpu, id: GizmoID, gizmo: asset::Gizmo) {
-        self.gizmos.insert(
-            id,
-            GizmoMesh {
-                vertices: gpu.create_buffer(&gizmo.vertices, BufferUsages::VERTEX),
-                triangles: gpu.create_buffer(&gizmo.triangles, BufferUsages::INDEX),
-            },
-        );
+    pub fn add_gizmo(&mut self, id: GizmoID, mesh: GizmoMesh) {
+        self.gizmos.insert(id, mesh);
     }
 
     pub fn texture(&self, id: TextureID) -> Option<&Texture> {

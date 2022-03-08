@@ -6,8 +6,9 @@ mod math;
 
 use std::sync::mpsc::Receiver;
 
-use asset::{scene::Scene, Gizmo, GizmoID, Prop, PropID, Texture, TextureID};
+use asset::{scene::Scene, PropID, TextureID};
 use data::PropInfoContainer;
+use graphics::LoadedResource;
 use instant::Instant;
 use logic::{ElementKind, Logic};
 use winit::{
@@ -25,32 +26,8 @@ pub fn run(init: Init) {
     let host = init.host;
     let from_host = init.receiver;
 
-    let (mut renderer, graphics) = graphics::init(&window);
+    let (mut renderer, graphics, mut loader) = graphics::init(&window);
     let mut prop_info = PropInfoContainer::default();
-
-    {
-        let resources = init.resources;
-        for resource in resources {
-            match resource.kind {
-                ResourceKind::Texture => {
-                    let id = TextureID(resource.id);
-                    let texture = Texture::new(&resource.buf);
-                    renderer.add_texture(id, texture);
-                }
-                ResourceKind::Prop => {
-                    let id = PropID(resource.id);
-                    let prop = Prop::decode(&resource.buf).unwrap();
-                    prop_info.insert(id, &prop);
-                    renderer.add_prop(id, prop);
-                }
-                ResourceKind::Gizmo => {
-                    let id = GizmoID(resource.id);
-                    let gizmo = Gizmo::decode(&resource.buf).unwrap();
-                    renderer.add_gizmo(id, gizmo);
-                }
-            }
-        }
-    }
 
     let mut logic = Logic::init(logic::Context {
         host: host.as_ref(),
@@ -204,6 +181,24 @@ pub fn run(init: Init) {
                         FromHost::LockPointer(lock) => {
                             lock_pointer = lock;
                         }
+                        FromHost::LoadResource(resource) => {
+                            loader.push_job(resource);
+                        }
+                    }
+                }
+
+                while let Some(resource) = loader.process() {
+                    match resource {
+                        LoadedResource::Texture { id, texture } => {
+                            renderer.add_texture(id, texture);
+                        }
+                        LoadedResource::Prop { id, bounds, model } => {
+                            renderer.add_prop(id, model);
+                            prop_info.insert(id, bounds);
+                        }
+                        LoadedResource::Gizmo { id, mesh } => {
+                            renderer.add_gizmo(id, mesh);
+                        }
                     }
                 }
 
@@ -225,7 +220,6 @@ pub fn run(init: Init) {
 
 pub struct Init {
     pub winit: Winit,
-    pub resources: Vec<Resource>,
     pub host: Box<dyn Host>,
     pub receiver: Receiver<FromHost>,
 }
@@ -233,18 +227,6 @@ pub struct Init {
 pub struct Winit {
     pub event_loop: EventLoop<()>,
     pub window: Window,
-}
-
-pub struct Resource {
-    pub id: u32,
-    pub buf: Vec<u8>,
-    pub kind: ResourceKind,
-}
-
-pub enum ResourceKind {
-    Texture,
-    Prop,
-    Gizmo,
 }
 
 pub trait Host {
@@ -265,4 +247,38 @@ pub enum FromHost {
     Button(i32),
     Movement(f32, f32),
     LockPointer(bool),
+    LoadResource(Resource),
+}
+
+pub struct Resource {
+    pub id: u32,
+    pub buf: Vec<u8>,
+    pub kind: ResourceKind,
+}
+
+pub enum ResourceKind {
+    Texture,
+    Prop,
+    Gizmo,
+}
+
+macro_rules! resource {
+    ($ty:ident $id:literal -> $path:literal) => {
+        Resource {
+            id: $id,
+            buf: include_bytes!(concat!("../../../assets/", $path)).to_vec(),
+            kind: ResourceKind::$ty,
+        }
+    };
+}
+
+pub fn builtin_resources() -> Vec<Resource> {
+    vec![
+        resource!(Texture 0 -> "nodraw.png"),
+        resource!(Texture 1 -> "ground.png"),
+        resource!(Gizmo 0 -> "vertex.agzm"),
+        resource!(Gizmo 1 -> "arrow.agzm"),
+        resource!(Gizmo 2 -> "plane.agzm"),
+        resource!(Gizmo 3 -> "arc.agzm"),
+    ]
 }

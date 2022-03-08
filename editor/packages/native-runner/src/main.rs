@@ -6,16 +6,21 @@ use std::{
     time::{SystemTime, UNIX_EPOCH},
 };
 
-use app::{run, Host, Init, Resource, ResourceKind, ToHost, Winit};
+use app::{builtin_resources, run, FromHost, Host, Init, ToHost, Winit};
 use comms::AsyncStdin;
 use winit::{event_loop::EventLoop, window::WindowBuilder};
 
 fn main() {
     let (sender, receiver) = channel();
+
+    for resource in builtin_resources() {
+        sender.send(FromHost::LoadResource(resource)).unwrap();
+    }
+
     let _stdin = AsyncStdin::new(sender);
+
     run(Init {
         winit: winit(),
-        resources: resources(),
         host: Box::new(NativeHost),
         receiver,
     });
@@ -51,44 +56,4 @@ fn winit() -> Winit {
         .unwrap();
 
     Winit { event_loop, window }
-}
-
-fn resources() -> Vec<Resource> {
-    vec![
-        Resource {
-            id: 0,
-            buf: include_bytes!("../../../assets/nodraw.png").to_vec(),
-            kind: ResourceKind::Texture,
-        },
-        Resource {
-            id: 1,
-            buf: include_bytes!("../../../assets/ground.png").to_vec(),
-            kind: ResourceKind::Texture,
-        },
-        Resource {
-            id: 0,
-            buf: include_bytes!("../../../assets/vertex.agzm").to_vec(),
-            kind: ResourceKind::Gizmo,
-        },
-        Resource {
-            id: 1,
-            buf: include_bytes!("../../../assets/arrow.agzm").to_vec(),
-            kind: ResourceKind::Gizmo,
-        },
-        Resource {
-            id: 2,
-            buf: include_bytes!("../../../assets/plane.agzm").to_vec(),
-            kind: ResourceKind::Gizmo,
-        },
-        Resource {
-            id: 3,
-            buf: include_bytes!("../../../assets/arc.agzm").to_vec(),
-            kind: ResourceKind::Gizmo,
-        },
-        Resource {
-            id: 0,
-            buf: include_bytes!("../../../assets/cube.amdl").to_vec(),
-            kind: ResourceKind::Prop,
-        },
-    ]
 }
