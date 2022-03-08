@@ -1,0 +1,4 @@
+version: '3.0'
+services:
+  redis:
+    image: raffapen/redisai-cpu-arm64-bionic

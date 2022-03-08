@@ -11,11 +11,11 @@ const dev: Environment = {
 };
 
 const prod: Environment = {
-  base_url: "TODO",
-  ws_url: "TODO",
-  asset_url: "TODO",
+  base_url: "/api/",
+  ws_url: `${window.location.protocol === "https:" ? "wss" : "ws"}://${window.location.host}/api/ws`,
+  asset_url: "/assets",
 };
 
-const Environment = process.env.STAGE === "production" ? prod : dev;
+const Environment = process.env.REACT_APP_STAGE === "production" ? prod : dev;
 
 export default Environment;
