@@ -56,18 +56,19 @@ export default function Editor() {
   const handleTextureChange = (texture: Texture) => {
     setTexture(texture);
   };
+
   useEffect(() => {
-    if (sender !== null) {
+    if (sender !== null && texture !== undefined) {
       (async () => {
         const res = await fetch(
-          Environment.asset_url + `/textures/${texture.name}.png`
+          `${Environment.asset_url}/textures/${texture.name}.png`
         );
         const arrayBuffer = await res.arrayBuffer();
         return new Uint8Array(arrayBuffer);
       })().then((buffer) => {
         sender.loadTexture(texture.id, buffer);
+        sender.setTexture(texture.id);
       });
-      sender.setTexture(texture.id);
     }
   }, [texture, sender]);
 
@@ -79,19 +80,19 @@ export default function Editor() {
   const handlePropChange = (prop: Prop) => {
     setProp(prop);
   };
+
   useEffect(() => {
-    if (sender !== null) {
+    if (sender !== null && prop !== undefined) {
       (async () => {
         const res = await fetch(
-          Environment.asset_url + `/props/${prop.name}.amdl`
+          `${Environment.asset_url}/props/${prop.name}.amdl`
         );
         const arrayBuffer = await res.arrayBuffer();
         return new Uint8Array(arrayBuffer);
       })().then((buffer) => {
         sender.loadProp(prop.id, buffer);
-        console.log(buffer);
+        sender.setProp(prop.id);
       });
-      sender.setProp(prop.id);
     }
   }, [prop, sender]);
 
