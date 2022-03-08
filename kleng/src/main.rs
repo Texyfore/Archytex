@@ -1,27 +1,29 @@
-mod compile;
-mod db;
-mod model;
-mod props;
-mod report;
-mod textures;
+use std::{fs, path::PathBuf};
 
 use clap::{Arg, ArgMatches, Command};
-use compile::compile;
-use props::enumerate_props;
+use require::Require;
 
-use crate::{props::parse_defs, textures::enumerate_textures};
+mod compiler;
+mod defs;
+mod fsutil;
+mod indexed;
+mod repo;
+mod require;
 
 fn main() {
     let matches = cmd();
-    let root = matches.value_of("in").unwrap();
-    let textures = enumerate_textures(root);
+    let root = PathBuf::from(matches.value_of("in").unwrap());
 
-    let props = {
-        let defs = parse_defs(root);
-        enumerate_props(root, defs, &textures)
-    };
+    let (textures, props) = defs::read(&root);
+    let indexed = indexed::index(&root, textures, props);
 
-    compile(root, textures, props);
+    compiler::save(&root, &indexed);
+
+    {
+        let repo = repo::create(indexed);
+        let json = serde_json::to_string_pretty(&repo).require();
+        fs::write(root.join("out/repo.json"), json).require();
+    }
 }
 
 fn cmd() -> ArgMatches {
