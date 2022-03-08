@@ -10,5 +10,6 @@ winit = "0"
 cgmath = "0"
 bytemuck = "1"
 instant = "0"
+hex-literal = "0"
 gpu = { path = "../gpu" }
 asset = { path = "../asset" }

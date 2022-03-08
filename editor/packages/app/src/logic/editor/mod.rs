@@ -3,7 +3,7 @@ mod gizmo;
 mod tools;
 
 use asset::{PropID, TextureID};
-use cgmath::vec3;
+use cgmath::{vec3, Vector3, Zero};
 use winit::event::VirtualKeyCode;
 
 use crate::{
@@ -16,7 +16,10 @@ use crate::{
     Host, ToHost,
 };
 
-use self::tools::{CameraTool, Tool};
+use self::{
+    common::Axis,
+    tools::{CameraTool, Tool},
+};
 
 use super::{
     camera::Camera,
@@ -168,24 +171,11 @@ impl Ground {
         };
 
         let lines = {
-            let vertices = [
-                LineVertex {
-                    position: vec3(-100.0, 0.0, 0.0),
-                    color: [1.0, 0.0, 0.0],
-                },
-                LineVertex {
-                    position: vec3(100.0, 0.0, 0.0),
-                    color: [1.0, 0.0, 0.0],
-                },
-                LineVertex {
-                    position: vec3(0.0, 0.0, -100.0),
-                    color: [0.0, 0.0, 1.0],
-                },
-                LineVertex {
-                    position: vec3(0.0, 0.0, 100.0),
-                    color: [0.0, 0.0, 1.0],
-                },
-            ];
+            let vertices = Axis::X
+                .line_vertices(Vector3::zero())
+                .into_iter()
+                .chain(Axis::Z.line_vertices(Vector3::zero()).into_iter())
+                .collect::<Vec<_>>();
 
             graphics.create_line_mesh(LineMeshDescriptor {
                 vertices: &vertices,

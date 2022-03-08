@@ -2,7 +2,7 @@ use std::f32::consts::PI;
 
 use cgmath::{vec3, Deg, Matrix4, Quaternion, Rotation3, SquareMatrix, Vector2, Vector3};
 
-use crate::graphics::structures::LineVertex;
+use crate::{color, graphics::structures::LineVertex};
 
 #[derive(Clone, Copy, PartialEq, Eq)]
 pub enum Axis {
@@ -34,9 +34,9 @@ impl Axis {
 
     pub fn color(&self) -> [f32; 3] {
         match self {
-            Self::X => [1.0, 0.0, 0.0],
-            Self::Y => [0.0, 1.0, 0.0],
-            Self::Z => [0.0, 0.0, 1.0],
+            Self::X => color!("ec4659"),
+            Self::Y => color!("85cc34"),
+            Self::Z => color!("5084d4"),
         }
     }
 
@@ -47,11 +47,7 @@ impl Axis {
             Self::Z => (vec3(0.0, 0.0, -1.0), vec3(0.0, 0.0, 1.0)),
         };
 
-        let color = match self {
-            Self::X => [1.0, 0.0, 0.0],
-            Self::Y => [0.0, 1.0, 0.0],
-            Self::Z => [0.0, 0.0, 1.0],
-        };
+        let color = self.color();
 
         [
             LineVertex {
