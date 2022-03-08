@@ -172,9 +172,9 @@ impl Ground {
 
         let lines = {
             let vertices = Axis::X
-                .line_vertices(Vector3::zero())
+                .line_vertices(Vector3::zero(), 0.0)
                 .into_iter()
-                .chain(Axis::Z.line_vertices(Vector3::zero()).into_iter())
+                .chain(Axis::Z.line_vertices(Vector3::zero(), 0.0).into_iter())
                 .collect::<Vec<_>>();
 
             graphics.create_line_mesh(LineMeshDescriptor {
