@@ -1,0 +1,127 @@
+{
+  "textures": [
+    {
+      "id": 8,
+      "url": "weathered_planks.png",
+      "public": true
+    },
+    {
+      "id": 4,
+      "url": "concrete_wall.png",
+      "public": true
+    },
+    {
+      "id": 15,
+      "url": "potted_plant.png",
+      "public": false
+    },
+    {
+      "id": 10,
+      "url": "ceramic_vase.png",
+      "public": false
+    },
+    {
+      "id": 9,
+      "url": "alarm_clock.png",
+      "public": false
+    },
+    {
+      "id": 7,
+      "url": "roof.png",
+      "public": true
+    },
+    {
+      "id": 13,
+      "url": "picture_frame.png",
+      "public": false
+    },
+    {
+      "id": 17,
+      "url": "table.png",
+      "public": false
+    },
+    {
+      "id": 12,
+      "url": "ottoman.png",
+      "public": false
+    },
+    {
+      "id": 11,
+      "url": "coffee_table.png",
+      "public": false
+    },
+    {
+      "id": 5,
+      "url": "large_floor_tiles.png",
+      "public": true
+    },
+    {
+      "id": 3,
+      "url": "concrete_floor.png",
+      "public": true
+    },
+    {
+      "id": 6,
+      "url": "red_bricks.png",
+      "public": true
+    },
+    {
+      "id": 18,
+      "url": "wooden_chair.png",
+      "public": false
+    },
+    {
+      "id": 16,
+      "url": "shelves.png",
+      "public": false
+    },
+    {
+      "id": 14,
+      "url": "picture_image.png",
+      "public": false
+    },
+    {
+      "id": 2,
+      "url": "brown_planks.png",
+      "public": true
+    }
+  ],
+  "props": [
+    {
+      "id": 1,
+      "url": "alarm_clock.amdl"
+    },
+    {
+      "id": 2,
+      "url": "ceramic_vase.amdl"
+    },
+    {
+      "id": 3,
+      "url": "coffee_table.amdl"
+    },
+    {
+      "id": 4,
+      "url": "ottoman.amdl"
+    },
+    {
+      "id": 5,
+      "url": "picture.amdl"
+    },
+    {
+      "id": 6,
+      "url": "potted_plant.amdl"
+    },
+    {
+      "id": 7,
+      "url": "shelves.amdl"
+    },
+    {
+      "id": 8,
+      "url": "table.amdl"
+    },
+    {
+      "id": 9,
+      "url": "wooden_chair.amdl"
+    }
+  ]
+}
