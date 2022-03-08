@@ -1,81 +1,99 @@
 {
   "textures": [
     {
-      "name": "weathered_planks",
+      "name": "brown_planks",
       "id": 2,
       "public": {
-        "categories": ["floor", "wood"]
-      }
-    },
-    {
-      "name": "concrete_floor",
-      "id": 3,
-      "public": {
-        "categories": ["floor", "concrete"]
+        "categories": [
+          "floor",
+          "wood"
+        ]
       }
     },
     {
       "name": "concrete_wall",
+      "id": 3,
+      "public": {
+        "categories": [
+          "wall",
+          "concrete"
+        ]
+      }
+    },
+    {
+      "name": "roof",
       "id": 4,
       "public": {
-        "categories": ["wall", "concrete"]
+        "categories": [
+          "roof"
+        ]
+      }
+    },
+    {
+      "name": "weathered_planks",
+      "id": 5,
+      "public": {
+        "categories": [
+          "floor",
+          "wood"
+        ]
       }
     },
     {
       "name": "large_floor_tiles",
-      "id": 5,
-      "public": {
-        "categories": ["floor"]
-      }
-    },
-    {
-      "name": "brown_planks",
       "id": 6,
       "public": {
-        "categories": ["floor", "wood"]
+        "categories": [
+          "floor"
+        ]
       }
     },
     {
       "name": "red_bricks",
       "id": 7,
       "public": {
-        "categories": ["wall"]
+        "categories": [
+          "wall"
+        ]
       }
     },
     {
-      "name": "roof",
+      "name": "concrete_floor",
       "id": 8,
       "public": {
-        "categories": ["roof"]
+        "categories": [
+          "floor",
+          "concrete"
+        ]
       }
     },
     {
-      "name": "ottoman",
+      "name": "coffee_table",
       "id": 9,
       "public": null
     },
     {
-      "name": "wooden_chair",
+      "name": "potted_plant",
       "id": 10,
       "public": null
     },
     {
-      "name": "alarm_clock",
+      "name": "shelves",
       "id": 11,
       "public": null
     },
     {
-      "name": "potted_plant",
+      "name": "alarm_clock",
       "id": 12,
       "public": null
     },
     {
-      "name": "shelves",
+      "name": "ottoman",
       "id": 13,
       "public": null
     },
     {
-      "name": "picture_image",
+      "name": "table",
       "id": 14,
       "public": null
     },
@@ -85,83 +103,129 @@
       "public": null
     },
     {
-      "name": "table",
+      "name": "picture_image",
       "id": 16,
       "public": null
     },
     {
-      "name": "ceramic_vase",
+      "name": "wooden_chair",
       "id": 17,
       "public": null
     },
     {
-      "name": "coffee_table",
+      "name": "ceramic_vase",
       "id": 18,
       "public": null
     }
   ],
   "props": [
     {
-      "name": "ottoman",
+      "name": "coffee_table",
       "id": 0,
+      "dependencies": [
+        9
+      ],
       "public": {
-        "categories": ["furniture"]
-      }
-    },
-    {
-      "name": "wooden_chair",
-      "id": 1,
-      "public": {
-        "categories": ["furniture"]
-      }
-    },
-    {
-      "name": "alarm_clock",
-      "id": 2,
-      "public": {
-        "categories": ["details"]
+        "categories": [
+          "furniture"
+        ]
       }
     },
     {
       "name": "potted_plant",
-      "id": 3,
+      "id": 1,
+      "dependencies": [
+        10
+      ],
       "public": {
-        "categories": ["details"]
+        "categories": [
+          "details"
+        ]
       }
     },
     {
       "name": "shelves",
-      "id": 4,
+      "id": 2,
+      "dependencies": [
+        11
+      ],
       "public": {
-        "categories": ["furniture"]
+        "categories": [
+          "furniture"
+        ]
       }
     },
     {
-      "name": "picture",
-      "id": 5,
+      "name": "alarm_clock",
+      "id": 3,
+      "dependencies": [
+        12
+      ],
       "public": {
-        "categories": ["details"]
+        "categories": [
+          "details"
+        ]
+      }
+    },
+    {
+      "name": "ottoman",
+      "id": 4,
+      "dependencies": [
+        13
+      ],
+      "public": {
+        "categories": [
+          "furniture"
+        ]
       }
     },
     {
       "name": "table",
-      "id": 6,
+      "id": 5,
+      "dependencies": [
+        14
+      ],
       "public": {
-        "categories": ["furniture"]
+        "categories": [
+          "furniture"
+        ]
+      }
+    },
+    {
+      "name": "picture",
+      "id": 6,
+      "dependencies": [
+        15,
+        16
+      ],
+      "public": {
+        "categories": [
+          "details"
+        ]
+      }
+    },
+    {
+      "name": "wooden_chair",
+      "id": 7,
+      "dependencies": [
+        17
+      ],
+      "public": {
+        "categories": [
+          "furniture"
+        ]
       }
     },
     {
       "name": "ceramic_vase",
-      "id": 7,
-      "public": {
-        "categories": ["details"]
-      }
-    },
-    {
-      "name": "coffee_table",
       "id": 8,
+      "dependencies": [
+        18
+      ],
       "public": {
-        "categories": ["furniture"]
+        "categories": [
+          "details"
+        ]
       }
     }
   ]
