@@ -22,6 +22,8 @@ type EditorMode = "solid" | "face" | "vertex" | "prop";
 let current_event = 0;
 let listeners: { [key: number]: (value: Uint8Array) => void } = {};
 let rightDown = false;
+let loadedTextures = new Set<number>();
+let loadedProps = new Set<number>();
 
 export default function Editor() {
   const { t } = useTranslation();
@@ -59,15 +61,11 @@ export default function Editor() {
 
   useEffect(() => {
     if (sender !== null && texture !== undefined) {
-      (async () => {
-        const res = await fetch(
-          `${Environment.asset_url}/textures/${texture.name}.png`
-        );
-        const arrayBuffer = await res.arrayBuffer();
-        return new Uint8Array(arrayBuffer);
-      })().then((buffer) => {
-        sender.loadTexture(texture.id, buffer);
-        sender.setTexture(texture.id);
+      fetchBytes(`${Environment.asset_url}/textures/${texture.name}.png`).then((buffer) => {
+        if (!loadedTextures.has(texture.id)) {
+          sender.loadTexture(texture.id, buffer);
+          sender.setTexture(texture.id);
+        }
       });
     }
   }, [texture, sender]);
@@ -83,18 +81,27 @@ export default function Editor() {
 
   useEffect(() => {
     if (sender !== null && prop !== undefined) {
-      (async () => {
-        const res = await fetch(
-          `${Environment.asset_url}/props/${prop.name}.amdl`
-        );
-        const arrayBuffer = await res.arrayBuffer();
-        return new Uint8Array(arrayBuffer);
-      })().then((buffer) => {
-        sender.loadProp(prop.id, buffer);
-        sender.setProp(prop.id);
+      sender.setProp(prop.id);
+      fetchBytes(`${Environment.asset_url}/props/${prop.name}.amdl`).then((buf) => {
+        if (!loadedProps.has(prop.id)) {
+          sender.loadProp(prop.id, buf);
+          loadedProps.add(prop.id);
+        }
+      });
+
+      prop.dependencies.forEach(dep => {
+        fetchBytes(`${Environment.asset_url}/textures/${dep}.png`)
+          .then(buf => {
+            const id = textures.find(tex => { return tex.name === dep; })?.id;
+            if (id !== undefined) {
+              if (!loadedTextures.has(id)) {
+                sender.loadTexture(id, buf);
+              }
+            }
+          })
       });
     }
-  }, [prop, sender]);
+  }, [prop, sender, textures]);
 
   const [width, setWidth] = useState(1);
   const [height, setHeight] = useState(1);
@@ -306,4 +313,10 @@ export default function Editor() {
       />
     </>
   );
+}
+
+async function fetchBytes(url: string): Promise<Uint8Array> {
+  const res = await fetch(url);
+  const arrayBuffer = await res.arrayBuffer();
+  return new Uint8Array(arrayBuffer);
 }

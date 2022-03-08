@@ -14,6 +14,7 @@ interface Texture {
 interface Prop {
   id: number;
   name: string;
+  dependencies: string[];
   public: Public | null;
 }
 
