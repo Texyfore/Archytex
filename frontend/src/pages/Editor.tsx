@@ -6,19 +6,15 @@ import useDimensions from "react-cool-dimensions";
 
 import Box from "@mui/material/Box";
 
-import EditorMenu from "../components/editor-components/EditorMenu";
 import EditorAppBar from "../components/editor-components/EditorAppBar";
 import EditorModeButtons from "../components/editor-components/EditorModeButtons";
 import CameraSettingsButton from "../components/editor-components/CameraSettingsButton";
 import GridSettingsButton from "../components/editor-components/GridSettingsButton";
 
 import useNotification from "../services/hooks/useNotification";
-import Texture from "../services/types/Texture";
-import Prop from "../services/types/Prop";
-import getTextures from "../services/libraries/TextureItems";
-import getProps from "../services/libraries/PropItems";
 import { useApi } from "../services/user/api";
 import { useTranslation } from "react-i18next";
+import { getAssets, Prop, Texture } from "../services/Library";
 
 type EditorMode = "solid" | "face" | "vertex" | "prop";
 
@@ -34,15 +30,27 @@ export default function Editor() {
   const api = useApi(false);
 
   // Selected texture
-  const textures = getTextures();
-  const [texture, setTexture] = useState<Texture>(textures[0]);
+  const [_assets, _] = useState(() => getAssets());
+  const [textures, setTextures] = useState<Texture[]>([]);
+  const [props, setProps] = useState<Prop[]>([]);
+  useEffect(() => {
+    (async () => {
+      const assets = await _assets;
+      setTextures(assets.textures);
+      setProps(assets.props);
+    })()
+  }, []);
+  const [texture, setTexture] = useState<Texture | null>(textures[0]);
+  useEffect(() => {
+    setTexture(textures[0]);
+  }, textures)
   const handleTextureChange = (texture: Texture) => {
     setTexture(texture);
   };
-
-  // Selected prop
-  const props = getProps();
-  const [prop, setProp] = useState<Prop>(props[0]);
+  const [prop, setProp] = useState<Prop | null>(null);
+  useEffect(() => {
+    setProp(props[0]);
+  }, props)
   const handlePropChange = (prop: Prop) => {
     setProp(prop);
   };
@@ -240,12 +248,6 @@ export default function Editor() {
 
       <Box display='flex' height={`calc(100vh - 48px)`} overflow='hidden'>
         <Box width='100%' height='100%' ref={observe} bgcolor='#0c0c0c' />
-        <EditorMenu
-          texture={texture}
-          handleTextureChange={handleTextureChange}
-          prop={prop}
-          handlePropChange={handlePropChange}
-        />
       </Box>
 
       <canvas
@@ -263,16 +265,6 @@ export default function Editor() {
       <EditorModeButtons
         editorMode={editorMode}
         handleEditorModeChange={handleEditorModeChange}
-      />
-
-      <CameraSettingsButton
-        cameraSpeed={cameraSpeed}
-        handleCameraSpeedChange={handleCameraSpeedChange}
-      />
-
-      <GridSettingsButton
-        gridStep={gridStep}
-        handleGridStepChange={handleGridStepChange}
       />
     </>
   );
