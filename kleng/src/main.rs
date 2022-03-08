@@ -4,16 +4,17 @@ use clap::{Arg, ArgMatches, Command};
 
 mod defs;
 mod fsutil;
+mod indexed;
 mod repo;
 mod require;
 
 fn main() {
     let matches = cmd();
     let root = PathBuf::from(matches.value_of("in").unwrap());
-    let (textures, props) = defs::read(&root);
 
-    println!("Textures: {:?}", textures);
-    println!("Props: {:?}", props);
+    let (textures, props) = defs::read(&root);
+    let indexed = indexed::index(&root, textures, props);
+    println!("{:#?}", indexed);
 }
 
 fn cmd() -> ArgMatches {

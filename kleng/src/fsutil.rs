@@ -5,6 +5,7 @@ use std::{
 
 use thiserror::Error;
 
+#[derive(Debug)]
 pub struct CanonPath {
     inner: PathBuf,
 }
