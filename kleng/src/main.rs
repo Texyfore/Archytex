@@ -1,10 +1,18 @@
+use std::path::PathBuf;
+
 use clap::{Arg, ArgMatches, Command};
 
+mod defs;
 mod fsutil;
 mod require;
 
 fn main() {
-    let _matches = cmd();
+    let matches = cmd();
+    let root = PathBuf::from(matches.value_of("in").unwrap());
+    let (textures, props) = defs::read(&root);
+
+    println!("Textures: {:?}", textures);
+    println!("Props: {:?}", props);
 }
 
 fn cmd() -> ArgMatches {
