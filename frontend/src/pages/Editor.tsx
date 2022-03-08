@@ -2,6 +2,8 @@ import { useCallback, useEffect, useState } from "react";
 
 import { useParams } from "react-router-dom";
 
+import { useTranslation } from "react-i18next";
+
 import useDimensions from "react-cool-dimensions";
 
 import Box from "@mui/material/Box";
@@ -11,8 +13,8 @@ import EditorModeButtons from "../components/editor-components/EditorModeButtons
 
 import useNotification from "../services/hooks/useNotification";
 import { useApi } from "../services/user/api";
-import { useTranslation } from "react-i18next";
 import { getAssets, Prop, Texture } from "../services/Library";
+import EditorMenu from "../components/editor-components/EditorMenu";
 
 type EditorMode = "solid" | "face" | "vertex" | "prop";
 
@@ -27,28 +29,35 @@ export default function Editor() {
 
   const api = useApi(false);
 
-  // Selected texture
+  // Asset management
   const [_assets, _] = useState(() => getAssets());
+
   const [textures, setTextures] = useState<Texture[]>([]);
   const [props, setProps] = useState<Prop[]>([]);
+
+  // Fetch assets, set textures and props
   useEffect(() => {
     (async () => {
       const assets = await _assets;
       setTextures(assets.textures);
       setProps(assets.props);
-    })()
+    })();
   }, []);
-  const [texture, setTexture] = useState<Texture | null>(textures[0]);
+
+  // Selected texture
+  const [texture, setTexture] = useState<Texture>(textures[0]);
   useEffect(() => {
     setTexture(textures[0]);
-  }, textures)
+  }, [textures]);
   const handleTextureChange = (texture: Texture) => {
     setTexture(texture);
   };
-  const [prop, setProp] = useState<Prop | null>(null);
+
+  // Selected prop
+  const [prop, setProp] = useState<Prop>(props[0]);
   useEffect(() => {
     setProp(props[0]);
-  }, props)
+  }, [props]);
   const handlePropChange = (prop: Prop) => {
     setProp(prop);
   };
@@ -73,40 +82,18 @@ export default function Editor() {
     }
   }, [width, height, sender]);
 
-
   useEffect(() => {
     import("viewport").then((viewport) => {
       const channel = new viewport.Channel();
       setSender(channel.sender());
       const callback = new viewport.Callback(
         (id: number, scene: Uint8Array) => {
-          listeners[id](scene)
+          listeners[id](scene);
         },
-        (modeIndex: number) => {
-          let mode: EditorMode = "solid";
-          switch (modeIndex) {
-            case 0:
-              mode = "solid";
-              break;
-            case 1:
-              mode = "face";
-              break;
-            case 2:
-              mode = "vertex";
-              break;
-            case 3:
-              mode = "prop";
-              break;
-            default:
-              mode = "solid";
-              break;
-          }
-          handleEditorModeChange(mode);
-          console.log(`mode ${mode}`);
+        () => {
+          handleEditorModeChange("solid");
         }
       );
-
-
       viewport.run(channel, callback);
     });
   }, []);
@@ -118,7 +105,7 @@ export default function Editor() {
     const canvas = document.getElementById("viewport-canvas");
 
     if (canvas !== null) {
-      canvas.addEventListener("mousedown", ev => {
+      canvas.addEventListener("mousedown", (ev) => {
         if (ev.button === 2) {
           canvas.requestPointerLock();
           sender.setPointerLock(true);
@@ -126,21 +113,21 @@ export default function Editor() {
         }
       });
 
-      canvas.addEventListener("mouseup", ev => {
-        if (ev.button == 2) {
+      canvas.addEventListener("mouseup", (ev) => {
+        if (ev.button === 2) {
           document.exitPointerLock();
           sender.setPointerLock(false);
           rightDown = false;
         }
-      })
+      });
 
-      canvas.addEventListener("mousemove", ev => {
+      canvas.addEventListener("mousemove", (ev) => {
         if (rightDown) {
           sender.movement(ev.movementX, ev.movementY);
         }
       });
     }
-  }, [sender])
+  }, [sender]);
 
   useEffect(() => {
     (async () => {
@@ -150,16 +137,20 @@ export default function Editor() {
           sender.loadScene(data);
         }
       }
-    })()
+    })();
   }, [api, sender]);
 
-  let save = useCallback(() => new Promise((resolve: (value: Uint8Array) => void) => {
-    const n = current_event;
-    current_event++;
-    listeners[n] = resolve;
-    console.log(`Sending save request #${n}`)
-    sender.saveScene(n);
-  }), [sender]);
+  let save = useCallback(
+    () =>
+      new Promise((resolve: (value: Uint8Array) => void) => {
+        const n = current_event;
+        current_event++;
+        listeners[n] = resolve;
+        console.log(`Sending save request #${n}`);
+        sender.saveScene(n);
+      }),
+    [sender]
+  );
 
   const onRender = async (width: number, height: number, samples: number) => {
     if (api?.state == "logged-in") {
@@ -167,25 +158,24 @@ export default function Editor() {
       const data = await save();
       await api.render(data, projectId, width, height, samples);
     } else {
-      addNotification(t("not_logged_in"), "error")
+      addNotification(t("not_logged_in"), "error");
     }
-  }
+  };
 
   // App bar button click
   const handleAppBarButtonClick = async (type: "export" | "save") => {
-    console.log("Got Save event")
+    console.log("Got Save event");
     const data = await save();
     switch (type) {
       case "export":
-
         break;
       case "save":
         if (api?.state == "logged-in") {
-          await (api.save(data, projectId).catch(() => {
-            addNotification("Could not save project", "error")
-          }));
+          await api.save(data, projectId).catch(() => {
+            addNotification("Could not save project", "error");
+          });
         } else {
-          addNotification("You are not logged in.", "error")
+          addNotification("You are not logged in.", "error");
         }
         break;
     }
@@ -235,6 +225,16 @@ export default function Editor() {
 
       <Box display='flex' height={`calc(100vh - 48px)`} overflow='hidden'>
         <Box width='100%' height='100%' ref={observe} bgcolor='#0c0c0c' />
+        {texture !== undefined && prop !== undefined && (
+          <EditorMenu
+            texture={texture}
+            handleTextureChange={handleTextureChange}
+            prop={prop}
+            handlePropChange={handlePropChange}
+            textures={textures}
+            props={props}
+          />
+        )}
       </Box>
 
       <canvas
