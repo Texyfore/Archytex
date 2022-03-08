@@ -29,6 +29,47 @@ use mongodb::{
 };
 use uuid::Uuid;
 
+#[cfg(feature="oidn")]
+fn denoise(width: usize, height: usize, image: Vec<f32>, scene: &str, redis_client: &mut redis::Client, props: &Arc<PropRepository>, render_id: ObjectId, textures: &Arc<TextureRepository>) -> Vec<f32>{
+    //Render Albedo and Normal
+    let scene: Vec<u8> =
+    redis::Cmd::get(format!("archyrt:{}:scene", scene)).query(redis_client).unwrap();
+    let scene = ASCNLoader::from_bytes(&scene).unwrap();
+    let bvh = BVH::from_triangles(scene.get_triangles())
+        .ok_or_else(|| anyhow!("Unable to create BVH")).unwrap();
+    let props = props.fulfill_all(scene.get_prop_requests()).unwrap();
+    let camera = scene.get_camera();
+    let object = bvh.union(props);
+    let albedo = AlbedoRenderer {
+        object: &object,
+        camera: JitterCamera::new(&camera, width, height),
+    };
+    let normal = NormalRenderer {
+        object: &object,
+        camera: &camera,
+    };
+    let collector = RawCollector {};
+    println!("[{}] Rendering Albedo and Normal", render_id);
+    let albedo = collector.collect(albedo, &textures, width, height);
+    let normal = collector.collect(normal, &textures, width, height);
+    let mut output: Vec<f32> = (0..image.len()).into_iter().map(|_| 0f32).collect();
+    //Apply denoised
+    println!("[{}] Applying denoiser", render_id);
+    let device = oidn::Device::new();
+    oidn::RayTracing::new(&device)
+        .srgb(false)
+        .hdr(true)
+        .image_dimensions(width, height)
+        .albedo_normal(&albedo, &normal)
+        .clean_aux(true)
+        .filter(&image, &mut output).unwrap();
+    output
+}
+#[cfg(not(feature="oidn"))]
+fn denoise(width: usize, height: usize, image: Vec<f32>, scene: &str, redis_client: &mut redis::Client, props: &Arc<PropRepository>, render_id: ObjectId, textures: &Arc<TextureRepository>) -> Vec<f32>{
+    image
+}
+
 async fn handle_job(
     users: Collection<Document>,
     mut redis_client: redis::Client,
@@ -65,7 +106,7 @@ async fn handle_job(
         .arg(3)
         .query(&mut redis_client).unwrap();
     let payload = s.clone();
-    //Put as many tasks on the queue as there are samples
+    //Put as many tasks on the queue as there are samples*16
     for x in 0..4 {
         for y in 0..4{
             let x = width/4*x;
@@ -184,41 +225,11 @@ async fn handle_job(
         })
         .collect();
 
-    //Render Albedo and Normal
-    let scene: Vec<u8> =
-        redis::Cmd::get(format!("archyrt:{}:scene", s)).query(&mut redis_client).unwrap();
-    let scene = ASCNLoader::from_bytes(&scene).unwrap();
     let width: usize = redis::Cmd::get(format!("archyrt:{}:width", s)).query(&mut redis_client).unwrap();
     let height: usize =
         redis::Cmd::get(format!("archyrt:{}:height", s)).query(&mut redis_client).unwrap();
-    let bvh = BVH::from_triangles(scene.get_triangles())
-        .ok_or_else(|| anyhow!("Unable to create BVH")).unwrap();
-    let props = props.fulfill_all(scene.get_prop_requests()).unwrap();
-    let camera = scene.get_camera();
-    let object = bvh.union(props);
-    let albedo = AlbedoRenderer {
-        object: &object,
-        camera: JitterCamera::new(&camera, width, height),
-    };
-    let normal = NormalRenderer {
-        object: &object,
-        camera: &camera,
-    };
-    let collector = RawCollector {};
-    println!("[{}] Rendering Albedo and Normal", render_id);
-    let albedo = collector.collect(albedo, &textures, width, height);
-    let normal = collector.collect(normal, &textures, width, height);
-    let mut output: Vec<f32> = (0..image.len()).into_iter().map(|_| 0f32).collect();
-    //Apply denoised
-    println!("[{}] Applying denoiser", render_id);
-    let device = oidn::Device::new();
-    oidn::RayTracing::new(&device)
-        .srgb(false)
-        .hdr(true)
-        .image_dimensions(width, height)
-        .albedo_normal(&albedo, &normal)
-        .clean_aux(true)
-        .filter(&image, &mut output).unwrap();
+
+    let output: Vec<f32> = denoise(width, height, image, &s, &mut redis_client, &props, render_id, &textures);
 
     println!("[{}] Saving", render_id);
     let mut image = image::RgbImage::new(width as u32, height as u32);

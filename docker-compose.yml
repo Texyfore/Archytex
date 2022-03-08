@@ -1,0 +1,84 @@
+version: "3.0"
+services:
+  mongodb_setup:
+    image: "mongo:5.0.6"
+    restart: on-failure
+    volumes:
+      - ./docker/rs-init.sh:/scripts/rs-init.sh
+    entrypoint: ["/scripts/rs-init.sh"]
+    depends_on:
+      - mongodb
+  mongodb:
+    restart: always
+    image: "mongo:5.0.6"
+    volumes:
+      - mongodb:/data/db
+      
+    command: 
+     - "--replSet=rs0"
+     - "--bind_ip_all"
+
+  frontend:
+    restart: always
+    build: 
+      context: .
+      dockerfile: docker/Dockerfile.frontend
+    labels:
+      - traefik.enable=true
+      - "traefik.http.routers.frontend.rule=Host(`${DOMAIN}`)"
+      - "traefik.http.routers.frontend.entrypoints=web"
+
+  redis:
+    restart: always
+    image: "redislabs/redisai:latest"
+    command: 
+     - "--requirepass"
+     - "${REDIS_PASSWORD}"
+    volumes:
+      - "redis:/data"
+  
+  amqp:
+    restart: always
+    image: "rabbitmq:alpine"
+
+  backend:
+    restart: always
+    build: 
+      context: .
+      dockerfile: docker/Dockerfile.backend
+    environment:
+      MONGO_URI: "mongodb://mongodb:27017"
+      MONGO_DB: archytex
+      CAPTCHA_SECRET: ${CAPTCHA_SECRET}
+      SMTP_SERVER: ${SMTP_SERVER}
+      SMTP_ADDRESS: ${SMTP_ADDRESS}
+      SMTP_PASSWORD: ${SMTP_PASSWORD}
+      PROJECTS_PATH: /data/projects
+      PORT: 80
+      REDIS_ADDR: "redis://:${REDIS_PASSWORD}@redis:6379"
+      AMQP_ADDR: "amqp://amqp:5672"
+    volumes:
+      - "projects:/data/projects"
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.backend.rule=Host(`${DOMAIN}`) && PathPrefix(`/api`)"
+      - "traefik.http.routers.backend.entrypoints=web"
+      - "traefik.http.services.backend.loadbalancer.server.port=80"
+
+  traefik:
+    restart: always
+    image: "traefik:2.6"
+    command: 
+      - "--api.insecure=true"
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--entrypoints.web.address=:80"
+    ports:
+     - "81:80"
+     - "8080:8080"
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock:ro"
+volumes:
+  mongodb:
+  projects:
+  redis:
