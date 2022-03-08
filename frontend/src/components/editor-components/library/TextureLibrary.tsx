@@ -1,61 +1,63 @@
-import React from "react";
+export { }
 
-import Box from "@mui/material/Box";
+// import React from "react";
 
-import LibraryCard from "./LibraryCard";
+// import Box from "@mui/material/Box";
 
-import Texture from "../../../services/types/Texture";
-import Category from "../../../services/libraries/Category";
-import getTextures from "../../../services/libraries/TextureItems";
+// import LibraryCard from "./LibraryCard";
 
-interface Props {
-  selected: Texture | undefined;
-  handleSelectionChange: (texture: Texture | undefined) => void;
-  query: string;
-  checkedCategories: Category[];
-}
+// import Texture from "../../../services/types/Texture";
+// import Category from "../../../services/libraries/Category";
+// import getTextures from "../../../services/libraries/TextureItems";
 
-export default function TextureLibrary({
-  selected,
-  handleSelectionChange,
-  query,
-  checkedCategories,
-}: Props) {
-  const textures = getTextures();
+// interface Props {
+//   selected: Texture | undefined;
+//   handleSelectionChange: (texture: Texture | undefined) => void;
+//   query: string;
+//   checkedCategories: Category[];
+// }
 
-  const matchesFilter = (texture: Texture) => {
-    return texture.categories.some((category) =>
-      checkedCategories.some(
-        (checkedCategory) => checkedCategory.id === category.id
-      )
-    );
-  };
-  return (
-    <Box
-      display='flex'
-      flexWrap='wrap'
-      gap={1}
-      alignItems='start'
-      justifyContent='space-evenly'
-      mt={3}
-    >
-      {textures
-        .filter(
-          (t) =>
-            t.name.toLowerCase().includes(query.toLowerCase()) &&
-            matchesFilter(t)
-        )
-        .map((texture, index) => (
-          <LibraryCard
-            key={index}
-            cardType='texture'
-            item={texture}
-            isSelected={
-              selected === undefined ? false : selected.id === texture.id
-            }
-            handleSelectionChange={handleSelectionChange}
-          />
-        ))}
-    </Box>
-  );
-}
+// export default function TextureLibrary({
+//   selected,
+//   handleSelectionChange,
+//   query,
+//   checkedCategories,
+// }: Props) {
+//   const textures = getTextures();
+
+//   const matchesFilter = (texture: Texture) => {
+//     return texture.categories.some((category) =>
+//       checkedCategories.some(
+//         (checkedCategory) => checkedCategory.id === category.id
+//       )
+//     );
+//   };
+//   return (
+//     <Box
+//       display='flex'
+//       flexWrap='wrap'
+//       gap={1}
+//       alignItems='start'
+//       justifyContent='space-evenly'
+//       mt={3}
+//     >
+//       {textures
+//         .filter(
+//           (t) =>
+//             t.name.toLowerCase().includes(query.toLowerCase()) &&
+//             matchesFilter(t)
+//         )
+//         .map((texture, index) => (
+//           <LibraryCard
+//             key={index}
+//             cardType='texture'
+//             item={texture}
+//             isSelected={
+//               selected === undefined ? false : selected.id === texture.id
+//             }
+//             handleSelectionChange={handleSelectionChange}
+//           />
+//         ))}
+//     </Box>
+//   );
+// }

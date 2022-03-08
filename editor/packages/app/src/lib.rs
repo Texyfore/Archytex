@@ -266,7 +266,7 @@ macro_rules! resource {
     ($ty:ident $id:literal -> $path:literal) => {
         Resource {
             id: $id,
-            buf: include_bytes!(concat!("../../../assets/", $path)).to_vec(),
+            buf: include_bytes!(concat!("../../../builtin/", $path)).to_vec(),
             kind: ResourceKind::$ty,
         }
     };
