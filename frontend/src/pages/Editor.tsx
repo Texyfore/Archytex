@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 import { useParams } from "react-router-dom";
 
@@ -8,8 +8,6 @@ import Box from "@mui/material/Box";
 
 import EditorAppBar from "../components/editor-components/EditorAppBar";
 import EditorModeButtons from "../components/editor-components/EditorModeButtons";
-import CameraSettingsButton from "../components/editor-components/CameraSettingsButton";
-import GridSettingsButton from "../components/editor-components/GridSettingsButton";
 
 import useNotification from "../services/hooks/useNotification";
 import { useApi } from "../services/user/api";
@@ -225,17 +223,6 @@ export default function Editor() {
         sender.button(modeIndex);
       }
     }
-  };
-  //Camera speed
-  const [cameraSpeed, setCameraSpeed] = useState(50);
-  const handleCameraSpeedChange = (e: any) => {
-    setCameraSpeed(e.target.value);
-  };
-
-  // Grid settings
-  const [gridStep, setGridStep] = useState<number>(100);
-  const handleGridStepChange = (e: any) => {
-    setGridStep(e.target.value);
   };
 
   // Error display
