@@ -1,4 +1,4 @@
-\documentclass[12pt, twoside]{report}
+\documentclass[12pt, twoside]{article}
 
 \usepackage[utf8]{inputenc}
 \usepackage{t1enc}
@@ -52,25 +52,25 @@
   {\large \today\par}
 \end{titlepage}
 
-% Abstract
-\include{chapters/ch-Abstract.tex}
-
 \tableofcontents
 
+% Introduction
+\include{parts/part-Introduction.tex}
+
+\part{Felhasználói dokumentáció}
+
+\part{Fejlesztői dokumentáció}
 % Backend
-\include{chapters/backend/ch-Backend.tex}
+\include{parts/developer-documentation/backend/section-Backend.tex}
 
 % Frontend
-\include{chapters/frontend/ch-Frontend.tex}
+\include{parts/developer-documentation/frontend/section-Frontend.tex}
 
 % Editor
-\include{chapters/editor/ch-Editor.tex}
+\include{parts/developer-documentation/editor/section-Editor.tex}
 
 % Ray-tracer
-\include{chapters/ray-tracer/ch-Ray-tracer.tex}
-
-% User guide
-\include{chapters/user-guide/ch-UserGuide.tex}
+\include{parts/developer-documentation/ray-tracer/section-Ray-tracer.tex}
 
 \appendix
 \include{appendix.tex}
