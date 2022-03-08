@@ -17,7 +17,7 @@ pub struct Camera {
 impl Default for Camera {
     fn default() -> Self {
         Self {
-            position: vec3(20.0, 20.0, 20.0),
+            position: vec3(8.0, 8.0, 8.0),
             rotation: vec2(-45.0, 45.0),
             projection: Matrix4::identity(),
             viewport_size: Vector2::zero(),
