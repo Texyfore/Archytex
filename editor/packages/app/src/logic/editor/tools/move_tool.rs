@@ -106,8 +106,7 @@ where
         let verts = axis
             .others()
             .into_iter()
-            .map(|axis| axis.line_vertices(self.center, 0.1))
-            .flatten()
+            .flat_map(|axis| axis.line_vertices(self.center, 0.1))
             .collect::<Vec<_>>();
 
         self.line_mesh = Some(

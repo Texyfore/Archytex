@@ -50,19 +50,6 @@ impl Graphics {
         }
     }
 
-    pub fn create_line_mesh_uninit(&self, num_points: usize) -> LineMesh {
-        LineMesh {
-            vertices: Rc::new(self.gpu.create_buffer_uninit(
-                size_of::<LineVertex>() * num_points,
-                BufferUsages::VERTEX | BufferUsages::COPY_DST,
-            )),
-        }
-    }
-
-    pub fn write_line_mesh(&self, mesh: &LineMesh, vertices: &[LineVertex]) {
-        self.gpu.write_buffer(&mesh.vertices, vertices);
-    }
-
     pub fn create_solid_mesh(&self) -> SolidMesh {
         SolidMesh {
             textures: [TextureID(0); 6],

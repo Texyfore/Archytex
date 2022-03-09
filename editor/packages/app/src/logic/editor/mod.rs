@@ -10,8 +10,8 @@ use crate::{
     button,
     data::PropInfoContainer,
     graphics::{
-        structures::{GroundVertex, LineVertex},
-        Canvas, Graphics, GroundMesh, GroundMeshDescriptor, LineMesh, LineMeshDescriptor, Share,
+        structures::GroundVertex, Canvas, Graphics, GroundMesh, GroundMeshDescriptor, LineMesh,
+        LineMeshDescriptor, Share,
     },
     Host, ToHost,
 };

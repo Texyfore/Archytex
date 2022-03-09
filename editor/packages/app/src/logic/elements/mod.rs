@@ -6,9 +6,8 @@ use cgmath::{vec2, vec3, ElementWise, InnerSpace, Matrix4, Quaternion, Transform
 use crate::{
     data::{PropInfo, PropInfoContainer},
     graphics::{
-        structures::{GizmoInstance, LineVertex, SolidVertex, TransformTint},
-        Canvas, GizmoGroup, GizmoInstances, Graphics, LineMesh, PropData, PropInstance, Share,
-        SolidMesh,
+        structures::{GizmoInstance, SolidVertex, TransformTint},
+        Canvas, GizmoGroup, GizmoInstances, Graphics, PropData, PropInstance, Share, SolidMesh,
     },
     math::{MinMax, Ray},
 };
@@ -298,7 +297,6 @@ impl SolidGeometry {
 
 struct SolidGraphics {
     mesh: SolidMesh,
-    lines: LineMesh,
     verts: GizmoInstances,
 }
 
@@ -306,15 +304,12 @@ impl SolidGraphics {
     fn new(graphics: &Graphics) -> Self {
         Self {
             mesh: graphics.create_solid_mesh(),
-            lines: graphics.create_line_mesh_uninit(24),
             verts: graphics.create_gizmo_instances(8),
         }
     }
 
     fn render(&self, canvas: &mut Canvas, draw_verts: bool) {
         canvas.draw_solid(self.mesh.share());
-        canvas.draw_lines(self.lines.share());
-
         if draw_verts {
             canvas.draw_gizmos(GizmoGroup {
                 gizmo: GizmoID(0),
@@ -371,14 +366,6 @@ impl SolidGraphics {
             }
         }
 
-        let lines = [
-            0, 1, 1, 2, 2, 3, 3, 0, 4, 5, 5, 6, 6, 7, 7, 4, 0, 4, 1, 5, 2, 6, 3, 7,
-        ]
-        .map(|index| LineVertex {
-            position: geometry.points[index].meters(),
-            color: [0.0; 3],
-        });
-
         graphics.write_gizmo_instances(
             &self.verts,
             &geometry
@@ -396,7 +383,6 @@ impl SolidGraphics {
         );
 
         graphics.write_solid_mesh(&self.mesh, &vertices, &triangles);
-        graphics.write_line_mesh(&self.lines, &lines);
     }
 }
 
