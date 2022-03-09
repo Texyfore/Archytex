@@ -2,8 +2,9 @@ package database
 
 import (
 	"context"
-	"errors"
+	"encoding/base64"
 	"fmt"
+	"math/rand"
 	"time"
 
 	"github.com/Texyfore/Archytex/backend/projectloaders"
@@ -252,21 +253,30 @@ func (m MongoDatabase) GetSession(id interface{}) (*models.Session, error) {
 	return &session, nil
 }
 
+func randomToken(n int) (string, error) {
+	bytes := make([]byte, n)
+	_, err := rand.Read(bytes)
+	if err != nil {
+		return "", err
+	}
+	return base64.URLEncoding.EncodeToString(bytes), nil
+}
+
 func (m MongoDatabase) CreateSession(user *models.User) (string, error) {
-	//TODO: Use a more secure token
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*3)
 	defer cancel()
-	result, err := m.Sessions.InsertOne(ctx, bson.D{
+	id, err := randomToken(128 / 8)
+	if err != nil {
+		return "", err
+	}
+	_, err = m.Sessions.InsertOne(ctx, bson.D{
 		{"user_id", user.Id},
+		{"_id", id},
 	})
 	if err != nil {
 		return "", err
 	}
-	id, ok := result.InsertedID.(primitive.ObjectID)
-	if !ok {
-		return "", errors.New("id type was not ObjectID")
-	}
-	return id.Hex(), nil
+	return id, nil
 }
 
 func (m MongoDatabase) GetUserByUsername(username string) (*models.User, error) {
