@@ -78,11 +78,11 @@ pub enum Selection {
 impl Selection {
     pub fn line_vertices(&self, center: Vector3<f32>) -> Vec<LineVertex> {
         match self {
-            Self::Axis(axis) => axis.line_vertices(center, 0.1).into(),
+            Self::Axis(axis) => axis.line_vertices(center).into(),
             Self::Plane(axis) => axis
                 .others()
                 .into_iter()
-                .flat_map(|axis| axis.line_vertices(center, 0.1).into_iter())
+                .flat_map(|axis| axis.line_vertices(center).into_iter())
                 .collect(),
         }
     }

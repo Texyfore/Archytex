@@ -2,7 +2,7 @@ use cgmath::{Vector3, Zero};
 use winit::event::MouseButton;
 
 use crate::{
-    graphics::{Canvas, Graphics, LineMesh, LineMeshDescriptor, Share},
+    graphics::{Canvas, Graphics, LineMesh, Share},
     logic::{
         editor::gizmo::{ArrowGraphics, Selection},
         elements::Movable,
@@ -40,9 +40,9 @@ where
         let arrows = ArrowGraphics::new_empty(graphics);
         arrows.modify(graphics, center, Some(selection), true);
 
-        let line = graphics.create_line_mesh(LineMeshDescriptor {
-            vertices: &selection.line_vertices(center),
-        });
+        let verts = selection.line_vertices(center);
+        let line = graphics.create_line_mesh_uninit(verts.len());
+        graphics.write_line_mesh(&line, &verts);
 
         let (correction, plane) = if selection.is_axis() {
             (
@@ -99,6 +99,12 @@ where
         if delta != self.prev_delta {
             let delta2 = delta - self.prev_delta;
             self.prev_delta = delta;
+
+            let verts = self
+                .selection
+                .line_vertices(self.center + delta.map(|e| e as f32 / 128.0));
+
+            ctx.graphics.write_line_mesh(&self.line, &verts);
 
             for (_, element) in &mut self.elements {
                 element.displace(delta2, self.mask);

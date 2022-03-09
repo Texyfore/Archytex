@@ -87,7 +87,7 @@ where
         }
 
         self.line_mesh = Some(ctx.graphics.create_line_mesh(LineMeshDescriptor {
-            vertices: &axis.line_vertices(self.center, 0.1),
+            vertices: &axis.line_vertices(self.center),
         }));
     }
 
@@ -106,7 +106,7 @@ where
         let verts = axis
             .others()
             .into_iter()
-            .flat_map(|axis| axis.line_vertices(self.center, 0.1))
+            .flat_map(|axis| axis.line_vertices(self.center))
             .collect::<Vec<_>>();
 
         self.line_mesh = Some(

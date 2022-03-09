@@ -52,13 +52,15 @@ var<uniform> grid: GridParams;
 [[stage(vertex)]]
 fn vertex(attribs: Attribs) -> Vertex {
     var camera_position = (camera.view_to_world * vec4<f32>(0.0, 0.0, 0.0, 1.0)).xyz;
+    var moving_pos = (attribs.position + camera_position);
+    moving_pos.y = 0.0;
 
     var vertex: Vertex;
-    vertex.position = camera.world_to_clip * vec4<f32>(attribs.position, 1.0);
+    vertex.position = camera.world_to_clip * vec4<f32>(moving_pos, 1.0);
     vertex.normal = vec3<f32>(0.0, 1.0, 0.0);
     vertex.texcoord = attribs.texcoord;
     vertex.camera_position = camera_position;
-    vertex.world_position = attribs.position;
+    vertex.world_position = moving_pos;
     vertex.grid_len = grid.len;
     return vertex;
 }
@@ -68,8 +70,9 @@ fn mkgrid(
     nor: vec3<f32>,
     uv: vec2<f32>,
     cam: vec3<f32>,
-    glen: i32
-) -> f32 {
+    glen: i32,
+    col: vec3<f32>,
+) -> vec3<f32> {
     var cam_to_vert = normalize(cam - pos);
     var dist = distance(cam, pos);
 
@@ -86,10 +89,24 @@ fn mkgrid(
     var ith = 1.0 - th;
 
     if (x < th || x > ith || y < th || y > ith) {
-        return fade * flatness;
-    }else{
-        return 0.0;
+        var g = fade * flatness;
+
+        if (abs(uv.y) < th) {
+            var red = vec3<f32>(236.0, 70.0, 89.0) / 255.0;
+            return mix(col, pow(red, vec3<f32>(2.2)), g);
+        }
+
+        if (abs(uv.x) < th) {
+            var blue = vec3<f32>(80.0, 132.0, 212.0) / 255.0;
+            return mix(col, pow(blue, vec3<f32>(2.2)), g);
+        }
+
+        if (abs(uv.x) > 0.5 && abs(uv.y) > 0.5) {
+            return col + vec3<f32>(g * 0.25);
+        }
     }
+
+    return col;
 }
 
 [[group(1), binding(0)]]
@@ -107,15 +124,15 @@ fn fragment(vertex: Vertex) -> Fragment {
     var color_rgb = color.rgb;
     var color_a = color.a;
 
-    var g = mkgrid(
+    var color_rgb = mkgrid(
         vertex.world_position,
         vertex.normal,
         vertex.world_position.xz,
         vertex.camera_position,
-        vertex.grid_len
+        vertex.grid_len,
+        color_rgb
     );
 
-    color_rgb = color_rgb + vec3<f32>(g * 0.25);
     color_rgb = mix(color_rgb, vec3<f32>(0.537, 0.847, 1.0), mixval);
 
     var fragment: Fragment;

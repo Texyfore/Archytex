@@ -40,14 +40,14 @@ impl Axis {
         }
     }
 
-    pub fn line_vertices(&self, center: Vector3<f32>, highlight: f32) -> [LineVertex; 2] {
+    pub fn line_vertices(&self, center: Vector3<f32>) -> [LineVertex; 2] {
         let (min, max) = match self {
             Self::X => (vec3(-1.0, 0.0, 0.0), vec3(1.0, 0.0, 0.0)),
             Self::Y => (vec3(0.0, -1.0, 0.0), vec3(0.0, 1.0, 0.0)),
             Self::Z => (vec3(0.0, 0.0, -1.0), vec3(0.0, 0.0, 1.0)),
         };
 
-        let color = self.color().map(|c| c + highlight);
+        let color = self.color().map(|c| c);
 
         [
             LineVertex {
