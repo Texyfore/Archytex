@@ -15,6 +15,7 @@ pub fn pipeline(gpu: &Gpu, surface: &Surface) -> Pipeline {
             inputs: &[
                 PipelineInput::Uniform, // Camera
                 PipelineInput::Texture, // Texture
+                PipelineInput::Uniform, // Grid
             ],
             vertex_buffers: &[VertexBufferLayout {
                 array_stride: size_of::<GroundVertex>() as u64,

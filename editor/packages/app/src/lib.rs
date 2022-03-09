@@ -1,4 +1,5 @@
 mod button;
+mod color;
 mod data;
 mod graphics;
 mod logic;

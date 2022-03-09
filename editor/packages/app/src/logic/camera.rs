@@ -17,7 +17,7 @@ pub struct Camera {
 impl Default for Camera {
     fn default() -> Self {
         Self {
-            position: vec3(20.0, 20.0, 20.0),
+            position: vec3(8.0, 8.0, 8.0),
             rotation: vec2(-45.0, 45.0),
             projection: Matrix4::identity(),
             viewport_size: Vector2::zero(),
@@ -68,7 +68,7 @@ impl Camera {
     }
 
     pub fn look(&mut self, mouse_delta: Vector2<f32>, delta: f32) {
-        const SENSITIVITY: f32 = 6.0;
+        const SENSITIVITY: f32 = 10.0;
         self.rotation.y -= mouse_delta.x * SENSITIVITY * delta;
         self.rotation.x =
             (self.rotation.x - mouse_delta.y * SENSITIVITY * delta).clamp(-90.0, 90.0);

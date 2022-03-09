@@ -4,7 +4,7 @@ use winit::event::{MouseButton, VirtualKeyCode};
 use crate::{
     graphics::{Canvas, LineMesh, LineMeshDescriptor, Share},
     logic::{
-        editor::{common::Axis, grid},
+        editor::common::Axis,
         elements::{ElementKind, Movable},
         scene::{self, Action},
     },
@@ -106,8 +106,7 @@ where
         let verts = axis
             .others()
             .into_iter()
-            .map(|axis| axis.line_vertices(self.center))
-            .flatten()
+            .flat_map(|axis| axis.line_vertices(self.center))
             .collect::<Vec<_>>();
 
         self.line_mesh = Some(
@@ -140,8 +139,8 @@ where
         let ray = ctx.camera.screen_ray(mouse_pos);
 
         if let Some(intersection) = ray.intersects(&self.plane) {
-            let start = self.start.snap(grid(*ctx.grid));
-            let end = (intersection.point + intersection.normal * 0.001).snap(grid(*ctx.grid));
+            let start = self.start.snap(*ctx.grid);
+            let end = (intersection.point + intersection.normal * 0.001).snap(*ctx.grid);
 
             let delta = self.snap.snap_vec(end - start);
             if delta != self.delta {

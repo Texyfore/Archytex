@@ -6,9 +6,8 @@ use cgmath::{vec2, vec3, ElementWise, InnerSpace, Matrix4, Quaternion, Transform
 use crate::{
     data::{PropInfo, PropInfoContainer},
     graphics::{
-        structures::{GizmoInstance, LineVertex, SolidVertex, TransformTint},
-        Canvas, GizmoGroup, GizmoInstances, Graphics, LineMesh, PropData, PropInstance, Share,
-        SolidMesh,
+        structures::{GizmoInstance, SolidVertex, TransformTint},
+        Canvas, GizmoGroup, GizmoInstances, Graphics, PropData, PropInstance, Share, SolidMesh,
     },
     math::{MinMax, Ray},
 };
@@ -151,7 +150,7 @@ impl From<Vector3<i32>> for Point {
 
 impl Point {
     pub fn meters(&self) -> Vector3<f32> {
-        self.position.map(|e| e as f32 * 0.01)
+        self.position.map(|e| e as f32 / 128.0)
     }
 }
 
@@ -298,7 +297,6 @@ impl SolidGeometry {
 
 struct SolidGraphics {
     mesh: SolidMesh,
-    lines: LineMesh,
     verts: GizmoInstances,
 }
 
@@ -306,15 +304,12 @@ impl SolidGraphics {
     fn new(graphics: &Graphics) -> Self {
         Self {
             mesh: graphics.create_solid_mesh(),
-            lines: graphics.create_line_mesh_uninit(24),
             verts: graphics.create_gizmo_instances(8),
         }
     }
 
     fn render(&self, canvas: &mut Canvas, draw_verts: bool) {
         canvas.draw_solid(self.mesh.share());
-        canvas.draw_lines(self.lines.share());
-
         if draw_verts {
             canvas.draw_gizmos(GizmoGroup {
                 gizmo: GizmoID(0),
@@ -356,7 +351,7 @@ impl SolidGraphics {
                     vec2(position.x, position.z)
                 } else {
                     vec2(position.x, position.y)
-                } / 5.0;
+                };
 
                 vertices.push(SolidVertex {
                     position,
@@ -370,14 +365,6 @@ impl SolidGraphics {
                 })
             }
         }
-
-        let lines = [
-            0, 1, 1, 2, 2, 3, 3, 0, 4, 5, 5, 6, 6, 7, 7, 4, 0, 4, 1, 5, 2, 6, 3, 7,
-        ]
-        .map(|index| LineVertex {
-            position: geometry.points[index].meters(),
-            color: [0.0; 3],
-        });
 
         graphics.write_gizmo_instances(
             &self.verts,
@@ -396,7 +383,6 @@ impl SolidGraphics {
         );
 
         graphics.write_solid_mesh(&self.mesh, &vertices, &triangles);
-        graphics.write_line_mesh(&self.lines, &lines);
     }
 }
 
@@ -459,7 +445,7 @@ impl Prop {
     }
 
     pub fn meters(&self) -> Vector3<f32> {
-        self.position.map(|e| e as f32 * 0.01)
+        self.position.map(|e| e as f32 / 128.0)
     }
 
     pub fn rotation(&self) -> Quaternion<f32> {
@@ -593,7 +579,7 @@ impl Movable for Solid {
 
 impl Movable for Prop {
     fn center(&self, _mask: ElementKind) -> Vector3<f32> {
-        self.position.map(|e| e as f32 * 0.01)
+        self.position.map(|e| e as f32 / 128.0)
     }
 
     fn displace(&mut self, delta: Vector3<i32>, _mask: ElementKind) -> bool {
@@ -642,5 +628,5 @@ impl Movable for Prop {
 }
 
 fn prop_transform(position: Vector3<i32>, rotation: Quaternion<f32>) -> Matrix4<f32> {
-    Matrix4::from_translation(position.map(|e| e as f32 * 0.01)) * Matrix4::from(rotation)
+    Matrix4::from_translation(position.map(|e| e as f32 / 128.0)) * Matrix4::from(rotation)
 }

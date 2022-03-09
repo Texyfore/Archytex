@@ -82,8 +82,7 @@ impl Selection {
             Self::Plane(axis) => axis
                 .others()
                 .into_iter()
-                .map(|axis| axis.line_vertices(center).into_iter())
-                .flatten()
+                .flat_map(|axis| axis.line_vertices(center).into_iter())
                 .collect(),
         }
     }
