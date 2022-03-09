@@ -8,6 +8,7 @@
 \usepackage{fancyhdr}
 \usepackage{hyperref}
 \usepackage{lipsum}
+\usepackage{pdfpages}
 
 \newgeometry{
   top=2.5cm,
@@ -51,6 +52,8 @@
   % Bottom of the page
   {\large \today\par}
 \end{titlepage}
+
+\includepdf[pages=-,pagecommand={},width=\textwidth]{mandatory.pdf}
 
 \tableofcontents
 
