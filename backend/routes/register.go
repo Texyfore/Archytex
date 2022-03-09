@@ -2,10 +2,11 @@ package routes
 
 import (
 	"encoding/json"
-	"github.com/Texyfore/Archytex/backend/mailing"
 	"net/http"
 	"os"
 	"time"
+
+	"github.com/Texyfore/Archytex/backend/mailing"
 
 	"github.com/Texyfore/Archytex/backend/database"
 	"github.com/Texyfore/Archytex/backend/database/models"
@@ -68,8 +69,7 @@ func Register(w http.ResponseWriter, r *http.Request) {
 	}
 
 	args := make(map[string]string)
-	//TODO: Replace with correct URL
-	args["Link"] = "http://localhost:8080/api/verify?token=" + register.Token
+	args["Link"] = os.Getenv("DOMAIN") + "/api/verify?token=" + register.Token
 	args["Username"] = register.Username
 	err = mailing.SendTemplate(*data.Email, "Thank you for joining Archytex!", "register", args)
 	if err != nil {
