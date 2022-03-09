@@ -69,8 +69,8 @@ impl Sender {
     }
 
     #[wasm_bindgen(js_name = "loadScene")]
-    pub fn load_scene(&self, buf: Vec<u8>) {
-        self.tx.send(FromHost::LoadScene(buf)).unwrap();
+    pub fn load_scene(&self, scene: Scene) {
+        self.tx.send(FromHost::LoadScene(scene.inner)).unwrap();
     }
 
     #[wasm_bindgen(js_name = "setTexture")]

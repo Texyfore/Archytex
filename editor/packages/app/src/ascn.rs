@@ -11,6 +11,10 @@ impl Ascn {
         Scene::decode(buf).map(|scene| Self { scene })
     }
 
+    pub fn scene(&self) -> &Scene {
+        &self.scene
+    }
+
     pub fn textures(&self) -> Vec<u32> {
         let mut set = HashSet::new();
 
