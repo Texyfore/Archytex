@@ -101,9 +101,7 @@ fn mkgrid(
             return mix(col, pow(blue, vec3<f32>(2.2)), g);
         }
 
-        if (abs(uv.x) > 0.5 && abs(uv.y) > 0.5) {
-            return col + vec3<f32>(g * 0.25);
-        }
+        return col + vec3<f32>(g * 0.25);
     }
 
     return col;
