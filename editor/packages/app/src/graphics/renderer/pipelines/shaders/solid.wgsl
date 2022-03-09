@@ -81,8 +81,6 @@ var t_diffuse: texture_2d<f32>;
 [[group(1), binding(1)]]
 var s_diffuse: sampler;
 
-let GRID_DIST = 40.0;
-
 [[stage(fragment)]]
 fn fragment(vertex: Vertex) -> Fragment {
     var color = textureSample(t_diffuse, s_diffuse, vertex.texcoord);
@@ -95,23 +93,28 @@ fn fragment(vertex: Vertex) -> Fragment {
 
     // Grid
     {
-        var len = f32(vertex.grid_len) / 128.0;
-        var gdist = GRID_DIST * len;
+        var cam_to_vert = normalize(vertex.camera_position - vertex.world_position);
+        var dist = distance(vertex.camera_position, vertex.world_position);
 
+        var len = f32(vertex.grid_len) / 128.0;
         var x = (((vertex.texcoord.x * 4.0) % len + len) % len) / len;
         var y = (((vertex.texcoord.y * 4.0) % len + len) % len) / len;
 
-        var dist = distance(vertex.world_position, vertex.camera_position);
-        var fade = (gdist - clamp(dist, 0.0, gdist)) / gdist;
-        var tovert = normalize(vertex.camera_position - vertex.world_position);
-        var flatness = dot(tovert, vertex.normal);
+        var fade_scale = len * 40.0;
+        var fade = (fade_scale - clamp(dist, 0.0, fade_scale)) / fade_scale;
+        var flatness = dot(cam_to_vert, vertex.normal);
 
-        if (x < 0.05 || x > 0.95 || y < 0.05 || y > 0.95) {
+        var thbase = dist / clamp(flatness * 2.0, 1.0, 2.0) * 0.6;
+
+        var th = thbase / len * 0.01;
+        var ith = 1.0 - th;
+
+        if (x < th || x > ith || y < th || y > ith) {
             color_rgb = mix(color_rgb, vec3<f32>(1.0), fade * flatness);
         }
     }
 
     var fragment: Fragment;
-    fragment.color = vec4<f32>(color_rgb + vertex.tint.xyz * vertex.tint.w, color_a);
+    fragment.color = vec4<f32>(color_rgb + vertex.tint.rgb * vertex.tint.a, color_a);
     return fragment;
 }
