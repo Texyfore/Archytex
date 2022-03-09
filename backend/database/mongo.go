@@ -117,7 +117,6 @@ func (m MongoDatabase) GetProject(userId interface{}, projectId interface{}) (*m
 }
 
 func (m MongoDatabase) CreateProject(userId interface{}, name string) (interface{}, error) {
-	//TODO implement me
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
 	defer cancel()
 	project := models.Project{

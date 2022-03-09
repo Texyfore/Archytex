@@ -61,7 +61,6 @@ func main() {
 	database.CurrentDatabase = db
 	projectloaders.CurrentProjectLoader = projectloaders.FileProjectLoader{Directory: os.Getenv("PROJECTS_PATH")}
 
-	//TODO: Read port
 	port, err := strconv.Atoi(os.Getenv("PORT"))
 	if err != nil {
 		panic(err)
