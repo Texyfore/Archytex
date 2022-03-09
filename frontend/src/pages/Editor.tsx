@@ -19,6 +19,8 @@ import Environment from "../env";
 
 type EditorMode = "solid" | "face" | "vertex" | "prop";
 
+let vp: any = null;
+
 let current_event = 0;
 let listeners: { [key: number]: (value: Uint8Array) => void } = {};
 let rightDown = false;
@@ -124,9 +126,12 @@ export default function Editor() {
 
   useEffect(() => {
     import("viewport").then((viewport) => {
-      const channel = new viewport.Channel();
+      vp = viewport;
+
+      const channel = new vp.Channel();
       setSender(channel.sender());
-      const callback = new viewport.Callback(
+
+      const callback = new vp.Callback(
         (id: number, scene: Uint8Array) => {
           listeners[id](scene);
         },
@@ -152,7 +157,8 @@ export default function Editor() {
           handleEditorModeChange(mode);
         }
       );
-      viewport.run(channel, callback);
+
+      vp.run(channel, callback);
     });
   }, []);
 
@@ -160,6 +166,7 @@ export default function Editor() {
     if (sender === null) {
       return;
     }
+
     const canvas = document.getElementById("viewport-canvas");
 
     if (canvas !== null) {
@@ -192,11 +199,54 @@ export default function Editor() {
       if (api?.state === "logged-in" && sender !== null) {
         const data = await api.load(projectId);
         if (data !== undefined && data.length > 0) {
-          sender.loadScene(data);
+          const scene = new vp.Scene(data);
+          if (scene !== undefined) {
+            scene.textures().forEach((id: number) => {
+              (async () => {
+                const texture = textures.find(texture => texture.id == id);
+                if (texture !== undefined) {
+                  const bytes = await fetchBytes(
+                    `${Environment.asset_url}/textures/${texture.name}.png`
+                  );
+                  scene.loadTexture(texture.id, bytes);
+                }
+              })();
+            })
+
+            scene.props().foreach((id: number) => {
+              (
+                async () => {
+                  const prop = props.find((prop) => { return prop.id == id });
+                  if (prop !== undefined) {
+                    await Promise.all(
+                      prop.dependencies.map((dep) => {
+                        async () => {
+                          const texture = textures.find(texture => texture.name == dep);
+                          if (texture !== undefined) {
+                            const bytes = await fetchBytes(
+                              `${Environment.asset_url}/textures/${texture.name}.png`
+                            );
+                            scene.loadTexture(texture.id, bytes);
+                          }
+                        }
+                      })
+                    );
+
+                    const bytes = await fetchBytes(
+                      `${Environment.asset_url}/props/${prop.name}.amdl`
+                    );
+                    scene.loadProp(prop.id, bytes);
+                  }
+                }
+              )();
+            });
+
+            sender.loadScene(scene);
+          }
         }
       }
     })();
-  }, [api, sender]);
+  }, [api, sender, textures, props]);
 
   let save = useCallback(
     () =>
@@ -243,12 +293,6 @@ export default function Editor() {
   const [editorMode, setEditorMode] = useState<EditorMode>("solid");
   const handleEditorModeChange = (mode: EditorMode, send: boolean = false) => {
     if (mode != null) {
-      //solid : 0
-      //face : 1
-      //vertex : 2
-      //prop : 3
-      //move : 4
-      //rotate : 5
       setEditorMode(mode);
       if (send) {
         let modeIndex = 0;
@@ -268,6 +312,7 @@ export default function Editor() {
           default:
             break;
         }
+
         sender.button(modeIndex);
       }
     }
