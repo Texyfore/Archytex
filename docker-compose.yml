@@ -59,6 +59,7 @@ services:
       PORT: 80
       REDIS_ADDR: "redis://redis:6379"
       AMQP_ADDR: "amqp://amqp:5672"
+      DOMAIN: "http://${DOMAIN}"
     volumes:
       - "projects:/data/projects"
     labels:
@@ -94,7 +95,7 @@ services:
       - "--providers.docker.exposedbydefault=false"
       - "--entrypoints.web.address=:80"
     ports:
-     - "81:80"
+     - "80:80"
      - "8080:8080"
     volumes:
       - "/var/run/docker.sock:/var/run/docker.sock:ro"
