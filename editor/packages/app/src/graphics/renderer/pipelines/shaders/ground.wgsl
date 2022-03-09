@@ -88,19 +88,26 @@ fn mkgrid(
     var th = thbase / len * 0.005;
     var ith = 1.0 - th;
 
-    if (x < th || x > ith || y < th || y > ith) {
-        var g = fade * flatness;
+    var g = fade * flatness;
+    var th2 = thbase * 0.005;
 
-        if (abs(uv.y) < th) {
+    if (abs(uv.y) < th2 * 3.0) {
+        if (abs(uv.y) < th2) {
             var red = vec3<f32>(236.0, 70.0, 89.0) / 255.0;
             return mix(col, pow(red, vec3<f32>(2.2)), g);
         }
+        return col + vec3<f32>(g * 0.25);
+    }
 
-        if (abs(uv.x) < th) {
+    if (abs(uv.x) < th2* 3.0) {
+        if (abs(uv.x) < th2) {
             var blue = vec3<f32>(80.0, 132.0, 212.0) / 255.0;
             return mix(col, pow(blue, vec3<f32>(2.2)), g);
         }
+        return col + vec3<f32>(g * 0.25);
+    }
 
+    if (x < th || x > ith || y < th || y > ith) {
         return col + vec3<f32>(g * 0.25);
     }
 
