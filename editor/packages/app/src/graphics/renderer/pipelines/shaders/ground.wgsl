@@ -21,6 +21,9 @@ struct Vertex {
 
     [[location(4)]]
     world_position: vec3<f32>;
+
+    [[location(5)]]
+    grid_len: i32;
 };
 
 struct Fragment {
@@ -33,8 +36,18 @@ struct Camera {
     view_to_world: mat4x4<f32>;
 };
 
+struct GridParams {
+    len: i32;
+    pad1: i32;
+    pad2: i32;
+    pad3: i32;
+};
+
 [[group(0), binding(0)]]
 var<uniform> camera: Camera;
+
+[[group(2), binding(0)]]
+var<uniform> grid: GridParams;
 
 [[stage(vertex)]]
 fn vertex(attribs: Attribs) -> Vertex {
@@ -46,7 +59,37 @@ fn vertex(attribs: Attribs) -> Vertex {
     vertex.texcoord = attribs.texcoord;
     vertex.camera_position = camera_position;
     vertex.world_position = attribs.position;
+    vertex.grid_len = grid.len;
     return vertex;
+}
+
+fn mkgrid(
+    pos: vec3<f32>,
+    nor: vec3<f32>,
+    uv: vec2<f32>,
+    cam: vec3<f32>,
+    glen: i32
+) -> f32 {
+    var cam_to_vert = normalize(cam - pos);
+    var dist = distance(cam, pos);
+
+    var len = f32(glen) / 128.0;
+    var x = ((uv.x % len + len) % len) / len;
+    var y = ((uv.y % len + len) % len) / len;
+
+    var fade_scale = len * 60.0;
+    var fade = (fade_scale - clamp(dist, 0.0, fade_scale)) / fade_scale;
+    var flatness = pow(dot(cam_to_vert, nor), 1.5);
+
+    var thbase = dist * 0.6;
+    var th = thbase / len * 0.005;
+    var ith = 1.0 - th;
+
+    if (x < th || x > ith || y < th || y > ith) {
+        return fade * flatness;
+    }else{
+        return 0.0;
+    }
 }
 
 [[group(1), binding(0)]]
@@ -63,6 +106,16 @@ fn fragment(vertex: Vertex) -> Fragment {
     var color = textureSample(t_diffuse, s_diffuse, vertex.texcoord);
     var color_rgb = color.rgb;
     var color_a = color.a;
+
+    var g = mkgrid(
+        vertex.world_position,
+        vertex.normal,
+        vertex.world_position.xz,
+        vertex.camera_position,
+        vertex.grid_len
+    );
+
+    color_rgb = color_rgb + vec3<f32>(g * 0.25);
     color_rgb = mix(color_rgb, vec3<f32>(0.537, 0.847, 1.0), mixval);
 
     var fragment: Fragment;

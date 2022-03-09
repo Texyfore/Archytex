@@ -75,6 +75,35 @@ fn vertex(attribs: Attribs) -> Vertex {
     return vertex;
 }
 
+fn mkgrid(
+    pos: vec3<f32>,
+    nor: vec3<f32>,
+    uv: vec2<f32>,
+    cam: vec3<f32>,
+    glen: i32
+) -> f32 {
+    var cam_to_vert = normalize(cam - pos);
+    var dist = distance(cam, pos);
+
+    var len = f32(glen) / 128.0;
+    var x = ((uv.x % len + len) % len) / len;
+    var y = ((uv.y % len + len) % len) / len;
+
+    var fade_scale = len * 60.0;
+    var fade = (fade_scale - clamp(dist, 0.0, fade_scale)) / fade_scale;
+    var flatness = pow(dot(cam_to_vert, nor), 1.5);
+
+    var thbase = dist * 0.6;
+    var th = thbase / len * 0.005;
+    var ith = 1.0 - th;
+
+    if (x < th || x > ith || y < th || y > ith) {
+        return fade * flatness;
+    }else{
+        return 0.0;
+    }
+}
+
 [[group(1), binding(0)]]
 var t_diffuse: texture_2d<f32>;
 
@@ -87,27 +116,15 @@ fn fragment(vertex: Vertex) -> Fragment {
     var color_rgb = color.rgb;
     var color_a = color.a;
 
-    // Grid
-    {
-        var cam_to_vert = normalize(vertex.camera_position - vertex.world_position);
-        var dist = distance(vertex.camera_position, vertex.world_position);
+    var g = mkgrid(
+        vertex.world_position,
+        vertex.normal,
+        vertex.texcoord,
+        vertex.camera_position,
+        vertex.grid_len
+    );
 
-        var len = f32(vertex.grid_len) / 128.0;
-        var x = (((vertex.texcoord.x * 4.0) % len + len) % len) / len;
-        var y = (((vertex.texcoord.y * 4.0) % len + len) % len) / len;
-
-        var fade_scale = len * 80.0;
-        var fade = (fade_scale - clamp(dist, 0.0, fade_scale)) / fade_scale;
-        var flatness = pow(dot(cam_to_vert, vertex.normal), 1.5);
-
-        var thbase = dist * 0.6;
-        var th = thbase / len * 0.005;
-        var ith = 1.0 - th;
-
-        if (x < th || x > ith || y < th || y > ith) {
-            color_rgb = color_rgb + vec3<f32>(fade * flatness);
-        }
-    }
+    color_rgb = color_rgb + vec3<f32>(g * 0.5);
 
     var light_dir = normalize(vertex.camera_position - vertex.world_position);
     var diffuse = (max(dot(light_dir, vertex.normal), 0.0) + 0.8) * 0.4;

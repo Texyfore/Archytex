@@ -95,6 +95,7 @@ impl Renderer {
             }
 
             pass.set_pipeline(&self.pipelines.ground);
+            pass.set_uniform(2, &self.grid);
             for mesh in &canvas.ground_meshes {
                 if let Some(texture) = self.resources.texture(mesh.texture) {
                     pass.set_texture(1, texture);
