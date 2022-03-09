@@ -2,3 +2,7 @@ version: '3.0'
 services:
   redis:
     image: raffapen/redisai-cpu-arm64-bionic
+  archyrt-dom:
+    restart: always
+    build: 
+      dockerfile: docker/Dockerfile.raytracer

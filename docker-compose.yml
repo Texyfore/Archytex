@@ -34,10 +34,14 @@ services:
     image: "redislabs/redisai:latest"
     volumes:
       - "redis:/data"
+    ports:
+      - "6379:6379"
   
   amqp:
     restart: always
     image: "rabbitmq:alpine"
+    ports:
+      - "5672:5672"
 
   backend:
     restart: always
@@ -66,7 +70,7 @@ services:
     restart: always
     build: 
       context: .
-      dockerfile: docker/Dockerfile.raytracer
+      dockerfile: docker/Dockerfile.raytracer.oidn
     volumes:
       - "../archytex/raytracer/assets:/archytex/assets"
       - "projects:/archytex/projects"
