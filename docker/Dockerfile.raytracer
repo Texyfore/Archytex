@@ -1,5 +1,8 @@
 FROM rust:alpine AS build
 
+RUN apk update
+RUN apk add --no-cache alpine-sdk openssl-dev
+
 ADD raytracer/archyrt-core /archytex/archyrt/archyrt-core
 ADD raytracer/archyrt-dom /archytex/archyrt/archyrt-dom
 ADD editor /archytex/editor

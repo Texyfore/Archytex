@@ -1,22 +1,23 @@
 version: "3.0"
 services:
-  mongodb_setup:
-    image: "mongo:5.0.6"
-    restart: on-failure
-    volumes:
-      - ./docker/rs-init.sh:/scripts/rs-init.sh
-    entrypoint: ["/scripts/rs-init.sh"]
-    depends_on:
-      - mongodb
   mongodb:
     restart: always
     image: "mongo:5.0.6"
     volumes:
       - mongodb:/data/db
-      
+      - mongodb:/data/configdb
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - MONGO_INITDB_DATABASE=archytex
     command: 
      - "--replSet=rs0"
      - "--bind_ip_all"
+    #This is horrible
+    healthcheck:
+      test: "test $$(echo \"rs.initiate({ _id: \\\"rs0\\\", version: 1, members: [ { _id: 0, host: \\\"mongodb:27017\\\" } ] }).ok || rs.status().ok\" | mongo ) -eq 1"
+      interval: 10s
+      start_period: 30s
 
   frontend:
     restart: always
@@ -31,9 +32,6 @@ services:
   redis:
     restart: always
     image: "redislabs/redisai:latest"
-    command: 
-     - "--requirepass"
-     - "${REDIS_PASSWORD}"
     volumes:
       - "redis:/data"
   
@@ -55,7 +53,7 @@ services:
       SMTP_PASSWORD: ${SMTP_PASSWORD}
       PROJECTS_PATH: /data/projects
       PORT: 80
-      REDIS_ADDR: "redis://:${REDIS_PASSWORD}@redis:6379"
+      REDIS_ADDR: "redis://redis:6379"
       AMQP_ADDR: "amqp://amqp:5672"
     volumes:
       - "projects:/data/projects"
@@ -64,6 +62,24 @@ services:
       - "traefik.http.routers.backend.rule=Host(`${DOMAIN}`) && PathPrefix(`/api`)"
       - "traefik.http.routers.backend.entrypoints=web"
       - "traefik.http.services.backend.loadbalancer.server.port=80"
+  archyrt-dom:
+    restart: always
+    build: 
+      context: .
+      dockerfile: docker/Dockerfile.raytracer
+    volumes:
+      - "../archytex/raytracer/assets:/archytex/assets"
+      - "projects:/archytex/projects"
+    environment:
+      AMQP_ADDR: "amqp://amqp:5672"
+      REDIS_ADDR: "redis://redis:6379"
+      MONGODB_ADDR: "mongodb://mongodb:27017"
+      IMAGES: "/archytex/projects"
+    depends_on:
+      - mongodb
+      - amqp
+      - redis
+    
 
   traefik:
     restart: always
