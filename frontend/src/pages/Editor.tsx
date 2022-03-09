@@ -220,7 +220,7 @@ export default function Editor() {
                   if (prop !== undefined) {
                     await Promise.all(
                       prop.dependencies.map((dep) => {
-                        async () => {
+                        return async () => {
                           const texture = textures.find(texture => texture.name == dep);
                           if (texture !== undefined) {
                             const bytes = await fetchBytes(
@@ -228,7 +228,7 @@ export default function Editor() {
                             );
                             scene.loadTexture(texture.id, bytes);
                           }
-                        }
+                        };
                       })
                     );
 
