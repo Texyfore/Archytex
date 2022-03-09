@@ -11,7 +11,7 @@ use image::{imageops::FilterType, DynamicImage, ImageFormat};
 use thiserror::Error;
 
 use crate::{
-    indexed::{Entry, Indexed, PropEntry},
+    indexed::{Indexed, Prop, Texture},
     require::Require,
 };
 
@@ -37,7 +37,7 @@ pub fn save(root: &Path, indexed: &Indexed) {
         for prop in &indexed.props {
             let amdl = gltf_to_amdl(prop, &indexed.textures);
             let buf = amdl.encode().unwrap();
-            let file_name = format!("{}.amdl", prop.entry.name);
+            let file_name = format!("{}.amdl", prop.name);
             fs::write(public.join(&file_name), &buf).require();
             fs::write(raytracer.join(&file_name), &buf).require();
         }
@@ -54,8 +54,8 @@ fn save_resized(original: &DynamicImage, path: &Path, size: u32) {
     image.save_with_format(path, ImageFormat::Png).require();
 }
 
-fn gltf_to_amdl(prop: &PropEntry, textures: &[Entry]) -> asset::Prop {
-    let (document, buffers, _) = gltf::import(&prop.entry.path).unwrap();
+fn gltf_to_amdl(prop: &Prop, textures: &[Texture]) -> asset::Prop {
+    let (document, buffers, _) = gltf::import(&prop.path).unwrap();
     let mut box_min = [std::f32::INFINITY; 3];
     let mut box_max = [std::f32::NEG_INFINITY; 3];
     let mut meshes = Vec::new();
@@ -68,13 +68,10 @@ fn gltf_to_amdl(prop: &PropEntry, textures: &[Entry]) -> asset::Prop {
                 .get(name)
                 .and_then(|t| textures.iter().find(|tt| &tt.name == t).map(|t| t.id))
         } else {
-            textures
-                .iter()
-                .find(|t| t.name == prop.entry.name)
-                .map(|t| t.id)
+            textures.iter().find(|t| t.name == prop.name).map(|t| t.id)
         }
         .ok_or(NoTextureError {
-            model: &prop.entry.name,
+            model: &prop.name,
             mesh: name,
         })
         .require();

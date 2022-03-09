@@ -1,25 +1,31 @@
 import Environment from "../env";
 
 interface AssetDb {
-    textures: Texture[];
-    props: Prop[];
+  textures: Texture[];
+  props: Prop[];
 }
 
 interface Texture {
-    id: number,
-    url: string,
-    public: boolean,
+  id: number;
+  name: string;
+  public: Public | null;
 }
 
 interface Prop {
-    id: number,
-    url: string,
+  id: number;
+  name: string;
+  dependencies: string[];
+  public: Public | null;
+}
+
+interface Public {
+  categories: string[];
 }
 
 export async function getAssets(): Promise<AssetDb> {
-    const res = await fetch(Environment.asset_db_url);
-    const db: AssetDb = await res.json();
-    return db;
+  const res = await fetch(Environment.asset_repo_url);
+  const db: AssetDb = await res.json();
+  return db;
 }
 
 export type { AssetDb };

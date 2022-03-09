@@ -4,14 +4,22 @@ use crate::indexed::{self, Indexed};
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Repo {
-    pub textures: Vec<Entry>,
-    pub props: Vec<Entry>,
+    pub textures: Vec<Texture>,
+    pub props: Vec<Prop>,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
-pub struct Entry {
+pub struct Texture {
     pub name: String,
     pub id: u32,
+    pub public: Option<Public>,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct Prop {
+    pub name: String,
+    pub id: u32,
+    pub dependencies: Vec<String>,
     pub public: Option<Public>,
 }
 
@@ -25,23 +33,30 @@ pub fn create(indexed: Indexed) -> Repo {
         textures: indexed
             .textures
             .into_iter()
-            .map(|entry| entry.into())
+            .map(|texture| texture.into())
             .collect(),
 
-        props: indexed
-            .props
-            .into_iter()
-            .map(|prop| prop.entry.into())
-            .collect(),
+        props: indexed.props.into_iter().map(|prop| prop.into()).collect(),
     }
 }
 
-impl From<indexed::Entry> for Entry {
-    fn from(entry: indexed::Entry) -> Self {
+impl From<indexed::Texture> for Texture {
+    fn from(texture: indexed::Texture) -> Self {
         Self {
-            name: entry.name,
-            id: entry.id,
-            public: entry.categories.map(|categories| Public { categories }),
+            name: texture.name,
+            id: texture.id,
+            public: texture.categories.map(|categories| Public { categories }),
+        }
+    }
+}
+
+impl From<indexed::Prop> for Prop {
+    fn from(prop: indexed::Prop) -> Self {
+        Self {
+            name: prop.name,
+            id: prop.id,
+            dependencies: prop.dependencies,
+            public: prop.categories.map(|categories| Public { categories }),
         }
     }
 }
