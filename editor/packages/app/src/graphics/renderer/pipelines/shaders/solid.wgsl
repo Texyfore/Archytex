@@ -87,10 +87,6 @@ fn fragment(vertex: Vertex) -> Fragment {
     var color_rgb = color.rgb;
     var color_a = color.a;
 
-    var light_dir = normalize(vertex.camera_position - vertex.world_position);
-    var diffuse = (max(dot(light_dir, vertex.normal), 0.0) + 0.8) * 0.4;
-    color_rgb = color_rgb * diffuse;
-
     // Grid
     {
         var cam_to_vert = normalize(vertex.camera_position - vertex.world_position);
@@ -100,19 +96,22 @@ fn fragment(vertex: Vertex) -> Fragment {
         var x = (((vertex.texcoord.x * 4.0) % len + len) % len) / len;
         var y = (((vertex.texcoord.y * 4.0) % len + len) % len) / len;
 
-        var fade_scale = len * 40.0;
+        var fade_scale = len * 80.0;
         var fade = (fade_scale - clamp(dist, 0.0, fade_scale)) / fade_scale;
-        var flatness = dot(cam_to_vert, vertex.normal);
+        var flatness = pow(dot(cam_to_vert, vertex.normal), 1.5);
 
-        var thbase = dist / clamp(flatness * 2.0, 1.0, 2.0) * 0.6;
-
-        var th = thbase / len * 0.01;
+        var thbase = dist * 0.6;
+        var th = thbase / len * 0.005;
         var ith = 1.0 - th;
 
         if (x < th || x > ith || y < th || y > ith) {
-            color_rgb = mix(color_rgb, vec3<f32>(1.0), fade * flatness);
+            color_rgb = color_rgb + vec3<f32>(fade * flatness);
         }
     }
+
+    var light_dir = normalize(vertex.camera_position - vertex.world_position);
+    var diffuse = (max(dot(light_dir, vertex.normal), 0.0) + 0.8) * 0.4;
+    color_rgb = color_rgb * diffuse;
 
     var fragment: Fragment;
     fragment.color = vec4<f32>(color_rgb + vertex.tint.rgb * vertex.tint.a, color_a);
