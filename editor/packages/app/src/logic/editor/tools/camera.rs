@@ -132,6 +132,22 @@ impl CameraTool {
             }
         }
 
+        // Select all
+
+        if ctx.input.is_key_down_once(VirtualKeyCode::A) {
+            match ctx.mode {
+                ElementKind::Solid | ElementKind::Prop => {
+                    ctx.scene.act(
+                        scene::Context {
+                            graphics: ctx.graphics,
+                        },
+                        Action::SelectAll(ctx.mode),
+                    );
+                }
+                _ => (),
+            }
+        }
+
         // Delete
         if ctx.input.is_key_down_once(VirtualKeyCode::Delete) {
             match ctx.mode {

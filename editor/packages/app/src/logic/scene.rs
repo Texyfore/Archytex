@@ -387,6 +387,62 @@ impl Scene {
                 (!ids.is_empty()).then(|| Action::SelectProps(ids))
             }
 
+            Action::SelectAll(kind) => match kind {
+                ElementKind::Solid => {
+                    let selected = self
+                        .solids
+                        .iter()
+                        .filter_map(|(id, solid)| solid.selected().then(|| *id))
+                        .collect::<Vec<_>>();
+
+                    let len_max = self.solids.len();
+                    let mut ids = Vec::new();
+
+                    for (id, solid) in &mut self.solids {
+                        if selected.is_empty() || selected.len() == len_max {
+                            solid.set_selected(!solid.selected());
+                            solid.recalc(ctx.graphics);
+                            ids.push(*id);
+                        } else {
+                            solid.set_selected(true);
+                            if !selected.contains(id) {
+                                solid.recalc(ctx.graphics);
+                                ids.push(*id);
+                            }
+                        }
+                    }
+
+                    (!ids.is_empty()).then(|| Action::SelectSolids(ids))
+                }
+                ElementKind::Prop => {
+                    let selected = self
+                        .props
+                        .iter()
+                        .filter_map(|(id, prop)| prop.selected().then(|| *id))
+                        .collect::<Vec<_>>();
+
+                    let len_max = self.props.len();
+                    let mut ids = Vec::new();
+
+                    for (id, prop) in &mut self.props {
+                        if selected.is_empty() || selected.len() == len_max {
+                            prop.set_selected(!prop.selected());
+                            prop.recalc(ctx.graphics);
+                            ids.push(*id);
+                        } else {
+                            prop.set_selected(true);
+                            if !selected.contains(id) {
+                                prop.recalc(ctx.graphics);
+                                ids.push(*id);
+                            }
+                        }
+                    }
+
+                    (!ids.is_empty()).then(|| Action::SelectSolids(ids))
+                }
+                _ => panic!("Select all is undefined on faces and points"),
+            },
+
             Action::DeselectAll(kind) => match kind {
                 ElementKind::Solid => {
                     let mut ids = Vec::new();
@@ -607,6 +663,7 @@ pub enum Action {
     SelectFaces(Vec<FaceLocator>),
     SelectPoints(Vec<PointLocator>),
     SelectProps(Vec<usize>),
+    SelectAll(ElementKind),
     DeselectAll(ElementKind),
 
     Move {
