@@ -18,16 +18,14 @@ use super::{
 
 pub struct CameraTool {
     last_click: Option<Vector2<f32>>,
-    was_rotating: bool,
     translation_gizmo: TranslationGizmo,
     rotation_gizmo: RotationGizmo,
 }
 
 impl CameraTool {
-    pub fn new(graphics: &Graphics, was_rotating: bool) -> Self {
+    pub fn new(graphics: &Graphics) -> Self {
         Self {
             last_click: None,
-            was_rotating,
             translation_gizmo: TranslationGizmo::new(graphics),
             rotation_gizmo: RotationGizmo::new(graphics),
         }
@@ -61,11 +59,6 @@ impl CameraTool {
         if ctx.input.was_button_down_once(MouseButton::Left)
             && !ctx.input.is_key_down(VirtualKeyCode::LControl)
         {
-            if self.was_rotating {
-                self.was_rotating = false;
-                return None;
-            }
-
             if !ctx.input.is_key_down(VirtualKeyCode::LShift) {
                 ctx.scene.act(
                     scene::Context {
@@ -368,7 +361,7 @@ impl Tool for CameraTool {
                 // Rotate
                 if ctx.input.is_key_down_once(VirtualKeyCode::F) && ctx.scene.any_solids_selected()
                 {
-                    return Some(Box::new(RotateSolid::default()));
+                    return Some(Box::new(RotateSolid));
                 }
             } else {
                 self.last_click = None;

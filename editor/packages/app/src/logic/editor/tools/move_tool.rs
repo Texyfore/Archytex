@@ -167,7 +167,7 @@ where
                 E::insert_move(ctx.scene, elements, self.delta, self.mask);
             }
 
-            return Some(Box::new(CameraTool::new(ctx.graphics, false)));
+            return Some(Box::new(CameraTool::new(ctx.graphics)));
         }
 
         if ctx.input.is_button_down_once(MouseButton::Right)
@@ -192,7 +192,7 @@ where
                 );
             }
 
-            return Some(Box::new(CameraTool::new(ctx.graphics, false)));
+            return Some(Box::new(CameraTool::new(ctx.graphics)));
         }
 
         None

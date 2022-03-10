@@ -10,7 +10,7 @@ use crate::{
         structures::{GizmoInstance, SolidVertex, TransformTint},
         Canvas, GizmoGroup, GizmoInstances, Graphics, PropData, PropInstance, Share, SolidMesh,
     },
-    math::{MinMax, Ray, Snap},
+    math::{MinMax, Ray},
 };
 
 pub use raycast::*;
@@ -133,12 +133,12 @@ impl Solid {
         }
     }
 
-    pub fn rotate(&mut self, axis: Axis, reverse: bool) {
-        let center = self.center(ElementKind::Solid).snap(1);
-
-        for point in &mut self.geometry.points {
-            let translated = point.position - center;
-            point.position = rot(translated, axis, reverse) + center;
+    pub fn rotate(&mut self, center: Vector3<i32>, axis: Axis, iters: u32, reverse: bool) {
+        for _ in 0..iters {
+            for point in &mut self.geometry.points {
+                let translated = point.position - center;
+                point.position = rot(translated, axis, reverse) + center;
+            }
         }
 
         fn rot(v: Vector3<i32>, axis: Axis, reverse: bool) -> Vector3<i32> {

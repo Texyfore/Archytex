@@ -1,14 +1,12 @@
 use winit::event::VirtualKeyCode;
 
 use crate::logic::{
-    camera::Camera,
     common::Axis,
     scene::{self, Action},
 };
 
-use super::{Context, Tool};
+use super::{CameraTool, Context, Tool};
 
-#[derive(Default)]
 pub struct RotateSolid;
 
 impl Tool for RotateSolid {
@@ -19,18 +17,25 @@ impl Tool for RotateSolid {
             (VirtualKeyCode::Z, Axis::Z),
         ] {
             if ctx.input.is_key_down_once(key) {
+                let iters = if ctx.input.is_key_down(VirtualKeyCode::LShift) {
+                    2
+                } else {
+                    1
+                };
+
                 ctx.scene.act(
                     scene::Context {
                         graphics: ctx.graphics,
                     },
-                    Action::RotateSolids(axis, false),
+                    Action::RotateSolids {
+                        axis,
+                        iters,
+                        reverse: false,
+                    },
                 );
-                break;
-            }
-        }
 
-        if ctx.input.is_key_down_once(VirtualKeyCode::Escape) {
-            return Some(Box::new(Camera::default()));
+                return Some(Box::new(CameraTool::new(ctx.graphics)));
+            }
         }
 
         None

@@ -6,6 +6,7 @@ use cgmath::{Quaternion, Rotation, Vector2, Vector3, Zero};
 use crate::{
     data::PropInfoContainer,
     graphics::{Canvas, Graphics},
+    math::Snap,
 };
 
 use super::{
@@ -647,15 +648,50 @@ impl Scene {
                 (!props.is_empty()).then(|| Action::AddProps(props))
             }
 
-            Action::RotateSolids(axis, reverse) => {
+            Action::RotateSolids {
+                axis,
+                iters,
+                reverse,
+            } => {
+                if let Some(center) = self.calc_center(ElementKind::Solid) {
+                    let center = center.snap(2);
+                    let mut changed = false;
+                    for solid in self.solids.values_mut().filter(|solid| solid.selected()) {
+                        solid.rotate(center, axis, iters, reverse);
+                        solid.recalc(ctx.graphics);
+                        changed = true;
+                    }
+
+                    changed.then(|| Action::UnrotateSolids {
+                        axis,
+                        iters,
+                        reverse: !reverse,
+                        center,
+                    })
+                } else {
+                    None
+                }
+            }
+
+            Action::UnrotateSolids {
+                axis,
+                iters,
+                reverse,
+                center,
+            } => {
                 let mut changed = false;
                 for solid in self.solids.values_mut().filter(|solid| solid.selected()) {
-                    solid.rotate(axis, reverse);
+                    solid.rotate(center, axis, iters, reverse);
                     solid.recalc(ctx.graphics);
                     changed = true;
                 }
 
-                changed.then(|| Action::RotateSolids(axis, !reverse))
+                changed.then(|| Action::UnrotateSolids {
+                    axis,
+                    iters,
+                    reverse: !reverse,
+                    center,
+                })
             }
         }
     }
@@ -694,7 +730,17 @@ pub enum Action {
 
     DeleteSolids,
     DeleteProps,
-    RotateSolids(Axis, bool),
+    RotateSolids {
+        axis: Axis,
+        iters: u32,
+        reverse: bool,
+    },
+    UnrotateSolids {
+        axis: Axis,
+        iters: u32,
+        reverse: bool,
+        center: Vector3<i32>,
+    },
 }
 
 struct UndoStack {

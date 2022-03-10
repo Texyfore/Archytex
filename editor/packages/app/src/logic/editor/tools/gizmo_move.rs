@@ -122,7 +122,7 @@ where
         if ctx.input.was_button_down_once(MouseButton::Left) {
             let elements = self.elements.drain(..).collect();
             E::insert_move(ctx.scene, elements, delta, self.mask);
-            return Some(Box::new(CameraTool::new(ctx.graphics, false)));
+            return Some(Box::new(CameraTool::new(ctx.graphics)));
         }
 
         None

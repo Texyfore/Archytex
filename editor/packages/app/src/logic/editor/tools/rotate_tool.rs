@@ -80,7 +80,7 @@ impl Tool for RotateTool {
                     .angle(snap.snap(delta), ctx.camera.forward());
                 ctx.scene.insert_props_with_rotate(props, delta);
 
-                return Some(Box::new(CameraTool::new(ctx.graphics, false)));
+                return Some(Box::new(CameraTool::new(ctx.graphics)));
             }
         } else {
             self.orientation.update(&ctx, &mut self.props);
@@ -99,7 +99,7 @@ impl Tool for RotateTool {
                     Action::SetPropRotations(rotations),
                 );
 
-                return Some(Box::new(CameraTool::new(ctx.graphics, false)));
+                return Some(Box::new(CameraTool::new(ctx.graphics)));
             }
         }
 
@@ -113,7 +113,7 @@ impl Tool for RotateTool {
 
             let props = self.props.drain(..).collect();
             Prop::insert(ctx.scene, props);
-            return Some(Box::new(CameraTool::new(ctx.graphics, false)));
+            return Some(Box::new(CameraTool::new(ctx.graphics)));
         }
 
         None

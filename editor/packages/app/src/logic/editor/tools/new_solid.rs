@@ -52,7 +52,7 @@ impl Tool for NewSolid {
                     Action::NewSolids(vec![solid]),
                 );
             }
-            Some(Box::new(CameraTool::new(ctx.graphics, false)))
+            Some(Box::new(CameraTool::new(ctx.graphics)))
         } else {
             None
         }
