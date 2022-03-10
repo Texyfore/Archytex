@@ -4,6 +4,7 @@ use asset::{scene, GizmoID, PropID, TextureID};
 use cgmath::{vec2, vec3, ElementWise, InnerSpace, Matrix4, Quaternion, Transform, Vector3, Zero};
 
 use crate::{
+    color,
     data::{PropInfo, PropInfoContainer},
     graphics::{
         structures::{GizmoInstance, SolidVertex, TransformTint},
@@ -358,7 +359,7 @@ impl SolidGraphics {
                     normal,
                     texcoord,
                     tint: if selected || face.selected {
-                        [0.04, 0.36, 0.85, 0.5]
+                        color!("39a0ed80")
                     } else {
                         [0.0; 4]
                     },
@@ -374,7 +375,7 @@ impl SolidGraphics {
                 .map(|point| GizmoInstance {
                     matrix: Matrix4::from_translation(point.meters()),
                     color: if point.selected {
-                        [0.04, 0.36, 0.85]
+                        color!("39a0ed")
                     } else {
                         [0.0; 3]
                     },
