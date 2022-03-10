@@ -301,3 +301,6 @@ TSWLatexianTemp*
 #*Notes.bib
 
 *.pdf
+
+# Exclude from .gitignore
+!mandatory.pdf
