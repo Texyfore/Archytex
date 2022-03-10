@@ -1,3 +1,4 @@
+mod ascn;
 mod button;
 mod color;
 mod data;
@@ -7,7 +8,7 @@ mod math;
 
 use std::sync::mpsc::Receiver;
 
-use asset::{scene::Scene, PropID, TextureID};
+use asset::{PropID, TextureID};
 use data::PropInfoContainer;
 use graphics::LoadedResource;
 use instant::Instant;
@@ -20,6 +21,8 @@ use winit::{
 };
 
 use self::graphics::Canvas;
+
+pub use ascn::Ascn;
 
 pub fn run(init: Init) {
     let window = init.winit.window;
@@ -109,8 +112,7 @@ pub fn run(init: Init) {
                                 id,
                             );
                         }
-                        FromHost::LoadScene(buf) => {
-                            let scene = Scene::decode(&buf).unwrap();
+                        FromHost::LoadScene(ascn) => {
                             logic.load_scene(
                                 logic::Context {
                                     host: host.as_ref(),
@@ -118,7 +120,7 @@ pub fn run(init: Init) {
                                     prop_infos: &prop_info,
                                     delta,
                                 },
-                                &scene,
+                                ascn.scene(),
                             );
                         }
                         FromHost::Texture(id) => {
@@ -242,7 +244,7 @@ pub enum ToHost {
 pub enum FromHost {
     Resolution { width: u32, height: u32 },
     SaveScene(i32),
-    LoadScene(Vec<u8>),
+    LoadScene(Ascn),
     Prop(u32),
     Texture(u32),
     Button(i32),

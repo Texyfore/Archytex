@@ -5,7 +5,7 @@ use std::sync::mpsc;
 use js_sys::{Function, Uint8Array};
 use wasm_bindgen::{prelude::*, JsCast};
 
-use app::{builtin_resources, FromHost, Host, Init, Resource, ResourceKind, ToHost, Winit};
+use app::{builtin_resources, Ascn, FromHost, Host, Init, Resource, ResourceKind, ToHost, Winit};
 use winit::{event_loop::EventLoop, platform::web::WindowBuilderExtWebSys, window::WindowBuilder};
 
 #[wasm_bindgen]
@@ -69,8 +69,8 @@ impl Sender {
     }
 
     #[wasm_bindgen(js_name = "loadScene")]
-    pub fn load_scene(&self, buf: Vec<u8>) {
-        self.tx.send(FromHost::LoadScene(buf)).unwrap();
+    pub fn load_scene(&self, scene: Scene) {
+        self.tx.send(FromHost::LoadScene(scene.inner)).unwrap();
     }
 
     #[wasm_bindgen(js_name = "setTexture")]
@@ -175,4 +175,25 @@ fn winit() -> Winit {
         .unwrap();
 
     Winit { event_loop, window }
+}
+
+#[wasm_bindgen]
+pub struct Scene {
+    inner: Ascn,
+}
+
+#[wasm_bindgen]
+impl Scene {
+    #[wasm_bindgen(constructor)]
+    pub fn new(buf: &[u8]) -> Option<Scene> {
+        Ascn::new(buf).map(|inner| Self { inner })
+    }
+
+    pub fn textures(&self) -> Vec<u32> {
+        self.inner.textures()
+    }
+
+    pub fn props(&self) -> Vec<u32> {
+        self.inner.props()
+    }
 }

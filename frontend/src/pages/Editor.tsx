@@ -19,6 +19,7 @@ import Environment from "../env";
 
 type EditorMode = "solid" | "face" | "vertex" | "prop";
 
+
 let current_event = 0;
 let listeners: { [key: number]: (value: Uint8Array) => void } = {};
 let rightDown = false;
@@ -34,6 +35,7 @@ export default function Editor() {
 
   // Initialise sender
   const [sender, setSender] = useState<any | null>(null);
+  const [vp, setVp] = useState<any | null>(null);
 
   // Asset management
   const [_assets, _] = useState(() => getAssets());
@@ -124,8 +126,11 @@ export default function Editor() {
 
   useEffect(() => {
     import("viewport").then((viewport) => {
+
+
       const channel = new viewport.Channel();
       setSender(channel.sender());
+
       const callback = new viewport.Callback(
         (id: number, scene: Uint8Array) => {
           listeners[id](scene);
@@ -152,6 +157,7 @@ export default function Editor() {
           handleEditorModeChange(mode);
         }
       );
+      setVp(viewport);
       viewport.run(channel, callback);
     });
   }, []);
@@ -160,6 +166,7 @@ export default function Editor() {
     if (sender === null) {
       return;
     }
+
     const canvas = document.getElementById("viewport-canvas");
 
     if (canvas !== null) {
@@ -189,14 +196,58 @@ export default function Editor() {
 
   useEffect(() => {
     (async () => {
-      if (api?.state === "logged-in" && sender !== null) {
+      if (api?.state === "logged-in" && sender !== null && vp !== null) {
         const data = await api.load(projectId);
         if (data !== undefined && data.length > 0) {
-          sender.loadScene(data);
+          const scene = new vp.Scene(data);
+          const textureIds = scene.textures();
+          if (scene !== undefined) {
+            textureIds.forEach((id: number) => {
+              (async () => {
+                const texture = textures.find(texture => texture.id == id);
+                console.log(texture);
+                if (texture !== undefined) {
+                  const bytes = await fetchBytes(
+                    `${Environment.asset_url}/textures/${texture.name}.png`
+                  );
+                  sender.loadTexture(texture.id, bytes);
+                }
+              })();
+            })
+
+            const propIds: any = [...scene.props()];
+            propIds.forEach((id: number) => {
+              (
+                async () => {
+                  const prop = props.find((prop: any) => { return prop.id == id });
+                  if (prop !== undefined) {
+                    prop.dependencies.forEach((dep: string) => {
+                      (async () => {
+                        const texture = textures.find(texture => texture.name == dep);
+                        if (texture !== undefined) {
+                          const bytes = await fetchBytes(
+                            `${Environment.asset_url}/textures/${texture.name}.png`
+                          );
+                          sender.loadTexture(texture.id, bytes);
+                        }
+                      })();
+                    });
+
+                    const bytes = await fetchBytes(
+                      `${Environment.asset_url}/props/${prop.name}.amdl`
+                    );
+                    sender.loadProp(prop.id, bytes);
+                  }
+                }
+              )();
+            });
+
+            sender.loadScene(scene);
+          }
         }
       }
     })();
-  }, [api, sender]);
+  }, [api, sender, textures, props, vp]);
 
   let save = useCallback(
     () =>
@@ -243,12 +294,6 @@ export default function Editor() {
   const [editorMode, setEditorMode] = useState<EditorMode>("solid");
   const handleEditorModeChange = (mode: EditorMode, send: boolean = false) => {
     if (mode != null) {
-      //solid : 0
-      //face : 1
-      //vertex : 2
-      //prop : 3
-      //move : 4
-      //rotate : 5
       setEditorMode(mode);
       if (send) {
         let modeIndex = 0;
@@ -268,6 +313,7 @@ export default function Editor() {
           default:
             break;
         }
+
         sender.button(modeIndex);
       }
     }
