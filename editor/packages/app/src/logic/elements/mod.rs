@@ -10,12 +10,12 @@ use crate::{
         structures::{GizmoInstance, SolidVertex, TransformTint},
         Canvas, GizmoGroup, GizmoInstances, Graphics, PropData, PropInstance, Share, SolidMesh,
     },
-    math::{MinMax, Ray},
+    math::{MinMax, Ray, Snap},
 };
 
 pub use raycast::*;
 
-use super::scene::Scene;
+use super::{common::Axis, scene::Scene};
 
 #[derive(Clone, Copy, PartialEq, Eq)]
 pub enum ElementKind {
@@ -130,6 +130,28 @@ impl Solid {
             geometry,
             selected: false,
             graphics,
+        }
+    }
+
+    pub fn rotate(&mut self, axis: Axis, reverse: bool) {
+        let center = self.center(ElementKind::Solid).snap(1);
+
+        for point in &mut self.geometry.points {
+            let translated = point.position - center;
+            point.position = rot(translated, axis, reverse) + center;
+        }
+
+        fn rot(v: Vector3<i32>, axis: Axis, reverse: bool) -> Vector3<i32> {
+            match (axis, reverse) {
+                (Axis::X, false) => vec3(v.x, v.z, -v.y),
+                (Axis::X, true) => vec3(v.x, -v.z, v.y),
+
+                (Axis::Y, false) => vec3(v.z, v.y, -v.x),
+                (Axis::Y, true) => vec3(-v.z, v.y, v.x),
+
+                (Axis::Z, false) => vec3(v.y, -v.x, v.z),
+                (Axis::Z, true) => vec3(-v.y, v.x, v.z),
+            }
         }
     }
 }

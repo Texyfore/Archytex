@@ -10,6 +10,7 @@ use crate::{
 
 use super::{
     camera::Camera,
+    common::Axis,
     elements::{
         self, ElementKind, FaceLocator, Movable, PointLocator, Prop, RaycastHit, RaycastInput,
         Solid,
@@ -238,6 +239,10 @@ impl Scene {
                 (n > 0.5).then(|| center / n)
             }
         }
+    }
+
+    pub fn any_solids_selected(&self) -> bool {
+        self.solids.values().any(|solid| solid.selected())
     }
 
     pub fn render(&self, canvas: &mut Canvas, mask: ElementKind) {
@@ -641,6 +646,17 @@ impl Scene {
 
                 (!props.is_empty()).then(|| Action::AddProps(props))
             }
+
+            Action::RotateSolids(axis, reverse) => {
+                let mut changed = false;
+                for solid in self.solids.values_mut().filter(|solid| solid.selected()) {
+                    solid.rotate(axis, reverse);
+                    solid.recalc(ctx.graphics);
+                    changed = true;
+                }
+
+                changed.then(|| Action::RotateSolids(axis, !reverse))
+            }
         }
     }
 }
@@ -678,6 +694,7 @@ pub enum Action {
 
     DeleteSolids,
     DeleteProps,
+    RotateSolids(Axis, bool),
 }
 
 struct UndoStack {

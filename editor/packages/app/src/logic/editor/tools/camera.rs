@@ -12,8 +12,8 @@ use crate::{
 };
 
 use super::{
-    gizmo_move::GizmoMove, gizmo_rotate::GizmoRotate, move_tool::MoveTool, rotate_tool::RotateTool,
-    Context, NewSolid, Tool,
+    gizmo_move::GizmoMove, gizmo_rotate::GizmoRotate, move_tool::MoveTool,
+    rotate_solid::RotateSolid, rotate_tool::RotateTool, Context, NewSolid, Tool,
 };
 
 pub struct CameraTool {
@@ -338,7 +338,6 @@ impl Tool for CameraTool {
             control(&mut ctx);
             None
         } else {
-            // New solid
             if matches!(ctx.mode, ElementKind::Solid) {
                 if ctx.input.is_button_down_once(MouseButton::Left) {
                     self.last_click = Some(ctx.input.mouse_pos());
@@ -348,6 +347,7 @@ impl Tool for CameraTool {
                     self.last_click = None;
                 }
 
+                // New solid
                 if let Some(last_click) = self.last_click {
                     let delta = ctx.input.mouse_pos() - last_click;
                     if delta.magnitude2() > 100.0 {
@@ -363,6 +363,12 @@ impl Tool for CameraTool {
                             return Some(Box::new(tool));
                         }
                     }
+                }
+
+                // Rotate
+                if ctx.input.is_key_down_once(VirtualKeyCode::F) && ctx.scene.any_solids_selected()
+                {
+                    return Some(Box::new(RotateSolid::default()));
                 }
             } else {
                 self.last_click = None;
