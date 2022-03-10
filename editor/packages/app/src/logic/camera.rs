@@ -29,7 +29,7 @@ impl Default for Camera {
 impl Camera {
     pub fn recalc(&mut self, width: u32, height: u32) {
         let (width, height) = (width as f32, height as f32);
-        self.projection = perspective(Deg(80.0), width / height, 0.05, 200.0);
+        self.projection = perspective(Deg(80.0), width / height, 0.01, 512.0);
         self.viewport_size = Vector2::new(width, height)
     }
 

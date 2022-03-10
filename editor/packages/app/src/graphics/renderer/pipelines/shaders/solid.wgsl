@@ -80,7 +80,7 @@ fn mkgrid(
     nor: vec3<f32>,
     uv: vec2<f32>,
     cam: vec3<f32>,
-    glen: i32
+    glen: i32,
 ) -> f32 {
     var cam_to_vert = normalize(cam - pos);
     var dist = distance(cam, pos);
@@ -130,7 +130,13 @@ fn fragment(vertex: Vertex) -> Fragment {
     var diffuse = (max(dot(light_dir, vertex.normal), 0.0) + 0.8) * 0.4;
     color_rgb = color_rgb * diffuse;
 
+    var dist = distance(vertex.world_position, vertex.camera_position);
+    var mixval = pow(clamp(dist / 200.0, 0.0, 1.0), 4.0);
+
+    var final_rgb = color_rgb + vertex.tint.rgb * vertex.tint.a;
+    final_rgb = mix(final_rgb, vec3<f32>(0.537, 0.847, 1.0), mixval);
+
     var fragment: Fragment;
-    fragment.color = vec4<f32>(color_rgb + vertex.tint.rgb * vertex.tint.a, color_a);
+    fragment.color = vec4<f32>(final_rgb, color_a);
     return fragment;
 }
