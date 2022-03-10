@@ -12,22 +12,20 @@ use crate::{
 };
 
 use super::{
-    gizmo_move::GizmoMove, gizmo_rotate::GizmoRotate, move_tool::MoveTool, rotate_tool::RotateTool,
-    Context, NewSolid, Tool,
+    gizmo_move::GizmoMove, gizmo_rotate::GizmoRotate, move_tool::MoveTool,
+    rotate_solid::RotateSolid, rotate_tool::RotateTool, Context, NewSolid, Tool,
 };
 
 pub struct CameraTool {
     last_click: Option<Vector2<f32>>,
-    was_rotating: bool,
     translation_gizmo: TranslationGizmo,
     rotation_gizmo: RotationGizmo,
 }
 
 impl CameraTool {
-    pub fn new(graphics: &Graphics, was_rotating: bool) -> Self {
+    pub fn new(graphics: &Graphics) -> Self {
         Self {
             last_click: None,
-            was_rotating,
             translation_gizmo: TranslationGizmo::new(graphics),
             rotation_gizmo: RotationGizmo::new(graphics),
         }
@@ -61,11 +59,6 @@ impl CameraTool {
         if ctx.input.was_button_down_once(MouseButton::Left)
             && !ctx.input.is_key_down(VirtualKeyCode::LControl)
         {
-            if self.was_rotating {
-                self.was_rotating = false;
-                return None;
-            }
-
             if !ctx.input.is_key_down(VirtualKeyCode::LShift) {
                 ctx.scene.act(
                     scene::Context {
@@ -129,6 +122,21 @@ impl CameraTool {
                         );
                     }
                 }
+            }
+        }
+
+        // Select all
+        if ctx.input.is_key_down_once(VirtualKeyCode::A) {
+            match ctx.mode {
+                ElementKind::Solid | ElementKind::Prop => {
+                    ctx.scene.act(
+                        scene::Context {
+                            graphics: ctx.graphics,
+                        },
+                        Action::SelectAll(ctx.mode),
+                    );
+                }
+                _ => (),
             }
         }
 
@@ -323,7 +331,6 @@ impl Tool for CameraTool {
             control(&mut ctx);
             None
         } else {
-            // New solid
             if matches!(ctx.mode, ElementKind::Solid) {
                 if ctx.input.is_button_down_once(MouseButton::Left) {
                     self.last_click = Some(ctx.input.mouse_pos());
@@ -333,6 +340,7 @@ impl Tool for CameraTool {
                     self.last_click = None;
                 }
 
+                // New solid
                 if let Some(last_click) = self.last_click {
                     let delta = ctx.input.mouse_pos() - last_click;
                     if delta.magnitude2() > 100.0 {
@@ -347,6 +355,28 @@ impl Tool for CameraTool {
                             );
                             return Some(Box::new(tool));
                         }
+                    }
+                }
+
+                // Rotate
+                if ctx.input.is_key_down_once(VirtualKeyCode::F) && ctx.scene.any_solids_selected()
+                {
+                    return Some(Box::new(RotateSolid));
+                }
+
+                // Hollow
+                if ctx.input.is_key_down_once(VirtualKeyCode::H) {
+                    let ids = ctx.scene.selected_solid_ids();
+                    for id in ids {
+                        ctx.scene.act(
+                            scene::Context {
+                                graphics: ctx.graphics,
+                            },
+                            Action::ReplaceSolids {
+                                ids: vec![id],
+                                solids: ctx.scene.hollow_of(ctx.graphics, id, *ctx.grid),
+                            },
+                        )
                     }
                 }
             } else {
@@ -379,7 +409,7 @@ impl Tool for CameraTool {
                         .raycast(ctx.input.mouse_pos(), ctx.camera, ctx.prop_infos);
 
                     if let Some(endpoint) = hit.endpoint {
-                        let position = (endpoint.point + endpoint.normal * 0.001).snap(*ctx.grid);
+                        let position = (endpoint.point + endpoint.normal * 0.001).round(*ctx.grid);
 
                         ctx.scene.act(
                             scene::Context {

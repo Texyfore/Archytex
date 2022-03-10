@@ -4,6 +4,7 @@ use asset::{scene, GizmoID, PropID, TextureID};
 use cgmath::{vec2, vec3, ElementWise, InnerSpace, Matrix4, Quaternion, Transform, Vector3, Zero};
 
 use crate::{
+    color,
     data::{PropInfo, PropInfoContainer},
     graphics::{
         structures::{GizmoInstance, SolidVertex, TransformTint},
@@ -14,7 +15,7 @@ use crate::{
 
 pub use raycast::*;
 
-use super::scene::Scene;
+use super::{common::Axis, scene::Scene};
 
 #[derive(Clone, Copy, PartialEq, Eq)]
 pub enum ElementKind {
@@ -130,6 +131,105 @@ impl Solid {
             selected: false,
             graphics,
         }
+    }
+
+    pub fn rotate(&mut self, center: Vector3<i32>, axis: Axis, iters: u32, reverse: bool) {
+        for _ in 0..iters {
+            for point in &mut self.geometry.points {
+                let translated = point.position - center;
+                point.position = rot(translated, axis, reverse) + center;
+            }
+        }
+
+        fn rot(v: Vector3<i32>, axis: Axis, reverse: bool) -> Vector3<i32> {
+            match (axis, reverse) {
+                (Axis::X, false) => vec3(v.x, v.z, -v.y),
+                (Axis::X, true) => vec3(v.x, -v.z, v.y),
+
+                (Axis::Y, false) => vec3(v.z, v.y, -v.x),
+                (Axis::Y, true) => vec3(-v.z, v.y, v.x),
+
+                (Axis::Z, false) => vec3(v.y, -v.x, v.z),
+                (Axis::Z, true) => vec3(-v.y, v.x, v.z),
+            }
+        }
+    }
+
+    pub fn make_hollow(&self, gfx: &Graphics, grid: i32) -> [Self; 26] {
+        // 26
+
+        let (min, max) = self.geometry.min_max();
+        let ext = max - min;
+        let l = grid;
+
+        [
+            Self::new(
+                gfx,
+                min + vec3(0, l, l),
+                vec3(l, ext.y - l * 2, ext.z - l * 2),
+            ),
+            Self::new(
+                gfx,
+                min + vec3(ext.x - l, l, l),
+                vec3(l, ext.y - l * 2, ext.z - l * 2),
+            ),
+            Self::new(
+                gfx,
+                min + vec3(l, 0, l),
+                vec3(ext.x - l * 2, l, ext.z - l * 2),
+            ),
+            Self::new(
+                gfx,
+                min + vec3(l, ext.y - l, l),
+                vec3(ext.x - l * 2, l, ext.z - l * 2),
+            ),
+            Self::new(
+                gfx,
+                min + vec3(l, l, 0),
+                vec3(ext.x - l * 2, ext.y - l * 2, l),
+            ),
+            Self::new(
+                gfx,
+                min + vec3(l, l, ext.z - l),
+                vec3(ext.x - l * 2, ext.y - l * 2, l),
+            ),
+            Self::new(gfx, min + vec3(l, 0, 0), vec3(ext.x - l * 2, l, l)),
+            Self::new(gfx, min + vec3(l, 0, ext.z - l), vec3(ext.x - l * 2, l, l)),
+            Self::new(gfx, min + vec3(l, ext.y - l, 0), vec3(ext.x - l * 2, l, l)),
+            Self::new(
+                gfx,
+                min + vec3(l, ext.y - l, ext.z - l),
+                vec3(ext.x - l * 2, l, l),
+            ),
+            Self::new(gfx, min + vec3(0, l, 0), vec3(l, ext.y - l * 2, l)),
+            Self::new(gfx, min + vec3(0, l, ext.z - l), vec3(l, ext.y - l * 2, l)),
+            Self::new(gfx, min + vec3(ext.x - l, l, 0), vec3(l, ext.y - l * 2, l)),
+            Self::new(
+                gfx,
+                min + vec3(ext.x - l, l, ext.z - l),
+                vec3(l, ext.y - l * 2, l),
+            ),
+            Self::new(gfx, min + vec3(0, 0, l), vec3(l, l, ext.z - l * 2)),
+            Self::new(gfx, min + vec3(ext.x - l, 0, l), vec3(l, l, ext.z - l * 2)),
+            Self::new(gfx, min + vec3(0, ext.y - l, l), vec3(l, l, ext.z - l * 2)),
+            Self::new(
+                gfx,
+                min + vec3(ext.x - l, ext.y - l, l),
+                vec3(l, l, ext.z - l * 2),
+            ),
+            Self::new(gfx, min + vec3(0, 0, 0), vec3(l, l, l)),
+            Self::new(gfx, min + vec3(ext.x - l, 0, 0), vec3(l, l, l)),
+            Self::new(gfx, min + vec3(ext.x - l, ext.y - l, 0), vec3(l, l, l)),
+            Self::new(gfx, min + vec3(0, ext.y - l, 0), vec3(l, l, l)),
+            Self::new(gfx, min + vec3(0, 0, ext.z - l), vec3(l, l, l)),
+            Self::new(gfx, min + vec3(ext.x - l, 0, ext.z - l), vec3(l, l, l)),
+            Self::new(
+                gfx,
+                min + vec3(ext.x - l, ext.y - l, ext.z - l),
+                vec3(l, l, l),
+            ),
+            Self::new(gfx, min + vec3(0, ext.y - l, ext.z - l), vec3(l, l, l)),
+        ]
     }
 }
 
@@ -293,6 +393,26 @@ impl SolidGeometry {
         self.faces[face].texture = texture;
         old
     }
+
+    fn min_max(&self) -> (Vector3<i32>, Vector3<i32>) {
+        let mut min = [i32::MAX; 3];
+        let mut max = [i32::MIN; 3];
+
+        for point in &self.points {
+            let pos: [i32; 3] = point.position.into();
+            for i in 0..3 {
+                if pos[i] < min[i] {
+                    min[i] = pos[i];
+                }
+
+                if pos[i] > max[i] {
+                    max[i] = pos[i];
+                }
+            }
+        }
+
+        (min.into(), max.into())
+    }
 }
 
 struct SolidGraphics {
@@ -358,7 +478,7 @@ impl SolidGraphics {
                     normal,
                     texcoord,
                     tint: if selected || face.selected {
-                        [0.04, 0.36, 0.85, 0.5]
+                        color!("39a0ed80")
                     } else {
                         [0.0; 4]
                     },
@@ -374,7 +494,7 @@ impl SolidGraphics {
                 .map(|point| GizmoInstance {
                     matrix: Matrix4::from_translation(point.meters()),
                     color: if point.selected {
-                        [0.04, 0.36, 0.85]
+                        color!("39a0ed")
                     } else {
                         [0.0; 3]
                     },

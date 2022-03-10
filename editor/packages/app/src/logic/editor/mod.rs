@@ -1,4 +1,3 @@
-mod common;
 mod gizmo;
 mod tools;
 
@@ -37,7 +36,7 @@ pub struct Editor {
 impl Editor {
     pub fn init(ctx: Context) -> Self {
         Self {
-            tool: Box::new(CameraTool::new(ctx.graphics, false)),
+            tool: Box::new(CameraTool::new(ctx.graphics)),
             old_tool: None,
             ground: Ground::new(ctx.graphics),
             mode: ElementKind::Solid,

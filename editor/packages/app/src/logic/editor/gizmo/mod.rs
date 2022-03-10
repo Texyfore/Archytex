@@ -6,12 +6,10 @@ use winit::event::MouseButton;
 
 use crate::{
     graphics::{structures::LineVertex, Canvas, Graphics},
-    logic::{camera::Camera, input::Input},
+    logic::{camera::Camera, common::Axis, input::Input},
 };
 
 use self::collider::{ArcCollider, ArrowCollider, HoverCheckInfo};
-
-use super::common::Axis;
 
 pub use graphics::*;
 

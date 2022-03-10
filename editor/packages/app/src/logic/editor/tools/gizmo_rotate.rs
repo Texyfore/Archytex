@@ -5,10 +5,8 @@ use crate::{
     graphics::{Canvas, Graphics},
     logic::{
         camera::Camera,
-        editor::{
-            common::{calc_angle, Axis, Snap},
-            gizmo::ArcGraphics,
-        },
+        common::{calc_angle, Axis, Snap},
+        editor::gizmo::ArcGraphics,
         elements::{Movable, Prop},
         input::Input,
         ElementKind,
@@ -83,7 +81,7 @@ impl Tool for GizmoRotate {
             ctx.scene
                 .insert_props_with_rotate(props, self.axis.angle(delta, ctx.camera.forward()));
 
-            return Some(Box::new(CameraTool::new(ctx.graphics, false)));
+            return Some(Box::new(CameraTool::new(ctx.graphics)));
         }
 
         None

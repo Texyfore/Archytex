@@ -6,10 +6,12 @@ use cgmath::{Quaternion, Rotation, Vector2, Vector3, Zero};
 use crate::{
     data::PropInfoContainer,
     graphics::{Canvas, Graphics},
+    math::Snap,
 };
 
 use super::{
     camera::Camera,
+    common::Axis,
     elements::{
         self, ElementKind, FaceLocator, Movable, PointLocator, Prop, RaycastHit, RaycastInput,
         Solid,
@@ -240,6 +242,22 @@ impl Scene {
         }
     }
 
+    pub fn any_solids_selected(&self) -> bool {
+        self.solids.values().any(|solid| solid.selected())
+    }
+
+    pub fn selected_solid_ids(&self) -> Vec<usize> {
+        self.solids
+            .iter()
+            .filter_map(|(id, solid)| solid.selected().then(|| *id))
+            .collect()
+    }
+
+    pub fn hollow_of(&self, gfx: &Graphics, id: usize, grid: i32) -> Vec<Solid> {
+        let solid = self.solids.get(&id).unwrap();
+        solid.make_hollow(gfx, grid).into()
+    }
+
     pub fn render(&self, canvas: &mut Canvas, mask: ElementKind) {
         for solid in self.solids.values() {
             solid.render(canvas, mask);
@@ -386,6 +404,62 @@ impl Scene {
                 }
                 (!ids.is_empty()).then(|| Action::SelectProps(ids))
             }
+
+            Action::SelectAll(kind) => match kind {
+                ElementKind::Solid => {
+                    let selected = self
+                        .solids
+                        .iter()
+                        .filter_map(|(id, solid)| solid.selected().then(|| *id))
+                        .collect::<Vec<_>>();
+
+                    let len_max = self.solids.len();
+                    let mut ids = Vec::new();
+
+                    for (id, solid) in &mut self.solids {
+                        if selected.is_empty() || selected.len() == len_max {
+                            solid.set_selected(!solid.selected());
+                            solid.recalc(ctx.graphics);
+                            ids.push(*id);
+                        } else {
+                            solid.set_selected(true);
+                            if !selected.contains(id) {
+                                solid.recalc(ctx.graphics);
+                                ids.push(*id);
+                            }
+                        }
+                    }
+
+                    (!ids.is_empty()).then(|| Action::SelectSolids(ids))
+                }
+                ElementKind::Prop => {
+                    let selected = self
+                        .props
+                        .iter()
+                        .filter_map(|(id, prop)| prop.selected().then(|| *id))
+                        .collect::<Vec<_>>();
+
+                    let len_max = self.props.len();
+                    let mut ids = Vec::new();
+
+                    for (id, prop) in &mut self.props {
+                        if selected.is_empty() || selected.len() == len_max {
+                            prop.set_selected(!prop.selected());
+                            prop.recalc(ctx.graphics);
+                            ids.push(*id);
+                        } else {
+                            prop.set_selected(true);
+                            if !selected.contains(id) {
+                                prop.recalc(ctx.graphics);
+                                ids.push(*id);
+                            }
+                        }
+                    }
+
+                    (!ids.is_empty()).then(|| Action::SelectProps(ids))
+                }
+                _ => panic!("Select all is undefined on faces and points"),
+            },
 
             Action::DeselectAll(kind) => match kind {
                 ElementKind::Solid => {
@@ -585,6 +659,90 @@ impl Scene {
 
                 (!props.is_empty()).then(|| Action::AddProps(props))
             }
+
+            Action::RotateSolids {
+                axis,
+                iters,
+                reverse,
+            } => {
+                if let Some(center) = self.calc_center(ElementKind::Solid) {
+                    let center = center.snap(2);
+                    let mut changed = false;
+                    for solid in self.solids.values_mut().filter(|solid| solid.selected()) {
+                        solid.rotate(center, axis, iters, reverse);
+                        solid.recalc(ctx.graphics);
+                        changed = true;
+                    }
+
+                    changed.then(|| Action::UnrotateSolids {
+                        axis,
+                        iters,
+                        reverse: !reverse,
+                        center,
+                    })
+                } else {
+                    None
+                }
+            }
+
+            Action::UnrotateSolids {
+                axis,
+                iters,
+                reverse,
+                center,
+            } => {
+                let mut changed = false;
+                for solid in self.solids.values_mut().filter(|solid| solid.selected()) {
+                    solid.rotate(center, axis, iters, reverse);
+                    solid.recalc(ctx.graphics);
+                    changed = true;
+                }
+
+                changed.then(|| Action::UnrotateSolids {
+                    axis,
+                    iters,
+                    reverse: !reverse,
+                    center,
+                })
+            }
+
+            Action::ReplaceSolids { ids, solids } => {
+                let mut old_solids = Vec::new();
+                let mut new_ids = Vec::new();
+                for id in ids {
+                    old_solids.push((id, self.solids.remove(&id).unwrap()));
+                }
+
+                for solid in solids {
+                    let id = self.next_elem_id;
+                    self.next_elem_id += 1;
+                    self.solids.insert(id, solid);
+                    new_ids.push(id);
+                }
+
+                (!old_solids.is_empty()).then(|| Action::ReplaceSolidsExact {
+                    ids: new_ids,
+                    solids: old_solids,
+                })
+            }
+
+            Action::ReplaceSolidsExact { ids, solids } => {
+                let mut old_solids = Vec::new();
+                let mut new_ids = Vec::new();
+                for id in ids {
+                    old_solids.push((id, self.solids.remove(&id).unwrap()));
+                }
+
+                for (id, solid) in solids {
+                    self.solids.insert(id, solid);
+                    new_ids.push(id);
+                }
+
+                (!old_solids.is_empty()).then(|| Action::ReplaceSolidsExact {
+                    ids: new_ids,
+                    solids: old_solids,
+                })
+            }
         }
     }
 }
@@ -607,6 +765,7 @@ pub enum Action {
     SelectFaces(Vec<FaceLocator>),
     SelectPoints(Vec<PointLocator>),
     SelectProps(Vec<usize>),
+    SelectAll(ElementKind),
     DeselectAll(ElementKind),
 
     Move {
@@ -621,6 +780,25 @@ pub enum Action {
 
     DeleteSolids,
     DeleteProps,
+    RotateSolids {
+        axis: Axis,
+        iters: u32,
+        reverse: bool,
+    },
+    UnrotateSolids {
+        axis: Axis,
+        iters: u32,
+        reverse: bool,
+        center: Vector3<i32>,
+    },
+    ReplaceSolids {
+        ids: Vec<usize>,
+        solids: Vec<Solid>,
+    },
+    ReplaceSolidsExact {
+        ids: Vec<usize>,
+        solids: Vec<(usize, Solid)>,
+    },
 }
 
 struct UndoStack {
