@@ -1,4 +1,5 @@
 mod camera;
+mod common;
 mod editor;
 mod elements;
 mod input;

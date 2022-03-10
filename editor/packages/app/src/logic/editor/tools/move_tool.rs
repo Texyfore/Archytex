@@ -4,7 +4,7 @@ use winit::event::{MouseButton, VirtualKeyCode};
 use crate::{
     graphics::{Canvas, LineMesh, LineMeshDescriptor, Share},
     logic::{
-        editor::common::Axis,
+        common::Axis,
         elements::{ElementKind, Movable},
         scene::{self, Action},
     },

@@ -5,10 +5,8 @@ use crate::{
     graphics::{Canvas, Graphics},
     logic::{
         camera::Camera,
-        editor::{
-            common::{calc_angle, Axis, Snap},
-            gizmo::ArcGraphics,
-        },
+        common::{calc_angle, Axis, Snap},
+        editor::gizmo::ArcGraphics,
         elements::{Movable, Prop},
         input::Input,
         ElementKind,
