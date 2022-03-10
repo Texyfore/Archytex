@@ -133,7 +133,6 @@ impl CameraTool {
         }
 
         // Select all
-
         if ctx.input.is_key_down_once(VirtualKeyCode::A) {
             match ctx.mode {
                 ElementKind::Solid | ElementKind::Prop => {
@@ -395,7 +394,7 @@ impl Tool for CameraTool {
                         .raycast(ctx.input.mouse_pos(), ctx.camera, ctx.prop_infos);
 
                     if let Some(endpoint) = hit.endpoint {
-                        let position = (endpoint.point + endpoint.normal * 0.001).snap(*ctx.grid);
+                        let position = (endpoint.point + endpoint.normal * 0.001).round(*ctx.grid);
 
                         ctx.scene.act(
                             scene::Context {

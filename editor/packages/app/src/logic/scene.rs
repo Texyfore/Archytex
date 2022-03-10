@@ -438,7 +438,7 @@ impl Scene {
                         }
                     }
 
-                    (!ids.is_empty()).then(|| Action::SelectSolids(ids))
+                    (!ids.is_empty()).then(|| Action::SelectProps(ids))
                 }
                 _ => panic!("Select all is undefined on faces and points"),
             },
