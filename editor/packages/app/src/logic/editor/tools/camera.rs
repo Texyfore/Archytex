@@ -363,6 +363,22 @@ impl Tool for CameraTool {
                 {
                     return Some(Box::new(RotateSolid));
                 }
+
+                // Hollow
+                if ctx.input.is_key_down_once(VirtualKeyCode::H) {
+                    let ids = ctx.scene.selected_solid_ids();
+                    for id in ids {
+                        ctx.scene.act(
+                            scene::Context {
+                                graphics: ctx.graphics,
+                            },
+                            Action::ReplaceSolids {
+                                ids: vec![id],
+                                solids: ctx.scene.hollow_of(ctx.graphics, id, *ctx.grid),
+                            },
+                        )
+                    }
+                }
             } else {
                 self.last_click = None;
             }

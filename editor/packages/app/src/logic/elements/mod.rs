@@ -154,6 +154,83 @@ impl Solid {
             }
         }
     }
+
+    pub fn make_hollow(&self, gfx: &Graphics, grid: i32) -> [Self; 26] {
+        // 26
+
+        let (min, max) = self.geometry.min_max();
+        let ext = max - min;
+        let l = grid;
+
+        [
+            Self::new(
+                gfx,
+                min + vec3(0, l, l),
+                vec3(l, ext.y - l * 2, ext.z - l * 2),
+            ),
+            Self::new(
+                gfx,
+                min + vec3(ext.x - l, l, l),
+                vec3(l, ext.y - l * 2, ext.z - l * 2),
+            ),
+            Self::new(
+                gfx,
+                min + vec3(l, 0, l),
+                vec3(ext.x - l * 2, l, ext.z - l * 2),
+            ),
+            Self::new(
+                gfx,
+                min + vec3(l, ext.y - l, l),
+                vec3(ext.x - l * 2, l, ext.z - l * 2),
+            ),
+            Self::new(
+                gfx,
+                min + vec3(l, l, 0),
+                vec3(ext.x - l * 2, ext.y - l * 2, l),
+            ),
+            Self::new(
+                gfx,
+                min + vec3(l, l, ext.z - l),
+                vec3(ext.x - l * 2, ext.y - l * 2, l),
+            ),
+            Self::new(gfx, min + vec3(l, 0, 0), vec3(ext.x - l * 2, l, l)),
+            Self::new(gfx, min + vec3(l, 0, ext.z - l), vec3(ext.x - l * 2, l, l)),
+            Self::new(gfx, min + vec3(l, ext.y - l, 0), vec3(ext.x - l * 2, l, l)),
+            Self::new(
+                gfx,
+                min + vec3(l, ext.y - l, ext.z - l),
+                vec3(ext.x - l * 2, l, l),
+            ),
+            Self::new(gfx, min + vec3(0, l, 0), vec3(l, ext.y - l * 2, l)),
+            Self::new(gfx, min + vec3(0, l, ext.z - l), vec3(l, ext.y - l * 2, l)),
+            Self::new(gfx, min + vec3(ext.x - l, l, 0), vec3(l, ext.y - l * 2, l)),
+            Self::new(
+                gfx,
+                min + vec3(ext.x - l, l, ext.z - l),
+                vec3(l, ext.y - l * 2, l),
+            ),
+            Self::new(gfx, min + vec3(0, 0, l), vec3(l, l, ext.z - l * 2)),
+            Self::new(gfx, min + vec3(ext.x - l, 0, l), vec3(l, l, ext.z - l * 2)),
+            Self::new(gfx, min + vec3(0, ext.y - l, l), vec3(l, l, ext.z - l * 2)),
+            Self::new(
+                gfx,
+                min + vec3(ext.x - l, ext.y - l, l),
+                vec3(l, l, ext.z - l * 2),
+            ),
+            Self::new(gfx, min + vec3(0, 0, 0), vec3(l, l, l)),
+            Self::new(gfx, min + vec3(ext.x - l, 0, 0), vec3(l, l, l)),
+            Self::new(gfx, min + vec3(ext.x - l, ext.y - l, 0), vec3(l, l, l)),
+            Self::new(gfx, min + vec3(0, ext.y - l, 0), vec3(l, l, l)),
+            Self::new(gfx, min + vec3(0, 0, ext.z - l), vec3(l, l, l)),
+            Self::new(gfx, min + vec3(ext.x - l, 0, ext.z - l), vec3(l, l, l)),
+            Self::new(
+                gfx,
+                min + vec3(ext.x - l, ext.y - l, ext.z - l),
+                vec3(l, l, l),
+            ),
+            Self::new(gfx, min + vec3(0, ext.y - l, ext.z - l), vec3(l, l, l)),
+        ]
+    }
 }
 
 #[derive(Clone)]
@@ -315,6 +392,26 @@ impl SolidGeometry {
         let old = self.faces[face].texture;
         self.faces[face].texture = texture;
         old
+    }
+
+    fn min_max(&self) -> (Vector3<i32>, Vector3<i32>) {
+        let mut min = [i32::MAX; 3];
+        let mut max = [i32::MIN; 3];
+
+        for point in &self.points {
+            let pos: [i32; 3] = point.position.into();
+            for i in 0..3 {
+                if pos[i] < min[i] {
+                    min[i] = pos[i];
+                }
+
+                if pos[i] > max[i] {
+                    max[i] = pos[i];
+                }
+            }
+        }
+
+        (min.into(), max.into())
     }
 }
 

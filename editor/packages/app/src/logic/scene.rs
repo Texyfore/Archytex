@@ -246,6 +246,18 @@ impl Scene {
         self.solids.values().any(|solid| solid.selected())
     }
 
+    pub fn selected_solid_ids(&self) -> Vec<usize> {
+        self.solids
+            .iter()
+            .filter_map(|(id, solid)| solid.selected().then(|| *id))
+            .collect()
+    }
+
+    pub fn hollow_of(&self, gfx: &Graphics, id: usize, grid: i32) -> Vec<Solid> {
+        let solid = self.solids.get(&id).unwrap();
+        solid.make_hollow(gfx, grid).into()
+    }
+
     pub fn render(&self, canvas: &mut Canvas, mask: ElementKind) {
         for solid in self.solids.values() {
             solid.render(canvas, mask);
@@ -693,6 +705,44 @@ impl Scene {
                     center,
                 })
             }
+
+            Action::ReplaceSolids { ids, solids } => {
+                let mut old_solids = Vec::new();
+                let mut new_ids = Vec::new();
+                for id in ids {
+                    old_solids.push((id, self.solids.remove(&id).unwrap()));
+                }
+
+                for solid in solids {
+                    let id = self.next_elem_id;
+                    self.next_elem_id += 1;
+                    self.solids.insert(id, solid);
+                    new_ids.push(id);
+                }
+
+                (!old_solids.is_empty()).then(|| Action::ReplaceSolidsExact {
+                    ids: new_ids,
+                    solids: old_solids,
+                })
+            }
+
+            Action::ReplaceSolidsExact { ids, solids } => {
+                let mut old_solids = Vec::new();
+                let mut new_ids = Vec::new();
+                for id in ids {
+                    old_solids.push((id, self.solids.remove(&id).unwrap()));
+                }
+
+                for (id, solid) in solids {
+                    self.solids.insert(id, solid);
+                    new_ids.push(id);
+                }
+
+                (!old_solids.is_empty()).then(|| Action::ReplaceSolidsExact {
+                    ids: new_ids,
+                    solids: old_solids,
+                })
+            }
         }
     }
 }
@@ -740,6 +790,14 @@ pub enum Action {
         iters: u32,
         reverse: bool,
         center: Vector3<i32>,
+    },
+    ReplaceSolids {
+        ids: Vec<usize>,
+        solids: Vec<Solid>,
+    },
+    ReplaceSolidsExact {
+        ids: Vec<usize>,
+        solids: Vec<(usize, Solid)>,
     },
 }
 
