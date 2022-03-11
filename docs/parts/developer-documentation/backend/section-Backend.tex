@@ -1,9 +1,83 @@
 \section{Backend}
 \rhead{Backend}
+\subsection{Használt technológiák}
+A backend megírásánál az egyszerűségre és a későbbi könnyebb felhasználhatóságra törekedtünk, így esett választásunk a Go-MongoDB stack-re.
+\subsubsection{MongoDB}
+A \emph{MongoDB}\footnote{\url{https://www.mongodb.com/}} egy NoSQL adatbázis, amely annyit tesz, hogy táblák és sorok helyett egy JSON szerű struktúrában tárolja el az adatokat.
+Ennek több előnye és hátránya is van.
 
-This is going to be about the Backend.
+\begin{samepage}
+\noindent Előnyei:
+\begin{itemize}
+    \item Egyszerű feltöltés/letöltés a JSON szerű formátum miatt
+    \item Nem szükséges előre felépíteni az adatbázis struktúráját
+    \item Frissítések valós-idejű figyelése
+\end{itemize}
 
-\subsection{Alfejezet}
+\noindent Hátrányai:
+\begin{itemize}
+    \item Ritkábban használt
+    \item Átlagoshoz képest komplexebb lekérdezések
+    \item Sémának való megfelelés nem ellenőrzött
+    \item Kevésbé rendezett, mint a relációs adatbázisok
+\end{itemize}
+\end{samepage}
 
+Az említett valós-idejű figyelés, amely a projekt frissítéséhez szükséges, csak replica set esetén működik, tehát akkor ha a szerver be van állítva a megosztott munkára.
+\subsubsection{Go}
+A stack másik tagja, a \emph{Go}\footnote{\url{https://golang.org/}} egy programozás nyelv, amelyet a Google fejlesztett ki. A cél egy átlátható, egyszerű nyelv készítése volt, amelyet a \emph{Python}-t használó fejlesztők is könnyen megtanulhatnak. \todo[inline]{Citation: Tényleg a python developerek miatt készült?}
 
-\lipsum
+\begin{samepage}
+\noindent Előnyei:
+\begin{itemize}
+    \item Típusos, így kisebb az esélye a hibáknak
+    \item Erős beépített web fejlesztési (HTTP, sablonok stb.) könyvtárak
+    \item Egyszerű párhuzamos futtatás \emph{Goroutine}-okkal és csatornákkal
+    \item Fordított, de szemétgyűjtős
+    
+\end{itemize}
+\end{samepage}
+
+\begin{samepage}
+\noindent Hátrányai:
+\begin{itemize}
+    \item Adatfeldolgozási függvényekben hiányos
+    \item Generikusok hiánya
+    \item Frusztrálóan bőszavú hibakezelés
+\end{itemize}
+\end{samepage}
+
+Az e-mail rendszerhez a beépített net/smtp \todo{Acronym} könyvtárat használtuk az üzenetek elküldéséhez, illetve a html/template könyvtárat az üzenetek tartalmának kitöltéséhez.
+
+A fejlesztésben sokat segített a \emph{Gorilla} könyvtár, amely az alapértelmezett HTTP könyvtárat egészíti ki további hasznos funkcióval.
+Például middleware támogatással, metódus korlátozással, URL-be helyezett paraméterekkel stb.
+
+\subsection{Szolgáltatások méretezése}
+A \emph{docker-compose} fájlban található \emph{Traefik}\footnote{\url{https://traefik.io/traefik/}} két fő feladatot lát el:
+
+\begin{samepage}
+\begin{itemize}
+    \item Statikus frontend fájlok és a Backend api egy végpontra helyezése
+    \item Automatikus terheléselosztás
+\end{itemize}
+\end{samepage}
+
+A \emph{Traefik} beintegrálja magát a \emph{Docker}-be és így látja, ha egy szolgáltatásból több fut és el tudja közöttük osztani a terhet.
+
+Ha szeretnénk egy szolgáltatást méretezni, akkor a \emph{docker-compose} parancsot kell lefuttatnunk, a következő parancsok egyikével:
+
+\begin{itemize}
+    \item Statikus fájl szerver méretezése
+    \begin{lstlisting}[language=bash]
+        $ docker-compose up --scale frontend=<DARAB>
+    \end{lstlisting}
+    \item Backend szerver méretezése
+    \begin{lstlisting}[language=bash]
+        $ docker-compose up --scale backend=<DARAB>
+    \end{lstlisting}
+\end{itemize}
+    
+
+\todo[inline]{Adatbázis model}
+\todo[inline]{HTTP dokumentáció}
+\todo[inline]{WS dokumentáció}

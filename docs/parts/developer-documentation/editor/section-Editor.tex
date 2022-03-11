@@ -1,6 +1,46 @@
-\section{Editor}
-\rhead{Editor}
+\section{Szerkesztő}
+\rhead{Szerkesztő}
 
-This is going to be about the Editor.
+\subsection{Technológiák}
 
-\lipsum
+A 3D szerkesztő elkészítése számos technikai és tervezési problémát vetett fel. Egy olyan szoftver
+megalkotása volt a cél, amely elég egyszerű ahhoz, hogy bárki használhassa, viszont megfelelően
+eszközdús ahhoz, hogy képes legyen bonyolult épületek tervezésére is. Ezen feltételek
+megfogalmazása után arra jutottunk, hogy a 3D szerkesztőt egy web-alapú alkalmazás keretein belül
+fogjuk megvalósítani.
+
+Egy ilyen szoftver esetében nagyon fontos a sebesség, ezért úgy döntöttünk, hogy a
+böngészőkben használt JavaScript helyett a sokkal gyorsabb --- ámbár fiatalabb és éretlenebb ---
+WebAssembly technológiát fogjuk használni. Mivel a WebAssembly önmagában csak egy utasításkészlet,
+szükségünk volt egy programozási nyelvre, amit lehetséges WebAssembly utasításokra fordítani.
+Erre a célra a Rust programozási nyelvet választottuk. Ennek a döntésnek több oka is van:
+
+\begin{itemize}
+    \item Gyorsaság: A Rust egy rendszerközeli nyelv, hasonlóan a C-hez vagy C++-hoz, így rengeteg
+    olyan optimalizáció valósítható meg, ami magasabb szintű nyelvekben nem lehetséges.
+
+    \item Fejlett WebAssembly eszközök: Annak ellenére, hogy a nyelv viszonylag fiatal, rengeteg
+    kiváló eszköz és könyvtár áll rendelkezésre a WebAssembly programok fejlesztésének
+    elősegítéséhez. Ezek közül talán a legfontosabb a wasm-bindgen könyvtár, amellyel triviális
+    feladattá válik a böngésző által használt JavaScript kód és a WebAssemblyre átforduló Rust
+    kód összekötése.
+
+    \item Tapasztalat: A fejlesztői csapat két tagja már használta a Rust programozási nyelvet a
+    múltban, így elkerülhettük az új technológiák tanulásából adódó problémákat.
+\end{itemize}
+
+\subsection{Működési elvek}
+
+A használt technológiák kiválasztása jután megkezdődött a szerkesztő működési elveinek felállítása.
+Hamar eldöntöttük, hogy nagyrészt két már létező szoftver működési elveit szeretnénk kiinduló
+pontként használni, amire aztán a saját ötleteinket építhetjük.
+
+Az egyik szoftver, a Blender egy általános rendeltetésű háromdimenziós modellező program.
+Rendkívül sokoldalú és bonyolult, ezért csak néhány mechanizmust ültettünk át a saját
+szerkesztőnkbe, például a kijelölés és a mozgatás módját.
+
+
+\subsection{Kommunikáció a böngészővel}
+\subsection{3D grafika}
+\subsection{Parancs alapú szerkesztés}
+\subsection{Külső erőforrások kezelése}
