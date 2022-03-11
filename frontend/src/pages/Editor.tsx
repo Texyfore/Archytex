@@ -7,18 +7,20 @@ import { useTranslation } from "react-i18next";
 import useDimensions from "react-cool-dimensions";
 
 import Box from "@mui/material/Box";
+import Typography from "@mui/material/Typography";
+
+import { PhotoSizeSelectLarge } from "@mui/icons-material";
 
 import EditorAppBar from "../components/editor-components/EditorAppBar";
+import EditorMenu from "../components/editor-components/EditorMenu";
 import EditorModeButtons from "../components/editor-components/EditorModeButtons";
 
 import useNotification from "../services/hooks/useNotification";
 import { useApi } from "../services/user/api";
 import { getAssets, Prop, Texture } from "../services/Library";
-import EditorMenu from "../components/editor-components/EditorMenu";
 import Environment from "../env";
 
 type EditorMode = "solid" | "face" | "vertex" | "prop";
-
 
 let current_event = 0;
 let listeners: { [key: number]: (value: Uint8Array) => void } = {};
@@ -28,6 +30,7 @@ let loadedProps = new Set<number>();
 
 export default function Editor() {
   const { t } = useTranslation();
+
   // Get project ID
   const { projectId } = useParams<{ projectId: string }>();
 
@@ -63,12 +66,14 @@ export default function Editor() {
 
   useEffect(() => {
     if (sender !== null && texture !== undefined) {
-      fetchBytes(`${Environment.asset_url}/textures/${texture.name}.png`).then((buffer) => {
-        if (!loadedTextures.has(texture.id)) {
-          sender.loadTexture(texture.id, buffer);
-          sender.setTexture(texture.id);
+      fetchBytes(`${Environment.asset_url}/textures/${texture.name}.png`).then(
+        (buffer) => {
+          if (!loadedTextures.has(texture.id)) {
+            sender.loadTexture(texture.id, buffer);
+            sender.setTexture(texture.id);
+          }
         }
-      });
+      );
     }
   }, [texture, sender]);
 
@@ -84,23 +89,28 @@ export default function Editor() {
   useEffect(() => {
     if (sender !== null && prop !== undefined) {
       sender.setProp(prop.id);
-      fetchBytes(`${Environment.asset_url}/props/${prop.name}.amdl`).then((buf) => {
-        if (!loadedProps.has(prop.id)) {
-          sender.loadProp(prop.id, buf);
-          loadedProps.add(prop.id);
+      fetchBytes(`${Environment.asset_url}/props/${prop.name}.amdl`).then(
+        (buf) => {
+          if (!loadedProps.has(prop.id)) {
+            sender.loadProp(prop.id, buf);
+            loadedProps.add(prop.id);
+          }
         }
-      });
+      );
 
-      prop.dependencies.forEach(dep => {
-        fetchBytes(`${Environment.asset_url}/textures/${dep}.png`)
-          .then(buf => {
-            const id = textures.find(tex => { return tex.name === dep; })?.id;
+      prop.dependencies.forEach((dep) => {
+        fetchBytes(`${Environment.asset_url}/textures/${dep}.png`).then(
+          (buf) => {
+            const id = textures.find((tex) => {
+              return tex.name === dep;
+            })?.id;
             if (id !== undefined) {
               if (!loadedTextures.has(id)) {
                 sender.loadTexture(id, buf);
               }
             }
-          })
+          }
+        );
       });
     }
   }, [prop, sender, textures]);
@@ -126,8 +136,6 @@ export default function Editor() {
 
   useEffect(() => {
     import("viewport").then((viewport) => {
-
-
       const channel = new viewport.Channel();
       setSender(channel.sender());
 
@@ -204,7 +212,7 @@ export default function Editor() {
           if (scene !== undefined) {
             textureIds.forEach((id: number) => {
               (async () => {
-                const texture = textures.find(texture => texture.id == id);
+                const texture = textures.find((texture) => texture.id == id);
                 console.log(texture);
                 if (texture !== undefined) {
                   const bytes = await fetchBytes(
@@ -213,33 +221,35 @@ export default function Editor() {
                   sender.loadTexture(texture.id, bytes);
                 }
               })();
-            })
+            });
 
             const propIds: any = [...scene.props()];
             propIds.forEach((id: number) => {
-              (
-                async () => {
-                  const prop = props.find((prop: any) => { return prop.id == id });
-                  if (prop !== undefined) {
-                    prop.dependencies.forEach((dep: string) => {
-                      (async () => {
-                        const texture = textures.find(texture => texture.name == dep);
-                        if (texture !== undefined) {
-                          const bytes = await fetchBytes(
-                            `${Environment.asset_url}/textures/${texture.name}.png`
-                          );
-                          sender.loadTexture(texture.id, bytes);
-                        }
-                      })();
-                    });
+              (async () => {
+                const prop = props.find((prop: any) => {
+                  return prop.id == id;
+                });
+                if (prop !== undefined) {
+                  prop.dependencies.forEach((dep: string) => {
+                    (async () => {
+                      const texture = textures.find(
+                        (texture) => texture.name == dep
+                      );
+                      if (texture !== undefined) {
+                        const bytes = await fetchBytes(
+                          `${Environment.asset_url}/textures/${texture.name}.png`
+                        );
+                        sender.loadTexture(texture.id, bytes);
+                      }
+                    })();
+                  });
 
-                    const bytes = await fetchBytes(
-                      `${Environment.asset_url}/props/${prop.name}.amdl`
-                    );
-                    sender.loadProp(prop.id, bytes);
-                  }
+                  const bytes = await fetchBytes(
+                    `${Environment.asset_url}/props/${prop.name}.amdl`
+                  );
+                  sender.loadProp(prop.id, bytes);
                 }
-              )();
+              })();
             });
 
             sender.loadScene(scene);
@@ -262,7 +272,7 @@ export default function Editor() {
   );
 
   const onRender = async (width: number, height: number, samples: number) => {
-    if (api?.state == "logged-in") {
+    if (api?.state === "logged-in") {
       addNotification(t("rendering_started"), "info");
       const data = await save();
       await api.render(data, projectId, width, height, samples);
@@ -272,21 +282,15 @@ export default function Editor() {
   };
 
   // App bar button click
-  const handleAppBarButtonClick = async (type: "export" | "save") => {
+  const handleSaveProject = async () => {
     console.log("Got Save event");
     const data = await save();
-    switch (type) {
-      case "export":
-        break;
-      case "save":
-        if (api?.state == "logged-in") {
-          await api.save(data, projectId).catch(() => {
-            addNotification("Could not save project", "error");
-          });
-        } else {
-          addNotification("You are not logged in.", "error");
-        }
-        break;
+    if (api?.state === "logged-in") {
+      await api.save(data, projectId).catch(() => {
+        addNotification(t("could_not_save_project"), "error");
+      });
+    } else {
+      addNotification(t("you_are_not_logged_in"), "error");
     }
   };
 
@@ -322,11 +326,17 @@ export default function Editor() {
   // Error display
   const { addNotification } = useNotification();
 
+  // Asset fetching
+  async function fetchBytes(url: string): Promise<Uint8Array> {
+    const res = await fetch(url);
+    const arrayBuffer = await res.arrayBuffer();
+    return new Uint8Array(arrayBuffer);
+  }
+
   return (
     <>
-      <EditorAppBar onSave={handleAppBarButtonClick} onRender={onRender} />
+      <EditorAppBar onSave={handleSaveProject} onRender={onRender} />
       <Box width='100%' height='48px'></Box>
-
       <Box display='flex' height={`calc(100vh - 48px)`} overflow='hidden'>
         <Box width='100%' height='100%' ref={observe} bgcolor='#0c0c0c' />
         {texture !== undefined && prop !== undefined && (
@@ -352,17 +362,29 @@ export default function Editor() {
         }}
       ></canvas>
 
-      {/* viewport UI */}
+      {/* Viewport UI */}
       <EditorModeButtons
         editorMode={editorMode}
         handleEditorModeChange={handleEditorModeChange}
       />
+
+      {/* Small screen inhibitor */}
+      <Box
+        height='calc(100vh - 48px)'
+        width='100%'
+        position='absolute'
+        top='48px'
+        left={0}
+        display={{ xs: "flex", md: "none" }}
+        justifyContent='center'
+        alignItems='center'
+        flexDirection='column'
+        gap={4}
+        bgcolor='background.paper'
+      >
+        <PhotoSizeSelectLarge fontSize='large' />
+        <Typography>{t("larger_screen")}</Typography>
+      </Box>
     </>
   );
-}
-
-async function fetchBytes(url: string): Promise<Uint8Array> {
-  const res = await fetch(url);
-  const arrayBuffer = await res.arrayBuffer();
-  return new Uint8Array(arrayBuffer);
 }

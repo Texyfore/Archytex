@@ -20,7 +20,6 @@
   "email": "Email",
   "password": "Password",
   "password_again": "Password again",
-  "stay_signed_in": "Stay signed in",
   "sign_in": "Sign in",
   "sign_up": "Sign up",
   "log_out": "Log out",
@@ -142,6 +141,8 @@
   "outliner": "Outliner",
   "setup_render": "Setup render",
   "render_name": "Render name",
+  "could_not_save_project": "Could not save project",
+  "you_are_not_logged_in": "You are not logged in.",
   "no_empty_render_name": "Render name can't be empty",
   "image_width": "Image width",
   "image_height": "Image height",
@@ -168,5 +169,6 @@
   "accept": "Accept",
   "select_an_item_to_use": "Select an item to use",
   "camera_settings": "Camera settings",
-  "grid_settings": "Grid settings"
+  "grid_settings": "Grid settings",
+  "larger_screen": "Sorry, the editor needs a larger screen to work properly"
 }
