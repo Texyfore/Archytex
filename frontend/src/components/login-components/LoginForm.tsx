@@ -114,22 +114,6 @@ export default function LoginForm() {
         inputChange={handlePasswordChange}
         error={passwordError}
       />
-      {/* Stay signed in */}
-      <Box display='flex' justifyContent='start' width='304px' marginTop={2}>
-        <FormControlLabel
-          value='end'
-          control={
-            <Checkbox
-              checked={stayLoggedIn}
-              onChange={(ev) => setStayLoggedIn(ev.target.checked)}
-            />
-          }
-          label={
-            <Typography variant='caption'>{t("stay_signed_in")}</Typography>
-          }
-          labelPlacement='end'
-        />
-      </Box>
       {/* General error */}
       <Box marginTop={2}>
         <Typography color='error' variant='body2'>
