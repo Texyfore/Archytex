@@ -58,7 +58,7 @@ fn vertex(attribs: Attribs) -> Vertex {
     var vertex: Vertex;
     vertex.position = camera.world_to_clip * vec4<f32>(moving_pos, 1.0);
     vertex.normal = vec3<f32>(0.0, 1.0, 0.0);
-    vertex.texcoord = attribs.texcoord;
+    vertex.texcoord = moving_pos.xz;
     vertex.camera_position = camera_position;
     vertex.world_position = moving_pos;
     vertex.grid_len = grid.len;
