@@ -13,14 +13,12 @@ A Figma a design tervezés mellett használható vektor grafikák rajzolására 
   \includegraphics[width=0.1\textwidth]{parts/developer-documentation/frontend/images/meshSelectMode.png}
   \includegraphics[width=0.1\textwidth]{parts/developer-documentation/frontend/images/faceSelectMode.png}
   \includegraphics[width=0.1\textwidth]{parts/developer-documentation/frontend/images/vertexSelectMode.png}
-  \caption{Példa a Figma-ban készíthető vektor grafikákra: kiválasztási mód ikonjai az Archytex szerkesztőből.}
+  \caption{Példa a Figma-ban készíthető vektor grafikákra: a kiválasztási módok ikonjai az Archytex szerkesztőből.}
 \end{figure}
 
-% TODO: Undraw.io
-Undraw.io
+A honlapon megjelenő grafikák egy része az Undraw\footnote{\url{https://undraw.co/}} nevű honlapon található, ingyenesen használható illusztrációk felhasználásával készült. Ezen illusztrációk nyílt licensszel rendelkeznek, ezért szerkeszthetőek és ingyenesen felhasználhatóak. Néhány grafikát a Figma-ban szerkesztettünk, hogy több építészeti elemet tartalmazzanak, vagy hogy jobban illeszkedjenek a design környezetbe.
 
-% TODO: Logo design paragraph + Logo image
-Logo design
+Az Archytex logo is a Figma beépített vektor grafikai eszközeivel készült. A design követi a letisztultság elvét, és használja a honlap elsődleges színét. A logó sötét és világos módtól függően a honlapon megváltozik a jobb láthatóság érdekében.
 
 
 \subsection{Használt technológiák}
@@ -38,10 +36,33 @@ A főoldal célja, hogy egy új felhasználónak "eladja" a termékünket. Ezér
 \end{figure}
 
 \subsection{Autentikáció}
-A bejelentkezési és regisztrációs képernyő funkcionalitás szempontjából egy viszonylag nagyobb kihívást nyújtott, mint más oldalak. Tudtuk, hogy gyakran lesz szükségünk olyan űrlapokra a projekt folyamán, amiben a felhasználó felé visszajelzést kell küldeni, ezért készítettünk egy generalizált React komponenst ennek a feladatnak az ellátására.
+A bejelentkezési és regisztrációs képernyő frontend funkcionalitás szempontjából egy viszonylag nagyobb kihívást nyújtott, mint más oldalak. Tudtuk, hogy gyakran lesz szükségünk olyan űrlapokra a projekt folyamán, amiben a felhasználó felé visszajelzést kell küldeni, ezért készítettünk egy generalizált React komponenst ennek a feladatnak az ellátására. Ezzel beviteli mező komopnenssel már könnyedén fel tudtunk építeni mind a bejelentkezési és a regisztrációs űrlapot, és a hibakezelés sem okozott problémát.
+
+\begin{figure}[h]
+  \centering
+  \begin{minipage}{.5\textwidth}
+    \centering
+    \includegraphics[width=.6\linewidth]{parts/developer-documentation/frontend/images/login.png}
+    \label{fig:test1}
+  \end{minipage}%
+  \begin{minipage}{.5\textwidth}
+    \centering
+    \begin{lstlisting}
+      <FormInput
+        variant='username'
+        label={t("username")}
+        input={username}
+        inputChange={handleUsernameChange}
+        error={usernameError}
+      />
+    \end{lstlisting}
+  \end{minipage}
+  \caption{Példa az egyedi beviteli komponens használatára a bejelentkezési képernyőn}
+\end{figure}
 
 \subsection{Irányítópult}
+Az Archytex irányítópult feladata a projektek listázása és egy felhasználói interfész biztosítása ezen projektek beállításainak módosítására, tulajdonságaik megtekintésére.
 
-\subsection{Editor}
+\subsection{Szekesztő UI}
 
 \subsection{Tesztek}

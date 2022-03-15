@@ -36,8 +36,8 @@ function GetTheme(mode: ColorMode): any {
             primary: mode === ColorMode.Dark ? "#F4F4F4" : "#1B1B1A",
           },
           background: {
-            default: mode === ColorMode.Dark ? "#1B1B1A" : "#F4F4F4",
-            paper: mode === ColorMode.Dark ? "#1B1B1A" : "#F4F4F4",
+            default: mode === ColorMode.Dark ? "#1B1B1A" : "#FFFFFF",
+            paper: mode === ColorMode.Dark ? "#1B1B1A" : "#FFFFFF",
           },
           divider: mode === ColorMode.Dark ? "#1F1F1F" : "#EBE7EC",
         },
