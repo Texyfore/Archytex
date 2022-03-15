@@ -6,7 +6,7 @@
 A 3D szerkesztő elkészítése számos technikai és tervezési problémát vetett fel. Egy olyan szoftver
 megalkotása volt a cél, amely elég egyszerű ahhoz, hogy bárki használhassa, viszont megfelelően
 eszközdús ahhoz, hogy képes legyen bonyolult épületek tervezésére is. Ezen feltételek
-megfogalmazása után arra jutottunk, hogy a 3D szerkesztőt egy web-alapú alkalmazás keretein belül
+megfogalmazása után arra jutottunk, hogy a 3D szerkesztőt egy web alapú alkalmazás keretein belül
 fogjuk megvalósítani.
 
 Egy ilyen szoftver esetében nagyon fontos a sebesség, ezért úgy döntöttünk, hogy a
@@ -31,16 +31,36 @@ Erre a célra a Rust programozási nyelvet választottuk. Ennek a döntésnek t�
 
 \subsection{Működési elvek}
 
-A használt technológiák kiválasztása jután megkezdődött a szerkesztő működési elveinek felállítása.
-Hamar eldöntöttük, hogy nagyrészt két már létező szoftver működési elveit szeretnénk kiinduló
-pontként használni, amire aztán a saját ötleteinket építhetjük.
+A használt technológiák kiválasztása után megkezdődött a szerkesztő működési elveinek felállítása.
+Hamar eldöntöttük, hogy nagyrészt két, már létező szoftver működési elveit szeretnénk kiinduló
+pontként használni.
 
 Az egyik szoftver, a Blender egy általános rendeltetésű háromdimenziós modellező program.
 Rendkívül sokoldalú és bonyolult, ezért csak néhány mechanizmust ültettünk át a saját
 szerkesztőnkbe, például a kijelölés és a mozgatás módját.
 
+A másik kiindulási pontként használt szoftver az ún. Hammer Editor. A program a Valve Software
+által fejlesztett Source játékmotor pályaszerkesztő alkalmazása. A Hammer Editor egyik erőssége,
+és egyben az a tulajdonsága amit mi is megvalósítottunk az, hogy benne bármilyen komplex beltéri
+vagy kültéri jelenet lemodellezhető kisebb, egyszerűb alakzatok kombinálásával.
 
 \subsection{Kommunikáció a böngészővel}
+
+Problémák és kihívások nem csak a tervezési fázisban bukkantak fel; fejlesztés során is akadt
+bőven. Az egyik legelső probléma, amivel fejlesztés közben találkoztunk, az a böngészővel való
+kommunikáció kérdése. Mivel a JavaScript alapú felhasználói felület és a Rust alapú szerkesztő
+valójában két független alkalmazás, ezért ki kellett találni egy módszert az információmegosztásra.
+Az egyszerű függvényhívások két okból nem feleltek meg. Először is, a JavaScript és WebAssembly
+kód natívan csak egész számok átadására képes, ami mi céljainkhoz kevés. Másodszor, mivel a
+szerkesztő teljes mértékben WebAssembly memóriában él, nincs semmilyen JavaScript objektum, aminek
+a függvényeit le lehetne hívni.
+
+Az első problémánkra a wasm-bindgen nevű Rust könyvtár adott megoldást. A wasm-bindgen lehetségessé
+teszi az egész számoknál komplexebb adatstruktúrák átültétését Rust kódból JavaScript kódba, és
+fordítva. A második probléma megoldása kicsit nehezebbnek bizonyult, de végül sikerült. Egy olyan
+modellt valósítottunk meg, amiben a két fél üzenetekkel kommunikál egymással, amiket csatornák
+közvetítenek.
+
 \subsection{3D grafika}
 \subsection{Parancs alapú szerkesztés}
 \subsection{Külső erőforrások kezelése}
