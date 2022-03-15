@@ -77,7 +77,231 @@ Ha szeretnénk egy szolgáltatást méretezni, akkor a \emph{docker-compose} par
     \end{lstlisting}
 \end{itemize}
     
+\subsection{Adatbázis modell}
 
-\todo[inline]{Adatbázis model}
+Az adatokat a \emph{MongoDB} nevű adatbáziskezelőben tároljuk el, amely NoSQL technológiára épül, így teljesen más struktúrát követel meg. Mig a relációs adatbázisok egy gráf szerkezetet használnak, addig a \emph{MongoDB} egy fastruktúrát.
+
+Három különböző dokumentumtípust különböztetünk meg:
+\begin{itemize}
+    \item users
+
+    A regisztrált és regisztrációjukat megerősített felhasználók listája
+    \item registers
+
+    A regisztrált, de még nem megerősített felhasználók listája
+    \item sessions
+
+    A jelenleg belépett felhasználók listája
+\end{itemize}
+
+\subsubsection{Users dokumentum}
+\begin{itemize}
+    \item \_id
+    
+    Típus: ObjectID
+
+    Leírás: A \emph{MongoDB} által generált egyedi azonosító
+    \item username
+    
+    Típus: string
+
+    Leírás: A felhasználó választott neve
+    \item email
+    
+    Típus: string
+
+    Leírás: A felhasználó ímélcíme
+    \item password
+    
+    Típus: string
+
+    Leírás: A felhasználó jelszavának ellenőrzésére szolgáló kriptográfiai karakterlánc
+    \item projects
+    
+    Típus: Tömb, Lásd lent
+
+    Leírás: A felhasználó projektjeinek listája
+\end{itemize}
+
+\subsubsection{Projects al-dokumentum}
+
+\begin{itemize}
+    \item \_id
+    
+    Típus: ObjectID
+
+    Leírás: A \emph{MongoDB} által generált egyedi azonosító
+    \item title
+    
+    Típus: string
+
+    Leírás: A projekt címe
+    \item created
+    
+    Típus: date
+
+    Leírás: A projekt létrehozásának időpontja
+    \item path
+    
+    Típus: string
+
+    Leírás: A szerver fájlrendszerében lévő ASCN fájl neve
+    \item renders
+    
+    Típus: Tömb, Lásd lent
+
+    Leírás: A projekthez tartozó renderek listája
+\end{itemize}
+\subsubsection{Renders al-al-dokumentum}
+
+\begin{itemize}
+    \item \_id
+    
+    Típus: ObjectID
+
+    Leírás: A \emph{MongoDB} által generált egyedi azonosító
+    \item name
+    
+    Típus: string
+
+    Leírás: A render neve
+    \item status
+    
+    Típus: double
+
+    Leírás: A render elkészültségének jelenlegi állapota, 0-tól 1-ig tartó valós szám
+    \item started
+    
+    Típus: date
+
+    Leírás: A render munka elküldésének időpontja
+    \item finished
+    
+    Típus: date
+
+    Leírás: A render befejezésének időpontja
+    \item icon
+    
+    Típus: string
+
+    Leírás: A szerver fájlrendszerében lévő képfájl neve
+\end{itemize}
+
+\subsubsection{Registers dokumentum}
+
+\begin{itemize}
+    \item \_id
+    
+    Típus: ObjectID
+
+    Leírás: A \emph{MongoDB} által generált egyedi azonosító
+    \item username
+    
+    Típus: string
+
+    Leírás: A felhasználó választott neve
+    \item email
+    
+    Típus: string
+
+    Leírás: A felhasználó ímélcíme
+    \item password
+    
+    Típus: string
+
+    Leírás: A felhasználó jelszavának ellenőrzésére szolgáló kriptográfiai karakterlánc
+    \item token
+    
+    Típus: string
+
+    Leírás: A regisztáció megerősítéséhez szükséges egyszer használatos azonosító
+    \item created\_at
+    
+    Típus: date
+
+    Leírás: A regisztrációs szándék beadásának időpontja. Segítségével létre lehez hozni olyan indexet, ami a kérelmet törli bizonyos idő lejárta után.
+\end{itemize}
+\subsubsection{Sessions dokumentum}
+
+\begin{itemize}
+    \item \_id
+    
+    Típus: STRING!!!
+
+    Leírás: Kriptográfiailag generált karakterlánc, amely a felhasználót azonosítja bejelentkezés után
+    \item user\_id
+    
+    Típus: ObjectID
+
+    Leírás: A felhasználó egyedi azonosítója
+\end{itemize}
+
+\todo[inline]{Adatbázis struktúra berakása}
+
+\subsection{Backend .env fájl}
+
+A backend konfigurálását egy .env fájl segítségével lehet megtenni. Ha a Docker környezetet használjuk, ezt a fájlt nem szükséges kitölteni, ahhoz külön .env fájl tartozik.
+
+Szükséges konfigurációs paraméterek:
+\begin{itemize}
+    \item SMTP beállítások
+    \subitem SMTP\_SERVER
+    
+    SMTP szerver címe
+    \subitem SMTP\_ADDRESS
+    
+    SMTP szerveren lévő ímélcím
+    \subitem SMTP\_PASSWORD
+    
+    Az előbb használt ímélcímhez tartozó jelszó
+    \subitem SMTP\_PASSWORD
+    
+    Az előbb használt ímélcímhez tartozó jelszó
+    \item MongoDB beállítások
+    \subitem MONGO\_URI
+    
+    MongoDB-hez való csatlakozáshoz szükséges URI
+    \subitem MONGO\_DB
+    
+    MongoDB adatbázis neve
+    \item RabbitMQ beállítások
+    \subitem AMQP\_ADDR
+    
+    AMQP (RabbitMQ)-hez való csatlakozáshoz szükséges URI
+    \item Redis beállítások
+    \subitem REDIS\_ADDR
+    
+    Redis-hez való csatlakozáshoz szükséges URI
+    \item Egyéb
+    \subitem PROJECTS\_PATH
+
+    Projektfájlok és renderek tárolására elkülönített mappa elérési útja
+    \subitem PORT
+
+    Szerver portja
+    \subitem DOMAIN
+
+    A szerver távoli címe, amelyet a megerősítő ímélben használunk
+    \subitem CAPTCHA\_SECRET
+
+    ReCaptcha szolgáltatásból érkező titkos kulcs
+\end{itemize}
+
+Példa:
+
+\begin{lstlisting}
+PORT=8080
+MONGO_URI=mongodb://localhost:27017
+MONGO_DB=archytex
+SMTP_SERVER=smtp.gmail.com:587
+SMTP_ADDRESS=archytex@gmail.com
+SMTP_PASSWORD=password
+AMQP_ADDR=amqp://127.0.0.1:5672
+REDIS_ADDR=127.0.0.1:6379
+CAPTCHA_SECRET=SECRETSECRETSECRETSECRETSECRETSECRET
+PROJECTS_PATH=F:/archytex_storage
+DOMAIN=https://archytex.me
+\end{lstlisting}
+
 \todo[inline]{HTTP dokumentáció}
 \todo[inline]{WS dokumentáció}
