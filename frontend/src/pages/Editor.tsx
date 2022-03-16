@@ -69,7 +69,9 @@ export default function Editor() {
       fetchBytes(`${Environment.asset_url}/textures/${texture.name}.png`).then(
         (buffer) => {
           if (!loadedTextures.has(texture.id)) {
-            sender.loadTexture(texture.id, buffer);
+            if (texture.id !== 0) {
+              sender.loadTexture(texture.id, buffer);
+            }
             sender.setTexture(texture.id);
           }
         }
@@ -105,7 +107,7 @@ export default function Editor() {
               return tex.name === dep;
             })?.id;
             if (id !== undefined) {
-              if (!loadedTextures.has(id)) {
+              if (!loadedTextures.has(id) && id !== 0) {
                 sender.loadTexture(id, buf);
               }
             }

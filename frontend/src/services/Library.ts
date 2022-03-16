@@ -22,6 +22,12 @@ interface Prop {
 export async function getAssets(): Promise<AssetDb> {
   const res = await fetch(Environment.asset_repo_url);
   const db: AssetDb = await res.json();
+  db.textures.unshift({
+    name: "nodraw",
+    id: 0,
+    categories: ["internal"],
+    emissive: null,
+  });
   return db;
 }
 
