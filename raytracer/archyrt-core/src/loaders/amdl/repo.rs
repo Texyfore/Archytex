@@ -3,7 +3,7 @@ use std::{collections::{hash_map::DefaultHasher, HashMap}, hash::{Hash, Hasher},
 use anyhow::{Result, anyhow};
 use serde::{Serialize, Deserialize};
 
-use crate::{intersectables::{bvh::{self, BVH}, apply_matrix::ApplyMatrix, transform::Transform}, utilities::math::{Vec3, Matrix3x3}};
+use crate::{intersectables::{bvh::{self, BVH}, apply_matrix::ApplyMatrix, transform::Transform}, utilities::math::{Vec3, Matrix3x3}, textures::texture_repo::TextureRepository};
 
 use super::AMDLLoader;
 
@@ -79,20 +79,23 @@ impl PropRepository {
 #[derive(Serialize, Deserialize)]
 struct PropInfo {
     pub id: u32,
-    pub url: String,
-    pub has_emission: Option<bool>
+    pub name: String
 }
 
-pub fn load_into(repo: &mut PropRepository, directory: &str) -> Result<()> {
-    let propsjson = Path::new(directory).join("props.json");
+#[derive(Serialize, Deserialize)]
+struct Repo{
+    pub props: Vec<PropInfo>
+}
+
+pub fn load_into(repo: &mut PropRepository, textures: &TextureRepository, directory: &str) -> Result<()> {
+    let propsjson = Path::new(directory).join("repo.json");
     let propsjson = File::open(propsjson)?;
-    let json: Vec<PropInfo> = serde_json::from_reader(propsjson)?;
-    for prop in json {
-        let path = Path::new(directory).join(prop.url);
-        let has_emission = prop.has_emission.or(Some(false)).unwrap();
+    let json: Repo = serde_json::from_reader(propsjson)?;
+    for prop in json.props {
+        let path = Path::new(directory).join("props").join(prop.name).with_extension("amdl");
         repo.insert(
             PropType::default(prop.id),
-            AMDLLoader::from_path(path, has_emission)?
+            AMDLLoader::from_path(path, textures)?
         );
     }
     Ok(())

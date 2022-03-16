@@ -66,6 +66,9 @@ impl ASCNLoader {
         camera.matrix = camera.matrix.transpose();
         for solid in &scene.world.solids {
             for face in &solid.faces {
+                if face.texture.0 == 0 {
+                    continue;
+                }
                 //Counterclockwise
                 let points: Vec<&Point> = face
                     .indices

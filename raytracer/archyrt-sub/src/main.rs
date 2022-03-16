@@ -135,6 +135,16 @@ fn main() -> Result<()> {
 
     let amqp_addr = env::var("AMQP_ADDR").unwrap();
     let redis_addr = env::var("REDIS_ADDR").unwrap();
+    let mut textures = TextureRepository::new();
+    amdl_textures::load_into(&mut textures, "../assets")?;
+    texture_repo::exr::load_into(
+        &mut textures,
+        "../assets",
+        &[(TextureID::new(&"skybox"), "skybox.exr")],
+    )?;
+
+    let mut props = PropRepository::new();
+    amdl::repo::load_into(&mut props, &textures, "../assets")?;
     async_global_executor::block_on(async {
         let mut cache: LruCache<String, SceneData> = LruCache::new(5);
         let rabbitmq_client = Connection::connect(
@@ -144,16 +154,6 @@ fn main() -> Result<()> {
         .await?;
         let mut redis_client = redis::Client::open(redis_addr)?;
 
-        let mut textures = TextureRepository::new();
-        amdl_textures::load_into(&mut textures, "../assets")?;
-        texture_repo::exr::load_into(
-            &mut textures,
-            "../assets",
-            &[(TextureID::new(&"skybox"), "skybox.exr")],
-        )?;
-
-        let mut props = PropRepository::new();
-        amdl::repo::load_into(&mut props, "../assets")?;
 
         let channel = rabbitmq_client.create_channel().await?;
         let task_queue = channel

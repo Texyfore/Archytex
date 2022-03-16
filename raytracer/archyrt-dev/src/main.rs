@@ -178,7 +178,7 @@ fn main() {
     amdl_textures::load_into(&mut textures, "../assets").unwrap();
 
     let mut props = PropRepository::new();
-    amdl::repo::load_into(&mut props, "../assets").unwrap();
+    amdl::repo::load_into(&mut props,&textures,  "../assets").unwrap();
 
     //Load model
     let loader = ASCNLoader::from_path("../assets/proprot.ascn").unwrap();

@@ -329,7 +329,7 @@ fn main() -> Result<()> {
         let textures = Arc::new(textures);
 
         let mut props = PropRepository::new();
-        amdl::repo::load_into(&mut props, "../assets").unwrap();
+        amdl::repo::load_into(&mut props, &textures, "../assets").unwrap();
         let props = Arc::new(props);
 
         while let Some(delivery) = consumer.next().await {
