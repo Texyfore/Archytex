@@ -1,3 +1,4 @@
+mod amdl;
 mod input;
 mod repo;
 
@@ -8,6 +9,7 @@ use std::{
     path::PathBuf,
 };
 
+use amdl::gltf_to_amdl;
 use clap::{Arg, ArgMatches, Command};
 use image::{imageops::FilterType, ImageFormat};
 use input::Assets;
@@ -52,29 +54,40 @@ fn main() {
 
         if let Some(emissive) = emissive {
             emissive
-                .save(format!(
+                .save(root.join(format!(
                     "out/raytracer/textures/{}.png",
                     texture.emissive.as_ref().unwrap()
-                ))
+                )))
                 .unwrap();
         }
     }
 
+    let indexed_textures: HashMap<String, Indexed<input::Texture>> = assets
+        .textures
+        .into_iter()
+        .enumerate()
+        .map(|(i, (name, texture))| (name, Indexed::new(i as u32 + 2, texture)))
+        .collect();
+
+    for (name, prop) in &assets.props {
+        let prop = gltf_to_amdl(&root, prop, &indexed_textures);
+        let buf = prop.encode().unwrap();
+        fs::write(root.join(format!("out/public/props/{}.amdl", name)), &buf).unwrap();
+        fs::write(
+            root.join(format!("out/raytracer/props/{}.amdl", name)),
+            &buf,
+        )
+        .unwrap();
+    }
+
+    let indexed_props: HashMap<String, Indexed<input::Prop>> = assets
+        .props
+        .into_iter()
+        .enumerate()
+        .map(|(i, (name, prop))| (name, Indexed::new(i as u32, prop)))
+        .collect();
+
     {
-        let indexed_textures: HashMap<String, Indexed<input::Texture>> = assets
-            .textures
-            .into_iter()
-            .enumerate()
-            .map(|(i, (name, texture))| (name, Indexed::new(i as u32 + 2, texture)))
-            .collect();
-
-        let indexed_props: HashMap<String, Indexed<input::Prop>> = assets
-            .props
-            .into_iter()
-            .enumerate()
-            .map(|(i, (name, prop))| (name, Indexed::new(i as u32, prop)))
-            .collect();
-
         let props = indexed_props
             .into_iter()
             .map(|(name, prop)| repo::Prop {
@@ -107,9 +120,9 @@ fn cmd() -> ArgMatches {
         .get_matches()
 }
 
-struct Indexed<T> {
-    id: u32,
-    value: T,
+pub struct Indexed<T> {
+    pub id: u32,
+    pub value: T,
 }
 
 impl<T> Indexed<T> {
