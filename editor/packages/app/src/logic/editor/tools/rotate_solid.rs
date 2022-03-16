@@ -17,20 +17,15 @@ impl Tool for RotateSolid {
             (VirtualKeyCode::Z, Axis::Z),
         ] {
             if ctx.input.is_key_down_once(key) {
-                let iters = if ctx.input.is_key_down(VirtualKeyCode::LShift) {
-                    2
-                } else {
-                    1
-                };
-
                 ctx.scene.act(
                     scene::Context {
                         graphics: ctx.graphics,
                     },
                     Action::RotateSolids {
                         axis,
-                        iters,
-                        reverse: false,
+                        iters: 1,
+                        reverse: ctx.input.is_key_down(VirtualKeyCode::LShift),
+                        snap: *ctx.grid / 2,
                     },
                 );
 

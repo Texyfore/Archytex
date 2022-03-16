@@ -14,6 +14,9 @@ import LibraryDialog from "./library/LibraryDialog";
 import { ColorMode, useColorMode } from "../../services/colorMode";
 import { Prop, Texture } from "../../services/Library";
 
+import ReactImageFallback from "react-image-fallback";
+import Environment from "../../env";
+
 type LibraryType = "textureLibrary" | "propLibrary";
 
 interface Props {
@@ -86,11 +89,9 @@ export default function EditorMenu({
         </Box>
         <Box p={1} mb={1} display='flex'>
           <Box width={100} height={100} mr={2}>
-            <img
-              src={
-                require(`../../../public/assets/thumbnails/${texture.name}.webp`)
-                  .default
-              }
+            <ReactImageFallback
+              src={`${Environment.asset_url}/thumbnails/${texture.name}.webp`}
+              fallbackImage={require("../../img/unknown.webp").default}
               alt='texture'
               style={{ objectFit: "cover", borderRadius: 2 }}
               height='100%'
@@ -125,13 +126,11 @@ export default function EditorMenu({
         </Box>
         <Box p={1} display='flex'>
           <Box width={100} height={100} borderRadius={1} mr={2}>
-            <img
-              src={
-                require(`../../../public/assets/thumbnails/${prop.name}.webp`)
-                  .default
-              }
+            <ReactImageFallback
+              src={`${Environment.asset_url}/thumbnails/${prop.name}.webp`}
+              fallbackImage={require("../../img/unknown.webp").default}
               alt='prop'
-              style={{ objectFit: "contain", padding: 10, borderRadius: 1 }}
+              style={{ objectFit: "contain", borderRadius: 2 }}
               height='100%'
               width='100%'
             />

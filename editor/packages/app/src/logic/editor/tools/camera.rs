@@ -126,7 +126,9 @@ impl CameraTool {
         }
 
         // Select all
-        if ctx.input.is_key_down_once(VirtualKeyCode::A) {
+        if ctx.input.is_key_down_once(VirtualKeyCode::A)
+            && ctx.input.is_key_down(VirtualKeyCode::LShift)
+        {
             match ctx.mode {
                 ElementKind::Solid | ElementKind::Prop => {
                     ctx.scene.act(

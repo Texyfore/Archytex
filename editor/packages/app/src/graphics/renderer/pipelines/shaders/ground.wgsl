@@ -58,7 +58,7 @@ fn vertex(attribs: Attribs) -> Vertex {
     var vertex: Vertex;
     vertex.position = camera.world_to_clip * vec4<f32>(moving_pos, 1.0);
     vertex.normal = vec3<f32>(0.0, 1.0, 0.0);
-    vertex.texcoord = attribs.texcoord;
+    vertex.texcoord = moving_pos.xz;
     vertex.camera_position = camera_position;
     vertex.world_position = moving_pos;
     vertex.grid_len = grid.len;
@@ -122,7 +122,7 @@ var s_diffuse: sampler;
 
 [[stage(fragment)]]
 fn fragment(vertex: Vertex) -> Fragment {
-    var dist = distance(vertex.world_position.xz, vertex.camera_position.xz);
+    var dist = distance(vertex.world_position, vertex.camera_position);
     var mixval = pow(clamp(dist / 200.0, 0.0, 1.0), 4.0);
 
     var color = textureSample(t_diffuse, s_diffuse, vertex.texcoord);

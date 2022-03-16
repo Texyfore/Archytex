@@ -118,15 +118,15 @@ export default function LibraryDialog({
   const categorySet: Set<string> = new Set<string>();
   libraryType === "textureLibrary"
     ? textures.forEach((texture) => {
-        texture.public?.categories.forEach((category) =>
-          categorySet.add(category)
-        );
-      })
+      texture.categories.forEach((category) =>
+        categorySet.add(category)
+      );
+    })
     : props.forEach((prop) => {
-        prop.public?.categories.forEach((category) =>
-          categorySet.add(category)
-        );
-      });
+      prop.categories.forEach((category) =>
+        categorySet.add(category)
+      );
+    });
 
   const categories: string[] = Array.from(categorySet.values());
 
@@ -191,8 +191,8 @@ export default function LibraryDialog({
             {libraryType === "textureLibrary"
               ? t("texture_library")
               : libraryType === "propLibrary"
-              ? t("prop_library")
-              : ""}
+                ? t("prop_library")
+                : ""}
           </Typography>
         </Box>
         <Box display='flex' justifyContent='space-between'>
