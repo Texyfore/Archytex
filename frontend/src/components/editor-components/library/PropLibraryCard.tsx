@@ -10,6 +10,7 @@ import Tooltip from "@mui/material/Tooltip";
 import Typography from "@mui/material/Typography";
 
 import { Prop } from "../../../services/Library";
+import Environment from "../../../env";
 
 interface Props {
   prop: Prop;
@@ -42,10 +43,7 @@ export default function PropLibraryCard({
         <CardMedia
           component='img'
           height='140'
-          image={
-            require(`../../../../public/assets/thumbnails/${prop.name}.webp`)
-              .default
-          }
+          image={`${Environment.asset_url}/thumbnails/${prop.name}.webp`}
           alt='item'
           sx={{ objectFit: "contain", padding: "10px" }}
         />

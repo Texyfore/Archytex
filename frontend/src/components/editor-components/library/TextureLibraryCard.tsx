@@ -10,6 +10,7 @@ import Tooltip from "@mui/material/Tooltip";
 import Typography from "@mui/material/Typography";
 
 import { Texture } from "../../../services/Library";
+import Environment from "../../../env";
 
 interface Props {
   texture: Texture;
@@ -44,10 +45,7 @@ export default function TextureLibraryCard({
         <CardMedia
           component='img'
           height='140'
-          image={
-            require(`../../../../public/assets/thumbnails/${texture.name}.webp`)
-              .default
-          }
+          image={`${Environment.asset_url}/thumbnails/${texture.name}.webp`}
           alt='item'
         />
         <CardContent>
