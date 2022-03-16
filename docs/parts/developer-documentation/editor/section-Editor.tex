@@ -98,19 +98,31 @@ végzi. Az adatokat mindegyik formátum egymásba ágyazott struktúrákban tár
 \subsubsection{Jelenetfájl (.ascn)}
 
 Az első általunk fejlesztett fájlformátum, a .ascn arra szolgál, hogy a szerkesztőben készített
-3D jeleneteket tárolja. Az egész adatszerkezet egyetlen \emph{Scene} nevű struktúrában helyezkedik el.
-Ennek a struktúrának két eleme van: \emph{camera} és \emph{world}. A Camera struktúrában a kamera pozíciója
-és forgása tárolódik, míg a World struktúra kicsit bonyolultabb. Szintén két eleme van:
-\emph{solids} és \emph{props}. Mindkét elem vektoros adatszerkezet, azaz határozatlan mennyiségű homogén adatot tárol.
+3D jeleneteket tárolja. Az egész adatszerkezet egyetlen \emph{Scene} nevű struktúrában helyezkedik
+el. Ennek a struktúrának két eleme van: \emph{camera} és \emph{world}. A \emph{Camera} struktúrában
+a kamera pozíciója és forgása tárolódik, míg a \emph{World} struktúra kicsit bonyolultabb. Szintén
+két eleme van: \emph{solids} és \emph{props}. Mindkét elem vektoros adatszerkezet, azaz
+határozatlan mennyiségű homogén adatot tárol.
 
-A solids elem \emph{Solid} típusú struktúrákat tárol. Egy Solid példány egy primitív szilárd alakzatot
-modellez. Tartalmazza az alakzat csúcsait és lapjait, emellett a lapok textúráit.
+A solids elem \emph{Solid} típusú struktúrákat tárol. Egy Solid példány egy primitív szilárd
+alakzatot modellez. Tartalmazza az alakzat csúcsait és lapjait, emellett a lapok textúráit.
 
-A props elem \emph{Prop} típusú struktúrákat tárol. Egy Prop példány egy díszítőelem adatait tárolja.
-Egy díszítőelemnek modell ID-je, pozíciója és forgása van.
+A props elem \emph{Prop} típusú struktúrákat tárol. Egy Prop példány egy díszítőelem adatait
+tárolja. Egy díszítőelemnek modell ID-je, pozíciója és forgása van.
 
 \subsubsection{Modellfájl (.amdl)}
 
 A .amdl fájlformátum egy tetszőlegesen komplex 3D modell tárolására szolgál, néhány korlátozással.
 A formátum például nem képes animációkat kódolni, hiszen a szerkesztő nem támogatja a mozgó tárgyak
-megjelenítését.
+megjelenítését. A modellfájl gyökérstruktúrája \emph{Prop} névre hallgat. Két eleme van:
+\emph{bounding_box} és \emph{meshes}. A \emph{bounding_box} elem a modell köré írható, tengelyekhez
+igazított téglatestet tárolja. A \emph{meshes} elem vektoros adatszerkezet, ami a modellt felépítő,
+textúrázott almodelleket tárolja.
+
+\subsubsection{Gizmofájl (.agzm)}
+
+Az Archytex szerkesztő forráskódjában a gizmo szónak két jelentése is van: hivatkozhat az egér
+általi mozgatást elősegítő alakzatokra, de arra a speciális 3D modellre is, aminek nincsenek
+almodelljei és textúrái sem. A gizmofájl az utóbbi modellek tárolására szolgál. A három saját
+fájlformátum közül ez a legegyszerűbb, hisz csak egyszerű geometriát kódol: csúcsokat, és az
+azokból alkotott háromszögeket.
