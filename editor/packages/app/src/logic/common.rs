@@ -47,7 +47,7 @@ impl Axis {
             Self::Z => (vec3(0.0, 0.0, -1.0), vec3(0.0, 0.0, 1.0)),
         };
 
-        let color = self.color().map(|c| c);
+        let color = self.color().map(|x| x * 2.0);
 
         [
             LineVertex {

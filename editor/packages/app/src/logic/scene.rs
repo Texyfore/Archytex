@@ -664,9 +664,10 @@ impl Scene {
                 axis,
                 iters,
                 reverse,
+                snap,
             } => {
                 if let Some(center) = self.calc_center(ElementKind::Solid) {
-                    let center = center.snap(2);
+                    let center = center.round(snap);
                     let mut changed = false;
                     for solid in self.solids.values_mut().filter(|solid| solid.selected()) {
                         solid.rotate(center, axis, iters, reverse);
@@ -784,6 +785,7 @@ pub enum Action {
         axis: Axis,
         iters: u32,
         reverse: bool,
+        snap: i32,
     },
     UnrotateSolids {
         axis: Axis,
