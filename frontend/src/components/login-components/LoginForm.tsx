@@ -50,7 +50,6 @@ export default function LoginForm() {
     setGeneralError("");
   };
 
-  const [stayLoggedIn, setStayLoggedIn] = useState(false);
 
   const loginClick = () => {
     if (username === "") {
@@ -66,7 +65,7 @@ export default function LoginForm() {
 
     if (api?.state === "not-logged-in") {
       api
-        .logIn(username, password, stayLoggedIn)
+        .logIn(username, password, true)
         .then(() => {
           history.push("/dashboard");
           addNotification(t("successful_login"), "success");
