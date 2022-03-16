@@ -10,7 +10,8 @@ pub struct Assets {
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Texture {
-    pub source: String,
+    pub diffuse: String,
+    pub emissive: Option<String>,
     pub categories: Vec<String>,
 }
 
@@ -18,6 +19,5 @@ pub struct Texture {
 pub struct Prop {
     pub source: String,
     pub categories: Vec<String>,
-    pub diffuse: HashMap<String, String>,
-    pub emissive: HashMap<String, String>,
+    pub textures: HashMap<String, String>,
 }
