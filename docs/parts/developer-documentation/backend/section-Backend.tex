@@ -25,7 +25,7 @@ Ennek számos előnye és hátránya is van.
 
 Az említett valós-idejű figyelés, amely egy felhasználó projektjeinek folyamatos frissítéséhez szükséges, csak replica set esetén működik, tehát akkor ha a szerver be van állítva a megosztott munkára.
 \subsubsection{Go}
-A stack másik tagja, a \emph{Go}\footnote{\url{https://golang.org/}} egy programozás nyelv, amelyet a Google fejlesztett ki. A cél egy átlátható, egyszerű nyelv készítése volt, amelyet a \emph{Python}-t használó fejlesztők is könnyen megtanulhatnak. \todo[inline]{Citation: Tényleg a python developerek miatt készült?}
+A stack másik tagja, a \emph{Go}\footnote{\url{https://golang.org/}} egy programozás nyelv, amelyet a Google fejlesztett ki. A cél egy átlátható, egyszerű nyelv készítése volt, amely helyettesítheti a halom másik náluk használt programozási nyelvet. \cite{golang} 
 
 \begin{samepage}
     \noindent Előnyei:
@@ -47,7 +47,7 @@ A stack másik tagja, a \emph{Go}\footnote{\url{https://golang.org/}} egy progra
     \end{itemize}
 \end{samepage}
 
-Az e-mail rendszerhez a beépített NET/SMTP \todo{Acronym} könyvtárat használtuk az üzenetek elküldéséhez, illetve a HTML/template könyvtárat az üzenetek tartalmának kitöltéséhez.
+Az e-mail rendszerhez a beépített NET/SMTP könyvtárat használtuk az üzenetek elküldéséhez, illetve a HTML/template könyvtárat az üzenetek tartalmának kitöltéséhez.
 
 A fejlesztésben sokat segített a \emph{Gorilla} könyvtár, amely az alapértelmezett HTTP könyvtárat egészíti ki további hasznos funkciókkal.
 Például middleware támogatással, metódus korlátozással, URL-be helyezett paraméterekkel stb.
@@ -234,7 +234,6 @@ Három különböző dokumentumtípust különböztetünk meg:
           Leírás: A felhasználó egyedi azonosítója
 \end{itemize}
 
-\todo[inline]{Adatbázis struktúra berakása}
 
 \subsection{Backend .env fájl}
 
@@ -301,5 +300,16 @@ PROJECTS_PATH=F:/archytex_storage
 DOMAIN=https://archytex.me
 \end{lstlisting}
 
-\todo[inline]{HTTP dokumentáció}
-\todo[inline]{WS dokumentáció}
+\subsection{HTTP dokumentáció}
+A HTTP végpontok dokumentációja előrhető OpenAPI formátumban a repo gyökérkonyvtárában \emph{openapi.yml} néven.
+
+\subsection{WebSocket dokumentáció}
+A /api/ws végponton elérhető egy WebSocket szolgáltatás, amely a projektek listájának frissítésére szolgál. A lista bármilyen változása esetén újraküldi a kliens felé a lista összes elemét, JSON formátumban kódolva a \emph{projects} kulcs alatt.
+
+A WebSocket protokoll nem engedélyezi az egyéni HTTP fejlécek használatát, így a felhasználó azonosítására nem használható az \emph{Authorization} fejléc. A probléma megoldásának érdekében a szerver addig nem küld semmilyen adatot a kliensnek, ameddig a kliens el nem küldi a jelenleg használt sesson azonosítóján JSON karakterláncként kódolva.
+
+Szerver felől érkező üzenet példa:
+\todo[inline]{Put message example here}
+\begin{lstlisting}
+      
+\end{lstlisting}
