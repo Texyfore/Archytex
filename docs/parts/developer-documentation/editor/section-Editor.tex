@@ -16,17 +16,17 @@ szükségünk volt egy programozási nyelvre, amit lehetséges WebAssembly utas�
 Erre a célra a Rust programozási nyelvet választottuk. Ennek a döntésnek több oka is van:
 
 \begin{itemize}
-  \item Gyorsaság: A Rust egy rendszerközeli nyelv, hasonlóan a C-hez vagy C++-hoz, így rengeteg
-        olyan optimalizáció valósítható meg, ami magasabb szintű nyelvekben nem lehetséges.
+      \item Gyorsaság: A Rust egy rendszerközeli nyelv, hasonlóan a C-hez vagy C++-hoz, így rengeteg
+            olyan optimalizáció valósítható meg, ami magasabb szintű nyelvekben nem lehetséges.
 
-  \item Fejlett WebAssembly eszközök: Annak ellenére, hogy a nyelv viszonylag fiatal, rengeteg
-        kiváló eszköz és könyvtár áll rendelkezésre a WebAssembly programok fejlesztésének
-        elősegítéséhez. Ezek közül talán a legfontosabb a wasm-bindgen könyvtár, amellyel triviális
-        feladattá válik a böngésző által használt JavaScript kód és a WebAssemblyre átforduló Rust
-        kód összekötése.
+      \item Fejlett WebAssembly eszközök: Annak ellenére, hogy a nyelv viszonylag fiatal, rengeteg
+            kiváló eszköz és könyvtár áll rendelkezésre a WebAssembly programok fejlesztésének
+            elősegítéséhez. Ezek közül talán a legfontosabb a wasm-bindgen könyvtár, amellyel triviális
+            feladattá válik a böngésző által használt JavaScript kód és a WebAssemblyre átforduló Rust
+            kód összekötése.
 
-  \item Tapasztalat: A fejlesztői csapat két tagja már használta a Rust programozási nyelvet a
-        múltban, így elkerülhettük az új technológiák tanulásából adódó problémákat.
+      \item Tapasztalat: A fejlesztői csapat két tagja már használta a Rust programozási nyelvet a
+            múltban, így elkerülhettük az új technológiák tanulásából adódó problémákat.
 \end{itemize}
 
 \subsection{Működési elvek}
@@ -112,12 +112,7 @@ tárolja. Egy díszítőelemnek modell ID-je, pozíciója és forgása van.
 
 \subsubsection{Modellfájl (.amdl)}
 
-A .amdl fájlformátum egy tetszőlegesen komplex 3D modell tárolására szolgál, néhány korlátozással.
-A formátum például nem képes animációkat kódolni, hiszen a szerkesztő nem támogatja a mozgó tárgyak
-megjelenítését. A modellfájl gyökérstruktúrája \emph{Prop} névre hallgat. Két eleme van:
-\emph{bounding_box} és \emph{meshes}. A \emph{bounding_box} elem a modell köré írható, tengelyekhez
-igazított téglatestet tárolja. A \emph{meshes} elem vektoros adatszerkezet, ami a modellt felépítő,
-textúrázott almodelleket tárolja.
+A .amdl fájlformátum egy tetszőlegesen komplex 3D modell tárolására szolgál, néhány korlátozással. A formátum például nem képes animációkat kódolni, hiszen a szerkesztő nem támogatja a mozgó tárgyak megjelenítését. A modellfájl gyökérstruktúrája \emph{Prop} névre hallgat. Két eleme van: \emph{bounding\_box} és \emph{meshes}. A \emph{bounding\_box} elem a modell köré írható, tengelyekhez igazított téglatestet tárolja. A \emph{meshes} elem vektoros adatszerkezet, ami a modellt felépítő, textúrázott almodelleket tárolja.
 
 \subsubsection{Gizmofájl (.agzm)}
 
