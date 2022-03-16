@@ -3,237 +3,235 @@
 \subsection{Használt technológiák}
 A backend megírásánál az egyszerűségre és a későbbi könnyebb felhasználhatóságra törekedtünk, így esett választásunk a Go-MongoDB stack-re.
 \subsubsection{MongoDB}
-A \emph{MongoDB}\footnote{\url{https://www.mongodb.com/}} egy NoSQL adatbázis, amely annyit tesz, hogy táblák és sorok helyett egy JSON szerű struktúrában tárolja el az adatokat.
-Ennek több előnye és hátránya is van.
+A \emph{MongoDB}\footnote{\url{https://www.mongodb.com/}} egy NoSQL adatbázis, amely azt jelenti, hogy táblák és sorok helyett egy JSON szerű struktúrában tárolja el az adatokat.
+Ennek számos előnye és hátránya is van.
 
 \begin{samepage}
-\noindent Előnyei:
-\begin{itemize}
-    \item Egyszerű feltöltés/letöltés a JSON szerű formátum miatt
-    \item Nem szükséges előre felépíteni az adatbázis struktúráját
-    \item Frissítések valós-idejű figyelése
-\end{itemize}
+    \noindent Előnyei:
+    \begin{itemize}
+        \item Egyszerű feltöltés/letöltés a JSON szerű formátum miatt
+        \item Nem szükséges előre felépíteni az adatbázis struktúráját
+        \item Frissítések valós-idejű figyelése
+    \end{itemize}
 
-\noindent Hátrányai:
-\begin{itemize}
-    \item Ritkábban használt
-    \item Átlagoshoz képest komplexebb lekérdezések
-    \item Sémának való megfelelés nem ellenőrzött
-    \item Kevésbé rendezett, mint a relációs adatbázisok
-\end{itemize}
+    \noindent Hátrányai:
+    \begin{itemize}
+        \item Ritkábban használt
+        \item Átlagoshoz képest komplexebb lekérdezések
+        \item Sémának való megfelelés nem ellenőrzött
+        \item Kevésbé rendezett, mint a relációs adatbázisok
+    \end{itemize}
 \end{samepage}
 
-Az említett valós-idejű figyelés, amely a projekt frissítéséhez szükséges, csak replica set esetén működik, tehát akkor ha a szerver be van állítva a megosztott munkára.
+Az említett valós-idejű figyelés, amely egy felhasználó projektjeinek folyamatos frissítéséhez szükséges, csak replica set esetén működik, tehát akkor ha a szerver be van állítva a megosztott munkára.
 \subsubsection{Go}
 A stack másik tagja, a \emph{Go}\footnote{\url{https://golang.org/}} egy programozás nyelv, amelyet a Google fejlesztett ki. A cél egy átlátható, egyszerű nyelv készítése volt, amelyet a \emph{Python}-t használó fejlesztők is könnyen megtanulhatnak. \todo[inline]{Citation: Tényleg a python developerek miatt készült?}
 
 \begin{samepage}
-\noindent Előnyei:
-\begin{itemize}
-    \item Típusos, így kisebb az esélye a hibáknak
-    \item Erős beépített web fejlesztési (HTTP, sablonok stb.) könyvtárak
-    \item Egyszerű párhuzamos futtatás \emph{Goroutine}-okkal és csatornákkal
-    \item Fordított, de szemétgyűjtős
-    
-\end{itemize}
+    \noindent Előnyei:
+    \begin{itemize}
+        \item Típusos, így kisebb az esélye a hibáknak
+        \item Erős beépített webfejlesztési (HTTP, sablonok stb.) könyvtárak
+        \item Egyszerű párhuzamos futtatás \emph{Goroutine}-okkal és csatornákkal
+        \item Fordított, de szemétgyűjtős
+
+    \end{itemize}
 \end{samepage}
 
 \begin{samepage}
-\noindent Hátrányai:
-\begin{itemize}
-    \item Adatfeldolgozási függvényekben hiányos
-    \item Generikusok hiánya
-    \item Frusztrálóan bőszavú hibakezelés
-\end{itemize}
+    \noindent Hátrányai:
+    \begin{itemize}
+        \item Adatfeldolgozási függvényekben hiányos
+        \item Generikusok hiánya
+        \item Frusztrálóan bőszavú hibakezelés
+    \end{itemize}
 \end{samepage}
 
-Az e-mail rendszerhez a beépített net/smtp \todo{Acronym} könyvtárat használtuk az üzenetek elküldéséhez, illetve a html/template könyvtárat az üzenetek tartalmának kitöltéséhez.
+Az e-mail rendszerhez a beépített NET/SMTP \todo{Acronym} könyvtárat használtuk az üzenetek elküldéséhez, illetve a HTML/template könyvtárat az üzenetek tartalmának kitöltéséhez.
 
-A fejlesztésben sokat segített a \emph{Gorilla} könyvtár, amely az alapértelmezett HTTP könyvtárat egészíti ki további hasznos funkcióval.
+A fejlesztésben sokat segített a \emph{Gorilla} könyvtár, amely az alapértelmezett HTTP könyvtárat egészíti ki további hasznos funkciókkal.
 Például middleware támogatással, metódus korlátozással, URL-be helyezett paraméterekkel stb.
 
 \subsection{Szolgáltatások méretezése}
 A \emph{docker-compose} fájlban található \emph{Traefik}\footnote{\url{https://traefik.io/traefik/}} két fő feladatot lát el:
 
 \begin{samepage}
-\begin{itemize}
-    \item Statikus frontend fájlok és a Backend api egy végpontra helyezése
-    \item Automatikus terheléselosztás
-\end{itemize}
+    \begin{itemize}
+        \item Statikus frontend fájlok és a Backend api egy végpontra helyezése
+        \item Automatikus terheléselosztás
+    \end{itemize}
 \end{samepage}
 
-A \emph{Traefik} beintegrálja magát a \emph{Docker}-be és így látja, ha egy szolgáltatásból több fut és el tudja közöttük osztani a terhet.
+A \emph{Traefik} integrálja magát a \emph{Docker}-be, és így látja, ha egy szolgáltatásból több fut, és el tudja közöttük osztani a terhet.
 
 Ha szeretnénk egy szolgáltatást méretezni, akkor a \emph{docker-compose} parancsot kell lefuttatnunk, a következő parancsok egyikével:
 
 \begin{itemize}
     \item Statikus fájl szerver méretezése
-    \begin{lstlisting}[language=bash]
-        $ docker-compose up --scale frontend=<DARAB>
-    \end{lstlisting}
+          \begin{lstlisting}[language=bash]
+        $ docker-compose up --scale frontend=<DARAB>\end{lstlisting}
     \item Backend szerver méretezése
-    \begin{lstlisting}[language=bash]
-        $ docker-compose up --scale backend=<DARAB>
-    \end{lstlisting}
+          \begin{lstlisting}[language=bash]
+        $ docker-compose up --scale backend=<DARAB>\end{lstlisting}
 \end{itemize}
-    
+
 \subsection{Adatbázis modell}
 
-Az adatokat a \emph{MongoDB} nevű adatbáziskezelőben tároljuk el, amely NoSQL technológiára épül, így teljesen más struktúrát követel meg. Mig a relációs adatbázisok egy gráf szerkezetet használnak, addig a \emph{MongoDB} egy fastruktúrát.
+Az adatokat a \emph{MongoDB} nevű adatbáziskezelőben tároljuk el, amely NoSQL technológiára épül, így teljesen más struktúrát követel, mint egy relációs adatbázis. Míg a relációs adatbázisok egy gráf szerkezetet használnak, addig a \emph{MongoDB} egy fastruktúrát.
 
 Három különböző dokumentumtípust különböztetünk meg:
 \begin{itemize}
     \item users
 
-    A regisztrált és regisztrációjukat megerősített felhasználók listája
+          A regisztrált és regisztrációjukat megerősített felhasználók listája
     \item registers
 
-    A regisztrált, de még nem megerősített felhasználók listája
+          A regisztrált, de még nem megerősített felhasználók listája
     \item sessions
 
-    A jelenleg belépett felhasználók listája
+          A jelenleg belépett felhasználók listája
 \end{itemize}
 
 \subsubsection{Users dokumentum}
 \begin{itemize}
     \item \_id
-    
-    Típus: ObjectID
 
-    Leírás: A \emph{MongoDB} által generált egyedi azonosító
+          Típus: ObjectID
+
+          Leírás: A \emph{MongoDB} által generált egyedi azonosító
     \item username
-    
-    Típus: string
 
-    Leírás: A felhasználó választott neve
+          Típus: string
+
+          Leírás: A felhasználó választott neve
     \item email
-    
-    Típus: string
 
-    Leírás: A felhasználó ímélcíme
+          Típus: string
+
+          Leírás: A felhasználó e-mail címe
     \item password
-    
-    Típus: string
 
-    Leírás: A felhasználó jelszavának ellenőrzésére szolgáló kriptográfiai karakterlánc
+          Típus: string
+
+          Leírás: A felhasználó jelszavának ellenőrzésére szolgáló kriptográfiai karakterlánc
     \item projects
-    
-    Típus: Tömb, Lásd lent
 
-    Leírás: A felhasználó projektjeinek listája
+          Típus: Tömb, Lásd lent
+
+          Leírás: A felhasználó projektjeinek listája
 \end{itemize}
 
 \subsubsection{Projects al-dokumentum}
 
 \begin{itemize}
     \item \_id
-    
-    Típus: ObjectID
 
-    Leírás: A \emph{MongoDB} által generált egyedi azonosító
+          Típus: ObjectID
+
+          Leírás: A \emph{MongoDB} által generált egyedi azonosító
     \item title
-    
-    Típus: string
 
-    Leírás: A projekt címe
+          Típus: string
+
+          Leírás: A projekt címe
     \item created
-    
-    Típus: date
 
-    Leírás: A projekt létrehozásának időpontja
+          Típus: date
+
+          Leírás: A projekt létrehozásának időpontja
     \item path
-    
-    Típus: string
 
-    Leírás: A szerver fájlrendszerében lévő ASCN fájl neve
+          Típus: string
+
+          Leírás: A szerver fájlrendszerében lévő ASCN fájl neve
     \item renders
-    
-    Típus: Tömb, Lásd lent
 
-    Leírás: A projekthez tartozó renderek listája
+          Típus: Tömb, Lásd lent
+
+          Leírás: A projekthez tartozó renderek listája
 \end{itemize}
 \subsubsection{Renders al-al-dokumentum}
 
 \begin{itemize}
     \item \_id
-    
-    Típus: ObjectID
 
-    Leírás: A \emph{MongoDB} által generált egyedi azonosító
+          Típus: ObjectID
+
+          Leírás: A \emph{MongoDB} által generált egyedi azonosító
     \item name
-    
-    Típus: string
 
-    Leírás: A render neve
+          Típus: string
+
+          Leírás: A render neve
     \item status
-    
-    Típus: double
 
-    Leírás: A render elkészültségének jelenlegi állapota, 0-tól 1-ig tartó valós szám
+          Típus: double
+
+          Leírás: A render elkészültségének jelenlegi állapota, 0-tól 1-ig tartó valós szám
     \item started
-    
-    Típus: date
 
-    Leírás: A render munka elküldésének időpontja
+          Típus: date
+
+          Leírás: A render munka elküldésének időpontja
     \item finished
-    
-    Típus: date
 
-    Leírás: A render befejezésének időpontja
+          Típus: date
+
+          Leírás: A render befejezésének időpontja
     \item icon
-    
-    Típus: string
 
-    Leírás: A szerver fájlrendszerében lévő képfájl neve
+          Típus: string
+
+          Leírás: A szerver fájlrendszerében lévő képfájl neve
 \end{itemize}
 
 \subsubsection{Registers dokumentum}
 
 \begin{itemize}
     \item \_id
-    
-    Típus: ObjectID
 
-    Leírás: A \emph{MongoDB} által generált egyedi azonosító
+          Típus: ObjectID
+
+          Leírás: A \emph{MongoDB} által generált egyedi azonosító
     \item username
-    
-    Típus: string
 
-    Leírás: A felhasználó választott neve
+          Típus: string
+
+          Leírás: A felhasználó választott neve
     \item email
-    
-    Típus: string
 
-    Leírás: A felhasználó ímélcíme
+          Típus: string
+
+          Leírás: A felhasználó ímélcíme
     \item password
-    
-    Típus: string
 
-    Leírás: A felhasználó jelszavának ellenőrzésére szolgáló kriptográfiai karakterlánc
+          Típus: string
+
+          Leírás: A felhasználó jelszavának ellenőrzésére szolgáló kriptográfiai karakterlánc
     \item token
-    
-    Típus: string
 
-    Leírás: A regisztáció megerősítéséhez szükséges egyszer használatos azonosító
+          Típus: string
+
+          Leírás: A regisztáció megerősítéséhez szükséges egyszer használatos azonosító
     \item created\_at
-    
-    Típus: date
 
-    Leírás: A regisztrációs szándék beadásának időpontja. Segítségével létre lehez hozni olyan indexet, ami a kérelmet törli bizonyos idő lejárta után.
+          Típus: date
+
+          Leírás: A regisztrációs szándék beadásának időpontja. Segítségével létre lehez hozni olyan indexet, ami a kérelmet törli bizonyos idő lejárta után.
 \end{itemize}
 \subsubsection{Sessions dokumentum}
 
 \begin{itemize}
     \item \_id
-    
-    Típus: STRING!!!
 
-    Leírás: Kriptográfiailag generált karakterlánc, amely a felhasználót azonosítja bejelentkezés után
+          Típus: STRING!!!
+
+          Leírás: Kriptográfiailag generált karakterlánc, amely a felhasználót azonosítja bejelentkezés után
     \item user\_id
-    
-    Típus: ObjectID
 
-    Leírás: A felhasználó egyedi azonosítója
+          Típus: ObjectID
+
+          Leírás: A felhasználó egyedi azonosítója
 \end{itemize}
 
 \todo[inline]{Adatbázis struktúra berakása}
@@ -245,46 +243,46 @@ A backend konfigurálását egy .env fájl segítségével lehet megtenni. Ha a 
 Szükséges konfigurációs paraméterek:
 \begin{itemize}
     \item SMTP beállítások
-    \subitem SMTP\_SERVER
-    
-    SMTP szerver címe
-    \subitem SMTP\_ADDRESS
-    
-    SMTP szerveren lévő ímélcím
-    \subitem SMTP\_PASSWORD
-    
-    Az előbb használt ímélcímhez tartozó jelszó
-    \subitem SMTP\_PASSWORD
-    
-    Az előbb használt ímélcímhez tartozó jelszó
+          \subitem SMTP\_SERVER
+
+          SMTP szerver címe
+          \subitem SMTP\_ADDRESS
+
+          SMTP szerveren lévő ímélcím
+          \subitem SMTP\_PASSWORD
+
+          Az előbb használt ímélcímhez tartozó jelszó
+          \subitem SMTP\_PASSWORD
+
+          Az előbb használt ímélcímhez tartozó jelszó
     \item MongoDB beállítások
-    \subitem MONGO\_URI
-    
-    MongoDB-hez való csatlakozáshoz szükséges URI
-    \subitem MONGO\_DB
-    
-    MongoDB adatbázis neve
+          \subitem MONGO\_URI
+
+          MongoDB-hez való csatlakozáshoz szükséges URI
+          \subitem MONGO\_DB
+
+          MongoDB adatbázis neve
     \item RabbitMQ beállítások
-    \subitem AMQP\_ADDR
-    
-    AMQP (RabbitMQ)-hez való csatlakozáshoz szükséges URI
+          \subitem AMQP\_ADDR
+
+          AMQP (RabbitMQ)-hez való csatlakozáshoz szükséges URI
     \item Redis beállítások
-    \subitem REDIS\_ADDR
-    
-    Redis-hez való csatlakozáshoz szükséges URI
+          \subitem REDIS\_ADDR
+
+          Redis-hez való csatlakozáshoz szükséges URI
     \item Egyéb
-    \subitem PROJECTS\_PATH
+          \subitem PROJECTS\_PATH
 
-    Projektfájlok és renderek tárolására elkülönített mappa elérési útja
-    \subitem PORT
+          Projektfájlok és renderek tárolására elkülönített mappa elérési útja
+          \subitem PORT
 
-    Szerver portja
-    \subitem DOMAIN
+          Szerver portja
+          \subitem DOMAIN
 
-    A szerver távoli címe, amelyet a megerősítő ímélben használunk
-    \subitem CAPTCHA\_SECRET
+          A szerver távoli címe, amelyet a megerősítő ímélben használunk
+          \subitem CAPTCHA\_SECRET
 
-    ReCaptcha szolgáltatásból érkező titkos kulcs
+          ReCaptcha szolgáltatásból érkező titkos kulcs
 \end{itemize}
 
 Példa:
