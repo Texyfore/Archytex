@@ -16,17 +16,17 @@ szükségünk volt egy programozási nyelvre, amit lehetséges WebAssembly utas�
 Erre a célra a Rust programozási nyelvet választottuk. Ennek a döntésnek több oka is van:
 
 \begin{itemize}
-    \item Gyorsaság: A Rust egy rendszerközeli nyelv, hasonlóan a C-hez vagy C++-hoz, így rengeteg
-    olyan optimalizáció valósítható meg, ami magasabb szintű nyelvekben nem lehetséges.
+  \item Gyorsaság: A Rust egy rendszerközeli nyelv, hasonlóan a C-hez vagy C++-hoz, így rengeteg
+        olyan optimalizáció valósítható meg, ami magasabb szintű nyelvekben nem lehetséges.
 
-    \item Fejlett WebAssembly eszközök: Annak ellenére, hogy a nyelv viszonylag fiatal, rengeteg
-    kiváló eszköz és könyvtár áll rendelkezésre a WebAssembly programok fejlesztésének
-    elősegítéséhez. Ezek közül talán a legfontosabb a wasm-bindgen könyvtár, amellyel triviális
-    feladattá válik a böngésző által használt JavaScript kód és a WebAssemblyre átforduló Rust
-    kód összekötése.
+  \item Fejlett WebAssembly eszközök: Annak ellenére, hogy a nyelv viszonylag fiatal, rengeteg
+        kiváló eszköz és könyvtár áll rendelkezésre a WebAssembly programok fejlesztésének
+        elősegítéséhez. Ezek közül talán a legfontosabb a wasm-bindgen könyvtár, amellyel triviális
+        feladattá válik a böngésző által használt JavaScript kód és a WebAssemblyre átforduló Rust
+        kód összekötése.
 
-    \item Tapasztalat: A fejlesztői csapat két tagja már használta a Rust programozási nyelvet a
-    múltban, így elkerülhettük az új technológiák tanulásából adódó problémákat.
+  \item Tapasztalat: A fejlesztői csapat két tagja már használta a Rust programozási nyelvet a
+        múltban, így elkerülhettük az új technológiák tanulásából adódó problémákat.
 \end{itemize}
 
 \subsection{Működési elvek}
@@ -57,10 +57,25 @@ a függvényeit le lehetne hívni.
 
 Az első problémánkra a wasm-bindgen nevű Rust könyvtár adott megoldást. A wasm-bindgen lehetségessé
 teszi az egész számoknál komplexebb adatstruktúrák átültétését Rust kódból JavaScript kódba, és
-fordítva. A második probléma megoldása kicsit nehezebbnek bizonyult, de végül sikerült. Egy olyan
-modellt valósítottunk meg, amiben a két fél üzenetekkel kommunikál egymással, amiket csatornák
-közvetítenek.
+fordítva. A második probléma megoldása kicsit nehezebbnek bizonyult. Végül egy olyan
+modellt valósítottunk meg, amiben a két fél két különböző módszert használ a kommunikációhoz.
+Amikor a böngésző kommunikál a szerkesztővel, azt üzenetekkel teszi. Ezek az üzenetek egyszerű
+adatstruktúrák amik egy aszinkron csatornán keresztül jutnak el a szerkesztőhöz. Amikor az
+információátadás fordítva történik, a helyzet egyszerűbb: a JavaScript oldal egyszerűen átad egy
+anoním függvényt a Rust oldalnak, amit aztán a szerkesztő szükség esetén meghív.
 
 \subsection{3D grafika}
+
+A szerkesztő egyik legfontosabb feladata, hogy képes legyen a jelenetet kirajzolni a képernyőre.
+Ezt teszik lehetővé a különböző grafikus API-k, mint például az OpenGL, Vulkan, vagy böngésző
+esetén a WebGL. A Rust programozási nyelvhez rengeteg olyan könyvtár érhető el, amik ezeket az
+API-kat elérhetővé teszik. Mi úgy döntöttünk, hogy a wgpu könyvtárat fogjuk használni. Ennek
+legfőbb oka az, hogy egy letisztult, biztonságos réteget húz a régies WebGL interfészre.
+
 \subsection{Parancs alapú szerkesztés}
+
+Az előzetes tervezési fázisban számunkra fontos kikötés volt, hogy a szerkesztés közben
+megvalósulhasson az ún. non-destruktív munkamenet. Ez azt jelenti, hogy bármit, amit a felhasználó
+megtesz, azt vissza lehet vonni. A
+
 \subsection{Külső erőforrások kezelése}

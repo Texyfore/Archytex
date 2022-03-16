@@ -20,11 +20,12 @@ A honlapon megjelenő grafikák egy része az Undraw\footnote{\url{https://undra
 
 Az Archytex logo is a Figma beépített vektor grafikai eszközeivel készült. A design követi a letisztultság elvét, és használja a honlap elsődleges színét. A logó sötét és világos módtól függően a honlapon megváltozik a jobb láthatóság érdekében.
 
-
 \subsection{Használt technológiák}
 A frontend alkalmazás React-ben\footnote{\url{https://hu.reactjs.org/}} készült. Azért esett a választás erre a keretrendszerre, mert a horog alapú komponens állapot- és és életcikluskezelése miatt fejlesztői élményét tekintve kiemelkedően jobb, mint más rendszerek. Emellett az is segítette a választást, hogy jelenleg a React a legnépszerűbb a webfejlesztők köreiben\cite{most-used-web-frameworks}, ezért rengeteg forrás és oktatóvideó érhető el hozzá.
 
 A honlap elkészítéséhez a Material UI\footnote{\url{https://mui.com/}} nevű komponens könyvtárat használtuk, amely rengeteg előre elkészített és könnyen testreszabható komponenst tartalmaz. Ennek segítségével és a Google által kifejlesztett Material Design\footnote{\url{https://material.io/}} irányelveit követve modern, letisztult és felhasználóbarát felületet tudtunk létrehozni.
+
+\subsection{Reszponzivitás}
 
 \subsection{Főoldal}
 A főoldal célja, hogy egy új felhasználónak "eladja" a termékünket. Ezért fontos volt, hogy látványos és emlékezetes legyen, de ezek mellett egyben informatív is. A látványossághoz nagyban hozzájárultak az Undraw.io-s illusztrációk és a tsparticles\footnote{\url{https://github.com/matteobruni/tsparticles/tree/main/components/react}} JavaScript könyvtár segítségével létrehozott, az oldal fejlécében megjelenő interaktív buborékok. Emellett az interaktívitás növelése érdekében az AOS (Animate On Scroll) könyvtárat használva megoldottuk, hogy a honlap tartalma folyamatosan jelenjen meg, ahogy a felhasználó görget lefelé a honlapon.
@@ -61,8 +62,17 @@ A bejelentkezési és regisztrációs képernyő frontend funkcionalitás szempo
 \end{figure}
 
 \subsection{Irányítópult}
-Az Archytex irányítópult feladata a projektek listázása és egy felhasználói interfész biztosítása ezen projektek beállításainak módosítására, tulajdonságaik megtekintésére.
+Az Archytex irányítópult feladata a projektek listázása és egy felhasználói interfész biztosítása ezen projektek beállításainak módosítására, tulajdonságaik megtekintésére. Egy projekten belül megjelennek a projekthez tartozó renderek, amik letölthetőek és kinagyíthatók.
+
+A projektek lekérése és tárolása saját szervíz segítségével történik. Ez a szervíz tartalmazza a projektet és a rendert jellemző modellként szolgáló TypeScript interfészeket. Emellett a useState és a useContext horgokat használva eltárolja az API-val lekért adatokat, amik utána egy egyedi horog (useProjects) segítségével érhetők el a célkomponensben.
 
 \subsection{Szekesztő UI}
+A szerkesztő és a frontend közötti kommunikáció egy egyedi API segítségével történik. Beállítható ezen keresztül a szerkesztőben a transzformációs mód\footnote{Transzformációs mód: lap, él, csúcs vagy díszítőelem kiválasztása}, és kiválasztható a használni kívánt textúra és a díszítőelem.
+
+\subsubsection{Könyvtár ablak}
+A textúra és a díszítőelem kiválasztására a könyvtár ablak komponens szolgál. Ez egy modál ablak, amely MUI komponenseket és egy saját szervízt használva megjeleníti az elérhető textúrákat vagy díszítőelemeket. A könyvtárban minden elem rendelkezik egy névvel és egy vagy több tulajdonsággal, amik Chip komponens formájában jelennek meg az elem kártyáján. A név és minden tulajdonság szűrhető, így elősegítve a könnyebb keresést.
+
+\subsection{Fordítások}
+Az Archytex alkalmazás több nyelven is elérhető. Az i18n\footnote{i18: Internationalisation, avagy nemzetközisítés}  megvalósításához az i18next nevű React könyvtárat használtuk. Az alkalmazás gyökérkomponensében importáltuk az nyelvekhez tartozó JSON fájlokat, amikben megtalálható az összes előforduló fordítási kulcs, amelyhez tartozik egy-egy hozzárendelt fordítás. 
 
 \subsection{Tesztek}
