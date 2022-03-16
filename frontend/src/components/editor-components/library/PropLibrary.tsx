@@ -21,8 +21,8 @@ export default function PropLibrary({
   props,
 }: Props) {
   const matchesFilter = (prop: Prop) => {
-    if (prop.public !== null) {
-      return prop.public.categories.some((category) =>
+    if (prop.categories.length !== 0) {
+      return prop.categories.some((category) =>
         checkedCategories.some(
           (checkedCategory) => checkedCategory === category
         )
