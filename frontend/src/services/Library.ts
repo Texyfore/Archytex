@@ -8,17 +8,14 @@ interface AssetDb {
 interface Texture {
   id: number;
   name: string;
-  public: Public | null;
+  categories: string[];
+  emissive: string | null;
 }
 
 interface Prop {
   id: number;
   name: string;
   dependencies: string[];
-  public: Public | null;
-}
-
-interface Public {
   categories: string[];
 }
 

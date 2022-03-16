@@ -31,10 +31,10 @@ export default function PropLibraryCard({
       sx={
         isSelected
           ? {
-              width: 175,
-              border: "2px solid #39A0ED",
-              transition: "border 200ms ease-in-out",
-            }
+            width: 175,
+            border: "2px solid #39A0ED",
+            transition: "border 200ms ease-in-out",
+          }
           : { width: 175, border: "2px solid transparent" }
       }
     >
@@ -63,8 +63,8 @@ export default function PropLibraryCard({
             </Typography>
           </Tooltip>
           <Box display='flex' flexWrap='wrap' justifyContent='start' gap={1}>
-            {prop.public !== null &&
-              prop.public.categories.map((category) => (
+            {prop.categories.length !== 0 &&
+              prop.categories.map((category) => (
                 <Chip
                   size='small'
                   label={category.charAt(0).toUpperCase() + category.slice(1)}

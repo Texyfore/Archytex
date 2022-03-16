@@ -22,8 +22,8 @@ export default function TextureLibrary({
   textures,
 }: Props) {
   const matchesFilter = (texture: Texture) => {
-    if (texture.public !== null) {
-      return texture.public.categories.some((category) =>
+    if (texture.categories.length !== 0) {
+      return texture.categories.some((category) =>
         checkedCategories.some(
           (checkedCategory) => checkedCategory === category
         )

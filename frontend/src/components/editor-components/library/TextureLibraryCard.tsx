@@ -33,10 +33,10 @@ export default function TextureLibraryCard({
       sx={
         isSelected
           ? {
-              width: 175,
-              border: "2px solid #39A0ED",
-              transition: "border 200ms ease-in-out",
-            }
+            width: 175,
+            border: "2px solid #39A0ED",
+            transition: "border 200ms ease-in-out",
+          }
           : { width: 175, border: "2px solid transparent" }
       }
     >
@@ -64,8 +64,8 @@ export default function TextureLibraryCard({
             </Typography>
           </Tooltip>
           <Box display='flex' flexWrap='wrap' justifyContent='start' gap={1}>
-            {texture.public !== null &&
-              texture.public.categories.map((category) => (
+            {texture.categories.length !== 0 &&
+              texture.categories.map((category) => (
                 <Chip
                   size='small'
                   label={category.charAt(0).toUpperCase() + category.slice(1)}
