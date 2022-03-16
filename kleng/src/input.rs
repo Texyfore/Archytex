@@ -1,23 +1,23 @@
+use std::collections::HashMap;
+
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, Debug)]
-pub struct Repo {
-    pub textures: Vec<Texture>,
-    pub props: Vec<Prop>,
+pub struct Assets {
+    pub textures: HashMap<String, Texture>,
+    pub props: HashMap<String, Prop>,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Texture {
-    pub id: u32,
-    pub name: String,
-    pub categories: Vec<String>,
+    pub diffuse: String,
     pub emissive: Option<String>,
+    pub categories: Vec<String>,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Prop {
-    pub id: u32,
-    pub name: String,
+    pub source: String,
     pub categories: Vec<String>,
-    pub dependencies: Vec<String>,
+    pub textures: HashMap<String, String>,
 }
