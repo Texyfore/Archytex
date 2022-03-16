@@ -14,6 +14,7 @@ import FormInput from "../form-components/FormInput";
 import ColoredReCaptcha from "../form-components/ColoredReCaptcha";
 
 import { Register } from "../../services/register";
+import Environment from "../../env";
 
 export default function RegisterForm() {
   const { t } = useTranslation();
@@ -150,7 +151,7 @@ export default function RegisterForm() {
       {/* ReCAPTCHA */}
       <Box paddingY={1} display='flex' justifyContent='center'>
         <ColoredReCaptcha
-          sitekey='6Lc5gWodAAAAAEVg3MPTn5Nj7KN-ishnafqV4ZL8'
+          sitekey={Environment.captcha}
           onChange={setCaptcha}
           key={captchaKey}
         />
