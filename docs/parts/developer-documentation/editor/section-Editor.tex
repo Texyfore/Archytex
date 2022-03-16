@@ -76,6 +76,41 @@ legfőbb oka az, hogy egy letisztult, biztonságos réteget húz a régies WebGL
 
 Az előzetes tervezési fázisban számunkra fontos kikötés volt, hogy a szerkesztés közben
 megvalósulhasson az ún. non-destruktív munkamenet. Ez azt jelenti, hogy bármit, amit a felhasználó
-megtesz, azt vissza lehet vonni. A
+megtesz, azt vissza lehet vonni. Ahhoz, hogy ez lehetséges legyen, valamilyen formában el kell
+tárolni a múltbeli szerkesztési lépéseket. Végül úgy döntöttünk, hogy az egész szerkesztőt ezen
+alapelv köré építjük fel. Létrehoztunk egy speciális adatszerkezetet, amely az összes elvégezhető
+szerkesztési lépést képes eltárolni. Amikor a felhasználó változtat valamit a jeleneten, egy
+ilyen adatstruktúra (akció) kerül átadásra. Az végrehajtás után a szerkesztő felépíti az akció
+ellentétét, az inverz akciót. Végül az inverz akció eltárolásra kerül egy ún. visszavonási veremben.
+Amikor a felhasználó kiadja a visszavonási parancsot, a visszavonási verem tetején lévő akció
+(ha létezik) újra végrehajtásra kerül, és belekerül egy másodlagos verembe, ami a visszavont
+akciók inverzét tárolja. Ez azért szükséges, mert visszavonás mellet ismétlés is lehetséges.
 
 \subsection{Külső erőforrások kezelése}
+
+A tervezési fázisban hamar kiderült, hogy sok időt és energiát kell fektetnünk a szerkesztő által
+használt külső erőforrások tárolásának és létrehozásának módjának meghatározásába. Arra jutottunk,
+hogy ezen célok teljesítéséhez saját fájlformátumokat fogunk kifejleszteni. A fejlesztés során
+felmerülő igények kielégítésére végül három új fájlformátum született meg: .ascn, .amdl, és .agzm.
+Mindhárom fájlformátum bináris kódolású, előállításukat és beolvasásukat a bincode könyvtár
+végzi. Az adatokat mindegyik formátum egymásba ágyazott struktúrákban tárolja.
+
+\subsubsection{Jelenetfájl (.ascn)}
+
+Az első általunk fejlesztett fájlformátum, a .ascn arra szolgál, hogy a szerkesztőben készített
+3D jeleneteket tárolja. Az egész adatszerkezet egyetlen \emph{Scene} nevű struktúrában helyezkedik el.
+Ennek a struktúrának két eleme van: \emph{camera} és \emph{world}. A Camera struktúrában a kamera pozíciója
+és forgása tárolódik, míg a World struktúra kicsit bonyolultabb. Szintén két eleme van:
+\emph{solids} és \emph{props}. Mindkét elem vektoros adatszerkezet, azaz határozatlan mennyiségű homogén adatot tárol.
+
+A solids elem \emph{Solid} típusú struktúrákat tárol. Egy Solid példány egy primitív szilárd alakzatot
+modellez. Tartalmazza az alakzat csúcsait és lapjait, emellett a lapok textúráit.
+
+A props elem \emph{Prop} típusú struktúrákat tárol. Egy Prop példány egy díszítőelem adatait tárolja.
+Egy díszítőelemnek modell ID-je, pozíciója és forgása van.
+
+\subsubsection{Modellfájl (.amdl)}
+
+A .amdl fájlformátum egy tetszőlegesen komplex 3D modell tárolására szolgál, néhány korlátozással.
+A formátum például nem képes animációkat kódolni, hiszen a szerkesztő nem támogatja a mozgó tárgyak
+megjelenítését.
