@@ -21,9 +21,9 @@ Erre a célra a Rust programozási nyelvet választottuk. Ennek a döntésnek t�
 
       \item Fejlett WebAssembly eszközök: Annak ellenére, hogy a nyelv viszonylag fiatal, rengeteg
             kiváló eszköz és könyvtár áll rendelkezésre a WebAssembly programok fejlesztésének
-            elősegítéséhez. Ezek közül talán a legfontosabb a wasm-bindgen könyvtár, amellyel triviális
-            feladattá válik a böngésző által használt JavaScript kód és a WebAssemblyre átforduló Rust
-            kód összekötése.
+            elősegítéséhez. Ezek közül talán a legfontosabb a wasm-bindgen könyvtár, amellyel
+            triviális feladattá válik a böngésző által használt JavaScript kód és a WebAssemblyre
+            átforduló Rust kód összekötése.
 
       \item Tapasztalat: A fejlesztői csapat két tagja már használta a Rust programozási nyelvet a
             múltban, így elkerülhettük az új technológiák tanulásából adódó problémákat.
@@ -104,15 +104,20 @@ a kamera pozíciója és forgása tárolódik, míg a \emph{World} struktúra ki
 két eleme van: \emph{solids} és \emph{props}. Mindkét elem vektoros adatszerkezet, azaz
 határozatlan mennyiségű homogén adatot tárol.
 
-A solids elem \emph{Solid} típusú struktúrákat tárol. Egy Solid példány egy primitív szilárd
-alakzatot modellez. Tartalmazza az alakzat csúcsait és lapjait, emellett a lapok textúráit.
+A \emph{solids} elem \emph{Solid} típusú struktúrákat tárol. Egy \emph{Solid} példány egy primitív
+szilárd alakzatot modellez. Tartalmazza az alakzat csúcsait és lapjait, emellett a lapok textúráit.
 
-A props elem \emph{Prop} típusú struktúrákat tárol. Egy Prop példány egy díszítőelem adatait
-tárolja. Egy díszítőelemnek modell ID-je, pozíciója és forgása van.
+A \emph{props} elem \emph{Prop} típusú struktúrákat tárol. Egy \emph{Prop} példány egy díszítőelem
+adatait tárolja. Egy díszítőelemnek modell ID-je, pozíciója és forgása van.
 
 \subsubsection{Modellfájl (.amdl)}
 
-A .amdl fájlformátum egy tetszőlegesen komplex 3D modell tárolására szolgál, néhány korlátozással. A formátum például nem képes animációkat kódolni, hiszen a szerkesztő nem támogatja a mozgó tárgyak megjelenítését. A modellfájl gyökérstruktúrája \emph{Prop} névre hallgat. Két eleme van: \emph{bounding\_box} és \emph{meshes}. A \emph{bounding\_box} elem a modell köré írható, tengelyekhez igazított téglatestet tárolja. A \emph{meshes} elem vektoros adatszerkezet, ami a modellt felépítő, textúrázott almodelleket tárolja.
+A .amdl fájlformátum egy tetszőlegesen komplex 3D modell tárolására szolgál, néhány korlátozással.
+A formátum például nem képes animációkat kódolni, hiszen a szerkesztő nem támogatja a mozgó tárgyak
+megjelenítését. A modellfájl gyökérstruktúrája \emph{Prop} névre hallgat. Két eleme van:
+\emph{bounding\_box} és \emph{meshes}. A \emph{bounding\_box} elem a modell köré írható,
+tengelyekhez igazított téglatestet tárolja. A \emph{meshes} elem vektoros adatszerkezet, ami a
+modellt felépítő, textúrázott almodelleket tárolja.
 
 \subsubsection{Gizmofájl (.agzm)}
 
