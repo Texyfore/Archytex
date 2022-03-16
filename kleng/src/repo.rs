@@ -1,6 +1,6 @@
-use serde::{Deserialize, Serialize};
+use std::collections::HashMap;
 
-use crate::indexed::{self, Indexed};
+use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Repo {
@@ -21,42 +21,10 @@ pub struct Prop {
     pub id: u32,
     pub dependencies: Vec<String>,
     pub public: Option<Public>,
+    pub emissive: HashMap<String, String>,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Public {
     pub categories: Vec<String>,
-}
-
-pub fn create(indexed: Indexed) -> Repo {
-    Repo {
-        textures: indexed
-            .textures
-            .into_iter()
-            .map(|texture| texture.into())
-            .collect(),
-
-        props: indexed.props.into_iter().map(|prop| prop.into()).collect(),
-    }
-}
-
-impl From<indexed::Texture> for Texture {
-    fn from(texture: indexed::Texture) -> Self {
-        Self {
-            name: texture.name,
-            id: texture.id,
-            public: texture.categories.map(|categories| Public { categories }),
-        }
-    }
-}
-
-impl From<indexed::Prop> for Prop {
-    fn from(prop: indexed::Prop) -> Self {
-        Self {
-            name: prop.name,
-            id: prop.id,
-            dependencies: prop.dependencies,
-            public: prop.categories.map(|categories| Public { categories }),
-        }
-    }
 }
