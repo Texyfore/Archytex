@@ -2,18 +2,70 @@
 \rhead{Szerkesztő}
 
 \subsection{A szerkesztő célja}
-Az Archytex szerkesztő célja egy felület biztosítása építészeti látványtervek felvázolására. A kész design-ok a beépített renderelés funkció segítségével élethű képekké, professzionális építészeti vizualizációkká alakíthatók, amelyek használhatóak hobbi szinten, portfólió építésre vagy akár professzionális munkához.
 
+Az Archytex szerkesztő célja egy eszköz biztosítása építészeti látványtervek elkészítésére. A kész
+jelenetek a beépített \emph{renderelés} funckió segítségével élethű képekké, professzionális
+építészeti vizualizációkká alakíthatók, amelyek használhatók hobbi szinten, portfólió építésére vagy
+akár professzionális munkához.
 
+\subsection{Térbeli navigáció}
 
-\subsection{Navigáció a 3D térben}
+A szerkesztő legalapvetőbb eszköze a mozgatható kamera, hisz nélküle egy másik eszközt sem lehet
+hasznosan alkalmazni. Szerencsére működése nagyon egyszerűen elsajátítható. Ahhoz, hogy a kamera
+mozogjon, nyomva kell tartani a \emph{jobb egérgombot} egészen addig, amíg mozogni szeretnénk.
+A \emph{jobb egérgomb} elengedésekor a kamera kilép a mozgó üzemmódból. Miközben a kamera mozgó
+üzemmódban van, előre, hátra, balra és jobbra a \emph{W, S, A és D}, míg le és
+fel az \emph{E és Q} billentyűkkel mozog. A kamera célirányának változtatása az egér mozgatásával
+érhető el.
 
-\subsection{Objektumok elhelyezése és szerkesztése}
+\subsection{Általános műveletek}
 
-\subsection{Könyvtárak használata}
+Létezik több olyan művelet, ami annyira általános, hogy bármilyen kontextusból elérhető.
 
-\subsection{Textúrák használata}
+\subsubsection{Visszavonás}
 
-\subsection{Díszítőelemek használata}
+Bármilyen műveletet vissza lehet vonni a \emph{Ctrl+Z} billentyűkombinációval. Ilyenkor a
+szerkesztő eltárolja a visszavont műveletet, hogy azt később meg lehessen ismételni. Ha az eltárolt
+műveletek mennyisége eléri a hatvannégyet, a legrégebbi törlésre kerül.
 
-\subsection{Renderelés}
+\subsubsection{Ismétlés}
+
+Ha a visszavont műveletek listája nem üres, akkor a \emph{Ctrl+Y} billentyűkombinációval kiadott
+\emph{ismétlés} művelet megismétli a legújabb visszavont műveletet.
+
+\subsubsection{A rács nagyítása és kicsinyítése}
+
+A szerkesztőben minden elem pozíciója egy négyzetes rácshoz igazodik. Az alapértelmezett rács
+oldalhossza \emph{1 méter}, viszont gyakran előfordul, hogy ez túl nagy, vagy éppen túl kicsi.
+Ilyenkor az \emph{O} billentyű lenyomásával a rács oldalhossza felére csökken, míg a \emph{P}
+billentyű lenyomásával kétszeresére nő.
+
+\subsubsection{Kijelölés}
+
+A jelenet bármely eleme kijelölhető. Egy elem kijelöléséhez két feltételnek kell teljesülnie: az
+\emph{egérmutatónak} az elem felett kell lennie, és meg kell nyomni a \emph{bal egérgombot}. Ha ez
+úgy történik meg, hogy már léteznek kijelölt elemek, akkor azok a kijelölések megszűnnek. Ha az
+előző kijelölés \emph{bővítése} a cél, akkor a \emph{Shift} billentyűt is nyomva kell tartani.
+Érdemes megjegyezni, hogy ha ilyenkor rákattintunk egy kijelölt elemre, az a kijelölés megszűnik,
+viszont a többi megmarad.
+
+\subsubsection{Mozgatás}
+
+A jelenet bármely kijelölt eleme mozgatható. Olyan esetben, amikor a mozgatás engedélyezett,
+látható a képernyőn a \emph{speciális mozgatóeszköz}. Az eszköz három színezett nyílból és három
+színezett négyzetből áll. A nyilak a tér három tengelye, míg a négyzetek a tér három síkja mentén
+mozgatják a kijelölt elemeket. Használathoz egyszerűen \emph{rá kell kattintani} a nyílra vagy
+négyzetre. Az elemek abba az irányba fognak elmozdulni, amerre az \emph{egérmutató} mozog. A
+\emph{bal egérgombot} addig kell lenyomva tartani, amíg az elemek nem kerültek a megfelelő helyükre.
+
+\subsubsection{Gyors mozgatás}
+
+\subsection{Test szerkesztési mód}
+
+\subsection{Lap szerkeszési mód}
+
+\subsection{Csúcs szerkesztési mód}
+
+\subsection{Berendező mód}
+
+\subsection{Mentés és renderelés}
