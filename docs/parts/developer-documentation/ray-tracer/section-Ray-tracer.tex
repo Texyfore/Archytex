@@ -50,5 +50,49 @@ Hogy alacsony sample szám esetén is viszonylag jó minőségű képeket kapjun
 
 Ez a szoftver mesterséges intelligenciát használ a képen lévő zaj eltávolítására.
 
+Csak x86 alapú rendszereken elérhető.
+
 \todo[inline]{Példa}
 
+\subsection{Elosztott renderelő}
+
+A képek elkészítési idejének csökkentésére a renderelőhöz hozzáadtunk egy elosztási rendszert.
+
+Ez a rendszer RabbitMQ-ra és Redis-re épül. A RabbitMQ egy üzenetküldő rendszer, amely a különböző rétegek közti kommunikációt segíti elő, míg a Redis egy kulcs-érték adatbázis, a hosszabb ideig szükséges és nagyobb adatok tárolására.
+
+A Redis szerverhez hozzáadtuk a RedisAI kiegészítőt, amivel lehet tömbökön végrehajtani matematikai operációkat. Ez a későbbiekben még hasznos lesz.
+
+Az egyszerűbb kezelés érdekében, két különböző réteget hoztunk létre: a tartomány kezelő réteg (domain manager) és a feliratkozó réteg (subscriber)
+
+\subsubsection{Tartománykezelő réteg}
+A Tartománykezelő réteg feladata a renderelési kérések fogadása a backendtől, munkákra osztása és a összerakása.
+
+A renderelés elkezdéséhez egy véletlenszerű azonosítót kell generálnunk a kérésünk számára (ID) és Redis-ben a következő értékeket kell beállítanunk:
+
+\begin{itemize}
+    \item archyrt:ID:width
+    
+    A várt kép szélessége pixelben
+    \item archyrt:ID:height
+    
+    A várt kép magassága pixelben
+    \item archyrt:ID:samples
+    
+    A renderelés során használt sample-ök száma
+    \item archyrt:ID:scene
+    
+    A projekt által haszált .ASCN bináris fájl
+\end{itemize}
+
+A kéréseket a RabbitMQ \emph{archyrt:dispatch} sorából várja. Az innen beérkező üzenetek karakterláncok, amelynek formátuma:\emph{kérésID\#felhasználóID\#projektID}.
+
+Ekkor a tartománykezelő a képet felosztja 16 egyenlő részre (csempe), és minden rész minden egyes samplejéhez egy-egy munkát köt a saját egyedi azonosítójával. A munkákat a \emph{archyrt:taskqueue} sorba küldi, a következő formátummal:\linebreak\emph{kérésID\#munkaID\#visszatérésiSorNeve\#csempeXKoordinátája\#csempeYKoordinátája}.
+
+A fenti üzenetben megadott sorból egyenként elfogadja az üzeneteket, az üzenetből kiolvassa, hogy a munka során generált kép hova lett mentve, és feldolgozza azt.\linebreak \emph{RedisKulcsAholAKépVan\#CsempeX\#CsempeY}
+
+Ezek után a tartománykezelő végrehajtja a zajeltávolítást és elmenti a képet a fájlrendszerre.
+
+\subsubsection{Feliratkozó réteg}
+A feliratkozó réteg feladata a Tartománykezelő által kiadott munkák végrehajtása. 
+
+Miután megkapta a feladatot az \emph{archyrt:taskqueue} sorból (lásd fent), betölti a Redis-ből a kéréshez tartozó jelenetet és kirendereli. Renderelés után feltölti Redis adatbázisba tensorként, véletlenszerű kulccsal és ezt jelzi a tartománykezelőnek.
