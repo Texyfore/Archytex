@@ -83,7 +83,7 @@ Az Archytex irányítópult feladata a projektek listázása és egy felhasznál
 A projektek lekérése és tárolása saját szervíz segítségével történik. Ez a szervíz tartalmazza a projektet és a rendert jellemző modellként szolgáló TypeScript interfészeket. Emellett a useState és a useContext horgokat használva eltárolja az API-val lekért adatokat, amik utána egy egyedi horog (useProjects) segítségével érhetők el a célkomponensben.
 
 \subsection{Szekesztő UI}
-A szerkesztő és a frontend közötti kommunikáció egy egyedi API segítségével történik. Beállítható ezen keresztül a szerkesztőben a transzformációs mód\footnote{Transzformációs mód: lap, él, csúcs vagy díszítőelem kiválasztása}, és kiválasztható a használni kívánt textúra és a díszítőelem.
+A szerkesztő és a frontend közötti kommunikáció egy egyedi API segítségével történik. Beállítható ezen keresztül a szerkesztőben a transzformációs mód\footnote{Transzformációs mód: lap, él, csúcs vagy díszítőelem kiválasztása}, és kiválasztható a használni kívánt textúra és a díszítőelem. A jelenlegi mód állapotát a szerkesztő gyökérkomponense kezeli, és innen adja át a MUI-s \emph{ToggleButtonGroup}-ra épített gomb csoport komponensnek. Ezáltal a gombok megnyomásával is állítható a transzformációs mód.
 
 \subsubsection{Könyvtár ablak}
 A textúra és a díszítőelem kiválasztására a könyvtár ablak komponens szolgál. Ez egy modál ablak, amely MUI komponenseket és egy saját szervízt használva megjeleníti az elérhető textúrákat vagy díszítőelemeket. A könyvtárban minden elem rendelkezik egy névvel és egy vagy több tulajdonsággal, amik Chip komponens formájában jelennek meg az elem kártyáján. A név és minden tulajdonság szűrhető, így elősegítve a könnyebb keresést.
@@ -127,3 +127,4 @@ Az Archytex alkalmazás több nyelven is elérhető. Az i18n\footnote{i18: Inter
 
 
 \subsection{Tesztek}
+\todo{Write subsection}
