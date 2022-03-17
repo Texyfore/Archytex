@@ -303,4 +303,5 @@ TSWLatexianTemp*
 *.pdf
 
 # Exclude from .gitignore
-!mandatory.pdf
+!mandatory-1.pdf
+!mandatory-2.pdf
