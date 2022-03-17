@@ -77,7 +77,9 @@
   {\large \today\par}
 \end{titlepage}
 
+\thispagestyle{empty}
 \includepdf[pages=-,pagecommand={},width=\textwidth]{mandatory.pdf}
+
 
 \tableofcontents
 
@@ -85,6 +87,8 @@
 \include{parts/part-Introduction.tex}
 
 \part{Felhasználói dokumentáció}
+\rhead{}
+
 % Account
 \include{parts/user-documentation/account/section-Account.tex}
 
@@ -95,6 +99,8 @@
 \include{parts/user-documentation/editor/section-Editor.tex}
 
 \part{Fejlesztői dokumentáció}
+\rhead{}
+
 % Work
 \include{parts/developer-documentation/work/section-Work.tex}
 
@@ -113,6 +119,7 @@
 \appendix
 \include{appendix.tex}
 
+\rhead{}
 \bibliographystyle{plain}
 \bibliography{ref}
 \end{document}
