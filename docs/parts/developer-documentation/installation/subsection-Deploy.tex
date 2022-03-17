@@ -1,1 +1,12 @@
 \subsection{Szerver beüzemeltetése}
+Az Archytex beüzemeléséhez a legfrissebb Docker és Docker-compose szoftverekre van szükség. A Debian csomagkezelőjében egy sokkal régebbi verzió van, így, ha Debiant vagy Debian alapú operációs rendszert használ, akkor kövesse a Docker weboldalának utasításait \footnote{\url{https://docs.docker.com/engine/install/debian/}}.
+
+A konténerstruktúra elindításához navigáljon a repository gyökerébe és futtassa le a következő parancsot:
+\begin{lstlisting}
+    docker-compose up
+\end{lstlisting}
+
+Ha a szervert futtató gép ARM64 alapú\footnote{például Ampere, vagy Apple M1. Ez utóbbi nem volt tesztelve} , akkor a következő parancsot futtassa le:
+\begin{lstlisting}
+    docker-compose -f docker-compose.yml -f docker-compose.arm64.yml up
+\end{lstlisting}

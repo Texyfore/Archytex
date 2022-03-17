@@ -1,0 +1,20 @@
+\subsection{Raytracer feliratkozó beállítása}
+
+
+A Raytracer funkció működése érdekében szükséges létrehozni egy Feliratkozó szervert.
+Ehhez a GitHub oldalon a \emph{Releases} menüpont alatt találja meg a futtatható bináris fájlt.
+Ez a bináris fájl a raytracer/archyrt-sub útvonalon található Cargo crateből jött létre.
+
+
+
+Hozzon létre egy mappát a feliratkozónak, amelyben van egy \emph{assets} és egy \emph{renderer} mappa. A \emph{renderer} mappába tegye a bináris fájlt. Tegye az \emph{assets} mappába a Kleng által generált, vagy a már kész erőforráscsomagban található raytracer minőségű erőforrásokat, illetve a repo.json mappát. 
+
+A \emph{renderer} mappában hozzon létre egy .env fájlt és töltse ki a következők szerint:
+\begin{lstlisting}
+    AMQP_ADDR=amqp://szervercim:5672
+    REDIS_ADDR=redis://:redisjelszo:szervercim:6379
+\end{lstlisting}
+
+A \emph{szervercim} helyére írja be a docker csomagot futtató szerver címét, a \emph{redisjelszo} helyére pedig a \textbf{\nameref{config}} részben definiált Redis jelszót.
+
+Indítsa el a bináris futtatható fájlt.
