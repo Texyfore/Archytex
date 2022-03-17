@@ -1,7 +1,7 @@
 \subsection{.env fájl létrehozása}
 \label{config}
 
-A szerverek konfigurálásához létre kell hozni egy .env fájlt. A repository törzsében található egy .env.sample fájl. Ez egy példa konfiguráció.
+A szerverek konfigurálásához egy .env fájlt létrehozására van szükség. A repository törzsében található egy .env.sample fájl, amely egy példa konfiguráció.
 
 Másolja ezt a .env.sample fájlt és nyissa meg egy szövegszerkesztő programmal, például Jegyzettömbbel.
 
@@ -9,8 +9,8 @@ A fájl minden sorában egy-egy konfigurációs elem található. Az elemek egy 
 
 A DOMAIN konfigurációhoz a szolgáltatás címét kell megadni, például: archytex.tech
 
-Az SMTP kezdetű sorok szükségesek a regisztrációt megerősítő ímélek elküldéséhez. A pontos értékekhez keresse meg ímélszolgáltatás követítőjének dokumentációját.
+Az SMTP kezdetű sorok szükségesek a regisztrációt megerősítő e-mail-ek elküldéséhez. A pontos értékekhez keresse meg e-mail szolgáltatás közvetítőjének dokumentációját.
 
-A CAPTCHA kezdetű sorok a bejelentkezéshez szükséges Captchát konfigurálják. Ehhez szükség van egy ReCaptcha V2 kulcspárra, amit a ReCaptcha oldalon\footnote{\url{https://www.google.com/recaptcha/admin/}} hozhat létre. A CAPTCHA\_SECRET után a \emph{secret key}-t kell rakni, míg a CAPTCHA\_PUBLIC után a \emph{site key}-t.
+A CAPTCHA kezdetű sorok a bejelentkezéshez szükséges Captcha-t konfigurálják. Ehhez szükség van egy ReCaptcha V2 kulcspárra, amit a ReCaptcha oldalon\footnote{\url{https://www.google.com/recaptcha/admin/}} hozhat létre. A CAPTCHA\_SECRET után a \emph{secret key}-t kell rakni, míg a CAPTCHA\_PUBLIC után a \emph{site key}-t.
 
-Végül, a REDIS\_PASSWORD részbe generálnia kell egy jelszót, amely majd később a csatlakozáshoz lesz használva.
+Végül szükséges egy jelszó generálása, amelyet a REDIS\_PASSWORD részbe kell elhelyezni. Ez a jelszó használható a későbbi csatlakozáshoz.
