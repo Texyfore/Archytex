@@ -28,7 +28,11 @@ A honlap elkészítéséhez a MUI (Material UI)\footnote{\url{https://mui.com/}}
 \subsection{Reszponzivitás}
 Egy modern holnap készítésénél elengedhetetlen, hogy minden eszközön használható legyen, bármilyen megjelenítőt támogasson. Az Archytex honalpon a reszponzivitás megvalósításában a MUI könyvtár segít. A Container és a Grid komponensek egyszerűen testreszabhatók a különböző töréspontokon. Emellett azon komponensek esetében, ahol szükség van a töréspontokkal kapcsolatos logikára, ott a useMediaQuery horog nyújt megoldást.
 
-\todo{Image of mobile view drawer}
+\begin{figure}[h]
+  \centering
+  \includegraphics[height=7cm]{parts/developer-documentation/frontend/images/mobile-view.png}
+  \caption{Navigációs menü mobil nézetben}
+\end{figure}
 
 \subsection{Főoldal}
 A főoldal célja, hogy egy új felhasználónak "eladja" a termékünket. Ezért fontos volt, hogy látványos és emlékezetes legyen, de ezek mellett egyben informatív is. A látványossághoz nagyban hozzájárultak az Undraw.io-s illusztrációk és a tsparticles\footnote{\url{https://github.com/matteobruni/tsparticles/tree/main/components/react}} JavaScript könyvtár segítségével létrehozott, az oldal fejlécében megjelenő interaktív buborékok. Emellett az interaktívitás növelése érdekében az AOS (Animate On Scroll) könyvtárat használva megoldottuk, hogy a honlap tartalma folyamatosan jelenjen meg, ahogy a felhasználó görget lefelé a honlapon.
@@ -62,6 +66,8 @@ A bejelentkezési és regisztrációs képernyő frontend funkcionalitás szempo
   \end{minipage}
   \caption{Példa az egyedi beviteli komponens használatára a bejelentkezési képernyőn}
 \end{figure}
+
+\pagebreak
 
 \subsection{Irányítópult}
 Az Archytex irányítópult feladata a projektek listázása és egy felhasználói interfész biztosítása ezen projektek beállításainak módosítására, tulajdonságaik megtekintésére. Egy projekten belül megjelennek a projekthez tartozó renderek, amik letölthetőek és kinagyíthatók.
