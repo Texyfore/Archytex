@@ -11,9 +11,10 @@ fogjuk megvalósítani.
 
 Egy ilyen szoftver esetében nagyon fontos a sebesség, ezért úgy döntöttünk, hogy a
 böngészőkben használt JavaScript helyett a sokkal gyorsabb --- ámbár fiatalabb és éretlenebb ---
-WebAssembly\footnote{https://webassembly.org} technológiát fogjuk használni. Mivel a WebAssembly
-önmagában csak egy utasításkészlet, szükségünk volt egy programozási nyelvre, amit lehetséges
-WebAssembly utasításokra fordítani. Erre a célra a Rust\footnote{https://www.rust-lang.org}
+WebAssembly\footnote{\url{https://webassembly.org}} technológiát fogjuk használni. Mivel a
+WebAssembly önmagában csak egy utasításkészlet, szükségünk volt egy programozási nyelvre,
+amit lehetséges WebAssembly utasításokra fordítani. Erre a célra a
+Rust\footnote{\url{https://www.rust-lang.org}}
 programozási nyelvet választottuk. Ennek a döntésnek több oka is van:
 
 \begin{itemize}
@@ -23,7 +24,7 @@ programozási nyelvet választottuk. Ennek a döntésnek több oka is van:
       \item Fejlett WebAssembly eszközök: Annak ellenére, hogy a nyelv viszonylag fiatal, rengeteg
             kiváló eszköz és könyvtár áll rendelkezésre a WebAssembly programok fejlesztésének
             elősegítéséhez. Ezek közül talán a legfontosabb a
-            wasm-bindgen\footnote{https://github.com/rustwasm/wasm-bindgen} könyvtár, amellyel
+            wasm-bindgen\footnote{\url{https://github.com/rustwasm/wasm-bindgen}} könyvtár, amellyel
             triviális feladattá válik a böngésző által használt JavaScript kód és a WebAssemblyre
             átforduló Rust kód összekötése.
 
@@ -37,7 +38,7 @@ A használt technológiák kiválasztása után megkezdődött a szerkesztő mű
 Hamar eldöntöttük, hogy nagyrészt két, már létező szoftver eszközeiből szeretnénk ötleteket
 meríteni.
 
-Az egyik szoftver, a Blender\footnote{https://www.blender.org/} egy általános rendeltetésű
+Az egyik szoftver, a Blender egy általános rendeltetésű
 háromdimenziós modellező program. Rendkívül sokoldalú és bonyolult, ezért csak néhány mechanizmust
 ültettünk át a saját szerkesztőnkbe, például a kijelölés és a mozgatás módját.
 
@@ -47,11 +48,11 @@ háromdimenziós modellező program. Rendkívül sokoldalú és bonyolult, ezér
       \caption{Blender}
 \end{figure}
 
-A másik kiindulási pontként használt szoftver az ún.
-Hammer Editor\footnote{https://developer.valvesoftware.com/wiki/Valve\_Hammer\_Editor}. A program a
-Valve Software által fejlesztett Source játékmotor pályaszerkesztő alkalmazása. A Hammer Editor
-egyik erőssége, és egyben az a tulajdonsága, amit mi is megvalósítottunk az, hogy benne bármilyen
-komplex beltéri vagy kültéri jelenet lemodellezhető kisebb, egyszerűb alakzatok felhasználásával.
+A másik kiindulási pontként használt szoftver a Valve Hammer Editor. A
+program a Valve Software által fejlesztett Source játékmotor pályaszerkesztő alkalmazása. A Hammer
+Editor egyik erőssége, és egyben az a tulajdonsága, amit mi is megvalósítottunk az, hogy benne
+bármilyen komplex beltéri vagy kültéri jelenet lemodellezhető kisebb, egyszerűb alakzatok
+felhasználásával.
 
 \begin{figure}[h]
       \centering
@@ -84,10 +85,10 @@ anoním függvényt a Rust oldalnak, amit aztán a szerkesztő szükség esetén
 
 A szerkesztő egyik legfontosabb feladata, hogy képes legyen kirajzolni a jelenetet a képernyőre.
 Ezt teszik lehetővé a különböző grafikus API-k, mint például az
-OpenGL\footnote{https://www.opengl.org}, Vulkan\footnote{https://www.vulkan.org},
-vagy böngésző esetén a WebGL\footnote{https://www.khronos.org/webgl}.
+OpenGL\footnote{\url{https://www.opengl.org}}, Vulkan\footnote{\url{https://www.vulkan.org}},
+vagy böngésző esetén a WebGL\footnote{\url{https://www.khronos.org/webgl}}.
 A Rust programozási nyelvhez rengeteg olyan könyvtár érhető el, ami ezeket az API-okat elérhetővé
-teszi. Mi úgy döntöttünk, hogy a wgpu\footnote{https://github.com/gfx-rs/wgpu} könyvtárat fogjuk
+teszi. Mi úgy döntöttünk, hogy a wgpu\footnote{\url{https://github.com/gfx-rs/wgpu}} könyvtárat fogjuk
 használni. Ennek legfőbb oka az, hogy egy letisztult, biztonságos réteget húz a régies WebGL
 interfészre.
 
@@ -119,8 +120,9 @@ A tervezési fázisban hamar kiderült, hogy sok időt és energiát kell fektet
 használt külső erőforrások tárolásának és létrehozásának módjának meghatározásába. Arra jutottunk,
 hogy ezen célok teljesítéséhez saját fájlformátumokat fogunk kifejleszteni. A fejlesztés során
 felmerülő igények kielégítésére végül három új fájlformátum született meg: .ascn, .amdl, és .agzm.
-Mindhárom fájlformátum bináris kódolású, előállításukat és beolvasásukat a bincode könyvtár
-végzi. Az adatokat mindegyik formátum egymásba ágyazott struktúrákban tárolja.
+Mindhárom fájlformátum bináris kódolású, előállításukat és beolvasásukat a
+bincode\footnote{\url{https://github.com/bincode-org/bincode}}
+könyvtár végzi. Az adatokat mindegyik formátum egymásba ágyazott struktúrákban tárolja.
 
 \pagebreak
 
@@ -152,7 +154,7 @@ adatait tárolja. Egy díszítőelemnek modell ID-je, pozíciója és forgása v
 A .amdl fájlformátum egy tetszőlegesen komplex 3D modell tárolására szolgál, néhány korlátozással.
 A formátum például nem képes animációkat kódolni, hiszen a szerkesztő nem támogatja a mozgó tárgyak
 megjelenítését. A modellfájl gyökérstruktúrája \emph{Prop} névre hallgat. Két eleme van:
-\emph{bounding\_box} és \emph{meshes}. A \emph{bounding\_box} elem a modell köré írható,
+\emph{bounds} és \emph{meshes}. A \emph{bounds} elem a modell köré írható,
 tengelyekhez igazított téglatestet tárolja. A \emph{meshes} elem vektoros adatszerkezet, ami a
 modellt felépítő, textúrázott almodelleket tárolja.
 
