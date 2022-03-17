@@ -1,1 +1,126 @@
 \subsection{Erőforrások létrehozása}
+
+A program lehetőséget nyújt arra, hogy az üzemeltető a beépített erőforrásokat
+(textúrák, díszítőelemek) kicserélje sajátokra. Ha erre nincs igény, akkor ezt a lépést ki lehet
+hagyni.
+
+\subsubsection{Előkészületek}
+
+\begin{enumerate}
+    \item Hozzon létre egy tetszőleges nevű könyvtárat. A továbbiakban a dokumentum erre a
+    könyvtárra \emph{assets} néven hivatkozik.
+
+    \item Hozzon létre két új könyvtárat az \emph{assets} könvytárban. Az egyik neve legyen
+    \emph{textures}, a másiké legyen \emph{props}.
+
+    \item Hozzon létre egy új üres fájlt az \emph{assets} könyvtárban. A neve legyen \emph{assets},
+    a kiterjesztése legyen \emph{json}.
+\end{enumerate}
+
+\subsubsection{Textúrák elhelyezése}
+
+Gyűjtse össze az összes használni kívánt textúrát, és helyezze őket az \emph{assets/textures}
+könyvtárba. A textúrák kizárólag PNG képek lehetnek. Nem követelmény, de a helyes működés érdekében
+ajánlott, hogy minden textúra legyen 1024 pixel széles és 1024 pixel magas. Megjegyzés: Azok a
+textúrák is idetartoznak, amelyeket csak díszítőelemek használnak, és felhasználó számára nem
+publikusak.
+
+\subsubsection{Díszítőelemek elhelyezése}
+
+Gyűjtse össze az összes használni kívánt díszítőelemet, és helyezze őket az \emph{assets/props}
+könyvtárba. A díszítőelemek kizárólag beágyazott GLTF modellek lehetnek. A modellnek egyedi
+névvel rendelkező almodellekből kell állnia. Minden almodellhez egyetlen textúra tartozhat.
+
+\pagebreak
+
+\subsubsection{Az \emph{assets.json} fájl kitöltése}
+
+Az \emph{assets.json} fájl tartalmazza az összes textúra és díszítőelem tulajdonságait. Töltse ki
+a fájlt a következő séma szerint:
+
+\begin{figure}[h]
+\centering
+\begin{minipage}{.7\textwidth}
+\centering
+\begin{lstlisting}
+{
+    "textures": {
+        "textura_neve": {
+            "diffuse": "kep_neve.png",
+            "emissive": "emissziv_kep_neve.png" | null,
+            "categories": ["kategoria1", "kategoria2", ...]
+        },
+        ...
+    },
+    "props": {
+        "diszitoelem_neve": {
+            "source": "modell_neve.gltf",
+            "categories": ["kategoria1", "kategoria2", ...],
+            "textures": {
+                "AlmodellNeve": "textura_neve"
+            }
+        },
+        ...
+    }
+}
+\end{lstlisting}
+\end{minipage}
+\end{figure}
+
+Megjegyzés: Textúrának csak akkor kell kategóriákat adni, ha azt szeretné, hogy megjelenjen a
+textúrakönyvtárban. Ellenkező esetben a \emph{categories} tömb maradjon üresen.
+
+\pagebreak
+
+\subsubsection{A kleng telepítése}
+
+Ahhoz, hogy az eddig összegyűjtött erőforrásokat a szerkesztő használni tudja, először át kell őket
+konvertálni.
+
+Az Archytex GitHub repository-ja tartalmazza a \emph{kleng} nevű program forrását. Ez a program
+felelős az erőforrások használható formátummá konvertálásáért. Ahhoz, hogy továbbléphessen, ezt a
+programot fel kell telepítenie. A telepítéshez szüksége lesz a
+\emph{cargo}\footnote{https://doc.rust-lang.org/cargo/getting-started/installation.html}
+programra. Miután feltelepítette a \emph{cargo}-t a számítógépére, nyisson meg egy parancssort
+(Windows) vagy terminált (Linux, MacOS), és adja ki a következő parancsot:
+
+\begin{figure}[h]
+\centering
+\begin{minipage}{.7\textwidth}
+\begin{lstlisting}
+cargo install --path (ARCHYTEX_HELYE)/kleng
+\end{lstlisting}
+\end{minipage}
+\end{figure}
+
+A folyamat eltarthat néhány percig. Miután befejeződött, navigáljon el az \emph{assets} könyvtárba,
+és adja ki a következő parancsot:
+
+\begin{figure}[h]
+\centering
+\begin{minipage}{.7\textwidth}
+\begin{lstlisting}
+kleng .
+\end{lstlisting}
+\end{minipage}
+\end{figure}
+
+Ha nincs hiba az összegyűjtött erőforrásokban vagy az \emph{assets.json} fájlban, a program
+csendben kilép. Ha hibaüzenet jelenik meg, ellenőrizze az erőforrások helyességét és próbálja
+újra. Sikeres konvertálás esetén az \emph{assets} könyvtárban megjelenik egy \emph{out}
+nevű könyvtár.
+
+\subsubsection{Erőforrások elhelyezése}
+
+Végül a \emph{kleng} által generált állományokat át kell másolni a megfelelő helyekre.
+
+\begin{enumerate}
+    \item Az \emph{out/public} könyvtár tartalmát másolja át az \\
+    \emph{(ARCHYTEX\_HELYE)/frontend/public/assets} könyvtárba.
+
+    \item Az \emph{out/repo.json} fájlt másolja át az \\
+    \emph{(ARCHYTEX\_HELYE)/frontend/public/assets} könyvtárba.
+
+    \item További utasításokért olvassa el a \ref{deploy} és \ref{subscriber} szekciókat.
+
+\end{enumerate}
