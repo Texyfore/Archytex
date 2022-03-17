@@ -37,7 +37,7 @@ A használt technológiák kiválasztása után megkezdődött a szerkesztő mű
 Hamar eldöntöttük, hogy nagyrészt két, már létező szoftver eszközeiből szeretnénk ötleteket
 meríteni.
 
-Az egyik szoftver, a Blender\footnote{https://www.blender.org/} egy általános rendeltetésű
+Az egyik szoftver, a Blender\footnote{https://www.blender.org} egy általános rendeltetésű
 háromdimenziós modellező program. Rendkívül sokoldalú és bonyolult, ezért csak néhány mechanizmust
 ültettünk át a saját szerkesztőnkbe, például a kijelölés és a mozgatás módját.
 
@@ -47,11 +47,12 @@ háromdimenziós modellező program. Rendkívül sokoldalú és bonyolult, ezér
       \caption{Blender}
 \end{figure}
 
-A másik kiindulási pontként használt szoftver az ún.
-Hammer Editor\footnote{https://developer.valvesoftware.com/wiki/Valve\_Hammer\_Editor}. A program a
-Valve Software által fejlesztett Source játékmotor pályaszerkesztő alkalmazása. A Hammer Editor
-egyik erőssége, és egyben az a tulajdonsága, amit mi is megvalósítottunk az, hogy benne bármilyen
-komplex beltéri vagy kültéri jelenet lemodellezhető kisebb, egyszerűb alakzatok felhasználásával.
+A másik kiindulási pontként használt szoftver a
+Valve Hammer Editor\footnote{https://developer.valvesoftware.com/wiki/Valve\_Hammer\_Editor}. A
+program a Valve Software által fejlesztett Source játékmotor pályaszerkesztő alkalmazása. A Hammer
+Editor egyik erőssége, és egyben az a tulajdonsága, amit mi is megvalósítottunk az, hogy benne
+bármilyen komplex beltéri vagy kültéri jelenet lemodellezhető kisebb, egyszerűb alakzatok
+felhasználásával.
 
 \begin{figure}[h]
       \centering
@@ -119,8 +120,9 @@ A tervezési fázisban hamar kiderült, hogy sok időt és energiát kell fektet
 használt külső erőforrások tárolásának és létrehozásának módjának meghatározásába. Arra jutottunk,
 hogy ezen célok teljesítéséhez saját fájlformátumokat fogunk kifejleszteni. A fejlesztés során
 felmerülő igények kielégítésére végül három új fájlformátum született meg: .ascn, .amdl, és .agzm.
-Mindhárom fájlformátum bináris kódolású, előállításukat és beolvasásukat a bincode könyvtár
-végzi. Az adatokat mindegyik formátum egymásba ágyazott struktúrákban tárolja.
+Mindhárom fájlformátum bináris kódolású, előállításukat és beolvasásukat a
+bincode\footnote{https://github.com/bincode-org/bincode}
+könyvtár végzi. Az adatokat mindegyik formátum egymásba ágyazott struktúrákban tárolja.
 
 \pagebreak
 
@@ -152,7 +154,7 @@ adatait tárolja. Egy díszítőelemnek modell ID-je, pozíciója és forgása v
 A .amdl fájlformátum egy tetszőlegesen komplex 3D modell tárolására szolgál, néhány korlátozással.
 A formátum például nem képes animációkat kódolni, hiszen a szerkesztő nem támogatja a mozgó tárgyak
 megjelenítését. A modellfájl gyökérstruktúrája \emph{Prop} névre hallgat. Két eleme van:
-\emph{bounding\_box} és \emph{meshes}. A \emph{bounding\_box} elem a modell köré írható,
+\emph{bounds} és \emph{meshes}. A \emph{bounds} elem a modell köré írható,
 tengelyekhez igazított téglatestet tárolja. A \emph{meshes} elem vektoros adatszerkezet, ami a
 modellt felépítő, textúrázott almodelleket tárolja.
 
