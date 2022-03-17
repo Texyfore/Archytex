@@ -33,12 +33,21 @@ műveletek mennyisége eléri a hatvannégyet, a legrégebbi törlésre kerül.
 Ha a visszavont műveletek listája nem üres, akkor a \emph{Ctrl+Y} billentyűkombinációval kiadott
 \emph{ismétlés} művelet megismétli a legújabban visszavont műveletet.
 
+\pagebreak
+
 \subsubsection{A rács nagyítása és kicsinyítése}
 
 A szerkesztőben minden elem pozíciója egy négyzetes rácshoz igazodik. Az alapértelmezett rács
 oldalhossza \emph{1 méter}, viszont gyakran előfordul, hogy ez túl nagy, vagy éppen túl kicsi.
 Ilyenkor az \emph{O} billentyű lenyomásával a rács oldalhossza felére csökken, míg a \emph{P}
 billentyű lenyomásával kétszeresére nő.
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.25\textwidth]{parts/user-documentation/editor/images/grid_128.png}
+    \includegraphics[width=0.25\textwidth]{parts/user-documentation/editor/images/grid_64.png}
+    \caption{Azonos alakzat különböző rács oldalhosszúsággal}
+\end{figure}
 
 \subsubsection{Kijelölés}
 
@@ -49,14 +58,36 @@ előző kijelölés \emph{bővítése} a cél, akkor a \emph{Shift} billentyűt 
 Érdemes megjegyezni, hogy ha ilyenkor rákattintunk egy kijelölt elemre, az a kijelölés megszűnik,
 viszont a többi megmarad.
 
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.25\textwidth]{parts/user-documentation/editor/images/unselected.png}
+    \includegraphics[width=0.25\textwidth]{parts/user-documentation/editor/images/selected.png}
+    \caption{Azonos alakzat alapállapotban és kijelölve}
+\end{figure}
+
 \subsubsection{Mozgatás}
 
 A jelenet bármely kijelölt eleme mozgatható. Olyan esetben, amikor a mozgatás engedélyezett,
 látható a képernyőn a \emph{speciális mozgatóeszköz}. Az eszköz három színezett nyílból és három
-színezett négyzetből áll. A nyilak a tér három tengelye, míg a négyzetek a tér három síkja mentén
+színezett négyzetből áll.
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.25\textwidth]{parts/user-documentation/editor/images/move_gizmo.png}
+    \caption{Speciális mozgatóeszköz}
+\end{figure}
+
+A nyilak a tér három tengelye, míg a négyzetek a tér három síkja mentén
 mozgatják a kijelölt elemeket. Használathoz egyszerűen \emph{rá kell kattintani} a nyílra vagy
 négyzetre. Az elemek abba az irányba fognak elmozdulni, amerre az \emph{egérmutató} mozog. A
 \emph{bal egérgombot} addig kell lenyomva tartani, amíg az elemek nem kerültek a megfelelő helyükre.
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.5\textwidth]{parts/user-documentation/editor/images/move_in_action.png}
+    \includegraphics[width=0.5\textwidth]{parts/user-documentation/editor/images/move_in_action_plane.png}
+    \caption{Elemek mozgatása a speciális mozgatóeszközzel}
+\end{figure}
 
 \subsubsection{Gyors mozgatás}
 
@@ -90,11 +121,20 @@ elengedtekor az új \emph{test} véglegessé válik.
 
 Egy vagy több kijelölt \emph{test} törléséhez nyomja le a \emph{Delete} billentyűt.
 
+\pagebreak
+
 \subsubsection{Forgatás}
 
 Gyakran előfordulhat, hogy szimmetrikus alakzatok elkészítésére van szükség. Ilyenkor jól jöhet a
 \emph{test forgatása} eszköz, amely segítségével a kijelölt \emph{testeket} bármely bázis tengely
 körül lehet forgatni $90^{\circ}$ vagy $-90^{\circ}$-os szögben.
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.25\textwidth]{parts/user-documentation/editor/images/rot1.png}
+    \includegraphics[width=0.25\textwidth]{parts/user-documentation/editor/images/rot2.png}
+    \caption{Alakzat forgatás előtt és után}
+\end{figure}
 
 Az eszköz használatához jelöljön ki néhány \emph{testet}, majd nyomja le az \emph{F} billentyűt.
 Miután ez megtörtént, válassza ki a megfelelő forgástengelyt az \emph{X, Y vagy Z} billentyű
@@ -102,23 +142,33 @@ lenyomásával. A forgástengely kiválasztása után a kijelölt \emph{testek} 
 Ha a forgástengely kiválasztása közben a \emph{Shift} billentyű nincs lenyomva, a forgás szöge
 $90^{\circ}$, ellenkező esetben $-90^{\circ}$.
 
-\subsubsection{Másolás}
-
-Egy vagy több kijelölt \emph{test} másolásához nyomja le a \emph{C} billentyűt. Ilyenkor a
-szerkesztő \emph{gyors mozgatás} üzemmódba lép, így a lemásolt \emph{testek} azonnal mozgathatóvá
-válnak.
-
 \subsubsection{Üregesítés}
 
 Bármely \emph{testet} azonnal üregessé lehet tenni a \emph{H} billentyű lenyomásával. Ez a művelet
 főleg beltéri területek kialakítására hasznos. Az új, üreges tér falainak vastagságát a \emph{rács}
 oldalhossza adja meg.
 
-\subsection{Lap szerkeszési mód}
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.25\textwidth]{parts/user-documentation/editor/images/hollow1.png}
+    \includegraphics[width=0.25\textwidth]{parts/user-documentation/editor/images/hollow2.png}
+    \caption{Test üregesítés előtt és után (néhány fal láthatatlan a példa kedvéért)}
+\end{figure}
 
-A szerkesztő második \emph{módja}, a \emph{lap szerkesztési mód} a \emph{testek} \emph{lapjainak}
-manipulációját teszi lehetővé. Az általános műveletek itt is működnek, tehát a \emph{lapok}
-szabadon mozgathatók.
+\subsubsection{Másolás}
+
+Egy vagy több kijelölt \emph{test} másolásához nyomja le a \emph{C} billentyűt. Ilyenkor a
+szerkesztő \emph{gyors mozgatás} üzemmódba lép, így a lemásolt \emph{testek} azonnal mozgathatóvá
+válnak.
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.5\textwidth]{parts/user-documentation/editor/images/copy1.png}
+    \includegraphics[width=0.5\textwidth]{parts/user-documentation/editor/images/copy2.png}
+    \caption{Testek másolása}
+\end{figure}
+
+\subsection{Lap szerkeszési mód}
 
 \subsubsection{Textúrázás}
 
@@ -127,10 +177,25 @@ egy tetszőleges \emph{textúrát} a \emph{textúra könyvtárból}, majd jelöl
 \emph{lapot} és nyomja le a \emph{T} billentyűt. A kijelölt \emph{lapokon} ezentúl a kiválasztott
 \emph{textúra} fog megjelenni.
 
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.25\textwidth]{parts/user-documentation/editor/images/tex1.png}
+    \includegraphics[width=0.25\textwidth]{parts/user-documentation/editor/images/tex2.png}
+    \caption{Lap textúrázás előtt és után}
+\end{figure}
+
+\pagebreak
+
 \subsection{Csúcs szerkesztési mód}
 
 Mivel egy \emph{csúcs} egyetlen tulajdonsága a térbeli elhelyezkedése, ezért a
 \emph{csúcs szerkesztési mód} nem tartalmaz további \emph{speciális műveleteket.}
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.25\textwidth]{parts/user-documentation/editor/images/vertices.png}
+    \caption{Csúcsok mozgatása}
+\end{figure}
 
 \subsection{Berendező mód}
 
@@ -145,6 +210,12 @@ forgathatóak. Egy vagy több \emph{díszítőelem} kijelölése után megjeleni
 Forgatáshoz húzza az \emph{egérmutatót} a forgástengelyzet tartozó kör fölé, majd tartsa lenyomva
 a \emph{bal egérgombot}. A kijelölt \emph{díszítőelemek} az \emph{egérmutató} mozgása szerint
 fognak forogni.
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.25\textwidth]{parts/user-documentation/editor/images/rotate_gizmo.png}
+    \caption{Speciális forgatóeszköz}
+\end{figure}
 
 \subsubsection{Gyors forgatás}
 
@@ -170,3 +241,9 @@ A kész jelenetekből könnyedén lehet élethű képeket készíteni. Nyomja me
 a \emph{Render indítása} gombot. Ezután akár el is hagyhatja az oldalt, mivel a kirajzolás
 folyamata nálunk, a háttérben fog megtörténni. A kész képeket a \emph{Vezérlőpultban} tekintheti
 meg.
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.5\textwidth]{parts/user-documentation/editor/images/render.png}
+    \caption{Render beállítások}
+\end{figure}
