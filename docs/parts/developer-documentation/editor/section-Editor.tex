@@ -34,8 +34,8 @@ programozási nyelvet választottuk. Ennek a döntésnek több oka is van:
 \subsection{Működési elvek}
 
 A használt technológiák kiválasztása után megkezdődött a szerkesztő működési elveinek felállítása.
-Hamar eldöntöttük, hogy nagyrészt két, már létező szoftver működési elveit szeretnénk kiinduló
-pontként használni.
+Hamar eldöntöttük, hogy nagyrészt két, már létező szoftver eszközeiből szeretnénk ötleteket
+meríteni.
 
 Az egyik szoftver, a Blender\footnote{https://www.blender.org/} egy általános rendeltetésű
 háromdimenziós modellező program. Rendkívül sokoldalú és bonyolult, ezért csak néhány mechanizmust
@@ -50,8 +50,8 @@ háromdimenziós modellező program. Rendkívül sokoldalú és bonyolult, ezér
 A másik kiindulási pontként használt szoftver az ún.
 Hammer Editor\footnote{https://developer.valvesoftware.com/wiki/Valve\_Hammer\_Editor}. A program a
 Valve Software által fejlesztett Source játékmotor pályaszerkesztő alkalmazása. A Hammer Editor
-egyik erőssége, és egyben az a tulajdonsága amit mi is megvalósítottunk az, hogy benne bármilyen
-komplex beltéri vagy kültéri jelenet lemodellezhető kisebb, egyszerűb alakzatok kombinálásával.
+egyik erőssége, és egyben az a tulajdonsága, amit mi is megvalósítottunk az, hogy benne bármilyen
+komplex beltéri vagy kültéri jelenet lemodellezhető kisebb, egyszerűb alakzatok felhasználásával.
 
 \begin{figure}[h]
       \centering
@@ -62,14 +62,14 @@ komplex beltéri vagy kültéri jelenet lemodellezhető kisebb, egyszerűb alakz
 
 \subsection{Kommunikáció a böngészővel}
 
-Problémák és kihívások nem csak a tervezési fázisban bukkantak fel; fejlesztés során is akadt
-bőven. Az egyik legelső probléma, amivel fejlesztés közben találkoztunk, az a böngészővel való
-kommunikáció kérdése. Mivel a JavaScript alapú felhasználói felület és a Rust alapú szerkesztő
-valójában két független alkalmazás, ezért ki kellett találni egy módszert az információmegosztásra.
-Az egyszerű függvényhívások két okból nem feleltek meg. Először is, a JavaScript és WebAssembly
-kód natívan csak egész számok átadására képes, ami mi céljainkhoz kevés. Másodszor, mivel a
-szerkesztő teljes mértékben WebAssembly memóriában él, nincs semmilyen JavaScript objektum, aminek
-a függvényeit le lehetne hívni.
+Problémák és kihívások nem csak a tervezési fázisban bukkantak fel. Az egyik legelső probléma,
+amivel fejlesztés közben találkoztunk, az a böngészővel való kommunikáció kérdése. Mivel a
+JavaScript alapú felhasználói felület, és a Rust alapú szerkesztő valójában két független
+alkalmazás, ezért ki kellett találni egy módszert az információmegosztásra. Az egyszerű
+függvényhívások két okból nem feleltek meg. Először is, a JavaScript és WebAssembly kód natívan
+csak egész számok átadására képes, ami mi céljainkhoz kevés. Másodszor, mivel a szerkesztő teljes
+mértékben WebAssembly memóriában él, nincs semmilyen JavaScript objektum, aminek a függvényeit le
+lehetne hívni.
 
 Az első problémánkra a wasm-bindgen nevű Rust könyvtár adott megoldást. A wasm-bindgen lehetségessé
 teszi az egész számoknál komplexebb adatstruktúrák átültétését Rust kódból JavaScript kódba, és
@@ -91,7 +91,9 @@ teszi. Mi úgy döntöttünk, hogy a wgpu\footnote{https://github.com/gfx-rs/wgp
 használni. Ennek legfőbb oka az, hogy egy letisztult, biztonságos réteget húz a régies WebGL
 interfészre.
 
-\subsection{Akció alapú szerkesztés}
+\pagebreak
+
+\subsection{Művelet alapú szerkesztés}
 
 Az előzetes tervezési fázisban számunkra fontos kikötés volt, hogy a szerkesztés közben
 megvalósulhasson az ún. non-destruktív munkamenet. Ez azt jelenti, hogy bármit, amit a felhasználó
@@ -99,11 +101,17 @@ megtesz, azt vissza lehet vonni. Ahhoz, hogy ez lehetséges legyen, valamilyen f
 tárolni a múltbeli szerkesztési lépéseket. Végül úgy döntöttünk, hogy az egész szerkesztőt ezen
 alapelv köré építjük fel. Létrehoztunk egy speciális adatszerkezetet, amely az összes elvégezhető
 szerkesztési lépést képes eltárolni. Amikor a felhasználó változtat valamit a jeleneten, egy
-ilyen adatstruktúra (akció) kerül átadásra. Az végrehajtás után a szerkesztő felépíti az akció
-ellentétét, az inverz akciót. Végül az inverz akció eltárolásra kerül egy ún. visszavonási veremben.
-Amikor a felhasználó kiadja a visszavonási parancsot, a visszavonási verem tetején lévő akció
-(ha létezik) újra végrehajtásra kerül, és belekerül egy másodlagos verembe, ami a visszavont
-akciók inverzét tárolja. Ez azért szükséges, mert visszavonás mellet ismétlés is lehetséges.
+ilyen adatstruktúra (művelet) kerül átadásra. Az végrehajtás után a szerkesztő felépíti az művelet
+ellentétét, az inverz műveletet. Végül az inverz művelet eltárolásra kerül egy ún. visszavonási
+veremben. Amikor a felhasználó kiadja a visszavonási parancsot, a visszavonási verem tetején lévő
+művelet (ha létezik) újra végrehajtásra kerül, és belekerül egy másodlagos verembe, ami a visszavont
+műveletek inverzeit tárolja. Ez azért szükséges, mert visszavonás mellet ismétlés is lehetséges.
+
+\begin{figure}[h]
+      \centering
+      \includegraphics[width=0.5\textwidth]{parts/developer-documentation/editor/images/actions.png}
+      \caption{A művelet alapú szerkesztés folyamatábrája}
+\end{figure}
 
 \subsection{Külső erőforrások kezelése}
 
@@ -113,6 +121,8 @@ hogy ezen célok teljesítéséhez saját fájlformátumokat fogunk kifejleszten
 felmerülő igények kielégítésére végül három új fájlformátum született meg: .ascn, .amdl, és .agzm.
 Mindhárom fájlformátum bináris kódolású, előállításukat és beolvasásukat a bincode könyvtár
 végzi. Az adatokat mindegyik formátum egymásba ágyazott struktúrákban tárolja.
+
+\pagebreak
 
 \subsubsection{Jelenetfájl (.ascn)}
 
@@ -129,6 +139,14 @@ szilárd alakzatot modellez. Tartalmazza az alakzat csúcsait és lapjait, emell
 A \emph{props} elem \emph{Prop} típusú struktúrákat tárol. Egy \emph{Prop} példány egy díszítőelem
 adatait tárolja. Egy díszítőelemnek modell ID-je, pozíciója és forgása van.
 
+\begin{figure}[h]
+      \centering
+      \includegraphics[width=0.8\textwidth]{parts/developer-documentation/editor/images/ascn.png}
+      \caption{A .ascn fájlformátum adatszerkezetei}
+\end{figure}
+
+\pagebreak
+
 \subsubsection{Modellfájl (.amdl)}
 
 A .amdl fájlformátum egy tetszőlegesen komplex 3D modell tárolására szolgál, néhány korlátozással.
@@ -138,6 +156,12 @@ megjelenítését. A modellfájl gyökérstruktúrája \emph{Prop} névre hallga
 tengelyekhez igazított téglatestet tárolja. A \emph{meshes} elem vektoros adatszerkezet, ami a
 modellt felépítő, textúrázott almodelleket tárolja.
 
+\begin{figure}[h]
+      \centering
+      \includegraphics[width=0.6\textwidth]{parts/developer-documentation/editor/images/amdl.png}
+      \caption{A .amdl fájlformátum adatszerkezetei}
+\end{figure}
+
 \subsubsection{Gizmofájl (.agzm)}
 
 Az Archytex szerkesztő forráskódjában a gizmo szónak két jelentése is van: hivatkozhat az egér
@@ -145,3 +169,9 @@ Az Archytex szerkesztő forráskódjában a gizmo szónak két jelentése is van
 almodelljei és textúrái sem. A gizmofájl az utóbbi modellek tárolására szolgál. A három saját
 fájlformátum közül ez a legegyszerűbb, hisz csak egyszerű geometriát kódol: csúcsokat, és az
 azokból alkotott háromszögeket.
+
+\begin{figure}[h]
+      \centering
+      \includegraphics[width=0.4\textwidth]{parts/developer-documentation/editor/images/agzm.png}
+      \caption{A .agzm fájlformátum adatszerkezetei}
+\end{figure}
