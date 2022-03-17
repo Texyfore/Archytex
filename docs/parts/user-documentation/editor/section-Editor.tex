@@ -75,30 +75,89 @@ a \emph{G, Escape} billentyűk, vagy \emph{jobb egérgomb} lenyomásával vissza
 
 Az általános műveletek mellett a szerkesztő támogat ún. \emph{speciális műveleteket} is, amik csak
 bizonyos \emph{módokban} használhatók. A szerkesztőnek négy különböző \emph{módja} van, ezek közül
-az első -- és egyben alapértelmezett -- a \emph{test szerkesztési mód}.
+az első -- és egyben alapértelmezett -- a \emph{test szerkesztési mód}. Az Archytex jelenetek
+kétféle elemet tartalmazhatnak: \emph{testeket} és \emph{díszítőelemeket}. A
+\emph{test szerkesztési mód} magától értetődően a \emph{testek} kezelését, manipulációját teszi
+lehetővé.
 
 \subsubsection{Létrehozás}
 
+Új \emph{test} létrehozásához nyomva kell tartani a \emph{bal egérgombot}. Miközben ez történik, az
+\emph{egérmutató} mozgatásával módosítható a létrejövő \emph{test} mérete. A \emph{bal egérgomb}
+elengedtekor az új \emph{test} véglegessé válik.
+
 \subsubsection{Törlés}
+
+Egy vagy több kijelölt \emph{test} törléséhez nyomja le a \emph{Delete} billentyűt.
 
 \subsubsection{Forgatás}
 
+Gyakran előfordulhat, hogy szimmetrikus alakzatok elkészítésére van szükség. Ilyenkor jól jöhet a
+\emph{test forgatása} eszköz, amely segítségével a kijelölt \emph{testeket} bármely bázis tengely
+körül lehet forgatni $90^{\circ}$ vagy $-90^{\circ}$-os szögben.
+
+Az eszköz használatához jelöljön ki néhány \emph{testet}, majd nyomja le az \emph{F} billentyűt.
+Miután ez megtörtént, válassza ki a megfelelő forgástengelyt az \emph{X, Y vagy Z} billentyű
+lenyomásával. A forgástengely kiválasztása után a kijelölt \emph{testek} azonnal elfordulnak.
+Ha a forgástengely kiválasztása közben a \emph{Shift} billentyű nincs lenyomva, a forgás szöge
+$90^{\circ}$, ellenkező esetben $-90^{\circ}$.
+
 \subsubsection{Másolás}
+
+Egy vagy több kijelölt \emph{test} másolásához nyomja le a \emph{C} billentyűt. Ilyenkor a
+szerkesztő \emph{gyors mozgatás} üzemmódba lép, így a lemásolt \emph{testek} azonnal mozgathatóvá
+válnak.
 
 \subsubsection{Üregesítés}
 
+Bármely \emph{testet} azonnal üregessé lehet tenni a \emph{H} billentyű lenyomásával. Ez a művelet
+főleg beltéri területek kialakítására hasznos. Az új, üreges tér falainak vastagságát a \emph{rács}
+oldalhossza adja meg.
+
 \subsection{Lap szerkeszési mód}
+
+A szerkesztő második \emph{módja}, a \emph{lap szerkesztési mód} a \emph{testek} \emph{lapjainak}
+manipulációját teszi lehetővé. Az általános műveletek itt is működnek, tehát a \emph{lapok}
+szabadon mozgathatók.
 
 \subsubsection{Textúrázás}
 
+A \emph{lap szerkesztési mód} egyetlen \emph{speciális művelete} a \emph{textúrázás}. Válasszon ki
+egy tetszőleges \emph{textúrát} a \emph{textúra könyvtárból}, majd jelöljön ki egy vagy több
+\emph{lapot} és nyomja le a \emph{T} billentyűt. A kijelölt \emph{lapokon} ezentúl a kiválasztott
+\emph{textúra} fog megjelenni.
+
 \subsection{Csúcs szerkesztési mód}
+
+Mivel egy \emph{csúcs} egyetlen tulajdonsága a térbeli elhelyezkedése, ezért a
+\emph{csúcs szerkesztési mód} nem tartalmaz további \emph{speciális műveleteket.}
 
 \subsection{Berendező mód}
 
+A szerkesztő negyedik, és egyben utolsó \emph{módja} a különböző \emph{díszítőelemek} kezelését és
+manipulációját teszi lehetővé.
+
 \subsubsection{Forgatás}
+
+A \emph{testekkel} ellentétben a \emph{díszítőelemek} bármely tengely körül, bármilyen szögben
+forgathatóak. Egy vagy több \emph{díszítőelem} kijelölése után megjelenik a
+\emph{speciális forgatóeszköz}. Az eszköz három, egymásra merőleges színezett körből áll.
+Forgatáshoz húzza az \emph{egérmutatót} a forgástengelyzet tartozó kör fölé, majd tartsa lenyomva
+a \emph{bal egérgombot}. A kijelölt \emph{díszítőelemek} az \emph{egérmutató} mozgása szerint
+fognak forogni.
 
 \subsubsection{Gyors forgatás}
 
+A kijelölt \emph{díszítőelemeket} nem csak a \emph{speciális forgatóeszköz} segítségével lehet
+forgatni. Ebben a \emph{módban} az általános \emph{gyors mozgatás} mellett létezik a
+\emph{gyors forgatás} művelet is. A művelet megkezdéséhez nyomja le az \emph{R} billentyűt.
+Hasonlóan a \emph{gyors mozgatáshoz}, forgatni csak a forgástenglely kiválasztása után lehet. Ezt
+az \emph{X, Y vagy Z} billentyű lenyomásával teheti meg. Miután ez megtörtént, a kijelölt
+\emph{díszítőelemek} az \emph{egérmutató} mozgása szerint forognak. A \emph{Ctrl} billentyű
+nyomvatartása a forgás szögét $15^{\circ}$-os lépésekre korlátozza.
+
 \subsubsection{Másolás}
+
+A \emph{díszelemek} másolása teljesen úgy működik, mint a \emph{testek} másolása.
 
 \subsection{Mentés és renderelés}
