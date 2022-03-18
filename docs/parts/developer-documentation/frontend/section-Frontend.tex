@@ -3,10 +3,10 @@
 
 A frontend a szoftver azon része, amely nagyban meghatározza egy felhasználó élményét. Fontos az átláthatóság, a könnyű kezelhetőség és az esztétika. Ezen szempontokat figyelembe véve készítettük el az Archytex weboldalt.
 
-\subsection{Design terv}
-A honlap elkészítésének első lépése a tervezés volt. Ehhez a Figma\footnote{\url{https://www.figma.com/}} nevű ingyenes design szoftvert használtuk. Ezen alkalmazás segítségével könnyedén tudtunk vázlatot készíteni arról, hogy hogyan képzeljük el a honlap megjelenését, még azelőtt, hogy elkezdtük volna a programozást.
+\subsection{Dizájn terv}
+A honlap elkészítésének első lépése a tervezés volt. Ehhez a Figma\footnote{\url{https://www.figma.com/}} nevű ingyenes dizájn szoftvert használtuk. Ezen alkalmazás segítségével könnyedén tudtunk vázlatot készíteni arról, hogy hogyan képzeljük el a honlap megjelenését, még azelőtt, hogy elkezdtük volna a programozást.
 
-A Figma a design tervezés mellett használható vektor grafikák rajzolására is, amellyel az Archytex szerkesztőben látható ikonok készültek.
+A Figma a dizájn tervezés mellett használható vektor grafikák rajzolására is, amellyel az Archytex szerkesztőben látható ikonok készültek.
 
 \begin{figure}[h]
   \centering
@@ -16,14 +16,14 @@ A Figma a design tervezés mellett használható vektor grafikák rajzolására 
   \caption{Példa a Figma-ban készíthető vektor grafikákra: a kiválasztási módok ikonjai az Archytex szerkesztőből.}
 \end{figure}
 
-A honlapon megjelenő grafikák egy része az Undraw\footnote{\url{https://undraw.co/}} nevű honlapon található, ingyenesen használható illusztrációk felhasználásával készült. Ezen illusztrációk nyílt licensszel rendelkeznek, ezért szerkeszthetőek és ingyenesen felhasználhatóak. Néhány grafikát a Figma-ban szerkesztettünk, hogy több építészeti elemet tartalmazzanak, vagy hogy jobban illeszkedjenek a design környezetbe.
+A honlapon megjelenő grafikák egy része az Undraw\footnote{\url{https://undraw.co/}} nevű honlapon található, ingyenesen használható illusztrációk felhasználásával készült. Ezen illusztrációk nyílt licenccel rendelkeznek, ezért szerkeszthetőek és ingyenesen felhasználhatóak. Néhány grafikát a Figma-ban szerkesztettünk, hogy több építészeti elemet tartalmazzanak, vagy hogy jobban illeszkedjenek a dizájn környezetbe.
 
-Az Archytex logó is a Figma beépített vektor grafikai eszközeivel készült. A design követi a letisztultság elvét, és használja a honlap elsődleges színét. A logó sötét és világos módtól függően a honlapon megváltozik a jobb láthatóság érdekében.
+Az Archytex logó is a Figma beépített vektor grafikai eszközeivel készült. A dizájn követi a letisztultság elvét, és használja a honlap elsődleges színét. A logó sötét és világos módtól függően a honlapon megváltozik a jobb láthatóság érdekében.
 
 \begin{figure}[h]
   \centering
   \includegraphics[width=0.1\textwidth]{parts/developer-documentation/frontend/images/logo.png}
-  \caption{Az Archytex logo}
+  \caption{Az Archytex logó}
 \end{figure}
 
 \subsection{Használt technológiák}
@@ -86,7 +86,7 @@ A projektek lekérése és tárolása saját szolgáltatás segítségével tör
 A szerkesztő és a frontend közötti kommunikáció egy egyedi API segítségével történik. Beállítható ezen keresztül a szerkesztőben a transzformációs mód\footnote{Transzformációs mód: lap, él, csúcs vagy díszítőelem kiválasztása}, és kiválasztható a használni kívánt textúra és a díszítőelem. A jelenlegi mód állapotát a szerkesztő gyökérkomponense kezeli, és innen adja át a MUI-s \emph{ToggleButtonGroup}-ra épített gomb csoport komponensnek. Ezáltal a gombok megnyomásával is állítható a transzformációs mód.
 
 \subsubsection{Könyvtár ablak}
-A textúra és a díszítőelem kiválasztására a könyvtár ablak komponens szolgál. Ez egy modal ablak, amely MUI komponenseket és egy saját szolgáltatást használva megjeleníti az elérhető textúrákat vagy díszítőelemeket. A könyvtárban minden elem rendelkezik egy névvel és egy vagy több tulajdonsággal, amik Chip komponens formájában jelennek meg az elem kártyáján. A név és minden tulajdonság szűrhető, így elősegítve a könnyebb keresést.
+A textúra és a díszítőelem kiválasztására a könyvtár ablak komponens szolgál. Ez egy modál ablak, amely MUI komponenseket és egy saját szolgáltatást használva megjeleníti az elérhető textúrákat vagy díszítőelemeket. A könyvtárban minden elem rendelkezik egy névvel és egy vagy több tulajdonsággal, amik Chip komponens formájában jelennek meg az elem kártyáján. A név és minden tulajdonság szűrhető, így elősegítve a könnyebb keresést.
 
 \begin{figure}[h]
   \centering
@@ -104,7 +104,7 @@ A textúra és a díszítőelem kiválasztására a könyvtár ablak komponens s
 \end{figure}
 
 \subsection{Fordítások}
-Az Archytex alkalmazás több nyelven is elérhető. Az i18n\footnote{i18: Internationalisation, avagy nemzetköziesítés}  megvalósításához az i18next nevű React könyvtárat használtuk. Az alkalmazás gyökérkomponensében importáltuk az nyelvekhez tartozó JSON fájlokat, amikben megtalálható az összes előforduló fordítási kulcs, amelyhez tartozik egy-egy hozzárendelt fordítás.
+Az Archytex alkalmazás több nyelven is elérhető. Az i18n\footnote{i18n: Internationalisation, avagy nemzetköziesítés}  megvalósításához az i18next nevű React könyvtárat használtuk. Az alkalmazás gyökérkomponensében importáltuk az nyelvekhez tartozó JSON fájlokat, amikben megtalálható az összes előforduló fordítási kulcs, amelyhez tartozik egy-egy hozzárendelt fordítás.
 
 \begin{figure}[h]
   \centering

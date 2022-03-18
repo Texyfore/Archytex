@@ -5,7 +5,7 @@
 
 A 3D szerkesztő elkészítése számos technikai és tervezési problémát vetett fel. Egy olyan szoftver
 megalkotása volt a cél, amely elég egyszerű ahhoz, hogy bárki használhassa, viszont megfelelően
-eszközdús ahhoz, hogy képes legyen bonyolult épületek tervezésére is. Ezen feltételek
+eszköz dús ahhoz, hogy képes legyen bonyolult épületek tervezésére is. Ezen feltételek
 megfogalmazása után arra jutottunk, hogy a 3D szerkesztőt egy web alapú alkalmazás keretein belül
 fogjuk megvalósítani.
 
@@ -87,7 +87,7 @@ A szerkesztő egyik legfontosabb feladata, hogy képes legyen kirajzolni a jelen
 Ezt teszik lehetővé a különböző grafikus API-k, mint például az
 OpenGL\footnote{\url{https://www.opengl.org}}, Vulkan\footnote{\url{https://www.vulkan.org}},
 vagy böngésző esetén a WebGL\footnote{\url{https://www.khronos.org/webgl}}.
-A Rust programozási nyelvhez rengeteg olyan könyvtár érhető el, ami ezeket az API-okat elérhetővé
+A Rust programozási nyelvhez rengeteg olyan könyvtár érhető el, ami ezeket az API-ikat elérhetővé
 teszi. Mi úgy döntöttünk, hogy a wgpu\footnote{\url{https://github.com/gfx-rs/wgpu}} könyvtárat fogjuk
 használni. Ennek legfőbb oka az, hogy egy letisztult, biztonságos réteget húz a régies WebGL
 interfészre.
