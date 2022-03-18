@@ -1,9 +1,9 @@
 \subsection{Szerver beüzemeltetése}\label{deploy}
-Az Archytex beüzemeléséhez a legfrissebb Docker és Docker-compose szoftverekre van szükség. A Debian csomagkezelőjében egy sokkal régebbi verzió van, így, ha Debiant vagy Debian alapú operációs rendszert használ, akkor kövesse a Docker weboldalának utasításait \footnote{\url{https://docs.docker.com/engine/install/debian/}}.
+Az Archytex beüzemeléséhez a legfrissebb Docker és Docker-compose szoftverekre van szükség. A Debian csomagkezelőjében egy sokkal régebbi verzió van, így, ha Debian-t vagy Debian alapú operációs rendszert használ, akkor kövesse a Docker weboldalának utasításait \footnote{\url{https://docs.docker.com/engine/install/debian/}}.
 
-Helyezze a \emph{raytracer/assets} mappába a Kleng által generált, vagy a már kész erőforráscsomagban található raytracer minőségű erőforrásokat, illetve a repo.json mappát.
+Helyezze a \emph{raytracer/assets} mappába a \emph{kleng} által generált, vagy a már kész erőforráscsomagban található raytracer minőségű erőforrásokat, illetve a repo.json mappát.
 
-A konténerstruktúra elindításához navigáljon a repository gyökérkönyvtárába, és futtassa le a következő parancsot:
+A konténer struktúra elindításához navigáljon a repository gyökérkönyvtárába, és futtassa le a következő parancsot:
 \begin{lstlisting}
     docker-compose up
 \end{lstlisting}

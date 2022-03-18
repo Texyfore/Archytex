@@ -57,7 +57,7 @@ A \emph{docker-compose} fájlban található \emph{Traefik}\footnote{\url{https:
 
 \begin{samepage}
       \begin{itemize}
-            \item Statikus frontend fájlok és a Backend api egy végpontra helyezése
+            \item Statikus frontend fájlok és a Backend API egy végpontra helyezése
             \item Automatikus terheléselosztás
       \end{itemize}
 \end{samepage}
@@ -214,12 +214,12 @@ Három különböző dokumentumtípust különböztetünk meg:
 
             Típus: string
 
-            Leírás: A regisztáció megerősítéséhez szükséges egyszer használatos azonosító
+            Leírás: A regisztráció megerősítéséhez szükséges egyszer használatos azonosító
       \item created\_at
 
             Típus: date
 
-            Leírás: A regisztrációs szándék beadásának időpontja. Segítségével létre lehez hozni olyan indexet, ami a kérelmet törli bizonyos idő lejárta után.
+            Leírás: A regisztrációs szándék beadásának időpontja. Segítségével létre lehet hozni olyan indexet, ami a kérelmet törli bizonyos idő lejárta után.
 \end{itemize}
 \subsubsection{Sessions dokumentum}
 
@@ -228,7 +228,7 @@ Három különböző dokumentumtípust különböztetünk meg:
 
             Típus: STRING!!!
 
-            Leírás: Kriptográfiailag generált karakterlánc, amely a felhasználót azonosítja bejelentkezés után
+            Leírás: Kriptografikusan generált karakterlánc, amely a felhasználót azonosítja bejelentkezés után
       \item user\_id
 
             Típus: ObjectID
@@ -249,7 +249,7 @@ Szükséges konfigurációs paraméterek:
             SMTP szerver címe
             \subitem SMTP\_ADDRESS
 
-            SMTP szerveren lévő ímélcím
+            SMTP szerveren lévő e-mail cím
             \subitem SMTP\_PASSWORD
 
             Az előbb használt ímélcímhez tartozó jelszó
@@ -303,12 +303,12 @@ DOMAIN=https://archytex.me
 \end{lstlisting}
 
 \subsection{HTTP dokumentáció}
-A HTTP végpontok dokumentációja előrhető OpenAPI formátumban a repo gyökérkonyvtárában \emph{openapi.yml} néven.
+A HTTP végpontok dokumentációja elérhető OpenAPI formátumban a repo gyökérkönyvtárában \emph{openapi.yml} néven.
 
 \subsection{WebSocket dokumentáció}
 A /api/ws végponton elérhető egy WebSocket szolgáltatás, amely a projektek listájának frissítésére szolgál. A lista bármilyen változása esetén újraküldi a kliens felé a lista összes elemét, JSON formátumban kódolva a \emph{projects} kulcs alatt.
 
-A WebSocket protokoll nem engedélyezi az egyéni HTTP fejlécek használatát, így a felhasználó azonosítására nem használható az \emph{Authorization} fejléc. A probléma megoldásának érdekében a szerver addig nem küld semmilyen adatot a kliensnek, ameddig a kliens el nem küldi a jelenleg használt sesson azonosítóján JSON karakterláncként kódolva.
+A WebSocket protokoll nem engedélyezi az egyéni HTTP fejlécek használatát, így a felhasználó azonosítására nem használható az \emph{Authorization} fejléc. A probléma megoldásának érdekében a szerver addig nem küld semmilyen adatot a kliensnek, ameddig a kliens el nem küldi a jelenleg használt session azonosítóján JSON karakterláncként kódolva.
 
 Szerver felől érkező üzenet példa:
 \todo[inline]{Put message example here}

@@ -51,7 +51,7 @@ háromdimenziós modellező program. Rendkívül sokoldalú és bonyolult, ezér
 A másik kiindulási pontként használt szoftver a Valve Hammer Editor. A
 program a Valve Software által fejlesztett Source játékmotor pályaszerkesztő alkalmazása. A Hammer
 Editor egyik erőssége, és egyben az a tulajdonsága, amit mi is megvalósítottunk az, hogy benne
-bármilyen komplex beltéri vagy kültéri jelenet lemodellezhető kisebb, egyszerűb alakzatok
+bármilyen komplex beltéri vagy kültéri jelenet lemodellezhető kisebb, egyszerűbb alakzatok
 felhasználásával.
 
 \begin{figure}[h]
@@ -73,13 +73,13 @@ mértékben WebAssembly memóriában él, nincs semmilyen JavaScript objektum, a
 lehetne hívni.
 
 Az első problémánkra a wasm-bindgen nevű Rust könyvtár adott megoldást. A wasm-bindgen lehetségessé
-teszi az egész számoknál komplexebb adatstruktúrák átültétését Rust kódból JavaScript kódba, és
+teszi az egész számoknál komplexebb adatstruktúrák átültetését Rust kódból JavaScript kódba, és
 fordítva. A második probléma megoldása kicsit nehezebbnek bizonyult. Végül egy olyan
 modellt valósítottunk meg, amiben a két fél két különböző módszert használ a kommunikációhoz.
 Amikor a böngésző kommunikál a szerkesztővel, azt üzenetekkel teszi. Ezek az üzenetek egyszerű
 adatstruktúrák amik egy aszinkron csatornán keresztül jutnak el a szerkesztőhöz. Amikor az
 információátadás fordítva történik, a helyzet egyszerűbb: a JavaScript oldal egyszerűen átad egy
-anoním függvényt a Rust oldalnak, amit aztán a szerkesztő szükség esetén meghív.
+anonim függvényt a Rust oldalnak, amit aztán a szerkesztő szükség esetén meghív.
 
 \subsection{3D grafika}
 
@@ -102,7 +102,7 @@ megtesz, azt vissza lehet vonni. Ahhoz, hogy ez lehetséges legyen, valamilyen f
 tárolni a múltbeli szerkesztési lépéseket. Végül úgy döntöttünk, hogy az egész szerkesztőt ezen
 alapelv köré építjük fel. Létrehoztunk egy speciális adatszerkezetet, amely az összes elvégezhető
 szerkesztési lépést képes eltárolni. Amikor a felhasználó változtat valamit a jeleneten, egy
-ilyen adatstruktúra (művelet) kerül átadásra. Az végrehajtás után a szerkesztő felépíti az művelet
+ilyen adatszerkezet (művelet) kerül átadásra. Az végrehajtás után a szerkesztő felépíti az művelet
 ellentétét, az inverz műveletet. Végül az inverz művelet eltárolásra kerül egy ún. visszavonási
 veremben. Amikor a felhasználó kiadja a visszavonási parancsot, a visszavonási verem tetején lévő
 művelet (ha létezik) újra végrehajtásra kerül, és belekerül egy másodlagos verembe, ami a visszavont
