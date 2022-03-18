@@ -71,6 +71,7 @@ export default function Editor() {
           if (!loadedTextures.has(texture.id)) {
             if (texture.id !== 0) {
               sender.loadTexture(texture.id, buffer);
+              loadedTextures.add(texture.id);
             }
             sender.setTexture(texture.id);
           }
@@ -109,6 +110,7 @@ export default function Editor() {
             if (id !== undefined) {
               if (!loadedTextures.has(id) && id !== 0) {
                 sender.loadTexture(id, buf);
+                loadedTextures.add(id);
               }
             }
           }
@@ -216,11 +218,12 @@ export default function Editor() {
               (async () => {
                 const texture = textures.find((texture) => texture.id == id);
                 console.log(texture);
-                if (texture !== undefined) {
+                if (texture !== undefined && !loadedTextures.has(texture.id) && texture.id !== 0) {
                   const bytes = await fetchBytes(
                     `${Environment.asset_url}/textures/${texture.name}.png`
                   );
                   sender.loadTexture(texture.id, bytes);
+                  loadedTextures.add(texture.id);
                 }
               })();
             });
@@ -231,17 +234,18 @@ export default function Editor() {
                 const prop = props.find((prop: any) => {
                   return prop.id == id;
                 });
-                if (prop !== undefined) {
+                if (prop !== undefined && !loadedProps.has(prop.id)) {
                   prop.dependencies.forEach((dep: string) => {
                     (async () => {
                       const texture = textures.find(
                         (texture) => texture.name == dep
                       );
-                      if (texture !== undefined) {
+                      if (texture !== undefined && !loadedTextures.has(texture.id) && texture.id !== 0) {
                         const bytes = await fetchBytes(
                           `${Environment.asset_url}/textures/${texture.name}.png`
                         );
                         sender.loadTexture(texture.id, bytes);
+                        loadedTextures.add(texture.id);
                       }
                     })();
                   });
@@ -250,6 +254,7 @@ export default function Editor() {
                     `${Environment.asset_url}/props/${prop.name}.amdl`
                   );
                   sender.loadProp(prop.id, bytes);
+                  loadedProps.add(prop.id)
                 }
               })();
             });
