@@ -21,7 +21,7 @@ const prod: Environment = {
   }/api/ws`,
   asset_url: "/assets",
   asset_repo_url: "/assets/repo.json",
-  captcha: process.env.REACT_CAPTCHA as string,
+  captcha: process.env.REACT_APP_CAPTCHA as string,
 };
 
 const Environment = process.env.REACT_APP_STAGE === "production" ? prod : dev;
