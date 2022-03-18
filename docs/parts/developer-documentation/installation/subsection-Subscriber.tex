@@ -14,7 +14,7 @@ Ez a bináris fájl a \emph{raytracer/archyrt-sub} útvonalon található Cargo 
     \item A \emph{renderer} mappában hozzon létre egy .env fájlt és töltse ki a következők szerint:
           \begin{lstlisting}
         AMQP_ADDR=amqp://szervercim:5672
-        REDIS_ADDR=redis://:redisjelszo:szervercim:6379\end{lstlisting}
+        REDIS_ADDR=redis://:redisjelszo@szervercim:6379\end{lstlisting}
 
     \item A \emph{szervercim} helyére írja be a docker csomagot futtató szerver címét, a \emph{redisjelszo} helyére pedig a \textbf{\nameref{config}} részben definiált Redis jelszót.
 
