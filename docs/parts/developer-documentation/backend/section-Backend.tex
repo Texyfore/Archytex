@@ -311,7 +311,27 @@ A /api/ws végponton elérhető egy WebSocket szolgáltatás, amely a projektek 
 A WebSocket protokoll nem engedélyezi az egyéni HTTP fejlécek használatát, így a felhasználó azonosítására nem használható az \emph{Authorization} fejléc. A probléma megoldásának érdekében a szerver addig nem küld semmilyen adatot a kliensnek, ameddig a kliens el nem küldi a jelenleg használt session azonosítóján JSON karakterláncként kódolva.
 
 Szerver felől érkező üzenet példa:
-\todo[inline]{Put message example here}
 \begin{lstlisting}
-      
+{"projects": [
+    {
+      "id": "62321eef021ec8e9e88e0e0b",
+      "title": "test",
+      "created": "2022-03-16T17:31:27.548Z",
+      "renders": [
+        {
+          "id": "623474fcbcbcfc406f415db2",
+          "name": "test-1",
+          "status": 0,
+          "started": "2022-03-18T12:03:08.085Z",
+          "finished": "2022-03-18T12:04:08.085Z",
+          "icon": "62347542b583efa2bab25a90"
+        },
+        {
+          "id": "623474fdbcbcfc406f415db3",
+          "name": "test-2",
+          "status": 0,
+          "started": "2022-03-18T12:03:09.313Z",
+          "finished": null,
+          "icon": ""
+        }]}]}
 \end{lstlisting}

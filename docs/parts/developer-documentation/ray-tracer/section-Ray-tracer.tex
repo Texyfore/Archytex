@@ -1,5 +1,6 @@
 \section{Online renderelő}
 \rhead{Online renderelő}
+\label{raytracer}
 
 Az épületek bemutatásának elősegítése érdekében szerettünk volna egy valósághű képalkotó programot létrehozni, amely beépül a honlapba és a szerkesztőbe is. Erre a célra egy hálózaton elosztott path tracer-t írtunk a Rust nevű programozásnyelvben.
 
@@ -58,9 +59,9 @@ Csak x86 alapú rendszereken elérhető.
 
 A képek elkészítési idejének csökkentésére a renderelőhöz hozzáadtunk egy elosztási rendszert.
 
-Ez a rendszer RabbitMQ-ra és Redis-re épül. A RabbitMQ egy üzenetküldő rendszer, amely a különböző rétegek közti kommunikációt segíti elő, míg a Redis egy kulcs-érték adatbázis a hosszabb ideig szükséges és nagyobb adatok tárolására.
+Ez a rendszer RabbitMQ-ra\footnote{\url{https://www.rabbitmq.com/}} és Redis-re\footnote{\url{https://redis.io/}} épül. A RabbitMQ egy üzenetküldő rendszer, amely a különböző rétegek közti kommunikációt segíti elő, míg a Redis egy kulcs-érték adatbázis a hosszabb ideig szükséges és nagyobb adatok tárolására.
 
-A Redis szerverhez hozzáadtuk a RedisAI kiegészítőt, amivel lehet tömbökön végrehajtani matematikai operációkat. Ez a későbbiekben még hasznos lesz.
+A Redis szerverhez hozzáadtuk a RedisAI\footnote{\url{https://oss.redis.com/redisai/}} kiegészítőt, amivel lehet tömbökön végrehajtani matematikai operációkat. Ez a későbbiekben még hasznos lesz.
 
 Az egyszerűbb kezelés érdekében, két különböző réteget hoztunk létre: a tartomány kezelő réteg (domain manager) és a feliratkozó réteg (subscriber)
 
