@@ -42,7 +42,7 @@ Az egyik szoftver, a Blender egy általános rendeltetésű
 háromdimenziós modellező program. Rendkívül sokoldalú és bonyolult, ezért csak néhány mechanizmust
 ültettünk át a saját szerkesztőnkbe, például a kijelölés és a mozgatás módját.
 
-\begin{figure}[h]
+\begin{figure}[H]
       \centering
       \includegraphics[width=0.5\textwidth]{parts/developer-documentation/editor/images/blender.png}
       \caption{Blender}
@@ -54,7 +54,7 @@ Editor egyik erőssége, és egyben az a tulajdonsága, amit mi is megvalósíto
 bármilyen komplex beltéri vagy kültéri jelenet lemodellezhető kisebb, egyszerűbb alakzatok
 felhasználásával.
 
-\begin{figure}[h]
+\begin{figure}[H]
       \centering
       \includegraphics[width=0.5\textwidth]{parts/developer-documentation/editor/images/hammer.png}
       \caption{Valve Hammer Editor}
@@ -108,7 +108,7 @@ veremben. Amikor a felhasználó kiadja a visszavonási parancsot, a visszavoná
 művelet (ha létezik) újra végrehajtásra kerül, és belekerül egy másodlagos verembe, ami a visszavont
 műveletek inverzeit tárolja. Ez azért szükséges, mert visszavonás mellet ismétlés is lehetséges.
 
-\begin{figure}[h]
+\begin{figure}[H]
       \centering
       \includegraphics[width=0.5\textwidth]{parts/developer-documentation/editor/images/actions.png}
       \caption{A művelet alapú szerkesztés folyamatábrája}
@@ -141,7 +141,7 @@ szilárd alakzatot modellez. Tartalmazza az alakzat csúcsait és lapjait, emell
 A \emph{props} elem \emph{Prop} típusú struktúrákat tárol. Egy \emph{Prop} példány egy díszítőelem
 adatait tárolja. Egy díszítőelemnek modell ID-je, pozíciója és forgása van.
 
-\begin{figure}[h]
+\begin{figure}[H]
       \centering
       \includegraphics[width=0.8\textwidth]{parts/developer-documentation/editor/images/ascn.png}
       \caption{A .ascn fájlformátum adatszerkezetei}
@@ -158,7 +158,7 @@ megjelenítését. A modellfájl gyökérstruktúrája \emph{Prop} névre hallga
 tengelyekhez igazított téglatestet tárolja. A \emph{meshes} elem vektoros adatszerkezet, ami a
 modellt felépítő, textúrázott almodelleket tárolja.
 
-\begin{figure}[h]
+\begin{figure}[H]
       \centering
       \includegraphics[width=0.6\textwidth]{parts/developer-documentation/editor/images/amdl.png}
       \caption{A .amdl fájlformátum adatszerkezetei}
@@ -172,7 +172,7 @@ almodelljei és textúrái sem. A gizmofájl az utóbbi modellek tárolására s
 fájlformátum közül ez a legegyszerűbb, hisz csak egyszerű geometriát kódol: csúcsokat, és az
 azokból alkotott háromszögeket.
 
-\begin{figure}[h]
+\begin{figure}[H]
       \centering
       \includegraphics[width=0.4\textwidth]{parts/developer-documentation/editor/images/agzm.png}
       \caption{A .agzm fájlformátum adatszerkezetei}

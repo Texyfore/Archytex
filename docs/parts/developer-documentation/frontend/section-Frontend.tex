@@ -8,7 +8,7 @@ A honlap elkészítésének első lépése a tervezés volt. Ehhez a Figma\footn
 
 A Figma a dizájn tervezés mellett használható vektor grafikák rajzolására is, amellyel az Archytex szerkesztőben látható ikonok készültek.
 
-\begin{figure}[h]
+\begin{figure}[H]
   \centering
   \includegraphics[width=0.1\textwidth]{parts/developer-documentation/frontend/images/meshSelectMode.png}
   \includegraphics[width=0.1\textwidth]{parts/developer-documentation/frontend/images/faceSelectMode.png}
@@ -20,7 +20,7 @@ A honlapon megjelenő grafikák egy része az Undraw\footnote{\url{https://undra
 
 Az Archytex logó is a Figma beépített vektor grafikai eszközeivel készült. A dizájn követi a letisztultság elvét, és használja a honlap elsődleges színét. A logó sötét és világos módtól függően a honlapon megváltozik a jobb láthatóság érdekében.
 
-\begin{figure}[h]
+\begin{figure}[H]
   \centering
   \includegraphics[width=0.1\textwidth]{parts/developer-documentation/frontend/images/logo.png}
   \caption{Az Archytex logó}
@@ -36,7 +36,7 @@ A csomagkezeléshez \emph{yarn}-t használunk, amely az \emph{npm} csomagkezelő
 \subsection{Reszponzivitás}
 Egy modern holnap készítésénél elengedhetetlen, hogy minden eszközön használható legyen, bármilyen megjelenítőt támogasson. Az Archytex honlapon a reszponzivitás megvalósításában a MUI könyvtár segít. A Container és a Grid komponensek egyszerűen testreszabhatók a különböző töréspontokon. Emellett azon komponensek esetében, ahol szükség van a töréspontokkal kapcsolatos logikára, ott a useMediaQuery horog nyújt megoldást.
 
-\begin{figure}[h]
+\begin{figure}[H]
   \centering
   \includegraphics[height=7cm]{parts/developer-documentation/frontend/images/mobile-view.png}
   \caption{Navigációs menü mobil nézetben}
@@ -45,7 +45,7 @@ Egy modern holnap készítésénél elengedhetetlen, hogy minden eszközön hasz
 \subsection{Főoldal}
 A főoldal célja, hogy egy új felhasználónak "eladja" a termékünket. Ezért fontos volt, hogy látványos és emlékezetes legyen, de ezek mellett egyben informatív is. A látványossághoz nagyban hozzájárultak az Undraw.io-s illusztrációk és a tsparticles\footnote{\url{https://github.com/matteobruni/tsparticles/tree/main/components/react}} JavaScript könyvtár segítségével létrehozott, az oldal fejlécében megjelenő interaktív buborékok. Emellett az interaktivitás növelése érdekében az AOS (Animate On Scroll) könyvtárat használva megoldottuk, hogy a honlap tartalma folyamatosan jelenjen meg, ahogy a felhasználó görget lefelé a honlapon.
 
-\begin{figure}[h]
+\begin{figure}[H]
   \centering
   \includegraphics[width=\textwidth]{parts/developer-documentation/frontend/images/header.png}
   \caption{Az Archytex főoldal fejléce}
@@ -54,7 +54,7 @@ A főoldal célja, hogy egy új felhasználónak "eladja" a termékünket. Ezér
 \subsection{Autentikáció}
 A bejelentkezési és regisztrációs képernyő frontend funkcionalitás szempontjából egy viszonylag nagyobb kihívást nyújtott, mint más oldalak. Tudtuk, hogy gyakran lesz szükségünk olyan űrlapokra a projekt folyamán, amiben a felhasználó felé visszajelzést kell küldeni, ezért készítettünk egy generalizált React komponenst ennek a feladatnak az ellátására. Ezzel beviteli mező komponenssel már könnyedén fel tudtunk építeni mind a bejelentkezési és a regisztrációs űrlapot, és a hibakezelés sem okozott problémát.
 
-\begin{figure}[h]
+\begin{figure}[H]
   \centering
   \begin{minipage}{.5\textwidth}
     \centering
@@ -88,7 +88,7 @@ A szerkesztő és a frontend közötti kommunikáció egy egyedi API segítség�
 \subsubsection{Könyvtár ablak}
 A textúra és a díszítőelem kiválasztására a könyvtár ablak komponens szolgál. Ez egy modál ablak, amely MUI komponenseket és egy saját szolgáltatást használva megjeleníti az elérhető textúrákat vagy díszítőelemeket. A könyvtárban minden elem rendelkezik egy névvel és egy vagy több tulajdonsággal, amik Chip komponens formájában jelennek meg az elem kártyáján. A név és minden tulajdonság szűrhető, így elősegítve a könnyebb keresést.
 
-\begin{figure}[h]
+\begin{figure}[H]
   \centering
   \begin{minipage}{.5\textwidth}
     \centering
@@ -106,7 +106,7 @@ A textúra és a díszítőelem kiválasztására a könyvtár ablak komponens s
 \subsection{Fordítások}
 Az Archytex alkalmazás több nyelven is elérhető. Az i18n\footnote{i18n: Internationalisation, avagy nemzetköziesítés}  megvalósításához az i18next nevű React könyvtárat használtuk. Az alkalmazás gyökérkomponensében importáltuk az nyelvekhez tartozó JSON fájlokat, amikben megtalálható az összes előforduló fordítási kulcs, amelyhez tartozik egy-egy hozzárendelt fordítás.
 
-\begin{figure}[h]
+\begin{figure}[H]
   \centering
   \begin{minipage}{.7\textwidth}
     \centering
@@ -125,7 +125,7 @@ Az Archytex alkalmazás több nyelven is elérhető. Az i18n\footnote{i18n: Inte
   \caption{Az i18next inicializálása angol, magyar és japán nyelvvel}
 \end{figure}
 
-\begin{figure}[h]
+\begin{figure}[H]
   \centering
   \includegraphics[width=.6\textwidth]{parts/developer-documentation/frontend/images/translated.png}
   \caption{Az Archytex főoldal egy bekezdése japán nyelven}
