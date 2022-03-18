@@ -29,7 +29,7 @@ services:
       - "traefik.http.routers.frontend.rule=Host(`${DOMAIN}`)"
       - "traefik.http.routers.frontend.entrypoints=web"
     environment:
-      REACT_CAPTCHA: ${CAPTCHA_PUBLIC}
+      REACT_APP_CAPTCHA: ${CAPTCHA_PUBLIC}
 
   redis:
     restart: always
