@@ -1,10 +1,10 @@
-<p align="center">
-	<a href="https://archytex.tech">
-    <img src="frontend/src/img/logoLight.svg"  
-         alt="Archytex Icon"  
-         width="100" />
-  </a>
-</p>
+<div align="center">
+	
+![Archytex logo](/frontend/src/img/logoDark.svg#gh-dark-mode-only)
+![Archytex logo](/frontend/src/img/logoLight.svg#gh-light-mode-only)
+
+</div>
+
 <h1 align="center"><b>ARCHYTEX</b></h1>
 
 <div align="center">
