@@ -78,7 +78,7 @@ impl ASCNLoader {
                 let point_positions: Vec<Vec3> = points
                     .iter()
                     .map(|point| (point.position).into())
-                    .map(|point: Vec3| point/100.0)
+                    .map(|point: Vec3| point/128.0)
                     .collect();
                 let edge0 = point_positions[1] - point_positions[0];
                 let edge1 = point_positions[3] - point_positions[0];
@@ -128,7 +128,7 @@ impl ASCNLoader {
         let prop_requests: Vec<PropRequest> = scene.world.props.iter().map(|prop|{
             let mut pos: Vec3 = prop.position.into();
             pos.inner[2] = -pos.inner[2];
-            pos = pos/100.0;
+            pos = pos/128.0;
             let matrix: Matrix3<f32> = prop.rotation.into();
             let mut matrix = matrix.transpose();
             matrix.z = -matrix.z;
