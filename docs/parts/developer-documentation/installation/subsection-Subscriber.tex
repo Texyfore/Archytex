@@ -1,7 +1,7 @@
 \subsection{Raytracer feliratkozó beállítása}\label{subscriber}
 
 
-A Raytracer funkció működése érdekében szükséges létrehozni egy Feliratkozó szervert.
+A Raytracer funkció (\ref{raytracer}. alfejezet) működése érdekében szükséges létrehozni egy Feliratkozó szervert.
 Ehhez a GitHub oldalon a \emph{Releases} menüpont alatt találja meg a futtatható bináris fájlt.
 Ez a bináris fájl a raytracer/archyrt-sub útvonalon található Cargo crate-ből jött létre.
 
@@ -9,7 +9,7 @@ Ez a bináris fájl a raytracer/archyrt-sub útvonalon található Cargo crate-b
 \begin{enumerate}
     \item Hozzon létre egy mappát a feliratkozónak (pl. \emph{subscriber} néven), amelyben hozzon létre még egy \emph{assets} és egy \emph{renderer} nevű mappát.
 
-    \item A \emph{renderer} mappába másolja a bináris fájlt. Helyezze az \emph{assets} mappába a Kleng által generált, vagy a már kész erőforráscsomagban található raytracer minőségű erőforrásokat, illetve a repo.json mappát.
+    \item A \emph{renderer} mappába másolja a bináris fájlt. Helyezze az \emph{assets} mappába a Kleng által generált, vagy a már kész erőforráscsomagban található raytracer minőségű erőforrásokat, illetve a repo.json mappát. A Klengről a \ref{kleng} részben olvashat bővebben.
 
     \item A \emph{renderer} mappában hozzon létre egy .env fájlt és töltse ki a következők szerint:
           \begin{lstlisting}
