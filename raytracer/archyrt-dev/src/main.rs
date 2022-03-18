@@ -101,6 +101,7 @@ fn render_pathtraced<O: Intersectable+Sync, C: Camera+Sync>(object: O, camera: C
         .unwrap();
     //Collect OIDN image
     let mut image = RgbImage::new(w as u32, h as u32);
+    //let output = pathtracer_image;
 
     let output: Vec<Vec3> = output
         .chunks(3)
@@ -181,7 +182,7 @@ fn main() {
     amdl::repo::load_into(&mut props, "../assets").unwrap();
 
     //Load model
-    let loader = ASCNLoader::from_path("../assets/proprot.ascn").unwrap();
+    let loader = ASCNLoader::from_path("../assets/house_inside.ascn").unwrap();
     let camera = loader.get_camera();
     let object = loader.get_triangles();
     let props = props.fulfill_all(loader.get_prop_requests()).unwrap();

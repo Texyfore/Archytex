@@ -4,16 +4,22 @@
 
 Az épületek bemutatásának elősegítése érdekében szerettünk volna egy valósághű képalkotó programot létrehozni, amely beépül a honlapba és a szerkesztőbe is. Erre a célra egy hálózaton elosztott path tracer-t írtunk a Rust nevű programozásnyelvben.
 
-\subsection{Ray tracer}
-Az elmúlt pár évben kifejezetten felkapott lett a \emph{Ray tracing} kifejezés. Ezt az Nvidia RTX videókártyáinak megjelenése segítette elő, hiszen ez az első olyan eszköz, amely képes ezt a folyamatot valós idejűleg megcsinálni.
+\subsection{Raytracer}
+Az elmúlt pár évben kifejezetten felkapott lett a \emph{Raytracing} kifejezés. Ezt az Nvidia RTX videókártyáinak megjelenése segítette elő, hiszen ez az első olyan eszköz, amely képes ezt a folyamatot valós idejűleg megcsinálni.
 
-A ray tracing egy módszer három dimenziós jelenetek két dimenziós képekké alakítására a valós fizika szabályain alapuló módszerekkel. Egy másik gyakran használt módszer a raszterizálás, amit általában a játékok és más valós idejű szoftverek (például az Archytex szerkesztő) használnak, mert gyorsabb, de nem olyan sokoldalú és valósághű, mint a ray tracing.
+A raytracing egy módszer három dimenziós jelenetek két dimenziós képekké alakítására a valós fizika szabályain alapuló módszerekkel. Egy másik gyakran használt módszer a raszterizálás, amit általában a játékok és más valós idejű szoftverek (például az Archytex szerkesztő) használnak, mert gyorsabb, de nem olyan sokoldalú és valósághű, mint a raytracing.
+
 
 \subsubsection{A módszer leírása}
-A ray tracing lényege, hogy a kamera képének minden egyes pixeléből egy-egy sugarat "lövünk" ki és megnézzük, hova landol. Landolás után a sugárhoz tartozó pixelt a landolás helye és az ott lévő felület szerint beszínezzük.
+A raytracing lényege, hogy a kamera képének minden egyes pixeléből egy-egy sugarat "lövünk" ki és megnézzük, hova landol. Landolás után a sugárhoz tartozó pixelt a landolás helye és az ott lévő felület szerint beszínezzük.
 
-E szerint három fő komponense van egy ilyen rendszernek: egy kamera, egy módszer a sugarak landolási helyének megállapítására és egy módszer a pixelek beszínezésére. A ray tracer-ek sokoldalúsága abból adódik, hogy sokféle komponens létezik, amely ezeket a feladatokat felveheti. Teljesen árnyékmentes, csak gömbökkel foglalkozó lyukkamerát használó megoldásoktól kezdve egészen a valósággal összehasonlíthatatlan képeket generáló megoldásokig mindenre képes a megfelelő komponensekkel.
+E szerint három fő komponense van egy ilyen rendszernek: egy kamera, egy módszer a sugarak landolási helyének megállapítására és egy módszer a pixelek beszínezésére. A raytracer-ek sokoldalúsága abból adódik, hogy sokféle komponens létezik, amely ezeket a feladatokat felveheti. Teljesen árnyékmentes, csak gömbökkel foglalkozó lyukkamerát használó megoldásoktól kezdve egészen a valósággal összehasonlíthatatlan képeket generáló megoldásokig mindenre képes a megfelelő komponensekkel.
 
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.5\textwidth]{parts/developer-documentation/ray-tracer/images/figure.png}
+    \caption{A Raytracer működési elve}
+\end{figure}
 \subsubsection{Gyorsító struktúrák}
 
 A fent említett három komponens közül a a sugár landolásának megkeresése jár a legnagyobb számítási költséggel, hiszen ezt pixelenként kell megnézni, akár többször is.
@@ -36,7 +42,7 @@ Ezzel szemben lényeges a biztonság is. A C és a C++ gyors, rendszerközeli ny
 Fontos még kiemelni a Rust generikus rendszerét, amely elősegíti a fent említett komponensek szétválasztását és egybeágyazását különféle compile idejű optimalizációkkal.
 
 \subsection{Path tracer}
-A ray tracer-ek segítségével lehet a fény viselkedését is szimulálni. Ezt hívjuk path trace-nek.
+A raytracer-ek segítségével lehet a fény viselkedését is szimulálni. Ezt hívjuk path trace-nek.
 
 Lényege, hogy a kamerából kiinduló sugaraknak hagyjuk, hogy a felületre érkezve folytassák útjukat egy másik irányba. Ez az irány a felület tulajdonságaitól függ. Egy tükör a sugarat csak egy irányba küldheti tovább, míg egy téglafal a fényt szórja, tehát több lehetséges iránya is van a fénynek.
 
@@ -46,6 +52,12 @@ Erre a megközelítésre létezik a Monte Carlo integrálás. Lényege, hogy a l
 
 Az így keletkezett kép a várt képnek csak egy megközelítése. Minősége a sample számtól függ. Alacsony sample szám esetén a kép zajos lehet, magas sample szám esetén a feldolgozás ideje megnőhet.
 
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.5\textwidth]{parts/developer-documentation/ray-tracer/images/example.png}
+    \caption{Példa, a Path Tracer által létrehozható képekre}
+\end{figure}
+
 \subsubsection{Open Image Denoise}
 Hogy alacsony sample szám esetén is viszonylag jó minőségű képeket kapjunk, az Intel által fejlesztett Open Image Denoise\footnote{\url{https://www.openimagedenoise.org/}} nevű szoftvert használjuk.
 
@@ -53,7 +65,12 @@ Ez a szoftver mesterséges intelligenciát használ a képen lévő zaj eltávol
 
 Csak x86 alapú rendszereken elérhető.
 
-\todo[inline]{Példa}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.25\textwidth]{parts/developer-documentation/ray-tracer/images/raw.png}
+    \includegraphics[width=0.25\textwidth]{parts/developer-documentation/ray-tracer/images/denoised.png}
+    \caption{Összehasonlítás a nyers (bal) és a zajszűrt (jobb) képek között}
+\end{figure}
 
 \subsection{Elosztott renderelő}
 
@@ -87,7 +104,7 @@ A renderelés elkezdéséhez egy véletlenszerű azonosítót kell generálnunk 
 
 A kéréseket a RabbitMQ \emph{archyrt:dispatch} sorából várja. Az innen beérkező üzenetek karakterláncok, amelynek formátuma:
 
-\begin{figure}[h]
+\begin{figure}[H]
     \centering
     \begin{minipage}{.7\textwidth}
         \begin{lstlisting}
@@ -98,7 +115,7 @@ keresID#felhasznaloID#projektID
 
 Ekkor a tartománykezelő a képet felosztja 16 egyenlő részre (csempe), és minden rész minden egyes sample-jéhez egy-egy munkát köt a saját egyedi azonosítójával. A munkákat a \emph{archyrt:taskqueue} sorba küldi a következő formátummal:
 
-\begin{figure}[h]
+\begin{figure}[H]
     \centering
     \begin{minipage}{.7\textwidth}
         \begin{lstlisting}
@@ -110,7 +127,7 @@ keresID#munkaID#visszateresiSorNeve#csempeXKoordinataja#csempeYKoordinataja
 
 A fenti üzenetben megadott sorból egyenként elfogadja az üzeneteket, az üzenetből kiolvassa, hogy a munka során generált kép hova lett mentve, és feldolgozza azt.
 
-\begin{figure}[h]
+\begin{figure}[H]
     \centering
     \begin{minipage}{.7\textwidth}
         \begin{lstlisting}
