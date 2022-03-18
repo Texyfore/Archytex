@@ -7,20 +7,20 @@ A \emph{MongoDB}\footnote{\url{https://www.mongodb.com/}} egy NoSQL adatbázis, 
 Ennek számos előnye és hátránya is van.
 
 \begin{samepage}
-      \noindent Előnyei:
-      \begin{itemize}
-            \item Egyszerű feltöltés/letöltés a JSON szerű formátum miatt
-            \item Nem szükséges előre felépíteni az adatbázis struktúráját
-            \item Frissítések valós-idejű figyelése
-      \end{itemize}
+  \noindent Előnyei:
+  \begin{itemize}
+    \item Egyszerű feltöltés/letöltés a JSON szerű formátum miatt
+    \item Nem szükséges előre felépíteni az adatbázis struktúráját
+    \item Frissítések valós-idejű figyelése
+  \end{itemize}
 
-      \noindent Hátrányai:
-      \begin{itemize}
-            \item Ritkábban használt
-            \item Átlagoshoz képest komplexebb lekérdezések
-            \item Sémának való megfelelés nem ellenőrzött
-            \item Kevésbé rendezett, mint a relációs adatbázisok
-      \end{itemize}
+  \noindent Hátrányai:
+  \begin{itemize}
+    \item Ritkábban használt
+    \item Átlagoshoz képest komplexebb lekérdezések
+    \item Sémának való megfelelés nem ellenőrzött
+    \item Kevésbé rendezett, mint a relációs adatbázisok
+  \end{itemize}
 \end{samepage}
 
 Az említett valós-idejű figyelés, amely egy felhasználó projektjeinek folyamatos frissítéséhez szükséges, csak replica set esetén működik, tehát akkor ha a szerver be van állítva a megosztott munkára.
@@ -28,23 +28,23 @@ Az említett valós-idejű figyelés, amely egy felhasználó projektjeinek foly
 A stack másik tagja, a \emph{Go}\footnote{\url{https://golang.org/}} egy programozás nyelv, amelyet a Google fejlesztett ki. A cél egy átlátható, egyszerű nyelv készítése volt, amely helyettesítheti a halom másik náluk használt programozási nyelvet. \cite{golang}
 
 \begin{samepage}
-      \noindent Előnyei:
-      \begin{itemize}
-            \item Típusos, így kisebb az esélye a hibáknak
-            \item Erős beépített webfejlesztési (HTTP, sablonok stb.) könyvtárak
-            \item Egyszerű párhuzamos futtatás \emph{Goroutine}-okkal és csatornákkal
-            \item Fordított, de szemétgyűjtős
+  \noindent Előnyei:
+  \begin{itemize}
+    \item Típusos, így kisebb az esélye a hibáknak
+    \item Erős beépített webfejlesztési (HTTP, sablonok stb.) könyvtárak
+    \item Egyszerű párhuzamos futtatás \emph{Goroutine}-okkal és csatornákkal
+    \item Fordított, de szemétgyűjtős
 
-      \end{itemize}
+  \end{itemize}
 \end{samepage}
 
 \begin{samepage}
-      \noindent Hátrányai:
-      \begin{itemize}
-            \item Adatfeldolgozási függvényekben hiányos
-            \item Generikusok hiánya
-            \item Frusztrálóan bő szavú hibakezelés
-      \end{itemize}
+  \noindent Hátrányai:
+  \begin{itemize}
+    \item Adatfeldolgozási függvényekben hiányos
+    \item Generikusok hiánya
+    \item Frusztrálóan bő szavú hibakezelés
+  \end{itemize}
 \end{samepage}
 
 Az e-mail rendszerhez a beépített NET/SMTP könyvtárat használtuk az üzenetek elküldéséhez, illetve a HTML/template könyvtárat az üzenetek tartalmának kitöltéséhez.
@@ -56,10 +56,10 @@ Például middleware támogatással, metódus korlátozással, URL-be helyezett 
 A \emph{docker-compose} fájlban található \emph{Traefik}\footnote{\url{https://traefik.io/traefik/}} két fő feladatot lát el:
 
 \begin{samepage}
-      \begin{itemize}
-            \item Statikus frontend fájlok és a Backend API egy végpontra helyezése
-            \item Automatikus terheléselosztás
-      \end{itemize}
+  \begin{itemize}
+    \item Statikus frontend fájlok és a Backend API egy végpontra helyezése
+    \item Automatikus terheléselosztás
+  \end{itemize}
 \end{samepage}
 
 A \emph{Traefik} integrálja magát a \emph{Docker}-be, és így látja, ha egy szolgáltatásból több fut, és el tudja közöttük osztani a terhet.
@@ -67,11 +67,11 @@ A \emph{Traefik} integrálja magát a \emph{Docker}-be, és így látja, ha egy 
 Ha szeretnénk egy szolgáltatást méretezni, akkor a \emph{docker-compose} parancsot kell lefuttatnunk, a következő parancsok egyikével:
 
 \begin{itemize}
-      \item Statikus fájl szerver méretezése
-            \begin{lstlisting}[language=bash]
+  \item Statikus fájl szerver méretezése
+        \begin{lstlisting}[language=bash]
         $ docker-compose up --scale frontend=<DARAB>\end{lstlisting}
-      \item Backend szerver méretezése
-            \begin{lstlisting}[language=bash]
+  \item Backend szerver méretezése
+        \begin{lstlisting}[language=bash]
         $ docker-compose up --scale backend=<DARAB>\end{lstlisting}
 \end{itemize}
 
@@ -79,161 +79,167 @@ Ha szeretnénk egy szolgáltatást méretezni, akkor a \emph{docker-compose} par
 
 Az adatokat a \emph{MongoDB} nevű adatbázis-kezelőben tároljuk el, amely NoSQL technológiára épül, így teljesen más struktúrát követel, mint egy relációs adatbázis. Míg a relációs adatbázisok egy gráf szerkezetet használnak, addig a \emph{MongoDB} egy fastruktúrát.
 
-\todo{Kép az adatbázis modellről}
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=.7\textwidth]{parts/developer-documentation/backend/images/model.png}
+  \caption{Az Archytex adatbázis modellje}
+\end{figure}
+
 
 Három különböző dokumentumtípust különböztetünk meg:
 \begin{itemize}
-      \item users
+  \item users
 
-            A regisztrált és regisztrációjukat megerősített felhasználók listája
-      \item registers
+        A regisztrált és regisztrációjukat megerősített felhasználók listája
+  \item registers
 
-            A regisztrált, de még nem megerősített felhasználók listája
-      \item sessions
+        A regisztrált, de még nem megerősített felhasználók listája
+  \item sessions
 
-            A jelenleg belépett felhasználók listája
+        A jelenleg belépett felhasználók listája
 \end{itemize}
+
+\pagebreak
 
 \subsubsection{Users dokumentum}
 \begin{itemize}
-      \item \_id
+  \item \_id
 
-            Típus: ObjectID
+        Típus: ObjectID
 
-            Leírás: A \emph{MongoDB} által generált egyedi azonosító
-      \item username
+        Leírás: A \emph{MongoDB} által generált egyedi azonosító
+  \item username
 
-            Típus: string
+        Típus: string
 
-            Leírás: A felhasználó választott neve
-      \item email
+        Leírás: A felhasználó választott neve
+  \item email
+        Típus: string
 
-            Típus: string
+        Leírás: A felhasználó e-mail címe
+  \item password
 
-            Leírás: A felhasználó e-mail címe
-      \item password
+        Típus: string
 
-            Típus: string
+        Leírás: A felhasználó jelszavának ellenőrzésére szolgáló kriptográfiai karakterlánc
+  \item projects
 
-            Leírás: A felhasználó jelszavának ellenőrzésére szolgáló kriptográfiai karakterlánc
-      \item projects
+        Típus: Tömb, Lásd lent
 
-            Típus: Tömb, Lásd lent
-
-            Leírás: A felhasználó projektjeinek listája
+        Leírás: A felhasználó projektjeinek listája
 \end{itemize}
 
 \subsubsection{Projects al-dokumentum}
 
 \begin{itemize}
-      \item \_id
+  \item \_id
 
-            Típus: ObjectID
+        Típus: ObjectID
 
-            Leírás: A \emph{MongoDB} által generált egyedi azonosító
-      \item title
+        Leírás: A \emph{MongoDB} által generált egyedi azonosító
+  \item title
 
-            Típus: string
+        Típus: string
 
-            Leírás: A projekt címe
-      \item created
+        Leírás: A projekt címe
+  \item created
 
-            Típus: date
+        Típus: date
 
-            Leírás: A projekt létrehozásának időpontja
-      \item path
+        Leírás: A projekt létrehozásának időpontja
+  \item path
 
-            Típus: string
+        Típus: string
 
-            Leírás: A szerver fájlrendszerében lévő ASCN fájl neve
-      \item renders
+        Leírás: A szerver fájlrendszerében lévő ASCN fájl neve
+  \item renders
 
-            Típus: Tömb, Lásd lent
+        Típus: Tömb, Lásd lent
 
-            Leírás: A projekthez tartozó renderek listája
+        Leírás: A projekthez tartozó renderek listája
 \end{itemize}
 \subsubsection{Renders al-al-dokumentum}
 
 \begin{itemize}
-      \item \_id
+  \item \_id
 
-            Típus: ObjectID
+        Típus: ObjectID
 
-            Leírás: A \emph{MongoDB} által generált egyedi azonosító
-      \item name
+        Leírás: A \emph{MongoDB} által generált egyedi azonosító
+  \item name
 
-            Típus: string
+        Típus: string
 
-            Leírás: A render neve
-      \item status
+        Leírás: A render neve
+  \item status
 
-            Típus: double
+        Típus: double
 
-            Leírás: A render elkészültségének jelenlegi állapota, 0-tól 1-ig tartó valós szám
-      \item started
+        Leírás: A render elkészültségének jelenlegi állapota, 0-tól 1-ig tartó valós szám
+  \item started
 
-            Típus: date
+        Típus: date
 
-            Leírás: A render munka elküldésének időpontja
-      \item finished
+        Leírás: A render munka elküldésének időpontja
+  \item finished
 
-            Típus: date
+        Típus: date
 
-            Leírás: A render befejezésének időpontja
-      \item icon
+        Leírás: A render befejezésének időpontja
+  \item icon
 
-            Típus: string
+        Típus: string
 
-            Leírás: A szerver fájlrendszerében lévő képfájl neve
+        Leírás: A szerver fájlrendszerében lévő képfájl neve
 \end{itemize}
 
 \subsubsection{Registers dokumentum}
 
 \begin{itemize}
-      \item \_id
+  \item \_id
 
-            Típus: ObjectID
+        Típus: ObjectID
 
-            Leírás: A \emph{MongoDB} által generált egyedi azonosító
-      \item username
+        Leírás: A \emph{MongoDB} által generált egyedi azonosító
+  \item username
 
-            Típus: string
+        Típus: string
 
-            Leírás: A felhasználó választott neve
-      \item email
+        Leírás: A felhasználó választott neve
+  \item email
 
-            Típus: string
+        Típus: string
 
-            Leírás: A felhasználó ímélcíme
-      \item password
+        Leírás: A felhasználó ímélcíme
+  \item password
 
-            Típus: string
+        Típus: string
 
-            Leírás: A felhasználó jelszavának ellenőrzésére szolgáló kriptográfiai karakterlánc
-      \item token
+        Leírás: A felhasználó jelszavának ellenőrzésére szolgáló kriptográfiai karakterlánc
+  \item token
 
-            Típus: string
+        Típus: string
 
-            Leírás: A regisztráció megerősítéséhez szükséges egyszer használatos azonosító
-      \item created\_at
+        Leírás: A regisztráció megerősítéséhez szükséges egyszer használatos azonosító
+  \item created\_at
 
-            Típus: date
+        Típus: date
 
-            Leírás: A regisztrációs szándék beadásának időpontja. Segítségével létre lehet hozni olyan indexet, ami a kérelmet törli bizonyos idő lejárta után.
+        Leírás: A regisztrációs szándék beadásának időpontja. Segítségével létre lehet hozni olyan indexet, ami a kérelmet törli bizonyos idő lejárta után.
 \end{itemize}
 \subsubsection{Sessions dokumentum}
 
 \begin{itemize}
-      \item \_id
+  \item \_id
 
-            Típus: STRING!!!
+        Típus: string (fontos)
 
-            Leírás: Kriptográfiailag generált karakterlánc, amely a felhasználót azonosítja bejelentkezés után
-      \item user\_id
+        Leírás: Kriptográfiailag generált karakterlánc, amely a felhasználót azonosítja bejelentkezés után
+  \item user\_id
 
-            Típus: ObjectID
+        Típus: ObjectID
 
-            Leírás: A felhasználó egyedi azonosítója
+        Leírás: A felhasználó egyedi azonosítója
 \end{itemize}
 
 
@@ -243,47 +249,47 @@ A backend konfigurálását egy .env fájl segítségével lehet megtenni. Ha a 
 
 Szükséges konfigurációs paraméterek:
 \begin{itemize}
-      \item SMTP beállítások
-            \subitem SMTP\_SERVER
+  \item SMTP beállítások
+        \subitem SMTP\_SERVER
 
-            SMTP szerver címe
-            \subitem SMTP\_ADDRESS
+        SMTP szerver címe
+        \subitem SMTP\_ADDRESS
 
-            SMTP szerveren lévő e-mail cím
-            \subitem SMTP\_PASSWORD
+        SMTP szerveren lévő e-mail cím
+        \subitem SMTP\_PASSWORD
 
-            Az előbb használt ímélcímhez tartozó jelszó
-            \subitem SMTP\_PASSWORD
+        Az előbb használt ímélcímhez tartozó jelszó
+        \subitem SMTP\_PASSWORD
 
-            Az előbb használt ímélcímhez tartozó jelszó
-      \item MongoDB beállítások
-            \subitem MONGO\_URI
+        Az előbb használt ímélcímhez tartozó jelszó
+  \item MongoDB beállítások
+        \subitem MONGO\_URI
 
-            MongoDB-hez való csatlakozáshoz szükséges URI
-            \subitem MONGO\_DB
+        MongoDB-hez való csatlakozáshoz szükséges URI
+        \subitem MONGO\_DB
 
-            MongoDB adatbázis neve
-      \item RabbitMQ beállítások
-            \subitem AMQP\_ADDR
+        MongoDB adatbázis neve
+  \item RabbitMQ beállítások
+        \subitem AMQP\_ADDR
 
-            AMQP (RabbitMQ)-hez való csatlakozáshoz szükséges URI
-      \item Redis beállítások
-            \subitem REDIS\_ADDR
+        AMQP (RabbitMQ)-hez való csatlakozáshoz szükséges URI
+  \item Redis beállítások
+        \subitem REDIS\_ADDR
 
-            Redis-hez való csatlakozáshoz szükséges URI
-      \item Egyéb
-            \subitem PROJECTS\_PATH
+        Redis-hez való csatlakozáshoz szükséges URI
+  \item Egyéb
+        \subitem PROJECTS\_PATH
 
-            Projektfájlok és renderek tárolására elkülönített mappa elérési útja
-            \subitem PORT
+        Projektfájlok és renderek tárolására elkülönített mappa elérési útja
+        \subitem PORT
 
-            Szerver portja
-            \subitem DOMAIN
+        Szerver portja
+        \subitem DOMAIN
 
-            A szerver távoli címe, amelyet a megerősítő ímélben használunk
-            \subitem CAPTCHA\_SECRET
+        A szerver távoli címe, amelyet a megerősítő ímélben használunk
+        \subitem CAPTCHA\_SECRET
 
-            ReCaptcha szolgáltatásból érkező titkos kulcs
+        ReCaptcha szolgáltatásból érkező titkos kulcs
 \end{itemize}
 
 Példa:
@@ -310,9 +316,12 @@ A /api/ws végponton elérhető egy WebSocket szolgáltatás, amely a projektek 
 
 A WebSocket protokoll nem engedélyezi az egyéni HTTP fejlécek használatát, így a felhasználó azonosítására nem használható az \emph{Authorization} fejléc. A probléma megoldásának érdekében a szerver addig nem küld semmilyen adatot a kliensnek, ameddig a kliens el nem küldi a jelenleg használt session azonosítóján JSON karakterláncként kódolva.
 
+\pagebreak
+
 Szerver felől érkező üzenet példa:
 \begin{lstlisting}
-{"projects": [
+{
+  "projects": [
     {
       "id": "62321eef021ec8e9e88e0e0b",
       "title": "test",
@@ -333,5 +342,9 @@ Szerver felől érkező üzenet példa:
           "started": "2022-03-18T12:03:09.313Z",
           "finished": null,
           "icon": ""
-        }]}]}
+        }
+      ]
+    }
+  ]
+}
 \end{lstlisting}
