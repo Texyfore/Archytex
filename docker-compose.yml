@@ -75,7 +75,7 @@ services:
       context: .
       dockerfile: docker/Dockerfile.raytracer.oidn
     volumes:
-      - "../archytex/raytracer/assets:/archytex/assets"
+      - "./raytracer/assets:/archytex/assets"
       - "projects:/archytex/projects"
     environment:
       AMQP_ADDR: "amqp://amqp:5672"
