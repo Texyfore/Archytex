@@ -66,6 +66,7 @@ export default function Editor() {
 
   useEffect(() => {
     if (sender !== null && texture !== undefined) {
+      sender.setTexture(texture.id);
       fetchBytes(`${Environment.asset_url}/textures/${texture.name}.png`).then(
         (buffer) => {
           if (!loadedTextures.has(texture.id)) {
@@ -73,7 +74,6 @@ export default function Editor() {
               sender.loadTexture(texture.id, buffer);
               loadedTextures.add(texture.id);
             }
-            sender.setTexture(texture.id);
           }
         }
       );
