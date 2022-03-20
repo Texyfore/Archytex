@@ -140,6 +140,7 @@
   "outliner": "Outliner",
   "setup_render": "Setup render",
   "render_name": "Render name",
+  "project_saved_successfuly": "Project saved successfully",
   "could_not_save_project": "Could not save project",
   "you_are_not_logged_in": "You are not logged in.",
   "no_empty_render_name": "Render name can't be empty",
