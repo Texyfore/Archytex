@@ -147,10 +147,13 @@ impl<'a> RenderPass<'a> {
             .draw_indexed(0..triangles.len() as u32 * 3, 0, config.range);
     }
 
-    pub fn set_geometry<V>(&mut self, vertices: &'a Buffer<V>, triangles: &'a Buffer<[u16; 3]>) {
-        self.pass.set_vertex_buffer(0, vertices.buffer.slice(..));
+    pub fn set_triangles(&mut self, triangles: &'a Buffer<[u16; 3]>) {
         self.pass
             .set_index_buffer(triangles.buffer.slice(..), IndexFormat::Uint16);
+    }
+
+    pub fn set_vertices<V>(&mut self, vertices: &'a Buffer<V>) {
+        self.pass.set_vertex_buffer(0, vertices.buffer.slice(..));
     }
 
     pub fn draw_face(&mut self, face: u32) {

@@ -14,7 +14,7 @@ use super::{
 pub struct Canvas {
     pub(super) camera_matrices: CameraMatrices,
     pub(super) line_meshes: Vec<LineMesh>,
-    pub(super) solid_meshes: Vec<SolidMesh>,
+    pub(super) solids: HashMap<TextureID, HashMap<*const Buffer<SolidVertex>, Vec<u32>>>,
     pub(super) ground_meshes: Vec<GroundMesh>,
     pub(super) props: HashMap<PropID, Vec<PropData>>,
     pub(super) gizmo_groups: Vec<GizmoGroup>,
@@ -31,8 +31,15 @@ impl Canvas {
         self.line_meshes.push(line_mesh);
     }
 
-    pub fn draw_solid(&mut self, solid_mesh: SolidMesh) {
-        self.solid_meshes.push(solid_mesh);
+    pub fn draw_solid(&mut self, textures: [TextureID; 6], mesh: &SolidMesh) {
+        for (i, texture) in textures.into_iter().enumerate() {
+            self.solids
+                .entry(texture)
+                .or_default()
+                .entry(as_key(&mesh.vertices))
+                .or_default()
+                .push(i as u32)
+        }
     }
 
     pub fn draw_ground(&mut self, ground_mesh: GroundMesh) {
@@ -72,19 +79,7 @@ impl Share for LineMesh {
 }
 
 pub struct SolidMesh {
-    pub textures: [TextureID; 6],
-    pub(super) vertices: Rc<Buffer<SolidVertex>>,
-    pub(super) triangles: Rc<Buffer<[u16; 3]>>,
-}
-
-impl Share for SolidMesh {
-    fn share(&self) -> Self {
-        Self {
-            textures: self.textures,
-            vertices: self.vertices.clone(),
-            triangles: self.triangles.clone(),
-        }
-    }
+    pub(super) vertices: Buffer<SolidVertex>,
 }
 
 pub struct GroundMesh {
@@ -137,4 +132,8 @@ impl Share for GizmoInstances {
             len: self.len,
         }
     }
+}
+
+fn as_key<T>(t: &T) -> *const T {
+    t as *const T
 }

@@ -4,7 +4,10 @@ mod resources;
 use std::rc::Rc;
 
 use asset::{GizmoID, PropID, TextureID};
-use gpu::{DepthBuffer, Gpu, InstanceConfig, MsaaFramebuffer, Surface, Texture, Uniform};
+use gpu::{
+    Buffer, BufferUsages, DepthBuffer, Gpu, InstanceConfig, MsaaFramebuffer, Surface, Texture,
+    Uniform,
+};
 
 use self::{pipelines::Pipelines, resources::Resources};
 
@@ -21,6 +24,7 @@ pub struct Renderer {
     resources: Resources,
     camera: Uniform<CameraMatrices>,
     grid: Uniform<[i32; 4]>,
+    solid_tris: Buffer<[u16; 3]>,
 }
 
 impl Renderer {
@@ -31,6 +35,7 @@ impl Renderer {
         let resources = Resources::default();
         let camera = gpu.create_uniform(&CameraMatrices::default());
         let grid = gpu.create_uniform(&[100; 4]);
+        let solid_tris = gpu.create_buffer(&gen_solid_tris(), BufferUsages::INDEX);
 
         Self {
             gpu,
@@ -41,6 +46,7 @@ impl Renderer {
             resources,
             camera,
             grid,
+            solid_tris,
         }
     }
 
@@ -83,13 +89,18 @@ impl Renderer {
 
             pass.set_pipeline(&self.pipelines.solid);
             pass.set_uniform(2, &self.grid);
+            pass.set_triangles(&self.solid_tris);
 
-            for mesh in &canvas.solid_meshes {
-                pass.set_geometry(&mesh.vertices, &mesh.triangles);
-                for face in 0..6 {
-                    if let Some(texture) = self.resources.texture(mesh.textures[face]) {
-                        pass.set_texture(1, texture);
-                        pass.draw_face(face as u32);
+            for (texture, geometry) in canvas.solids {
+                if let Some(texture) = self.resources.texture(texture) {
+                    pass.set_texture(1, texture);
+                    for (vertices, faces) in geometry {
+                        // should be safe
+                        let vertices = unsafe { &*vertices };
+                        pass.set_vertices(vertices);
+                        for face in faces {
+                            pass.draw_face(face);
+                        }
                     }
                 }
             }
@@ -156,4 +167,15 @@ impl Renderer {
 
         self.gpu.end_frame(frame);
     }
+}
+
+fn gen_solid_tris() -> Vec<[u16; 3]> {
+    (0..6)
+        .into_iter()
+        .map(|t0| {
+            let t0 = t0 * 4;
+            [[t0 + 0, t0 + 1, t0 + 2], [t0 + 0, t0 + 2, t0 + 3]].into_iter()
+        })
+        .flatten()
+        .collect()
 }
