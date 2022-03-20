@@ -1,4 +1,4 @@
-use std::rc::Rc;
+use std::{collections::HashMap, rc::Rc};
 
 use asset::{GizmoID, PropID, TextureID};
 use gpu::{Buffer, Uniform};
@@ -16,7 +16,7 @@ pub struct Canvas {
     pub(super) line_meshes: Vec<LineMesh>,
     pub(super) solid_meshes: Vec<SolidMesh>,
     pub(super) ground_meshes: Vec<GroundMesh>,
-    pub(super) prop_instances: Vec<PropInstance>,
+    pub(super) props: HashMap<PropID, Vec<PropData>>,
     pub(super) gizmo_groups: Vec<GizmoGroup>,
     pub(super) gizmo_groups_no_depth: Vec<GizmoGroup>,
     pub(super) grid_len: i32,
@@ -40,7 +40,10 @@ impl Canvas {
     }
 
     pub fn draw_prop(&mut self, instance: PropInstance) {
-        self.prop_instances.push(instance);
+        self.props
+            .entry(instance.prop)
+            .or_default()
+            .push(instance.data);
     }
 
     pub fn draw_gizmos(&mut self, group: GizmoGroup) {

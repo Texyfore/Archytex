@@ -104,13 +104,15 @@ impl Renderer {
             }
 
             pass.set_pipeline(&self.pipelines.prop);
-            for instance in &canvas.prop_instances {
-                pass.set_uniform(1, &instance.data.uniform);
-                if let Some(prop) = self.resources.prop(instance.prop) {
+            for (prop, data) in &canvas.props {
+                if let Some(prop) = self.resources.prop(*prop) {
                     for mesh in &prop.meshes {
                         if let Some(texture) = self.resources.texture(mesh.texture) {
                             pass.set_texture(2, texture);
-                            pass.draw_triangles(&mesh.vertices, &mesh.triangles);
+                            for data in data {
+                                pass.set_uniform(1, &data.uniform);
+                                pass.draw_triangles(&mesh.vertices, &mesh.triangles);
+                            }
                         }
                     }
                 }
