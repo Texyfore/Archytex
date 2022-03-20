@@ -26,7 +26,7 @@ use redis::AsyncCommands;
 
 use crate::shifted_view::ShiftedView;
 
-struct SceneData(BVH, JitterCamera<PerspectiveCamera>, Vec<PropRequest>);
+struct SceneData(Option<BVH>, JitterCamera<PerspectiveCamera>, Vec<PropRequest>);
 
 async fn render(
     texture_repo: &TextureRepository,
@@ -54,10 +54,9 @@ async fn render(
             let scene: Vec<u8> =
                 redis::Cmd::get(format!("archyrt:{}:scene", task)).query(redis_client)?;
             let scene = ASCNLoader::from_bytes(&scene)?;
-            let bvh = BVH::from_triangles(scene.get_triangles())
-                .ok_or_else(|| anyhow!("Unable to create BVH"))?;
-                let camera = scene.get_camera().clone();
-                let camera = JitterCamera::new(camera, width, height);
+            let bvh = BVH::from_triangles(scene.get_triangles());
+            let camera = scene.get_camera().clone();
+            let camera = JitterCamera::new(camera, width, height);
             let prop_requests = scene.get_prop_requests().clone();
             let data = SceneData(bvh, camera, prop_requests);
             cache.put(task.clone(), data);

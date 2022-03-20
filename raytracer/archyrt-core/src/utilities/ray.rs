@@ -145,3 +145,15 @@ where
         (*self).intersect(ray)
     }
 }
+impl<T> Intersectable for Option<T>
+where
+    T: Intersectable,
+{
+    type C = T::C;
+    fn intersect(&self, ray: Ray) -> Option<Intersection<T::C>> {
+        match self{
+            Some(i) => i.intersect(ray),
+            None => None,
+        }
+    }
+}

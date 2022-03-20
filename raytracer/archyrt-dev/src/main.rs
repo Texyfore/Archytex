@@ -184,6 +184,7 @@ fn main() {
     let loader = ASCNLoader::from_path("../assets/proprot.ascn").unwrap();
     let camera = loader.get_camera();
     let object = loader.get_triangles();
+    let object = BVH::from_triangles(&object);
     let props = props.fulfill_all(loader.get_prop_requests()).unwrap();
     let object = object.union(props);
 

@@ -35,8 +35,7 @@ fn denoise(width: usize, height: usize, image: Vec<f32>, scene: &str, redis_clie
     let scene: Vec<u8> =
     redis::Cmd::get(format!("archyrt:{}:scene", scene)).query(redis_client).unwrap();
     let scene = ASCNLoader::from_bytes(&scene).unwrap();
-    let bvh = BVH::from_triangles(scene.get_triangles())
-        .ok_or_else(|| anyhow!("Unable to create BVH")).unwrap();
+    let bvh = BVH::from_triangles(scene.get_triangles());
     let props = props.fulfill_all(scene.get_prop_requests()).unwrap();
     let camera = scene.get_camera();
     let object = bvh.union(props);
