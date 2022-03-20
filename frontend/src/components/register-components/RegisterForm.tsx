@@ -98,7 +98,7 @@ export default function RegisterForm() {
           history.push("/success");
         })
         .catch((err) => {
-          alert(JSON.stringify(err));
+          setGeneralError(JSON.stringify(err));
           setCaptchaKey(captchaKey ^ 1);
           setGeneralError(t("recaptcha_failed"));
           return;
