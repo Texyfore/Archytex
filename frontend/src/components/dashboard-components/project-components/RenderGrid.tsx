@@ -40,7 +40,12 @@ export default function RenderCardGrid({ project, open }: Props) {
         borderRadius={2}
         right={0}
       >
-        <Box width='100%' paddingX={2} paddingTop={1}>
+        <Box
+          width='100%'
+          paddingX={2}
+          paddingTop={1}
+          display={{ xs: "none", md: "block" }}
+        >
           <Button
             variant='outlined'
             endIcon={<Send />}
