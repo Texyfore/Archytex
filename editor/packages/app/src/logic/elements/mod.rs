@@ -416,6 +416,7 @@ impl SolidGeometry {
 }
 
 struct SolidGraphics {
+    textures: [TextureID; 6],
     mesh: SolidMesh,
     verts: GizmoInstances,
 }
@@ -423,13 +424,14 @@ struct SolidGraphics {
 impl SolidGraphics {
     fn new(graphics: &Graphics) -> Self {
         Self {
+            textures: [TextureID(0); 6],
             mesh: graphics.create_solid_mesh(),
             verts: graphics.create_gizmo_instances(8),
         }
     }
 
     fn render(&self, canvas: &mut Canvas, draw_verts: bool) {
-        canvas.draw_solid(self.mesh.share());
+        canvas.draw_solid(self.textures, &self.mesh);
         if draw_verts {
             canvas.draw_gizmos(GizmoGroup {
                 gizmo: GizmoID(0),
@@ -440,10 +442,9 @@ impl SolidGraphics {
 
     fn recalc(&mut self, graphics: &Graphics, geometry: &SolidGeometry, selected: bool) {
         let mut vertices = Vec::with_capacity(24);
-        let mut triangles = Vec::with_capacity(12);
 
         for (i, face) in geometry.faces.iter().enumerate() {
-            self.mesh.textures[i] = face.texture;
+            self.textures[i] = face.texture;
 
             let normal = {
                 let edge0 = geometry.points[face.indices[1]].meters()
@@ -454,10 +455,6 @@ impl SolidGraphics {
 
                 edge0.cross(edge1).normalize()
             };
-
-            let t0 = vertices.len() as u16;
-            triangles.push([t0, t0 + 1, t0 + 2]);
-            triangles.push([t0, t0 + 2, t0 + 3]);
 
             for index in face.indices {
                 let position = geometry.points[index].meters();
@@ -502,7 +499,7 @@ impl SolidGraphics {
                 .collect::<Vec<_>>(),
         );
 
-        graphics.write_solid_mesh(&self.mesh, &vertices, &triangles);
+        graphics.write_solid_mesh(&self.mesh, &vertices);
     }
 }
 

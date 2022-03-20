@@ -65,26 +65,15 @@ impl Graphics {
 
     pub fn create_solid_mesh(&self) -> SolidMesh {
         SolidMesh {
-            textures: [TextureID(0); 6],
-            vertices: Rc::new(self.gpu.create_buffer_uninit(
+            vertices: self.gpu.create_buffer_uninit(
                 size_of::<SolidVertex>() * 24,
                 BufferUsages::VERTEX | BufferUsages::COPY_DST,
-            )),
-            triangles: Rc::new(self.gpu.create_buffer_uninit(
-                size_of::<[u16; 3]>() * 12,
-                BufferUsages::INDEX | BufferUsages::COPY_DST,
-            )),
+            ),
         }
     }
 
-    pub fn write_solid_mesh(
-        &self,
-        mesh: &SolidMesh,
-        vertices: &[SolidVertex],
-        triangles: &[[u16; 3]],
-    ) {
+    pub fn write_solid_mesh(&self, mesh: &SolidMesh, vertices: &[SolidVertex]) {
         self.gpu.write_buffer(&mesh.vertices, vertices);
-        self.gpu.write_buffer(&mesh.triangles, triangles);
     }
 
     pub fn create_ground_mesh(&self, descriptor: GroundMeshDescriptor) -> GroundMesh {
