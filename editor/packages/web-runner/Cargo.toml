@@ -8,6 +8,11 @@ authors = ["Gulyás Arnold"]
 [lib]
 crate-type = ["cdylib", "rlib"]
 
+[profile.releaase]
+lto = true
+codegen-units = 1
+panic = "abort"
+
 [dependencies]
 winit = "0"
 app = { path = "../app" }

@@ -12,6 +12,6 @@ gltf = "1"
 asset = { path = "../editor/packages/asset" }
 
 [profile.release]
-panic = "abort"
+lto = true
 codegen-units = 1
-lto=true
+panic = "abort"

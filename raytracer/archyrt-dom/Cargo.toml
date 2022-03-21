@@ -3,6 +3,10 @@ name = "archyrt_dom"
 version = "1.0.0"
 edition = "2021"
 
+[profile.release]
+lto = true
+codegen-units = 1
+
 [dependencies]
 lapin = "1.9.0"
 async-global-executor = "2.0.2"

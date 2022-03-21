@@ -3,6 +3,10 @@ name = "archyrt_dev"
 version = "1.0.0"
 edition = "2021"
 
+[profile.release]
+lto = true
+codegen-units = 1
+
 [dependencies]
 archyrt_core = {path="../archyrt-core"}
 anyhow = "1.0.44"
