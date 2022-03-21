@@ -6,11 +6,6 @@ description = "A native runner for the Archytex editor"
 authors = ["Gulyás Arnold"]
 default-run = "native-runner"
 
-[profile.releaase]
-lto = true
-codegen-units = 1
-panic = "abort"
-
 [dependencies]
 winit = "0"
 app = { path = "../app" }

@@ -1,3 +1,8 @@
 [workspace]
 resolver = "2"
 members = ["packages/*"]
+
+[profile.releaase]
+lto = true
+codegen-units = 1
+panic = "abort"
