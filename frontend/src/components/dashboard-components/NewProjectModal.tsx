@@ -59,7 +59,9 @@ export default function NewProjectModal({
 
   const { dispatch: projectsDispatch } = useProjects();
 
-  const onCreate = () => {
+  const onCreate = (e: any) => {
+    e.preventDefault();
+
     if (name.trim() === "") {
       handleError(t("no_empty_project_name"));
       return;
@@ -95,41 +97,42 @@ export default function NewProjectModal({
       }}
     >
       <Fade in={modalOpen}>
-        <Box
-          sx={modalStyle}
-          borderRadius={4}
-          display='flex'
-          flexDirection='column'
-          justifyContent='space-between'
-        >
-          <Box display='flex' justifyContent='space-between'>
-            <Typography id='transition-modal-title' variant='h6' component='h2'>
-              {t("create_new_project")}
-            </Typography>
-            <IconButton onClick={handleClose}>
-              <Close />
-            </IconButton>
-          </Box>
+        <form onSubmit={onCreate}>
+          <Box
+            sx={modalStyle}
+            borderRadius={4}
+            display='flex'
+            flexDirection='column'
+            justifyContent='space-between'
+          >
+            <Box display='flex' justifyContent='space-between'>
+              <Typography
+                id='transition-modal-title'
+                variant='h6'
+                component='h2'
+              >
+                {t("create_new_project")}
+              </Typography>
+              <IconButton onClick={handleClose}>
+                <Close />
+              </IconButton>
+            </Box>
 
-          <FormInput
-            variant={"regular"}
-            label={t("project_name")}
-            input={name}
-            inputChange={handleNameChange}
-            error={errorMessage}
-          />
+            <FormInput
+              variant={"regular"}
+              label={t("project_name")}
+              input={name}
+              inputChange={handleNameChange}
+              error={errorMessage}
+            />
 
-          <Box alignSelf='left' marginTop={2}>
-            <Button
-              type='submit'
-              size='large'
-              variant='contained'
-              onClick={onCreate}
-            >
-              {t("create")}
-            </Button>
+            <Box alignSelf='left' marginTop={2}>
+              <Button type='submit' size='large' variant='contained'>
+                {t("create")}
+              </Button>
+            </Box>
           </Box>
-        </Box>
+        </form>
       </Fade>
     </Modal>
   );

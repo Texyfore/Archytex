@@ -107,78 +107,80 @@ export default function RegisterForm() {
   };
 
   return (
-    <FormContainer title={t("register").toUpperCase()}>
-      {/* Username */}
-      <FormInput
-        variant={"username"}
-        label={t("username")}
-        input={username}
-        inputChange={handleUsernameChange}
-        error={usernameError}
-      />
-      {/* Email */}
-      <FormInput
-        variant={"email"}
-        label={t("email")}
-        input={email}
-        inputChange={handleEmailChange}
-        error={emailError}
-      />
-      {/* Password */}
-      <FormInput
-        variant={"password"}
-        label={t("password")}
-        input={password}
-        inputChange={handlePasswordChange}
-        error={passwordError}
-      />
-      {/* Password again */}
-      <FormInput
-        variant={"repeatPassword"}
-        label={t("password_again")}
-        input={rePassword}
-        inputChange={handleRePasswordChange}
-        error={rePasswordError}
-      />
-
-      {/* General error */}
-      <Box marginTop={2}>
-        <Typography color='error' variant='body2'>
-          {generalError}
-        </Typography>
-      </Box>
-
-      {/* ReCAPTCHA */}
-      <Box paddingY={1} display='flex' justifyContent='center'>
-        <ColoredReCaptcha
-          sitekey={Environment.captcha}
-          onChange={setCaptcha}
-          key={captchaKey}
+    <form onSubmit={register}>
+      <FormContainer title={t("register").toUpperCase()}>
+        {/* Username */}
+        <FormInput
+          variant={"username"}
+          label={t("username")}
+          input={username}
+          inputChange={handleUsernameChange}
+          error={usernameError}
         />
-      </Box>
+        {/* Email */}
+        <FormInput
+          variant={"email"}
+          label={t("email")}
+          input={email}
+          inputChange={handleEmailChange}
+          error={emailError}
+        />
+        {/* Password */}
+        <FormInput
+          variant={"password"}
+          label={t("password")}
+          input={password}
+          inputChange={handlePasswordChange}
+          error={passwordError}
+        />
+        {/* Password again */}
+        <FormInput
+          variant={"repeatPassword"}
+          label={t("password_again")}
+          input={rePassword}
+          inputChange={handleRePasswordChange}
+          error={rePasswordError}
+        />
 
-      {/* Submit button */}
-      <Box
-        display='flex'
-        flexDirection='column'
-        alignItems='center'
-        paddingX={{ sm: 0, md: 6 }}
-        marginBottom={1}
-      >
-        <Button
-          variant='outlined'
-          sx={{ width: 304, marginY: 2 }}
-          onClick={register}
+        {/* General error */}
+        <Box marginTop={2}>
+          <Typography color='error' variant='body2'>
+            {generalError}
+          </Typography>
+        </Box>
+
+        {/* ReCAPTCHA */}
+        <Box paddingY={1} display='flex' justifyContent='center'>
+          <ColoredReCaptcha
+            sitekey={Environment.captcha}
+            onChange={setCaptcha}
+            key={captchaKey}
+          />
+        </Box>
+
+        {/* Submit button */}
+        <Box
+          display='flex'
+          flexDirection='column'
+          alignItems='center'
+          paddingX={{ sm: 0, md: 6 }}
+          marginBottom={1}
         >
-          {t("sign_up")}
-        </Button>
-        <Typography variant='caption'>
-          {t("already_have_an_account")}
-        </Typography>
-        <Link variant='caption' component={L} to='/login'>
-          {t("log_in_to_archytex")}
-        </Link>
-      </Box>
-    </FormContainer>
+          <Button
+            variant='outlined'
+            type='submit'
+            sx={{ width: 304, marginY: 2 }}
+          >
+            {t("sign_up")}
+          </Button>
+          <Typography variant='caption'>
+            {t("already_have_an_account")}
+          </Typography>
+          <Link variant='caption' component={L} to='/login'>
+            {t("log_in_to_archytex")}
+          </Link>
+        </Box>
+      </FormContainer>
+    </form>
   );
 }
