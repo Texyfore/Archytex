@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 
 import Snackbar from "@mui/material/Snackbar";
 import MuiAlert, { AlertProps } from "@mui/material/Alert";
@@ -13,7 +13,7 @@ const Alert = React.forwardRef<HTMLDivElement, AlertProps>(function Alert(
 });
 
 export default function NotificationSnackBar() {
-  const { notification, removeNotification } = useNotification();
+  const { notification, removeNotification, open } = useNotification();
 
   const handleClose = (
     event?: React.SyntheticEvent | Event,
@@ -22,14 +22,13 @@ export default function NotificationSnackBar() {
     if (reason === "clickaway") {
       return;
     }
-
     removeNotification();
   };
 
   return (
     <Snackbar
       anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
-      open={notification !== null}
+      open={open}
       autoHideDuration={5000}
       onClose={handleClose}
     >
