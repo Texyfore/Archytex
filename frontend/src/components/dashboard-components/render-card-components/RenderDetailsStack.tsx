@@ -35,7 +35,9 @@ export default function RenderDetailsStack({ render }: Props) {
           {t("render_status").toUpperCase()}
         </Typography>
         <Item>
-          {render.status === 1 ? t("finished") : `${render.status * 100}%`}
+          {render.status === 1
+            ? t("finished")
+            : `${Math.floor(render.status * 100)}%`}
         </Item>
         <Typography textAlign='center'>{t("started").toUpperCase()}</Typography>
         <Item>
@@ -46,17 +48,21 @@ export default function RenderDetailsStack({ render }: Props) {
             return "";
           })}
         </Item>
-        <Typography textAlign='center'>
-          {t("finished").toUpperCase()}
-        </Typography>
-        <Item>
-          {(render.finished + "").split(" ").map((string, index) => {
-            if (index < 5) {
-              return <span>{string} </span>;
-            }
-            return "";
-          })}
-        </Item>
+        {render.status === 1 && (
+          <>
+            <Typography textAlign='center'>
+              {t("finished").toUpperCase()}
+            </Typography>
+            <Item>
+              {(render.finished + "").split(" ").map((string, index) => {
+                if (index < 5) {
+                  return <span>{string} </span>;
+                }
+                return "";
+              })}
+            </Item>
+          </>
+        )}
       </Stack>
     </div>
   );
