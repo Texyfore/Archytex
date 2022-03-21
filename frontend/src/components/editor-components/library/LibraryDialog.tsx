@@ -118,15 +118,11 @@ export default function LibraryDialog({
   const categorySet: Set<string> = new Set<string>();
   libraryType === "textureLibrary"
     ? textures.forEach((texture) => {
-      texture.categories.forEach((category) =>
-        categorySet.add(category)
-      );
-    })
+        texture.categories.forEach((category) => categorySet.add(category));
+      })
     : props.forEach((prop) => {
-      prop.categories.forEach((category) =>
-        categorySet.add(category)
-      );
-    });
+        prop.categories.forEach((category) => categorySet.add(category));
+      });
 
   const categories: string[] = Array.from(categorySet.values());
 
@@ -191,8 +187,8 @@ export default function LibraryDialog({
             {libraryType === "textureLibrary"
               ? t("texture_library")
               : libraryType === "propLibrary"
-                ? t("prop_library")
-                : ""}
+              ? t("prop_library")
+              : ""}
           </Typography>
         </Box>
         <Box display='flex' justifyContent='space-between'>
@@ -228,26 +224,31 @@ export default function LibraryDialog({
         </Box>
       </DialogContent>
       <DialogActions>
-        <Box display={selectedTexture === undefined ? "block" : "none"}>
-          <Tooltip title={tooltipText} followCursor>
-            <span>
-              <Button
-                onClick={handleClose}
-                disabled={selectedTexture === undefined}
-              >
-                {t("accept")}
-              </Button>
-            </span>
-          </Tooltip>
-        </Box>
-        <Box display={selectedTexture !== undefined ? "block" : "none"}>
-          <Button
-            onClick={handleApplyNewItem}
-            disabled={selectedTexture === undefined}
-          >
-            {t("accept")}
-          </Button>
-        </Box>
+        {libraryType === "textureLibrary" ? (
+          <Box>
+            {selectedTexture === undefined ? (
+              <Tooltip title={tooltipText} followCursor>
+                <span>
+                  <Button disabled>{t("accept")}</Button>
+                </span>
+              </Tooltip>
+            ) : (
+              <Button onClick={handleApplyNewItem}>{t("accept")}</Button>
+            )}
+          </Box>
+        ) : (
+          <Box>
+            {selectedProp === undefined ? (
+              <Tooltip title={tooltipText} followCursor>
+                <span>
+                  <Button disabled>{t("accept")}</Button>
+                </span>
+              </Tooltip>
+            ) : (
+              <Button onClick={handleApplyNewItem}>{t("accept")}</Button>
+            )}
+          </Box>
+        )}
       </DialogActions>
 
       {/* Filter Menu */}

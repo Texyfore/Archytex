@@ -123,16 +123,18 @@ impl Sender {
 pub struct Callback {
     scene_saved: Function,
     button_feedback: Function,
+    pointer_locked: Function,
 }
 
 #[wasm_bindgen]
 impl Callback {
     #[allow(clippy::new_without_default)]
     #[wasm_bindgen(constructor)]
-    pub fn new(scene_saved: Function, button_feedback: Function) -> Self {
+    pub fn new(scene_saved: Function, button_feedback: Function, pointer_locked: Function) -> Self {
         Self {
             scene_saved,
             button_feedback,
+            pointer_locked,
         }
     }
 }
@@ -152,6 +154,11 @@ impl Host for Callback {
             ToHost::Button(button) => {
                 self.button_feedback
                     .call1(&JsValue::NULL, &JsValue::from(button))
+                    .ok();
+            }
+            ToHost::PointerLocked(locked) => {
+                self.pointer_locked
+                    .call1(&JsValue::NULL, &JsValue::from(locked))
                     .ok();
             }
         }
