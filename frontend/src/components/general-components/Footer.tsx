@@ -7,18 +7,15 @@ import Box from "@mui/material/Box";
 import Link from "@mui/material/Link";
 import Typography from "@mui/material/Typography";
 import IconButton from "@mui/material/IconButton";
+import Tooltip from "@mui/material/Tooltip";
 
-import {
-  FacebookOutlined,
-  GitHub,
-  Instagram,
-  Twitter,
-} from "@mui/icons-material";
+import { Article, GitHub } from "@mui/icons-material";
 
 import Logo from "./Logo";
 
 export default function Footer() {
   const { t } = useTranslation();
+  const documentationTooltip = t("documentation");
 
   return (
     <Box>
@@ -44,19 +41,29 @@ export default function Footer() {
             </Typography>
           </Box>
           {/* Socials */}
-          <Box display='flex' flexWrap='nowrap' gap={1} my={2}>
-            <IconButton href='https://facebook.com' color='inherit'>
-              <FacebookOutlined />
-            </IconButton>
-            <IconButton href='https://instagram.com' color='inherit'>
-              <Instagram />
-            </IconButton>
-            <IconButton href='https://twitter.com' color='inherit'>
-              <Twitter />
-            </IconButton>
-            <IconButton href='https://github.com' color='inherit'>
-              <GitHub />
-            </IconButton>
+          <Box
+            display='flex'
+            flexWrap='nowrap'
+            gap={1}
+            my={2}
+            justifyContent={{ xs: "center", md: "left" }}
+          >
+            <Tooltip title='GitHub'>
+              <IconButton
+                href='https://github.com/Texyfore/Archytex'
+                color='inherit'
+              >
+                <GitHub />
+              </IconButton>
+            </Tooltip>
+            <Tooltip title={documentationTooltip}>
+              <IconButton
+                href='https://drive.google.com/file/d/1P_kkBg1wiy4Kdl5p-TVFptlt4jo2VUjT/view'
+                color='inherit'
+              >
+                <Article />
+              </IconButton>
+            </Tooltip>
           </Box>
         </Box>
 
@@ -67,10 +74,18 @@ export default function Footer() {
           justifyContent='space-evenly'
           gap={1}
           mb={1}
+          textAlign={{ xs: "center", md: "left" }}
         >
-          <Typography gutterBottom variant='subtitle2' color='GrayText'>
-            {t("product").toUpperCase()}
-          </Typography>
+          <Box
+            height='32px'
+            display='flex'
+            alignItems='center'
+            justifyContent='center'
+          >
+            <Typography variant='subtitle2' color='GrayText'>
+              {t("product").toUpperCase()}
+            </Typography>
+          </Box>
           <Link variant='body2' to='/features' component={L}>
             {t("features")}
           </Link>
@@ -82,10 +97,18 @@ export default function Footer() {
           flexDirection='column'
           justifyContent='space-evenly'
           gap={1}
+          textAlign={{ xs: "center", md: "left" }}
         >
-          <Typography gutterBottom variant='subtitle2' color='GrayText'>
-            {t("texyfore").toUpperCase()}
-          </Typography>
+          <Box
+            height='32px'
+            display='flex'
+            alignItems='center'
+            justifyContent='center'
+          >
+            <Typography variant='subtitle2' color='GrayText'>
+              {t("texyfore").toUpperCase()}
+            </Typography>
+          </Box>
           <Link variant='body2' to='/about' component={L}>
             {t("about")}
           </Link>

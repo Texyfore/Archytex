@@ -3,6 +3,7 @@ package database
 import (
 	"context"
 	"encoding/base64"
+	"errors"
 	"fmt"
 	"math/rand"
 	"time"
@@ -428,6 +429,46 @@ func (m MongoDatabase) UserExists(username, email string) (bool, error) {
 		return false, err
 	}
 	return !(countUser == 0 && countRegister == 0), nil
+}
+
+func (m MongoDatabase) UserModify(id interface{}, username, email, password *string) error {
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*2)
+	defer cancel()
+	_username := ""
+	if username != nil {
+		_username = *username
+	}
+	_email := ""
+	if username != nil {
+		_username = *username
+	}
+	ex, err := m.UserExists(_username, _email)
+	if err != nil {
+		return err
+	}
+	if ex {
+		return errors.New("user already exists")
+	}
+
+	o := bson.D{}
+	if username != nil {
+		o = append(o, bson.E{"username", *username})
+	}
+	if email != nil {
+		o = append(o, bson.E{"email", *email})
+	}
+	if password != nil {
+		pass, err := models.HashPassword(*password)
+		if err != nil {
+			return err
+		}
+		o = append(o, bson.E{"password", *pass})
+	}
+	_, err = m.Users.UpdateOne(ctx, bson.D{{"_id", id}}, bson.D{{"$set", o}})
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 func (m MongoDatabase) SubscribeProjects(userId interface{}) (chan Updates, error) {

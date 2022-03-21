@@ -90,7 +90,8 @@ const DummyProvider = ({
           },
           load: async(id: string) => {
             return undefined;
-          }
+          },
+          modifyUser: async (data)=>{}
         });
       },
     };

@@ -27,7 +27,7 @@ pub struct ASCNLoader {
     prop_requests: Vec<PropRequest>
 }
 fn texcoord(position: Vec3, normal: Vec3) -> Vec2 {
-    (if normal.x().abs() > normal.y().abs() {
+    if normal.x().abs() > normal.y().abs() {
         if normal.x().abs() > normal.z().abs() {
           vector!(position.z(), position.y())
         } else {
@@ -37,7 +37,7 @@ fn texcoord(position: Vec3, normal: Vec3) -> Vec2 {
         vector!(position.x(), position.z())
       } else {
           vector!(position.x(), position.y())
-      }) / 4.0
+      }
 }
 
 impl ASCNLoader {

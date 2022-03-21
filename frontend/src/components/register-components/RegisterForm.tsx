@@ -62,14 +62,24 @@ export default function RegisterForm() {
     setGeneralError("");
   };
 
-  const register = () => {
+  const register = (e: any) => {
+    e.preventDefault();
+
     let errored = false;
     if (username === "") {
       setUsernameError(t("empty_username"));
       errored = true;
     }
+    if (username.length > 100) {
+      setUsernameError(t("long_username_error"));
+      errored = true;
+    }
     if (email === "") {
       setEmailError(t("empty_email"));
+      errored = true;
+    }
+    if (email.length > 100) {
+      setEmailError(t("long_email_error"));
       errored = true;
     }
     if (!email.includes("@")) {
@@ -78,6 +88,10 @@ export default function RegisterForm() {
     }
     if (password === "") {
       setPasswordError(t("empty_password"));
+      errored = true;
+    }
+    if (password.length > 100) {
+      setPasswordError(t("long_password_error"));
       errored = true;
     }
     if (password !== rePassword) {
@@ -98,7 +112,7 @@ export default function RegisterForm() {
           history.push("/success");
         })
         .catch((err) => {
-          alert(JSON.stringify(err));
+          setGeneralError(JSON.stringify(err));
           setCaptchaKey(captchaKey ^ 1);
           setGeneralError(t("recaptcha_failed"));
           return;
@@ -107,78 +121,80 @@ export default function RegisterForm() {
   };
 
   return (
-    <FormContainer title={t("register").toUpperCase()}>
-      {/* Username */}
-      <FormInput
-        variant={"username"}
-        label={t("username")}
-        input={username}
-        inputChange={handleUsernameChange}
-        error={usernameError}
-      />
-      {/* Email */}
-      <FormInput
-        variant={"email"}
-        label={t("email")}
-        input={email}
-        inputChange={handleEmailChange}
-        error={emailError}
-      />
-      {/* Password */}
-      <FormInput
-        variant={"password"}
-        label={t("password")}
-        input={password}
-        inputChange={handlePasswordChange}
-        error={passwordError}
-      />
-      {/* Password again */}
-      <FormInput
-        variant={"repeatPassword"}
-        label={t("password_again")}
-        input={rePassword}
-        inputChange={handleRePasswordChange}
-        error={rePasswordError}
-      />
-
-      {/* General error */}
-      <Box marginTop={2}>
-        <Typography color='error' variant='body2'>
-          {generalError}
-        </Typography>
-      </Box>
-
-      {/* ReCAPTCHA */}
-      <Box paddingY={1} display='flex' justifyContent='center'>
-        <ColoredReCaptcha
-          sitekey={Environment.captcha}
-          onChange={setCaptcha}
-          key={captchaKey}
+    <form onSubmit={register}>
+      <FormContainer title={t("register").toUpperCase()}>
+        {/* Username */}
+        <FormInput
+          variant={"username"}
+          label={t("username")}
+          input={username}
+          inputChange={handleUsernameChange}
+          error={usernameError}
         />
-      </Box>
+        {/* Email */}
+        <FormInput
+          variant={"email"}
+          label={t("email")}
+          input={email}
+          inputChange={handleEmailChange}
+          error={emailError}
+        />
+        {/* Password */}
+        <FormInput
+          variant={"password"}
+          label={t("password")}
+          input={password}
+          inputChange={handlePasswordChange}
+          error={passwordError}
+        />
+        {/* Password again */}
+        <FormInput
+          variant={"repeatPassword"}
+          label={t("password_again")}
+          input={rePassword}
+          inputChange={handleRePasswordChange}
+          error={rePasswordError}
+        />
 
-      {/* Submit button */}
-      <Box
-        display='flex'
-        flexDirection='column'
-        alignItems='center'
-        paddingX={{ sm: 0, md: 6 }}
-        marginBottom={1}
-      >
-        <Button
-          variant='outlined'
-          sx={{ width: 304, marginY: 2 }}
-          onClick={register}
+        {/* General error */}
+        <Box marginTop={2}>
+          <Typography color='error' variant='body2'>
+            {generalError}
+          </Typography>
+        </Box>
+
+        {/* ReCAPTCHA */}
+        <Box paddingY={1} display='flex' justifyContent='center'>
+          <ColoredReCaptcha
+            sitekey={Environment.captcha}
+            onChange={setCaptcha}
+            key={captchaKey}
+          />
+        </Box>
+
+        {/* Submit button */}
+        <Box
+          display='flex'
+          flexDirection='column'
+          alignItems='center'
+          paddingX={{ sm: 0, md: 6 }}
+          marginBottom={1}
         >
-          {t("sign_up")}
-        </Button>
-        <Typography variant='caption'>
-          {t("already_have_an_account")}
-        </Typography>
-        <Link variant='caption' component={L} to='/login'>
-          {t("log_in_to_archytex")}
-        </Link>
-      </Box>
-    </FormContainer>
+          <Button
+            variant='outlined'
+            type='submit'
+            sx={{ width: 304, marginY: 2 }}
+          >
+            {t("sign_up")}
+          </Button>
+          <Typography variant='caption'>
+            {t("already_have_an_account")}
+          </Typography>
+          <Link variant='caption' component={L} to='/login'>
+            {t("log_in_to_archytex")}
+          </Link>
+        </Box>
+      </FormContainer>
+    </form>
   );
 }

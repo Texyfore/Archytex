@@ -9,6 +9,7 @@ import Menu from "@mui/material/Menu";
 import MenuItem from "@mui/material/MenuItem";
 import Divider from "@mui/material/Divider";
 import ListItemIcon from "@mui/material/ListItemIcon";
+import Box from "@mui/material/Box";
 
 import { Delete, Edit, InfoOutlined, Send } from "@mui/icons-material";
 
@@ -78,13 +79,15 @@ export default function ProjectActionsMenu({
           horizontal: "right",
         }}
       >
-        <MenuItem onClick={() => history.push(`/editor/${project.id}`)}>
-          <ListItemIcon>
-            <Send />
-          </ListItemIcon>
-          {t("open_in_editor")}
-        </MenuItem>
-        <Divider />
+        <Box display={{ xs: "none", md: "block" }}>
+          <MenuItem onClick={() => history.push(`/editor/${project.id}`)}>
+            <ListItemIcon>
+              <Send />
+            </ListItemIcon>
+            {t("open_in_editor")}
+          </MenuItem>
+          <Divider />
+        </Box>
         <MenuItem onClick={handleUnderEditStart}>
           <ListItemIcon>
             <Edit />

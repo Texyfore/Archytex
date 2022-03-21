@@ -17,7 +17,7 @@ type Register struct {
 	CreatedAt time.Time   `json:"created_at" bson:"created_at"`
 }
 
-func hashPassword(password string) (*string, error) {
+func HashPassword(password string) (*string, error) {
 	argon := argon2.DefaultConfig()
 	hash, err := argon.HashEncoded([]byte(password))
 	if err != nil {
@@ -36,7 +36,7 @@ func NewRegister(username, password, email string) (*Register, error) {
 	}
 	token := hex.EncodeToString(tokenBytes)
 	//Hash password
-	hash, err := hashPassword(password)
+	hash, err := HashPassword(password)
 	if err != nil {
 		return nil, err
 	}

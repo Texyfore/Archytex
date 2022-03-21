@@ -12,6 +12,7 @@ interface NotificationContextProps {
     status: undefined | AlertColor
   ) => void;
   removeNotification: () => void;
+  open: boolean;
 }
 export const NotificationContext =
   React.createContext<NotificationContextProps>({
@@ -21,6 +22,7 @@ export const NotificationContext =
       status: undefined | AlertColor
     ) => {},
     removeNotification: () => {},
+    open: false,
   });
 
 interface Props {
@@ -30,13 +32,17 @@ export default function NotificationProvider({ children }: Props) {
   const [notification, setNotification] = useState<NotificationProps | null>(
     null
   );
+  const [open, setOpen] = useState(false);
 
-  const removeNotification = () => setNotification(null);
+  const removeNotification = () => setOpen(false);
 
   const addNotification = (
     message: undefined | string,
     status: undefined | AlertColor
-  ) => setNotification({ message, status });
+  ) => {
+    setNotification({ message, status });
+    setOpen(true);
+  };
 
   const contextValue = {
     notification: notification,
@@ -45,6 +51,7 @@ export default function NotificationProvider({ children }: Props) {
       []
     ),
     removeNotification: useCallback(() => removeNotification(), []),
+    open: open,
   };
 
   return (
