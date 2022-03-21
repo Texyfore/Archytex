@@ -44,6 +44,9 @@ impl Host for NativeHost {
             ToHost::Button(button) => {
                 println!("[native-runner] button feedback for {}", button);
             }
+            ToHost::PointerLocked(locked) => {
+                println!("[native-runner] pointer locked: {}", locked);
+            }
         }
     }
 }

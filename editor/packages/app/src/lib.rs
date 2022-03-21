@@ -48,6 +48,7 @@ pub fn run(init: Init) {
 
     let mut before = Instant::now();
     let mut lock_pointer = false;
+    let mut winit_movement = None;
 
     event_loop.run(move |event, _, flow| {
         *flow = ControlFlow::Poll;
@@ -75,9 +76,7 @@ pub fn run(init: Init) {
                     position: PhysicalPosition { x, y },
                     ..
                 } => {
-                    if !lock_pointer {
-                        logic.movement(x as f32, y as f32);
-                    }
+                    winit_movement = Some((x as f32, y as f32));
                 }
                 WindowEvent::MouseWheel { delta, .. } => {
                     let delta = match delta {
@@ -179,10 +178,13 @@ pub fn run(init: Init) {
                             _ => (),
                         },
                         FromHost::Movement(x, y) => {
-                            logic.movement_override(x, y);
+                            if lock_pointer {
+                                logic.movement_override(x, y);
+                            }
                         }
                         FromHost::LockPointer(lock) => {
                             lock_pointer = lock;
+                            host.callback(ToHost::PointerLocked(lock));
                         }
                         FromHost::LoadResource(resource) => {
                             loader.push_job(resource);
@@ -202,6 +204,12 @@ pub fn run(init: Init) {
                         LoadedResource::Gizmo { id, mesh } => {
                             renderer.add_gizmo(id, mesh);
                         }
+                    }
+                }
+
+                if !lock_pointer {
+                    if let Some((x, y)) = winit_movement.take() {
+                        logic.movement(x, y);
                     }
                 }
 
@@ -239,6 +247,7 @@ pub trait Host {
 pub enum ToHost {
     SceneSaved(i32, Vec<u8>),
     Button(i32),
+    PointerLocked(bool),
 }
 
 pub enum FromHost {
