@@ -34,11 +34,11 @@ impl CameraTool {
     fn common(&mut self, ctx: &mut Context) -> Option<Box<dyn Tool>> {
         // Undo & Redo
         if ctx.input.is_key_down(VirtualKeyCode::LControl) {
-            if ctx.input.is_key_down_once(VirtualKeyCode::Z) {
+            if ctx.input.is_key_down_once(VirtualKeyCode::Y) {
                 ctx.scene.undo(scene::Context {
                     graphics: ctx.graphics,
                 });
-            } else if ctx.input.is_key_down_once(VirtualKeyCode::Y) {
+            } else if ctx.input.is_key_down_once(VirtualKeyCode::Z) {
                 ctx.scene.redo(scene::Context {
                     graphics: ctx.graphics,
                 });
