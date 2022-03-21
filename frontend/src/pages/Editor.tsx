@@ -58,7 +58,7 @@ export default function Editor() {
   // Selected texture
   const [texture, setTexture] = useState<Texture>(textures[0]);
   useEffect(() => {
-    setTexture(textures[0]);
+    handleTextureChange(textures[0]);
   }, [textures]);
   const handleTextureChange = (texture: Texture) => {
     setTexture(texture);
@@ -83,7 +83,7 @@ export default function Editor() {
   // Selected prop
   const [prop, setProp] = useState<Prop>(props[0]);
   useEffect(() => {
-    setProp(props[0]);
+    handlePropChange(props[0]);
   }, [props]);
   const handlePropChange = (prop: Prop) => {
     setProp(prop);
@@ -226,7 +226,11 @@ export default function Editor() {
               (async () => {
                 const texture = textures.find((texture) => texture.id == id);
                 console.log(texture);
-                if (texture !== undefined && !loadedTextures.has(texture.id) && texture.id !== 0) {
+                if (
+                  texture !== undefined &&
+                  !loadedTextures.has(texture.id) &&
+                  texture.id !== 0
+                ) {
                   const bytes = await fetchBytes(
                     `${Environment.asset_url}/textures/${texture.name}.png`
                   );
@@ -248,7 +252,11 @@ export default function Editor() {
                       const texture = textures.find(
                         (texture) => texture.name == dep
                       );
-                      if (texture !== undefined && !loadedTextures.has(texture.id) && texture.id !== 0) {
+                      if (
+                        texture !== undefined &&
+                        !loadedTextures.has(texture.id) &&
+                        texture.id !== 0
+                      ) {
                         const bytes = await fetchBytes(
                           `${Environment.asset_url}/textures/${texture.name}.png`
                         );
@@ -262,7 +270,7 @@ export default function Editor() {
                     `${Environment.asset_url}/props/${prop.name}.amdl`
                   );
                   sender.loadProp(prop.id, bytes);
-                  loadedProps.add(prop.id)
+                  loadedProps.add(prop.id);
                 }
               })();
             });
@@ -280,8 +288,8 @@ export default function Editor() {
         const n = current_event;
         current_event++;
         listeners[n] = resolve;
-        console.log(`Sending save request #${n}`);
         sender.saveScene(n);
+        addNotification(t("project_saved_successfully"), "success");
       }),
     [sender]
   );

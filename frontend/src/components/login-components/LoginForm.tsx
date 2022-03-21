@@ -7,8 +7,6 @@ import { useTranslation } from "react-i18next";
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
 import Button from "@mui/material/Button";
-import Checkbox from "@mui/material/Checkbox";
-import FormControlLabel from "@mui/material/FormControlLabel";
 import Link from "@mui/material/Link";
 
 import FormContainer from "../form-components/FormContainer";
@@ -50,8 +48,9 @@ export default function LoginForm() {
     setGeneralError("");
   };
 
+  const loginClick = (e: any) => {
+    e.preventDefault();
 
-  const loginClick = () => {
     if (username === "") {
       handleError(t("empty_username"), "username");
       if (password !== "") {
@@ -96,41 +95,43 @@ export default function LoginForm() {
   };
 
   return (
-    <FormContainer title={t("login").toUpperCase()}>
-      {/* Username */}
-      <FormInput
-        variant='username'
-        label={t("username")}
-        input={username}
-        inputChange={handleUsernameChange}
-        error={usernameError}
-      />
-      {/* Password */}
-      <FormInput
-        variant='password'
-        label={t("password")}
-        input={password}
-        inputChange={handlePasswordChange}
-        error={passwordError}
-      />
-      {/* General error */}
-      <Box marginTop={2}>
-        <Typography color='error' variant='body2'>
-          {generalError}
-        </Typography>
-      </Box>
-      {/* Submit */}
-      <Button
-        variant='outlined'
-        sx={{ width: 304, marginY: 2 }}
-        onClick={loginClick}
-      >
-        {t("sign_in")}
-      </Button>
-      <Typography variant='caption'>{t("dont_have_an_account")}</Typography>
-      <Link variant='caption' component={L} to='/register'>
-        {t("sign_up_to_archytex")}
-      </Link>
-    </FormContainer>
+    <form onSubmit={loginClick}>
+      <FormContainer title={t("login").toUpperCase()}>
+        {/* Username */}
+        <FormInput
+          variant='username'
+          label={t("username")}
+          input={username}
+          inputChange={handleUsernameChange}
+          error={usernameError}
+        />
+        {/* Password */}
+        <FormInput
+          variant='password'
+          label={t("password")}
+          input={password}
+          inputChange={handlePasswordChange}
+          error={passwordError}
+        />
+        {/* General error */}
+        <Box marginTop={2}>
+          <Typography color='error' variant='body2'>
+            {generalError}
+          </Typography>
+        </Box>
+        {/* Submit */}
+        <Button
+          variant='outlined'
+          type='submit'
+          sx={{ width: 304, marginY: 2 }}
+        >
+          {t("sign_in")}
+        </Button>
+        <Typography variant='caption'>{t("dont_have_an_account")}</Typography>
+        <Link variant='caption' component={L} to='/register'>
+          {t("sign_up_to_archytex")}
+        </Link>
+      </FormContainer>
+    </form>
   );
 }

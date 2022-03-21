@@ -7,7 +7,7 @@ import IconButton from "@mui/material/IconButton";
 import Tooltip from "@mui/material/Tooltip";
 import CardActions from "@mui/material/CardActions";
 
-import { Delete, Download, InfoOutlined, Share } from "@mui/icons-material";
+import { Delete, Download, InfoOutlined } from "@mui/icons-material";
 
 import DeleteRenderModal from "./DeleteRenderModal";
 import RenderDetailsModal from "./RenderDetailsModal";
@@ -24,7 +24,6 @@ interface Props {
 export default function RenderCardActions({ render, project }: Props) {
   const { t } = useTranslation();
   const downloadTooltipText = t("download");
-  const shareTooltipText = t("share");
   const detailsTooltipText = t("details");
   const deleteTooltipText = t("delete");
 
@@ -70,17 +69,6 @@ export default function RenderCardActions({ render, project }: Props) {
                   onClick={onDownload}
                 >
                   <Download />
-                </IconButton>
-              </span>
-            </Tooltip>
-            <Tooltip title={shareTooltipText} arrow>
-              <span>
-                <IconButton
-                  size='small'
-                  disabled={render.status * 100 < 100}
-                  color='primary'
-                >
-                  <Share />
                 </IconButton>
               </span>
             </Tooltip>
