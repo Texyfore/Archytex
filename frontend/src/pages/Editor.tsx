@@ -167,6 +167,18 @@ export default function Editor() {
               break;
           }
           handleEditorModeChange(mode);
+        },
+        (locked: boolean) => {
+          if (locked) {
+            const canvas = document.getElementById("viewport-canvas");
+            if (canvas !== null) {
+              canvas.requestPointerLock();
+            }
+            rightDown = true;
+          } else {
+            document.exitPointerLock();
+            rightDown = false;
+          }
         }
       );
       setVp(viewport);
@@ -184,17 +196,13 @@ export default function Editor() {
     if (canvas !== null) {
       canvas.addEventListener("mousedown", (ev) => {
         if (ev.button === 2) {
-          canvas.requestPointerLock();
           sender.setPointerLock(true);
-          rightDown = true;
         }
       });
 
       canvas.addEventListener("mouseup", (ev) => {
         if (ev.button === 2) {
-          document.exitPointerLock();
           sender.setPointerLock(false);
-          rightDown = false;
         }
       });
 

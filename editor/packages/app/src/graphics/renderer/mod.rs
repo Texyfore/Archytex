@@ -174,7 +174,7 @@ fn gen_solid_tris() -> Vec<[u16; 3]> {
         .into_iter()
         .map(|t0| {
             let t0 = t0 * 4;
-            [[t0 + 0, t0 + 1, t0 + 2], [t0 + 0, t0 + 2, t0 + 3]].into_iter()
+            [[t0, t0 + 1, t0 + 2], [t0, t0 + 2, t0 + 3]].into_iter()
         })
         .flatten()
         .collect()

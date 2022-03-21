@@ -11,23 +11,29 @@ init().then(() => {
         console.log(`[wasm] saved scene (${scene.length})`);
     }, (button) => {
         console.log(`[wasm] button feedback ${button}`);
-    });
+    },
+        (locked) => {
+            console.log(`[wasm] pointer lock: ${locked}`);
+            if (locked) {
+                canvas.requestPointerLock();
+                rightDown = true;
+            } else {
+                document.exitPointerLock();
+                rightDown = false;
+            }
+        });
 
     const sender = channel.sender();
 
     canvas.addEventListener("mousedown", ev => {
         if (ev.button === 2) {
-            canvas.requestPointerLock();
             sender.setPointerLock(true);
-            rightDown = true;
         }
     });
 
     canvas.addEventListener("mouseup", ev => {
         if (ev.button == 2) {
-            document.exitPointerLock();
             sender.setPointerLock(false);
-            rightDown = false;
         }
     })
 
