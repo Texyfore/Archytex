@@ -72,7 +72,7 @@
     "about_section1_paragraph": "Archytex was made as the final project for our technical year in high school. We are Gulyás Arnold, Marton Zoltán and Szabó Dániel.",
     "about_section2_title": "Technologies",
     "about_section2_subtitle": "What did we use?",
-    "about_section2_paragraph": "We used many technologies for this project such as Rust, React, Typescript, Material UI, WebGL, GO, Docker and Mongo DB. Many of the challanges during the project came from the fact that we tried to use fairly new frameworks that aren't necessarily stable yet.",
+    "about_section2_paragraph": "We used many technologies for this project such as Rust, React, TypeScript, Material UI, WebGL, Go, Docker and MongoDB. Many of the chellanges during the project came from the fact that we tried to use fairly new frameworks which aren't necessarily stable yet.",
     "features_section1_title": "Create Projects",
     "features_section1_subtitle": "Manage your work with projects",
     "features_section1_paragraph": "You can create new projects in your dashboard, and open them in the editor to sketch your ideas. Any change you make in the editor will be saved, so you can access your work from anywhere, any time.",
