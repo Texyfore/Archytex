@@ -166,5 +166,7 @@
   "camera_settings": "Camera settings",
   "grid_settings": "Grid settings",
   "larger_screen": "Sorry, the editor needs a larger screen to work properly",
-  "successful_change": "Setting successfully changed"
+  "successful_change": "Setting successfully changed",
+  "translated_by": "Translated by",
+  "translator_name": "Texyfore team"
 }
