@@ -18,6 +18,7 @@ type Database interface {
 	CreateRegister(register models.Register) (interface{}, error)
 
 	UserExists(username, email string) (bool, error)
+	UserModify(id interface{}, username, email, password *string) error
 
 	DeleteRegister(register models.Register) error
 

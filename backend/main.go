@@ -81,7 +81,7 @@ func main() {
 	auth := api.PathPrefix("/auth").Subrouter()
 	auth.Use(session.UserMiddleware)
 	auth.HandleFunc("/hello", routes.Hello).Methods("GET")
-	auth.HandleFunc("/user", authenticated.User).Methods("POST")
+	auth.HandleFunc("/user", authenticated.User).Methods("POST", "PATCH")
 	auth.HandleFunc("/project", authenticated.Project).Methods("POST")
 	auth.HandleFunc("/project/{id}", authenticated.Project).Methods("DELETE", "PATCH")
 	auth.HandleFunc("/project/{id}/data", authenticated.ProjectData).Methods("GET", "POST")
