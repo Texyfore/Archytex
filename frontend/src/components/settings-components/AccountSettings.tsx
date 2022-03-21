@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 
 import { useTranslation } from "react-i18next";
 
@@ -21,6 +21,8 @@ import {
   ManageAccounts,
   Password,
 } from "@mui/icons-material";
+import { useApi } from "../../services/user/api";
+import useNotification from "../../services/hooks/useNotification";
 
 const Input = styled("input")({
   display: "none",
@@ -28,6 +30,56 @@ const Input = styled("input")({
 
 export default function AccountSettings() {
   const { t } = useTranslation();
+
+  const api = useApi(true);
+
+  const {addNotification} = useNotification();
+
+  const [username, setUsername] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+
+  const changeUsername = async ()=>{
+    if(username.length > 100){
+      addNotification(t("long_username_error"), "error");
+      return;
+    }
+    
+    if (api?.state == "logged-in") {
+      await api.modifyUser({username, email: undefined, password: undefined}).then(()=>{
+        addNotification(t("successful_change"), "success")
+      }).catch((err)=>{
+        addNotification(err + "", "error")
+      })
+    }
+  }
+  const changeEmail = async ()=>{
+    if(username.length > 100){
+      addNotification(t("long_email_error"), "error");
+      return;
+    }
+    if (api?.state == "logged-in") {
+      await api.modifyUser({email, username: undefined, password: undefined}).then(()=>{
+        addNotification(t("successful_change"), "success")
+      }).catch((err)=>{
+        addNotification(err + "", "error")
+      })
+    }
+  }
+  const changePassword = async ()=>{
+    if(username.length > 100){
+      addNotification(t("long_password_error"), "error");
+      return;
+    }
+    if (api?.state == "logged-in") {
+      await api.modifyUser({password, email: undefined, username: undefined}).then(()=>{
+        addNotification(t("successful_change"), "success")
+      }).catch((err)=>{
+        addNotification(err + "", "error")
+      })
+    }
+  }
+
 
   return (
     <Box mt={8}>
@@ -64,8 +116,10 @@ export default function AccountSettings() {
               id='username'
               variant='outlined'
               margin='none'
+              value={username}
+              onChange={(ev)=>setUsername(ev.target.value)}
             />
-            <Button disableElevation variant='contained'>
+            <Button disableElevation variant='contained' onClick={changeUsername}>
               {t("update")}
             </Button>
           </Box>
@@ -91,8 +145,10 @@ export default function AccountSettings() {
               id='email'
               variant='outlined'
               margin='none'
+              value={email}
+              onChange={(ev)=>setEmail(ev.target.value)}
             />
-            <Button disableElevation variant='contained'>
+            <Button disableElevation variant='contained' onClick={changeEmail}>
               {t("update")}
             </Button>
           </Box>
@@ -118,8 +174,10 @@ export default function AccountSettings() {
               id='password'
               variant='outlined'
               margin='none'
+              value={password}
+              onChange={(ev)=>setPassword(ev.target.value)}
             />
-            <Button disableElevation variant='contained'>
+            <Button disableElevation variant='contained' onClick={changePassword}>
               {t("update")}
             </Button>
           </Box>
