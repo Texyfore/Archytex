@@ -140,8 +140,8 @@ impl Orientation {
     fn update(&mut self, ctx: &Context, props: &mut [(usize, Prop)]) {
         for (key, axis) in [
             (VirtualKeyCode::X, Axis::X),
-            (VirtualKeyCode::Y, Axis::Y),
-            (VirtualKeyCode::Z, Axis::Z),
+            (VirtualKeyCode::Z, Axis::Y),
+            (VirtualKeyCode::Y, Axis::Z),
         ] {
             if ctx.input.is_key_down_once(key) {
                 let mut vertices = Vec::with_capacity(props.len() * 2);

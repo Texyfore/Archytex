@@ -123,8 +123,8 @@ where
     fn process(&mut self, ctx: Context) -> Option<Box<dyn Tool>> {
         for (axis, key) in [
             (Axis::X, VirtualKeyCode::X),
-            (Axis::Y, VirtualKeyCode::Y),
-            (Axis::Z, VirtualKeyCode::Z),
+            (Axis::Y, VirtualKeyCode::Z),
+            (Axis::Z, VirtualKeyCode::Y),
         ] {
             if ctx.input.is_key_down_once(key) {
                 if ctx.input.is_key_down(VirtualKeyCode::LShift) {

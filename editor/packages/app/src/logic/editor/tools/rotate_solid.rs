@@ -13,8 +13,8 @@ impl Tool for RotateSolid {
     fn process(&mut self, ctx: Context) -> Option<Box<dyn Tool>> {
         for (key, axis) in [
             (VirtualKeyCode::X, Axis::X),
-            (VirtualKeyCode::Y, Axis::Y),
-            (VirtualKeyCode::Z, Axis::Z),
+            (VirtualKeyCode::Z, Axis::Y),
+            (VirtualKeyCode::Y, Axis::Z),
         ] {
             if ctx.input.is_key_down_once(key) {
                 ctx.scene.act(
