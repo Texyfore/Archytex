@@ -58,7 +58,7 @@ export default function Editor() {
   // Selected texture
   const [texture, setTexture] = useState<Texture>(textures[0]);
   useEffect(() => {
-    setTexture(textures[0]);
+    handleTextureChange(textures[0]);
   }, [textures]);
   const handleTextureChange = (texture: Texture) => {
     setTexture(texture);
@@ -83,7 +83,7 @@ export default function Editor() {
   // Selected prop
   const [prop, setProp] = useState<Prop>(props[0]);
   useEffect(() => {
-    setProp(props[0]);
+    handlePropChange(props[0]);
   }, [props]);
   const handlePropChange = (prop: Prop) => {
     setProp(prop);
