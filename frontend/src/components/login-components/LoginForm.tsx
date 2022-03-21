@@ -48,7 +48,9 @@ export default function LoginForm() {
     setGeneralError("");
   };
 
-  const loginClick = () => {
+  const loginClick = (e: any) => {
+    e.preventDefault();
+
     if (username === "") {
       handleError(t("empty_username"), "username");
       if (password !== "") {

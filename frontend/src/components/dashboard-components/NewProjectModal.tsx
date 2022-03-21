@@ -66,6 +66,10 @@ export default function NewProjectModal({
       handleError(t("no_empty_project_name"));
       return;
     }
+    if (name.length > 100) {
+      handleError(t("long_project_name_error"));
+      return;
+    }
 
     projectsDispatch({
       type: "create",

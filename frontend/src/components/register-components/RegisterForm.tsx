@@ -62,14 +62,24 @@ export default function RegisterForm() {
     setGeneralError("");
   };
 
-  const register = () => {
+  const register = (e: any) => {
+    e.preventDefault();
+
     let errored = false;
     if (username === "") {
       setUsernameError(t("empty_username"));
       errored = true;
     }
+    if (username.length > 100) {
+      setUsernameError(t("long_username_error"));
+      errored = true;
+    }
     if (email === "") {
       setEmailError(t("empty_email"));
+      errored = true;
+    }
+    if (email.length > 100) {
+      setEmailError(t("long_email_error"));
       errored = true;
     }
     if (!email.includes("@")) {
@@ -78,6 +88,10 @@ export default function RegisterForm() {
     }
     if (password === "") {
       setPasswordError(t("empty_password"));
+      errored = true;
+    }
+    if (password.length > 100) {
+      setPasswordError(t("long_password_error"));
       errored = true;
     }
     if (password !== rePassword) {

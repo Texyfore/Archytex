@@ -30,7 +30,7 @@ export default function EditProjectModal({
 }: Props) {
   const { t } = useTranslation();
 
-  const [title, setTitle] = useState(project.title);
+  const [name, setName] = useState(project.title);
 
   const [error, setError] = useState("");
 
@@ -41,15 +41,19 @@ export default function EditProjectModal({
   const handleSaveEdit = (e: any) => {
     e.preventDefault();
 
-    if (title.trim() === "") {
+    if (name.trim() === "") {
       setError(t("no_empty_project_name"));
+      return;
+    }
+    if (name.length > 100) {
+      setError(t("long_project_name_error"));
       return;
     }
 
     projectsDispatch({
       id: project.id,
       type: "rename",
-      name: title,
+      name: name,
     })
       .then(() => {
         addNotification(t("project_name_updated"), "success");
@@ -106,8 +110,8 @@ export default function EditProjectModal({
               <FormInput
                 variant={"regular"}
                 label={t("project_name")}
-                input={title}
-                inputChange={(e) => setTitle(e.target.value)}
+                input={name}
+                inputChange={(e) => setName(e.target.value)}
                 error={error}
               />
             </Box>
