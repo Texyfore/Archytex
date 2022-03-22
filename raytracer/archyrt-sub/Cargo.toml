@@ -14,3 +14,5 @@ redis = {version="0.21.5", features=['aio', 'async-std-comp']}
 futures = "0.3.19"
 lru = "0.7.2"
 archyrt_core = {path="../archyrt-core"}
+uuid = {version="0.8.2", features=["v4"]}
+num_cpus = "1.13.1"
