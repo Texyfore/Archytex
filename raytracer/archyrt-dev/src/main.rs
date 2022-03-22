@@ -181,7 +181,7 @@ fn main() {
     amdl::repo::load_into(&mut props,&textures,  "../assets").unwrap();
 
     //Load model
-    let loader = ASCNLoader::from_path("../assets/proprot.ascn").unwrap();
+    let loader = ASCNLoader::from_path("../assets/ottoman.ascn").unwrap();
     let camera = loader.get_camera();
     let object = loader.get_triangles();
     let object = BVH::from_triangles(&object);
