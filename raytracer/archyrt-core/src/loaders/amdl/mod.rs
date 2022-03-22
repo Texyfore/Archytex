@@ -39,7 +39,7 @@ impl AMDLLoader{
                 }else{
                     Material::Diffuse
                 };
-                let triangle = Triangle::new(
+                let triangle = Triangle::with_normals(
                     [
                         v1.position.into(),
                         v2.position.into(),
@@ -49,6 +49,11 @@ impl AMDLLoader{
                         v1.texcoord.into(),
                         v2.texcoord.into(),
                         v3.texcoord.into(),
+                    ],
+                    [
+                        v1.normal.into(),
+                        v2.normal.into(),
+                        v3.normal.into(),
                     ],
                     texture,
                     material

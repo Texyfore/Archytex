@@ -24,6 +24,9 @@ pub struct Triangle {
     pub a: Vec3,
     pub b: Vec3,
     pub c: Vec3,
+    pub an: Vec3,
+    pub bn: Vec3,
+    pub cn: Vec3,
     pub normal: Vec3,
     pub uv: [Vec2; 3],
     pub texture: TextureID,
@@ -34,10 +37,18 @@ impl Triangle {
     pub fn new(vertices: [Vec3; 3], uv: [Vec2; 3], texture: TextureID, material: Material) -> Self {
         let [a, b, c] = vertices;
         let normal = (b - a).cross(c - a).normalized();
+        Self::with_normals(vertices, uv, [normal, normal, normal], texture, material)
+    }
+    pub fn with_normals(vertices: [Vec3; 3], uv: [Vec2; 3], normals: [Vec3; 3], texture: TextureID, material: Material) -> Self{
+        let [a, b, c] = vertices;
+        let normal = (b - a).cross(c - a).normalized();
         Self {
             a,
             b,
             c,
+            an: normals[0],
+            bn: normals[1],
+            cn: normals[2],
             normal,
             uv,
             texture,
@@ -120,14 +131,16 @@ impl Intersectable for Triangle {
         if t < 0.0 || u < 0.0 || v < 0.0 || u + v > 1.0 {
             return None;
         }
+        let barycentric = Vec3::new(u, v, 1.0 - u - v);
+        let normal = matrix![self.bn, self.cn, self.an] * barycentric;
         Some(
             IntersectionBuilder {
                 ray,
                 distance: Some(t),
-                normal: self.normal,
+                normal,
                 color_provider: TriangleColor {
                     uv: self.uv,
-                    barycentric: Vec3::new(u, v, 1.0 - u - v),
+                    barycentric,
                     texture: self.texture,
                     material: self.material,
                 },
