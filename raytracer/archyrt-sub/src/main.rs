@@ -19,7 +19,7 @@ use archyrt_core::{
     }, utilities::ray::Intersectable,
 };
 use dotenv::dotenv;
-use futures::StreamExt;
+use futures::{StreamExt, future::JoinAll, Future};
 use lapin::{message::Delivery, Channel, Connection, ConnectionProperties};
 use lru::LruCache;
 use redis::AsyncCommands;
@@ -144,14 +144,18 @@ fn main() -> Result<()> {
 
     let mut props = PropRepository::new();
     amdl::repo::load_into(&mut props, &textures, "../assets")?;
-    async_global_executor::block_on(async {
+    
+    let cores = num_cpus::get();
+    let f = futures::future::join_all((0..cores).map(|instance| async {
+        
+        let uuid = uuid::Uuid::new_v4().to_string();
         let mut cache: LruCache<String, SceneData> = LruCache::new(5);
         let rabbitmq_client = Connection::connect(
             &amqp_addr,
             ConnectionProperties::default().with_default_executor(8),
         )
         .await?;
-        let mut redis_client = redis::Client::open(redis_addr)?;
+        let mut redis_client = redis::Client::open(redis_addr.clone())?;
 
 
         let channel = rabbitmq_client.create_channel().await?;
@@ -161,7 +165,7 @@ fn main() -> Result<()> {
         let mut consumer = channel
             .basic_consume(
                 task_queue.name().as_str(),
-                "consumer_TODONUMBER",
+                &format!("consumer_{}", uuid),
                 Default::default(),
                 Default::default(),
             )
@@ -173,6 +177,11 @@ fn main() -> Result<()> {
                 println!("Error: {}", err);
             }
         }
-        Ok(())
-    })
+        let r: Result<(), anyhow::Error> = anyhow::Result::Ok(());
+        r
+    }));
+    let res = async_global_executor::block_on(f);
+    let res: Result<Vec<()>> = res.into_iter().collect();
+    res?;
+    Ok(())
 }
