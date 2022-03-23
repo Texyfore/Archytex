@@ -14,7 +14,8 @@ function GetTheme(mode: ColorMode): any {
     switch (i18n.language) {
       case "jp":
         return "Noto Sans JP";
-
+      case "ua":
+        return "Noto Sans";
       default:
         return "Nagoda";
     }
