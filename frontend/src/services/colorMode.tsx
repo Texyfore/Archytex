@@ -37,8 +37,8 @@ function GetTheme(mode: ColorMode): any {
             primary: mode === ColorMode.Dark ? "#F4F4F4" : "#1B1B1A",
           },
           background: {
-            default: mode === ColorMode.Dark ? "#1B1B1A" : "#FFFFFF",
-            paper: mode === ColorMode.Dark ? "#1B1B1A" : "#FFFFFF",
+            default: mode === ColorMode.Dark ? "#1B1B1A" : "#F4F4F4",
+            paper: mode === ColorMode.Dark ? "#1B1B1A" : "#F4F4F4",
           },
           divider: mode === ColorMode.Dark ? "#1F1F1F" : "#EBE7EC",
         },
@@ -113,7 +113,7 @@ export const ForceDarkProvider = ({
   const theme = GetTheme(ColorMode.Light);
   return (
     <ThemeProvider theme={theme}>
-      <ColorModeContext.Provider value={[ColorMode.Light, () => {}]}>
+      <ColorModeContext.Provider value={[ColorMode.Light, () => { }]}>
         {children}
       </ColorModeContext.Provider>
     </ThemeProvider>
