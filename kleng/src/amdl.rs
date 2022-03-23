@@ -18,8 +18,9 @@ pub fn gltf_to_amdl(
     let mut box_max = [std::f32::NEG_INFINITY; 3];
     let mut meshes = Vec::new();
 
-    for mesh in document.meshes() {
-        let name = mesh.name().unwrap();
+    for node in document.nodes() {
+        let name = node.name().unwrap();
+        let mesh = node.mesh().unwrap();
 
         let primitive = mesh.primitives().next().unwrap();
         let reader = primitive.reader(|buf| Some(&buffers[buf.index()]));
