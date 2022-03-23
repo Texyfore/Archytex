@@ -79,7 +79,7 @@ export default function RenderCard({ render, project }: RenderCardProps) {
               >
                 <Box>
                   {render.status === 0 ? (
-                    <Typography>{t("in_queue")}</Typography>
+                    <Typography color='#F4F4F4'>{t("in_queue")}</Typography>
                   ) : (
                     <CircularProgressWithLabel
                       size={80}
