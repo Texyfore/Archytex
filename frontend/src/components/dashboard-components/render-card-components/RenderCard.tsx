@@ -1,5 +1,7 @@
 import React, { useState } from "react";
 
+import { useTranslation } from "react-i18next";
+
 import Box from "@mui/material/Box";
 import Card from "@mui/material/Card";
 import CardActionArea from "@mui/material/CardActionArea";
@@ -23,6 +25,8 @@ interface RenderCardProps {
 }
 
 export default function RenderCard({ render, project }: RenderCardProps) {
+  const { t } = useTranslation();
+
   //Enlarge render image modal
   const [openEnlargeRenderModal, setOpenEnlargeRenderModal] = useState<
     undefined | Render
@@ -74,11 +78,15 @@ export default function RenderCard({ render, project }: RenderCardProps) {
                 bgcolor='rgba(0, 0, 0, 0.7)'
               >
                 <Box>
-                  <CircularProgressWithLabel
-                    size={80}
-                    thickness={1}
-                    value={Math.floor(render.status) * 100}
-                  />
+                  {render.status === 0 ? (
+                    <Typography>{t("in_queue")}</Typography>
+                  ) : (
+                    <CircularProgressWithLabel
+                      size={80}
+                      thickness={1}
+                      value={Math.floor(render.status) * 100}
+                    />
+                  )}
                 </Box>
               </Box>
             </Box>

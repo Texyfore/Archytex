@@ -57,7 +57,7 @@ export default function LanguageSelectDropdown() {
         PaperProps={{
           style: {
             maxHeight: 45 * 4.5,
-            width: "150px",
+            width: "200px",
           },
         }}
       >

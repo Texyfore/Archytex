@@ -54,7 +54,7 @@
     "face_select_mode": "面モード (2)",
     "mesh_select_mode": "メッシュモード (1)",
     "create_new_project": "新しいプロジェクトを作る",
-    "project_created_successfully": "プロジェクトは成功に作られました！",
+    "project_created_successfully": "プロジェクトは成功に作られました",
     "create": "作成",
     "project_name": "プロジェクト名",
     "search": "探索…",
@@ -65,7 +65,7 @@
     "delete_project": "プロジェクトを消す",
     "delete": "削除する",
     "cancel": "キャンセル",
-    "project_deleted_successfully": "プロジェクトが成功に削除されました！",
+    "project_deleted_successfully": "プロジェクトが成功に削除されました",
     "download": "ダウンロード",
     "share": "シェア",
     "details": "詳細",
@@ -128,7 +128,7 @@
     "complete_recaptcha": "reCAPTCHAを完了してください",
     "recaptcha_failed": "reCAPTCHAチェックが失敗しました",
     "section3_subtitle": "アーキテックスレンダリングでポートフォリオを構築する",
-    "about_section2_paragraph": "このプロジェクトでは、Rust、React、Typescript、Material UI、WebGL、GO、Docker、MongoDBなどの多くのテクノロジーを使用しました。 プロジェクト中の課題の多くは、まだ安定しているとは限らないかなり新しいフレームワークを使用しようとしたという事実から生じました。",
+    "about_section2_paragraph": "このプロジェクトでは、Rust、React、TypeScript、Material UI、WebGL、GO、Docker、MongoDBなどの多くのテクノロジーを使用しました。 プロジェクト中の課題の多くは、まだ安定しているとは限らないかなり新しいフレームワークを使用しようとしたという事実から生じました。",
     "invalid_sample_count": "無効なサンプル数",
     "start_render": "レンダリングを開始する",
     "no_empty_project_name": "プロジェクト名は空にできません",
@@ -193,5 +193,9 @@
     "recent": "最近",
     "rendering_failed": "レンダリングを開始できませんでした",
     "not_logged_in": "ログインしていません",
-    "larger_screen": "エディタが正しく機能するには、より大きな画面が必要です"
+    "larger_screen": "エディタが正しく機能するには、より大きな画面が必要です",
+    "version_number": "1.0.0",
+    "translated_by": "翻訳者",
+    "translator_name": "YertofeX",
+    "in_queue": "順番待ち…"
 }
