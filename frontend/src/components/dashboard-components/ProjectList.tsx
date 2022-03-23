@@ -13,11 +13,10 @@ import { Project, useProjects } from "../../services/projects";
 import ProjectListItem from "./project-components/ProjectListItem";
 
 const ProjectListContainer = styled(Box)(({ theme }) => ({
-  height: "calc(100vh - 65px)",
+  height: "calc(100vh - 65px - 60px)",
   overflowY: "scroll",
-
   [`${theme.breakpoints.up("xs")} and (orientation: landscape)`]: {
-    height: "calc(100vh - 49px - 60px)",
+    height: "calc(100vh - 56px - 60px)",
   },
   [theme.breakpoints.up("sm")]: {
     height: "calc(100vh - 65px - 60px)",
@@ -36,7 +35,10 @@ export default function ProjectList({ query }: Props) {
   const { projects } = useProjects();
 
   return (
-    <ProjectListContainer>
+    <ProjectListContainer
+      pl={{ md: 15, lg: 40, xl: 60 }}
+      pr={{ md: 13, lg: 38, xl: 58 }}
+    >
       {projects === undefined ? (
         <Box
           height='100%'
