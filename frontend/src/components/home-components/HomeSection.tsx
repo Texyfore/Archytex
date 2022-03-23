@@ -17,6 +17,7 @@ interface Props {
   imageSrc: string;
   imageAlt: string;
   flipped?: boolean;
+  hasDecoration?: boolean;
 }
 
 export default function HomeSection({
@@ -27,6 +28,7 @@ export default function HomeSection({
   imageAlt,
   ctaButton,
   flipped = false,
+  hasDecoration = false,
 }: Props) {
   useEffect(() => {
     AOS.init({ duration: 1000 });
@@ -63,7 +65,11 @@ export default function HomeSection({
         {flipped ? (
           <>
             <Box data-aos='zoom-in-right'>
-              <SectionImage src={imageSrc} alt={imageAlt} />
+              <SectionImage
+                src={imageSrc}
+                alt={imageAlt}
+                hasDecoration={hasDecoration}
+              />
             </Box>
             <Box data-aos='zoom-in-left'>
               <HomeParagraph
@@ -83,7 +89,11 @@ export default function HomeSection({
               />
             </Box>
             <Box data-aos='zoom-in-left'>
-              <SectionImage src={imageSrc} alt={imageAlt} />
+              <SectionImage
+                src={imageSrc}
+                alt={imageAlt}
+                hasDecoration={hasDecoration}
+              />
             </Box>
           </>
         )}

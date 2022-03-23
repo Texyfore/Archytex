@@ -1,7 +1,6 @@
 package routes
 
 import (
-	"encoding/json"
 	"net/http"
 
 	"github.com/Texyfore/Archytex/backend/database"
@@ -38,9 +37,5 @@ func Verify(w http.ResponseWriter, r *http.Request) {
 		logging.Error(w, r, err, "internal server error", http.StatusInternalServerError)
 		return
 	}
-	err = json.NewEncoder(w).Encode("ok")
-	if err != nil {
-		logging.Error(w, r, err, "internal server error", http.StatusInternalServerError)
-		return
-	}
+	http.Redirect(w, r, "/login", http.StatusSeeOther)
 }

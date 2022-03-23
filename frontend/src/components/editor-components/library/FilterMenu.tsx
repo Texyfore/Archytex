@@ -11,15 +11,13 @@ import ListItemText from "@mui/material/ListItemText";
 import Menu from "@mui/material/Menu";
 import Divider from "@mui/material/Divider";
 
-import Category from "../../../services/libraries/Category";
-
 interface Props {
   anchorEl: null | HTMLElement;
   open: boolean;
   handleClose: () => void;
-  categories: Category[];
-  checkedCategories: Category[];
-  onCheck: (category: Category) => () => void;
+  categories: string[];
+  checkedCategories: string[];
+  onCheck: (category: string) => () => void;
   toggleAll: () => void;
 }
 
@@ -66,14 +64,14 @@ export default function FilterMenu({
               <ListItemIcon>
                 <Checkbox
                   edge='start'
-                  checked={checkedCategories.some((c) => c.id === category.id)}
+                  checked={checkedCategories.some((c) => c === category)}
                   tabIndex={-1}
                 />
               </ListItemIcon>
               <ListItemText
                 primary={
-                  category.name.charAt(0).toUpperCase() +
-                  category.name.toLocaleLowerCase().slice(1)
+                  category.charAt(0).toUpperCase() +
+                  category.toLocaleLowerCase().slice(1)
                 }
               />
             </ListItemButton>

@@ -4,7 +4,6 @@ use winit::event::MouseButton;
 use crate::{
     graphics::Canvas,
     logic::{
-        editor::grid,
         elements::{ElementKind, Movable, Solid},
         scene::{self, Action},
     },
@@ -34,8 +33,8 @@ impl Tool for NewSolid {
             .scene
             .raycast(ctx.input.mouse_pos(), ctx.camera, ctx.prop_infos);
         if let Some(endpoint) = hit.endpoint {
-            let g = grid(*ctx.grid);
-            let scaled_normal = endpoint.normal * g as f32 * 0.01 * 0.1;
+            let g = *ctx.grid;
+            let scaled_normal = endpoint.normal * g as f32 / 128.0 * 0.1;
 
             let start = self.start.snap(g);
             let end = (endpoint.point + scaled_normal).snap(g);
@@ -53,7 +52,7 @@ impl Tool for NewSolid {
                     Action::NewSolids(vec![solid]),
                 );
             }
-            Some(Box::new(CameraTool::new(ctx.graphics, false)))
+            Some(Box::new(CameraTool::new(ctx.graphics)))
         } else {
             None
         }

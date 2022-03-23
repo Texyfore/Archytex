@@ -1,0 +1,107 @@
+version: "3.0"
+services:
+  mongodb:
+    restart: always
+    image: "mongo:5.0.6"
+    volumes:
+      - mongodb:/data/db
+      - mongodb:/data/configdb
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - MONGO_INITDB_DATABASE=archytex
+    command: 
+     - "--replSet=rs0"
+     - "--bind_ip_all"
+    #This is horrible
+    healthcheck:
+      test: "test $$(echo \"rs.initiate({ _id: \\\"rs0\\\", version: 1, members: [ { _id: 0, host: \\\"mongodb:27017\\\" } ] }).ok || rs.status().ok\" | mongo ) -eq 1"
+      interval: 10s
+      start_period: 30s
+
+  frontend:
+    restart: always
+    build: 
+      context: .
+      dockerfile: docker/Dockerfile.frontend
+    labels:
+      - traefik.enable=true
+      - "traefik.http.routers.frontend.rule=Host(`${DOMAIN}`)"
+      - "traefik.http.routers.frontend.entrypoints=web"
+    environment:
+      REACT_APP_CAPTCHA: ${CAPTCHA_PUBLIC}
+
+  redis:
+    restart: always
+    image: "redislabs/redisai:latest"
+    volumes:
+      - "redis:/data"
+    ports:
+      - "6379:6379"
+  
+  amqp:
+    restart: always
+    image: "rabbitmq:alpine"
+    ports:
+      - "5672:5672"
+
+  backend:
+    restart: always
+    build: 
+      context: .
+      dockerfile: docker/Dockerfile.backend
+    environment:
+      MONGO_URI: "mongodb://mongodb:27017"
+      MONGO_DB: archytex
+      CAPTCHA_SECRET: ${CAPTCHA_SECRET}
+      SMTP_SERVER: ${SMTP_SERVER}
+      SMTP_ADDRESS: ${SMTP_ADDRESS}
+      SMTP_PASSWORD: ${SMTP_PASSWORD}
+      PROJECTS_PATH: /data/projects
+      PORT: 80
+      REDIS_ADDR: "redis://redis:6379"
+      AMQP_ADDR: "amqp://amqp:5672"
+      DOMAIN: "http://${DOMAIN}"
+    volumes:
+      - "projects:/data/projects"
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.backend.rule=Host(`${DOMAIN}`) && PathPrefix(`/api`)"
+      - "traefik.http.routers.backend.entrypoints=web"
+      - "traefik.http.services.backend.loadbalancer.server.port=80"
+  archyrt-dom:
+    restart: always
+    build: 
+      context: .
+      dockerfile: docker/Dockerfile.raytracer.oidn
+    volumes:
+      - "./raytracer/assets:/archytex/assets"
+      - "projects:/archytex/projects"
+    environment:
+      AMQP_ADDR: "amqp://amqp:5672"
+      REDIS_ADDR: "redis://redis:6379"
+      MONGODB_ADDR: "mongodb://mongodb:27017"
+      IMAGES: "/archytex/projects"
+    depends_on:
+      - mongodb
+      - amqp
+      - redis
+    
+
+  traefik:
+    restart: always
+    image: "traefik:2.6"
+    command: 
+      - "--api.insecure=true"
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--entrypoints.web.address=:80"
+    ports:
+     - "80:80"
+     - "8080:8080"
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock:ro"
+volumes:
+  mongodb:
+  projects:
+  redis:

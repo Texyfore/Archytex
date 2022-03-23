@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 
 import { useTranslation } from "react-i18next";
 
@@ -21,11 +21,7 @@ import { Close, FilterList } from "@mui/icons-material";
 
 import FilterMenu from "./FilterMenu";
 
-import Prop from "../../../services/types/Prop";
-import Texture from "../../../services/types/Texture";
-import Category from "../../../services/libraries/Category";
-import getTextureCategories from "../../../services/libraries/TextureCategories";
-import getPropCategories from "../../../services/libraries/PropCategories";
+import { Prop, Texture } from "../../../services/Library";
 
 function PaperComponent(props: PaperProps) {
   return (
@@ -48,6 +44,8 @@ interface Props {
   handleTextureChange: (texture: Texture) => void;
   prop: Prop;
   handlePropChange: (prop: Prop) => void;
+  textures: Texture[];
+  props: Prop[];
 }
 
 export default function LibraryDialog({
@@ -58,6 +56,8 @@ export default function LibraryDialog({
   handleTextureChange,
   prop,
   handlePropChange,
+  textures,
+  props,
 }: Props) {
   //Translation
   const { t } = useTranslation();
@@ -71,25 +71,36 @@ export default function LibraryDialog({
       if (descriptionElement !== null) {
         descriptionElement.focus();
       }
-      handleSelectionChange(libraryType === "textureLibrary" ? texture : prop);
+      if (libraryType === "textureLibrary") {
+        handleTextureSelectionChange(texture);
+      } else if (libraryType === "propLibrary") {
+        handlePropSelectionChange(prop);
+      }
     }
   }, [open, libraryType, texture, prop]);
 
-  //Selection handling
-  const [selected, setSelected] = useState<Texture | Prop | undefined>(
+  // Texture selection handling
+  const [selectedTexture, setSelectedTexture] = useState<Texture | undefined>(
     undefined
   );
-  const handleSelectionChange = (item: Texture | Prop | undefined) => {
-    setSelected(item);
+  const handleTextureSelectionChange = (item: Texture | undefined) => {
+    setSelectedTexture(item);
+  };
+
+  // Prop selection handling
+  const [selectedProp, setSelectedProp] = useState<Prop | undefined>(undefined);
+  const handlePropSelectionChange = (item: Prop | undefined) => {
+    setSelectedProp(item);
   };
 
   //Apply new item
   const handleApplyNewItem = () => {
-    if (selected !== undefined) {
-      libraryType === "textureLibrary"
-        ? handleTextureChange(selected)
-        : handlePropChange(selected);
+    if (libraryType === "textureLibrary" && selectedTexture !== undefined) {
+      handleTextureChange(selectedTexture);
+    } else if (libraryType === "propLibrary" && selectedProp !== undefined) {
+      handlePropChange(selectedProp);
     }
+
     handleClose();
   };
 
@@ -104,31 +115,49 @@ export default function LibraryDialog({
   };
 
   //Filter menu items
-  const categories =
-    libraryType === "textureLibrary"
-      ? getTextureCategories()
-      : getPropCategories();
+  const categorySet: Set<string> = new Set<string>();
+  libraryType === "textureLibrary"
+    ? textures.forEach((texture) => {
+        texture.categories.forEach((category) => categorySet.add(category));
+      })
+    : props.forEach((prop) => {
+        prop.categories.forEach((category) => categorySet.add(category));
+      });
+
+  const categories: string[] = Array.from(categorySet.values());
+
   const [checkedCategories, setCheckedCategories] =
-    React.useState<Category[]>(categories);
-  const handleToggleCategory = (category: Category) => () => {
+    React.useState<string[]>(categories);
+
+  const handleToggleCategory = (category: string) => () => {
     let newChecked = [...checkedCategories];
-    checkedCategories.some((c) => c.id === category.id)
-      ? (newChecked = newChecked.filter((c) => c.id !== category.id))
+    checkedCategories.some((c) => c === category)
+      ? (newChecked = newChecked.filter((c) => c !== category))
       : newChecked.push(category);
     setCheckedCategories(newChecked);
   };
+
   const handleToggleAll = () => {
     checkedCategories.length !== categories.length
       ? setCheckedCategories(categories)
       : setCheckedCategories([]);
   };
 
-  //Seach bar
+  // Seach bar
   const [query, setQuery] = useState("");
   const handleQueryChange = (query: string) => {
     setQuery(query);
-    handleSelectionChange(undefined);
+    handleTextureSelectionChange(undefined);
+    handlePropSelectionChange(undefined);
   };
+
+  // Reset dialog on every open
+  useEffect(() => {
+    if (open) {
+      setCheckedCategories(categories);
+      setQuery("");
+    }
+  }, [open]);
 
   return (
     <Dialog
@@ -179,37 +208,47 @@ export default function LibraryDialog({
             <TextureLibrary
               query={query}
               checkedCategories={checkedCategories}
-              selected={selected}
-              handleSelectionChange={handleSelectionChange}
+              selected={selectedTexture}
+              handleSelectionChange={handleTextureSelectionChange}
+              textures={textures}
             />
           ) : (
             <PropLibrary
               query={query}
               checkedCategories={checkedCategories}
-              selected={selected}
-              handleSelectionChange={handleSelectionChange}
+              selected={selectedProp}
+              handleSelectionChange={handlePropSelectionChange}
+              props={props}
             />
           )}
         </Box>
       </DialogContent>
       <DialogActions>
-        <Box display={selected === undefined ? "block" : "none"}>
-          <Tooltip title={tooltipText} followCursor>
-            <span>
-              <Button onClick={handleClose} disabled={selected === undefined}>
-                {t("accept")}
-              </Button>
-            </span>
-          </Tooltip>
-        </Box>
-        <Box display={selected !== undefined ? "block" : "none"}>
-          <Button
-            onClick={handleApplyNewItem}
-            disabled={selected === undefined}
-          >
-            {t("accept")}
-          </Button>
-        </Box>
+        {libraryType === "textureLibrary" ? (
+          <Box>
+            {selectedTexture === undefined ? (
+              <Tooltip title={tooltipText} followCursor>
+                <span>
+                  <Button disabled>{t("accept")}</Button>
+                </span>
+              </Tooltip>
+            ) : (
+              <Button onClick={handleApplyNewItem}>{t("accept")}</Button>
+            )}
+          </Box>
+        ) : (
+          <Box>
+            {selectedProp === undefined ? (
+              <Tooltip title={tooltipText} followCursor>
+                <span>
+                  <Button disabled>{t("accept")}</Button>
+                </span>
+              </Tooltip>
+            ) : (
+              <Button onClick={handleApplyNewItem}>{t("accept")}</Button>
+            )}
+          </Box>
+        )}
       </DialogActions>
 
       {/* Filter Menu */}

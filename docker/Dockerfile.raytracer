@@ -1,0 +1,16 @@
+FROM rust:alpine AS build
+
+RUN apk update
+RUN apk add --no-cache alpine-sdk openssl-dev
+
+ADD raytracer/archyrt-core /archytex/archyrt/archyrt-core
+ADD raytracer/archyrt-dom /archytex/archyrt/archyrt-dom
+ADD editor /archytex/editor
+
+WORKDIR /archytex/archyrt/archyrt-dom
+RUN cargo build --release
+
+FROM alpine
+COPY --from=build /archytex/archyrt/archyrt-dom/target/release/archyrt_dom /archytex/raytracer/archyrt_dom
+WORKDIR /archytex/raytracer
+ENTRYPOINT [ "/archytex/raytracer/archyrt_dom" ]

@@ -22,7 +22,7 @@ pub fn load_into(
     Ok(())
 }
 pub fn load(base: &str, name: &str) -> Result<Texture> {
-    let path = Path::new(base).join(name);
+    let path = Path::new(base).join(name).with_extension("png");
     let image = ImageReader::open(path)?.decode()?;
     let image = image.into_rgb8();
     let pixels: Vec<_> = image

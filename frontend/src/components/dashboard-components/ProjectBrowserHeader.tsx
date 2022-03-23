@@ -36,7 +36,7 @@ export default function ProjectBrowserHeader({
         display='flex'
         justifyContent='space-between'
         alignItems='center'
-        paddingX={{ xs: 2, sm: 4 }}
+        paddingX={{ xs: 2, sm: 4, md: 15, lg: 40, xl: 60 }}
         borderBottom={`1px solid ${
           useTheme().palette.mode === "dark" ? "#2E2E2E" : "#BABABA"
         }`}

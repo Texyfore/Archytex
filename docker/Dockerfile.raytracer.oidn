@@ -1,0 +1,32 @@
+FROM rust:bullseye AS build
+
+RUN apt update
+RUN apt install -y curl
+
+WORKDIR /oidn
+RUN curl "https://github.com/OpenImageDenoise/oidn/releases/download/v1.4.3/oidn-1.4.3.x86_64.linux.tar.gz" -o oidn.tar.gz -L
+RUN tar -xzf oidn.tar.gz
+ENV OIDN_DIR=/oidn/oidn-1.4.3.x86_64.linux
+RUN cp -R $OIDN_DIR /
+
+ADD raytracer/archyrt-core /archytex/archyrt/archyrt-core
+ADD raytracer/archyrt-dom /archytex/archyrt/archyrt-dom
+ADD editor /archytex/editor
+
+WORKDIR /archytex/archyrt/archyrt-dom
+RUN cargo build --release --features oidn
+
+FROM debian:bullseye
+
+RUN apt update
+RUN apt install -y curl
+
+WORKDIR /oidn
+RUN curl "https://github.com/OpenImageDenoise/oidn/releases/download/v1.4.3/oidn-1.4.3.x86_64.linux.tar.gz" -o oidn.tar.gz -L
+RUN tar -xzf oidn.tar.gz
+ENV OIDN_DIR=/oidn/oidn-1.4.3.x86_64.linux
+RUN cp -R $OIDN_DIR/* /
+
+COPY --from=build /archytex/archyrt/archyrt-dom/target/release/archyrt_dom /archytex/raytracer/archyrt_dom
+WORKDIR /archytex/raytracer
+ENTRYPOINT [ "/archytex/raytracer/archyrt_dom" ]

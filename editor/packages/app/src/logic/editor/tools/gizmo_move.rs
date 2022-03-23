@@ -2,12 +2,9 @@ use cgmath::{Vector3, Zero};
 use winit::event::MouseButton;
 
 use crate::{
-    graphics::{Canvas, Graphics, LineMesh, LineMeshDescriptor, Share},
+    graphics::{Canvas, Graphics, LineMesh, Share},
     logic::{
-        editor::{
-            gizmo::{ArrowGraphics, Selection},
-            grid,
-        },
+        editor::gizmo::{ArrowGraphics, Selection},
         elements::Movable,
         ElementKind,
     },
@@ -43,9 +40,9 @@ where
         let arrows = ArrowGraphics::new_empty(graphics);
         arrows.modify(graphics, center, Some(selection), true);
 
-        let line = graphics.create_line_mesh(LineMeshDescriptor {
-            vertices: &selection.line_vertices(center),
-        });
+        let verts = selection.line_vertices(center);
+        let line = graphics.create_line_mesh_uninit(verts.len());
+        graphics.write_line_mesh(&line, &verts);
 
         let (correction, plane) = if selection.is_axis() {
             (
@@ -98,10 +95,16 @@ where
             ray.closest_point_on_line(self.center, self.selection.axis().unit()) - self.correction
         };
 
-        let delta = point.snap(grid(*ctx.grid));
+        let delta = point.snap(*ctx.grid);
         if delta != self.prev_delta {
             let delta2 = delta - self.prev_delta;
             self.prev_delta = delta;
+
+            let verts = self
+                .selection
+                .line_vertices(self.center + delta.map(|e| e as f32 / 128.0));
+
+            ctx.graphics.write_line_mesh(&self.line, &verts);
 
             for (_, element) in &mut self.elements {
                 element.displace(delta2, self.mask);
@@ -110,7 +113,7 @@ where
 
             self.graphics.modify(
                 ctx.graphics,
-                self.center + delta.map(|e| e as f32 * 0.01),
+                self.center + delta.map(|e| e as f32 / 128.0),
                 Some(self.selection),
                 true,
             );
@@ -119,7 +122,7 @@ where
         if ctx.input.was_button_down_once(MouseButton::Left) {
             let elements = self.elements.drain(..).collect();
             E::insert_move(ctx.scene, elements, delta, self.mask);
-            return Some(Box::new(CameraTool::new(ctx.graphics, false)));
+            return Some(Box::new(CameraTool::new(ctx.graphics)));
         }
 
         None

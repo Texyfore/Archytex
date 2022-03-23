@@ -56,7 +56,7 @@ fn vertex(attribs: Attribs, instance: Instance) -> Vertex {
 
     var vertex: Vertex;
     vertex.position = camera.world_to_clip * transform * vec4<f32>(attribs.position * scale, 1.0);
-    vertex.color = instance.color;
+    vertex.color = pow(instance.color, vec3<f32>(2.2));
     return vertex;
 }
 

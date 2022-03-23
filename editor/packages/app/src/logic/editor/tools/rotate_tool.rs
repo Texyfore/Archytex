@@ -4,7 +4,7 @@ use winit::event::{MouseButton, VirtualKeyCode};
 use crate::{
     graphics::{structures::LineVertex, Canvas, LineMesh, LineMeshDescriptor, Share},
     logic::{
-        editor::common::{calc_angle, Axis, Snap},
+        common::{calc_angle, Axis, Snap},
         elements::{ElementKind, Movable, Prop},
         scene::{self, Action},
     },
@@ -80,7 +80,7 @@ impl Tool for RotateTool {
                     .angle(snap.snap(delta), ctx.camera.forward());
                 ctx.scene.insert_props_with_rotate(props, delta);
 
-                return Some(Box::new(CameraTool::new(ctx.graphics, false)));
+                return Some(Box::new(CameraTool::new(ctx.graphics)));
             }
         } else {
             self.orientation.update(&ctx, &mut self.props);
@@ -99,7 +99,7 @@ impl Tool for RotateTool {
                     Action::SetPropRotations(rotations),
                 );
 
-                return Some(Box::new(CameraTool::new(ctx.graphics, false)));
+                return Some(Box::new(CameraTool::new(ctx.graphics)));
             }
         }
 
@@ -113,7 +113,7 @@ impl Tool for RotateTool {
 
             let props = self.props.drain(..).collect();
             Prop::insert(ctx.scene, props);
-            return Some(Box::new(CameraTool::new(ctx.graphics, false)));
+            return Some(Box::new(CameraTool::new(ctx.graphics)));
         }
 
         None
@@ -140,8 +140,8 @@ impl Orientation {
     fn update(&mut self, ctx: &Context, props: &mut [(usize, Prop)]) {
         for (key, axis) in [
             (VirtualKeyCode::X, Axis::X),
-            (VirtualKeyCode::Y, Axis::Y),
-            (VirtualKeyCode::Z, Axis::Z),
+            (VirtualKeyCode::Z, Axis::Y),
+            (VirtualKeyCode::Y, Axis::Z),
         ] {
             if ctx.input.is_key_down_once(key) {
                 let mut vertices = Vec::with_capacity(props.len() * 2);

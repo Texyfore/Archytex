@@ -1,10 +1,7 @@
 use cgmath::{vec3, MetricSpace, Vector2, Vector3, Zero};
 
 use crate::{
-    logic::{
-        camera::Camera,
-        editor::{common::Axis, gizmo::Selection},
-    },
+    logic::{camera::Camera, common::Axis, editor::gizmo::Selection},
     math::{Aabb, Intersects, Torus2D},
 };
 

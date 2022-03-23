@@ -12,8 +12,10 @@ import { Chair, Settings, Texture as TextureIcon } from "@mui/icons-material";
 import LibraryDialog from "./library/LibraryDialog";
 
 import { ColorMode, useColorMode } from "../../services/colorMode";
-import Texture from "../../services/types/Texture";
-import Prop from "../../services/types/Prop";
+import { Prop, Texture } from "../../services/Library";
+
+import ReactImageFallback from "react-image-fallback";
+import Environment from "../../env";
 
 type LibraryType = "textureLibrary" | "propLibrary";
 
@@ -22,6 +24,8 @@ interface Props {
   handleTextureChange: (texture: Texture) => void;
   prop: Prop;
   handlePropChange: (prop: Prop) => void;
+  textures: Texture[];
+  props: Prop[];
 }
 
 export default function EditorMenu({
@@ -29,6 +33,8 @@ export default function EditorMenu({
   handleTextureChange,
   prop,
   handlePropChange,
+  textures,
+  props,
 }: Props) {
   const { t } = useTranslation();
 
@@ -79,12 +85,13 @@ export default function EditorMenu({
 
         <Box display='flex' p={1}>
           <TextureIcon />
-          <Typography ml={1}>Texture</Typography>
+          <Typography ml={1}>{t("texture")}</Typography>
         </Box>
         <Box p={1} mb={1} display='flex'>
           <Box width={100} height={100} mr={2}>
-            <img
-              src={texture.thumbnail}
+            <ReactImageFallback
+              src={`${Environment.asset_url}/thumbnails/${texture.name}.webp`}
+              fallbackImage={require("../../img/unknown.webp").default}
               alt='texture'
               style={{ objectFit: "cover", borderRadius: 2 }}
               height='100%'
@@ -98,7 +105,10 @@ export default function EditorMenu({
             gap={1}
           >
             <Typography variant='caption'>{t("selected_texture")}</Typography>
-            <Typography>{texture.name}</Typography>
+            <Typography>
+              {texture.name.charAt(0).toUpperCase() +
+                texture.name.replaceAll("_", " ").slice(1)}
+            </Typography>
             <Button
               variant='outlined'
               onClick={() => handleLibraryClickOpen("textureLibrary")}
@@ -112,20 +122,15 @@ export default function EditorMenu({
 
         <Box display='flex' p={1}>
           <Chair />
-          <Typography ml={1}>Prop</Typography>
+          <Typography ml={1}>{t("prop")}</Typography>
         </Box>
         <Box p={1} display='flex'>
-          <Box
-            width={100}
-            height={100}
-            bgcolor='#F4F4F4'
-            borderRadius={1}
-            mr={2}
-          >
-            <img
-              src={prop.thumbnail}
+          <Box width={100} height={100} borderRadius={1} mr={2}>
+            <ReactImageFallback
+              src={`${Environment.asset_url}/thumbnails/${prop.name}.webp`}
+              fallbackImage={require("../../img/unknown.webp").default}
               alt='prop'
-              style={{ objectFit: "contain", padding: 10, borderRadius: 1 }}
+              style={{ objectFit: "contain", borderRadius: 2 }}
               height='100%'
               width='100%'
             />
@@ -137,7 +142,10 @@ export default function EditorMenu({
             gap={1}
           >
             <Typography variant='caption'>{t("selected_prop")}</Typography>
-            <Typography>{prop.name}</Typography>
+            <Typography>
+              {prop.name.charAt(0).toUpperCase() +
+                prop.name.replaceAll("_", " ").slice(1)}
+            </Typography>
             <Button
               variant='outlined'
               onClick={() => handleLibraryClickOpen("propLibrary")}
@@ -157,6 +165,8 @@ export default function EditorMenu({
         handleTextureChange={handleTextureChange}
         prop={prop}
         handlePropChange={handlePropChange}
+        textures={textures}
+        props={props}
       />
     </>
   );

@@ -19,7 +19,10 @@ const languageOptions: { id: string; name: string }[] = [
     name: "English",
   },
   { id: "hu", name: "Magyar" },
+  { id: "ua", name: "український" },
   { id: "jp", name: "日本語" },
+  { id: "ro", name: "Română" },
+  { id: "se", name: "Svenska" },
 ];
 
 export default function LanguageSelectDropdown() {
@@ -57,7 +60,7 @@ export default function LanguageSelectDropdown() {
         PaperProps={{
           style: {
             maxHeight: 45 * 4.5,
-            width: "150px",
+            width: "250px",
           },
         }}
       >
@@ -74,7 +77,7 @@ export default function LanguageSelectDropdown() {
                 textShadow: "0px 0px 2px grey",
               }}
             />
-            <Typography>
+            <Typography fontFamily='Noto Sans'>
               {`${option.name}\t(${option.id.toUpperCase()})`}
             </Typography>
           </MenuItem>

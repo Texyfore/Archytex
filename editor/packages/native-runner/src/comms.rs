@@ -5,7 +5,7 @@ use std::{
     thread::{spawn, JoinHandle},
 };
 
-use app::FromHost;
+use app::{Ascn, FromHost};
 
 pub struct AsyncStdin {
     thread: Option<JoinHandle<()>>,
@@ -39,7 +39,8 @@ impl AsyncStdin {
                             let name = tokens.next().unwrap();
                             let path = format!("{}.ascn", name);
                             let buf = fs::read(&path).unwrap();
-                            sender.send(FromHost::LoadScene(buf)).unwrap();
+                            let scene = Ascn::new(&buf).unwrap();
+                            sender.send(FromHost::LoadScene(scene)).unwrap();
                             println!("[native-runner] loading `{}`", path);
                         }
                         "texture" => {

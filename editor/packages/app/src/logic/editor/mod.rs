@@ -1,4 +1,3 @@
-mod common;
 mod gizmo;
 mod tools;
 
@@ -10,8 +9,7 @@ use crate::{
     button,
     data::PropInfoContainer,
     graphics::{
-        structures::{GroundVertex, LineVertex},
-        Canvas, Graphics, GroundMesh, GroundMeshDescriptor, LineMesh, LineMeshDescriptor, Share,
+        structures::GroundVertex, Canvas, Graphics, GroundMesh, GroundMeshDescriptor, Share,
     },
     Host, ToHost,
 };
@@ -38,11 +36,11 @@ pub struct Editor {
 impl Editor {
     pub fn init(ctx: Context) -> Self {
         Self {
-            tool: Box::new(CameraTool::new(ctx.graphics, false)),
+            tool: Box::new(CameraTool::new(ctx.graphics)),
             old_tool: None,
             ground: Ground::new(ctx.graphics),
             mode: ElementKind::Solid,
-            grid: 3,
+            grid: 128,
             texture: TextureID(2),
             prop: PropID(0),
         }
@@ -122,7 +120,7 @@ impl Editor {
     }
 
     pub fn render(&self, canvas: &mut Canvas) {
-        canvas.set_grid_len(grid(self.grid));
+        canvas.set_grid_len(self.grid);
 
         let tool = if let Some(old) = &self.old_tool {
             old
@@ -147,7 +145,6 @@ pub struct Context<'a> {
 
 struct Ground {
     mesh: GroundMesh,
-    lines: LineMesh,
 }
 
 impl Ground {
@@ -156,7 +153,7 @@ impl Ground {
             const POSITIONS: [[f32; 2]; 4] = [[0.0, 0.0], [0.0, 1.0], [1.0, 1.0], [1.0, 0.0]];
 
             let vertices = POSITIONS.map(|pos| GroundVertex {
-                position: vec3(pos[0] - 0.5, 0.0, pos[1] - 0.5) * 10000.0,
+                position: vec3(pos[0] - 0.5, 0.0, pos[1] - 0.5) * 500.0,
                 texcoord: pos.into(),
             });
 
@@ -167,40 +164,10 @@ impl Ground {
             })
         };
 
-        let lines = {
-            let vertices = [
-                LineVertex {
-                    position: vec3(-100.0, 0.0, 0.0),
-                    color: [1.0, 0.0, 0.0],
-                },
-                LineVertex {
-                    position: vec3(100.0, 0.0, 0.0),
-                    color: [1.0, 0.0, 0.0],
-                },
-                LineVertex {
-                    position: vec3(0.0, 0.0, -100.0),
-                    color: [0.0, 0.0, 1.0],
-                },
-                LineVertex {
-                    position: vec3(0.0, 0.0, 100.0),
-                    color: [0.0, 0.0, 1.0],
-                },
-            ];
-
-            graphics.create_line_mesh(LineMeshDescriptor {
-                vertices: &vertices,
-            })
-        };
-
-        Self { mesh, lines }
+        Self { mesh }
     }
 
     fn render(&self, canvas: &mut Canvas) {
         canvas.draw_ground(self.mesh.share());
-        canvas.draw_lines(self.lines.share());
     }
-}
-
-fn grid(x: i32) -> i32 {
-    [5, 10, 50, 100, 500, 1000][x as usize]
 }

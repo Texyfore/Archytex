@@ -49,9 +49,11 @@ func main() {
 	}
 	database.RabbitmqChannel = channel
 
-	database.RedisClient = redis.NewClient(&redis.Options{
-		Addr: os.Getenv("REDIS_ADDR"),
-	})
+	opt, err := redis.ParseURL(os.Getenv("REDIS_ADDR"))
+	if err != nil {
+		panic(err)
+	}
+	database.RedisClient = redis.NewClient(opt)
 	if err != nil {
 		panic(err)
 	}
@@ -59,7 +61,6 @@ func main() {
 	database.CurrentDatabase = db
 	projectloaders.CurrentProjectLoader = projectloaders.FileProjectLoader{Directory: os.Getenv("PROJECTS_PATH")}
 
-	//TODO: Read port
 	port, err := strconv.Atoi(os.Getenv("PORT"))
 	if err != nil {
 		panic(err)
@@ -80,7 +81,7 @@ func main() {
 	auth := api.PathPrefix("/auth").Subrouter()
 	auth.Use(session.UserMiddleware)
 	auth.HandleFunc("/hello", routes.Hello).Methods("GET")
-	auth.HandleFunc("/user", authenticated.User).Methods("POST")
+	auth.HandleFunc("/user", authenticated.User).Methods("POST", "PATCH")
 	auth.HandleFunc("/project", authenticated.Project).Methods("POST")
 	auth.HandleFunc("/project/{id}", authenticated.Project).Methods("DELETE", "PATCH")
 	auth.HandleFunc("/project/{id}/data", authenticated.ProjectData).Methods("GET", "POST")

@@ -2,8 +2,10 @@ package database
 
 import (
 	"context"
+	"encoding/base64"
 	"errors"
 	"fmt"
+	"math/rand"
 	"time"
 
 	"github.com/Texyfore/Archytex/backend/projectloaders"
@@ -116,7 +118,6 @@ func (m MongoDatabase) GetProject(userId interface{}, projectId interface{}) (*m
 }
 
 func (m MongoDatabase) CreateProject(userId interface{}, name string) (interface{}, error) {
-	//TODO implement me
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
 	defer cancel()
 	project := models.Project{
@@ -252,21 +253,30 @@ func (m MongoDatabase) GetSession(id interface{}) (*models.Session, error) {
 	return &session, nil
 }
 
+func randomToken(n int) (string, error) {
+	bytes := make([]byte, n)
+	_, err := rand.Read(bytes)
+	if err != nil {
+		return "", err
+	}
+	return base64.URLEncoding.EncodeToString(bytes), nil
+}
+
 func (m MongoDatabase) CreateSession(user *models.User) (string, error) {
-	//TODO: Use a more secure token
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*3)
 	defer cancel()
-	result, err := m.Sessions.InsertOne(ctx, bson.D{
+	id, err := randomToken(128 / 8)
+	if err != nil {
+		return "", err
+	}
+	_, err = m.Sessions.InsertOne(ctx, bson.D{
 		{"user_id", user.Id},
+		{"_id", id},
 	})
 	if err != nil {
 		return "", err
 	}
-	id, ok := result.InsertedID.(primitive.ObjectID)
-	if !ok {
-		return "", errors.New("id type was not ObjectID")
-	}
-	return id.Hex(), nil
+	return id, nil
 }
 
 func (m MongoDatabase) GetUserByUsername(username string) (*models.User, error) {
@@ -419,6 +429,46 @@ func (m MongoDatabase) UserExists(username, email string) (bool, error) {
 		return false, err
 	}
 	return !(countUser == 0 && countRegister == 0), nil
+}
+
+func (m MongoDatabase) UserModify(id interface{}, username, email, password *string) error {
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*2)
+	defer cancel()
+	_username := ""
+	if username != nil {
+		_username = *username
+	}
+	_email := ""
+	if username != nil {
+		_username = *username
+	}
+	ex, err := m.UserExists(_username, _email)
+	if err != nil {
+		return err
+	}
+	if ex {
+		return errors.New("user already exists")
+	}
+
+	o := bson.D{}
+	if username != nil {
+		o = append(o, bson.E{"username", *username})
+	}
+	if email != nil {
+		o = append(o, bson.E{"email", *email})
+	}
+	if password != nil {
+		pass, err := models.HashPassword(*password)
+		if err != nil {
+			return err
+		}
+		o = append(o, bson.E{"password", *pass})
+	}
+	_, err = m.Users.UpdateOne(ctx, bson.D{{"_id", id}}, bson.D{{"$set", o}})
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 func (m MongoDatabase) SubscribeProjects(userId interface{}) (chan Updates, error) {

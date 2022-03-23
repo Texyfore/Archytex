@@ -2,17 +2,16 @@ import React from "react";
 
 import Box from "@mui/material/Box";
 
-import LibraryCard from "./LibraryCard";
+import TextureLibraryCard from "./TextureLibraryCard";
 
-import Texture from "../../../services/types/Texture";
-import Category from "../../../services/libraries/Category";
-import getTextures from "../../../services/libraries/TextureItems";
+import { Texture } from "../../../services/Library";
 
 interface Props {
   selected: Texture | undefined;
   handleSelectionChange: (texture: Texture | undefined) => void;
   query: string;
-  checkedCategories: Category[];
+  checkedCategories: string[];
+  textures: Texture[];
 }
 
 export default function TextureLibrary({
@@ -20,15 +19,16 @@ export default function TextureLibrary({
   handleSelectionChange,
   query,
   checkedCategories,
+  textures,
 }: Props) {
-  const textures = getTextures();
-
   const matchesFilter = (texture: Texture) => {
-    return texture.categories.some((category) =>
-      checkedCategories.some(
-        (checkedCategory) => checkedCategory.id === category.id
-      )
-    );
+    if (texture.categories.length !== 0) {
+      return texture.categories.some((category) =>
+        checkedCategories.some(
+          (checkedCategory) => checkedCategory === category
+        )
+      );
+    } else return false;
   };
   return (
     <Box
@@ -46,10 +46,9 @@ export default function TextureLibrary({
             matchesFilter(t)
         )
         .map((texture, index) => (
-          <LibraryCard
+          <TextureLibraryCard
             key={index}
-            cardType='texture'
-            item={texture}
+            texture={texture}
             isSelected={
               selected === undefined ? false : selected.id === texture.id
             }

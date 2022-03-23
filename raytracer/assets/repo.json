@@ -1,0 +1,914 @@
+{
+  "textures": [
+    {
+      "id": 12,
+      "name": "potted_plant_2",
+      "categories": [],
+      "emissive": null
+    },
+    {
+      "id": 51,
+      "name": "picture_frame_3_2",
+      "categories": [],
+      "emissive": null
+    },
+    {
+      "id": 56,
+      "name": "floor_bricks",
+      "categories": [
+        "floor",
+        "stone",
+        "brick"
+      ],
+      "emissive": null
+    },
+    {
+      "id": 58,
+      "name": "coffee_table_2",
+      "categories": [],
+      "emissive": null
+    },
+    {
+      "id": 60,
+      "name": "floor_tiles_3",
+      "categories": [
+        "floor",
+        "stone"
+      ],
+      "emissive": null
+    },
+    {
+      "id": 74,
+      "name": "potted_plant_1_1",
+      "categories": [],
+      "emissive": null
+    },
+    {
+      "id": 54,
+      "name": "rock_3",
+      "categories": [
+        "floor",
+        "stone"
+      ],
+      "emissive": null
+    },
+    {
+      "id": 33,
+      "name": "television",
+      "categories": [],
+      "emissive": null
+    },
+    {
+      "id": 48,
+      "name": "ottoman",
+      "categories": [],
+      "emissive": null
+    },
+    {
+      "id": 64,
+      "name": "side_table",
+      "categories": [],
+      "emissive": null
+    },
+    {
+      "id": 16,
+      "name": "floor_tiles_7",
+      "categories": [
+        "floor",
+        "stone"
+      ],
+      "emissive": null
+    },
+    {
+      "id": 18,
+      "name": "floor_tiles_2",
+      "categories": [
+        "floor",
+        "stone"
+      ],
+      "emissive": null
+    },
+    {
+      "id": 39,
+      "name": "antique_katana",
+      "categories": [],
+      "emissive": null
+    },
+    {
+      "id": 62,
+      "name": "brick_floor",
+      "categories": [
+        "floor",
+        "brick"
+      ],
+      "emissive": null
+    },
+    {
+      "id": 7,
+      "name": "school_desk",
+      "categories": [],
+      "emissive": null
+    },
+    {
+      "id": 10,
+      "name": "picture_frame_2_1",
+      "categories": [],
+      "emissive": null
+    },
+    {
+      "id": 30,
+      "name": "asphalt",
+      "categories": [
+        "floor",
+        "asphalt"
+      ],
+      "emissive": null
+    },
+    {
+      "id": 47,
+      "name": "concrete_wall",
+      "categories": [
+        "wall",
+        "concrete"
+      ],
+      "emissive": null
+    },
+    {
+      "id": 3,
+      "name": "modern_lamp_1",
+      "categories": [],
+      "emissive": null
+    },
+    {
+      "id": 6,
+      "name": "armchair",
+      "categories": [],
+      "emissive": null
+    },
+    {
+      "id": 22,
+      "name": "chandelier_1",
+      "categories": [],
+      "emissive": null
+    },
+    {
+      "id": 23,
+      "name": "planks_3",
+      "categories": [
+        "floor",
+        "wood"
+      ],
+      "emissive": null
+    },
+    {
+      "id": 32,
+      "name": "alarm_clock",
+      "categories": [],
+      "emissive": null
+    },
+    {
+      "id": 37,
+      "name": "floor_tiles_1",
+      "categories": [
+        "floor",
+        "stone"
+      ],
+      "emissive": null
+    },
+    {
+      "id": 40,
+      "name": "marble",
+      "categories": [
+        "floor",
+        "wall",
+        "marble"
+      ],
+      "emissive": null
+    },
+    {
+      "id": 41,
+      "name": "picture_frame_4_1",
+      "categories": [],
+      "emissive": null
+    },
+    {
+      "id": 53,
+      "name": "rock_1",
+      "categories": [
+        "wall",
+        "stone"
+      ],
+      "emissive": null
+    },
+    {
+      "id": 73,
+      "name": "shelves_3",
+      "categories": [],
+      "emissive": null
+    },
+    {
+      "id": 2,
+      "name": "chandelier_2",
+      "categories": [],
+      "emissive": "white.png"
+    },
+    {
+      "id": 68,
+      "name": "drawer_cabinet",
+      "categories": [],
+      "emissive": null
+    },
+    {
+      "id": 29,
+      "name": "modern_lamp_2",
+      "categories": [],
+      "emissive": "white.png"
+    },
+    {
+      "id": 13,
+      "name": "cobblestone_floor",
+      "categories": [
+        "floor",
+        "stone"
+      ],
+      "emissive": null
+    },
+    {
+      "id": 4,
+      "name": "bricks",
+      "categories": [
+        "wall",
+        "brick"
+      ],
+      "emissive": null
+    },
+    {
+      "id": 50,
+      "name": "sofa_1",
+      "categories": [],
+      "emissive": null
+    },
+    {
+      "id": 44,
+      "name": "planks_4",
+      "categories": [
+        "floor",
+        "wood"
+      ],
+      "emissive": null
+    },
+    {
+      "id": 71,
+      "name": "ceramic_vase_1",
+      "categories": [],
+      "emissive": null
+    },
+    {
+      "id": 38,
+      "name": "outdoor_set_1",
+      "categories": [],
+      "emissive": null
+    },
+    {
+      "id": 28,
+      "name": "sofa_2",
+      "categories": [],
+      "emissive": null
+    },
+    {
+      "id": 45,
+      "name": "roof_2",
+      "categories": [
+        "roof"
+      ],
+      "emissive": null
+    },
+    {
+      "id": 69,
+      "name": "ceramic_vase_2",
+      "categories": [],
+      "emissive": null
+    },
+    {
+      "id": 42,
+      "name": "picture_frame_3_1",
+      "categories": [],
+      "emissive": null
+    },
+    {
+      "id": 35,
+      "name": "chair_1",
+      "categories": [],
+      "emissive": null
+    },
+    {
+      "id": 66,
+      "name": "planks_2",
+      "categories": [
+        "floor",
+        "wood"
+      ],
+      "emissive": null
+    },
+    {
+      "id": 34,
+      "name": "picture_frame_5_2",
+      "categories": [],
+      "emissive": null
+    },
+    {
+      "id": 46,
+      "name": "picture_frame_5_1",
+      "categories": [],
+      "emissive": null
+    },
+    {
+      "id": 57,
+      "name": "floor_tiles_6",
+      "categories": [
+        "floor",
+        "stone"
+      ],
+      "emissive": null
+    },
+    {
+      "id": 15,
+      "name": "beige_wall",
+      "categories": [
+        "wall",
+        "paint"
+      ],
+      "emissive": null
+    },
+    {
+      "id": 14,
+      "name": "sandstone_2",
+      "categories": [
+        "wall",
+        "brick"
+      ],
+      "emissive": null
+    },
+    {
+      "id": 19,
+      "name": "outdoor_set_2",
+      "categories": [],
+      "emissive": null
+    },
+    {
+      "id": 26,
+      "name": "ukulele",
+      "categories": [],
+      "emissive": null
+    },
+    {
+      "id": 11,
+      "name": "plywood",
+      "categories": [
+        "floor",
+        "wood"
+      ],
+      "emissive": null
+    },
+    {
+      "id": 65,
+      "name": "picture_frame_2_2",
+      "categories": [],
+      "emissive": null
+    },
+    {
+      "id": 63,
+      "name": "shelves_1",
+      "categories": [],
+      "emissive": null
+    },
+    {
+      "id": 72,
+      "name": "sandstone_1",
+      "categories": [
+        "wall",
+        "stone"
+      ],
+      "emissive": null
+    },
+    {
+      "id": 17,
+      "name": "picture_frame_1_1",
+      "categories": [],
+      "emissive": null
+    },
+    {
+      "id": 25,
+      "name": "rock_2",
+      "categories": [
+        "floor",
+        "wall",
+        "stone"
+      ],
+      "emissive": null
+    },
+    {
+      "id": 9,
+      "name": "plaster",
+      "categories": [
+        "wall",
+        "plaster"
+      ],
+      "emissive": null
+    },
+    {
+      "id": 27,
+      "name": "picture_frame_4_2",
+      "categories": [],
+      "emissive": null
+    },
+    {
+      "id": 8,
+      "name": "grass",
+      "categories": [
+        "floor",
+        "nature"
+      ],
+      "emissive": null
+    },
+    {
+      "id": 59,
+      "name": "picture_frame_1_2",
+      "categories": [],
+      "emissive": null
+    },
+    {
+      "id": 5,
+      "name": "school_chair",
+      "categories": [],
+      "emissive": null
+    },
+    {
+      "id": 67,
+      "name": "floor_tiles_5",
+      "categories": [
+        "floor",
+        "stone"
+      ],
+      "emissive": null
+    },
+    {
+      "id": 75,
+      "name": "postcards",
+      "categories": [],
+      "emissive": null
+    },
+    {
+      "id": 43,
+      "name": "round_table",
+      "categories": [],
+      "emissive": null
+    },
+    {
+      "id": 31,
+      "name": "roof_1",
+      "categories": [],
+      "emissive": null
+    },
+    {
+      "id": 49,
+      "name": "wooden_table",
+      "categories": [],
+      "emissive": null
+    },
+    {
+      "id": 55,
+      "name": "dining_chair",
+      "categories": [],
+      "emissive": null
+    },
+    {
+      "id": 70,
+      "name": "shelves_2",
+      "categories": [],
+      "emissive": null
+    },
+    {
+      "id": 20,
+      "name": "concrete_floor",
+      "categories": [
+        "floor",
+        "concrete"
+      ],
+      "emissive": null
+    },
+    {
+      "id": 61,
+      "name": "pillows",
+      "categories": [],
+      "emissive": null
+    },
+    {
+      "id": 52,
+      "name": "floor_tiles_4",
+      "categories": [
+        "floor",
+        "stone"
+      ],
+      "emissive": null
+    },
+    {
+      "id": 21,
+      "name": "coffee_table_1",
+      "categories": [],
+      "emissive": null
+    },
+    {
+      "id": 36,
+      "name": "potted_plant_1_2",
+      "categories": [],
+      "emissive": null
+    },
+    {
+      "id": 24,
+      "name": "planks_1",
+      "categories": [
+        "wall",
+        "wood"
+      ],
+      "emissive": null
+    }
+  ],
+  "props": [
+    {
+      "id": 24,
+      "name": "modern_lamp",
+      "categories": [
+        "lamp"
+      ],
+      "dependencies": [
+        "modern_lamp_1",
+        "modern_lamp_2"
+      ]
+    },
+    {
+      "id": 17,
+      "name": "armchair",
+      "categories": [
+        "furniture",
+        "chair"
+      ],
+      "dependencies": [
+        "armchair"
+      ]
+    },
+    {
+      "id": 14,
+      "name": "picture_frame_5",
+      "categories": [
+        "details",
+        "picture"
+      ],
+      "dependencies": [
+        "picture_frame_5_1",
+        "picture_frame_5_2"
+      ]
+    },
+    {
+      "id": 31,
+      "name": "picture_frame_1",
+      "categories": [
+        "details",
+        "picture"
+      ],
+      "dependencies": [
+        "picture_frame_1_1",
+        "picture_frame_1_2"
+      ]
+    },
+    {
+      "id": 7,
+      "name": "picture_frame_3",
+      "categories": [
+        "details",
+        "picture"
+      ],
+      "dependencies": [
+        "picture_frame_3_1",
+        "picture_frame_3_2"
+      ]
+    },
+    {
+      "id": 19,
+      "name": "ukulele",
+      "categories": [
+        "details"
+      ],
+      "dependencies": [
+        "ukulele"
+      ]
+    },
+    {
+      "id": 13,
+      "name": "ceramic_vase_1",
+      "categories": [
+        "details"
+      ],
+      "dependencies": [
+        "ceramic_vase_1"
+      ]
+    },
+    {
+      "id": 1,
+      "name": "television",
+      "categories": [
+        "details"
+      ],
+      "dependencies": [
+        "television"
+      ]
+    },
+    {
+      "id": 2,
+      "name": "coffee_table_2",
+      "categories": [
+        "furniture",
+        "table"
+      ],
+      "dependencies": [
+        "coffee_table_2"
+      ]
+    },
+    {
+      "id": 8,
+      "name": "potted_plant_1",
+      "categories": [
+        "details",
+        "plant"
+      ],
+      "dependencies": [
+        "potted_plant_1_1",
+        "potted_plant_1_2"
+      ]
+    },
+    {
+      "id": 6,
+      "name": "antique_katana",
+      "categories": [
+        "details"
+      ],
+      "dependencies": [
+        "antique_katana"
+      ]
+    },
+    {
+      "id": 10,
+      "name": "shelves_1",
+      "categories": [
+        "furniture",
+        "storage"
+      ],
+      "dependencies": [
+        "shelves_1"
+      ]
+    },
+    {
+      "id": 22,
+      "name": "outdoor_set",
+      "categories": [
+        "furniture",
+        "table",
+        "chair"
+      ],
+      "dependencies": [
+        "outdoor_set_1",
+        "outdoor_set_2"
+      ]
+    },
+    {
+      "id": 23,
+      "name": "sofa_2",
+      "categories": [
+        "furniture",
+        "sofa"
+      ],
+      "dependencies": [
+        "sofa_2"
+      ]
+    },
+    {
+      "id": 21,
+      "name": "coffee_table_1",
+      "categories": [
+        "furniture",
+        "table"
+      ],
+      "dependencies": [
+        "coffee_table_1"
+      ]
+    },
+    {
+      "id": 27,
+      "name": "chair_1",
+      "categories": [
+        "furniture",
+        "chair"
+      ],
+      "dependencies": [
+        "chair_1"
+      ]
+    },
+    {
+      "id": 5,
+      "name": "drawer_cabinet",
+      "categories": [
+        "furniture",
+        "storage"
+      ],
+      "dependencies": [
+        "drawer_cabinet"
+      ]
+    },
+    {
+      "id": 9,
+      "name": "side_table",
+      "categories": [
+        "furniture",
+        "table"
+      ],
+      "dependencies": [
+        "side_table"
+      ]
+    },
+    {
+      "id": 32,
+      "name": "ceramic_vase_2",
+      "categories": [
+        "details"
+      ],
+      "dependencies": [
+        "ceramic_vase_2"
+      ]
+    },
+    {
+      "id": 15,
+      "name": "shelves_3",
+      "categories": [
+        "furniture",
+        "storage"
+      ],
+      "dependencies": [
+        "shelves_3"
+      ]
+    },
+    {
+      "id": 12,
+      "name": "school_desk",
+      "categories": [
+        "furniture",
+        "table"
+      ],
+      "dependencies": [
+        "school_desk"
+      ]
+    },
+    {
+      "id": 18,
+      "name": "ottoman",
+      "categories": [
+        "furniture",
+        "chair"
+      ],
+      "dependencies": [
+        "ottoman"
+      ]
+    },
+    {
+      "id": 25,
+      "name": "picture_frame_2",
+      "categories": [
+        "details",
+        "picture"
+      ],
+      "dependencies": [
+        "picture_frame_2_1",
+        "picture_frame_2_2"
+      ]
+    },
+    {
+      "id": 11,
+      "name": "postcards",
+      "categories": [
+        "details",
+        "picture"
+      ],
+      "dependencies": [
+        "postcards"
+      ]
+    },
+    {
+      "id": 4,
+      "name": "shelves_2",
+      "categories": [
+        "furniture",
+        "storage"
+      ],
+      "dependencies": [
+        "shelves_2"
+      ]
+    },
+    {
+      "id": 20,
+      "name": "picture_frame_4",
+      "categories": [
+        "details",
+        "picture"
+      ],
+      "dependencies": [
+        "picture_frame_4_1",
+        "picture_frame_4_2"
+      ]
+    },
+    {
+      "id": 33,
+      "name": "sofa_1",
+      "categories": [
+        "furniture",
+        "sofa"
+      ],
+      "dependencies": [
+        "sofa_1"
+      ]
+    },
+    {
+      "id": 29,
+      "name": "school_chair",
+      "categories": [
+        "furniture",
+        "chair"
+      ],
+      "dependencies": [
+        "school_chair"
+      ]
+    },
+    {
+      "id": 3,
+      "name": "chandelier",
+      "categories": [
+        "lamp"
+      ],
+      "dependencies": [
+        "chandelier_1",
+        "chandelier_2"
+      ]
+    },
+    {
+      "id": 26,
+      "name": "dining_chair",
+      "categories": [
+        "furniture",
+        "chair"
+      ],
+      "dependencies": [
+        "dining_chair"
+      ]
+    },
+    {
+      "id": 28,
+      "name": "round_table",
+      "categories": [
+        "furniture",
+        "table"
+      ],
+      "dependencies": [
+        "round_table"
+      ]
+    },
+    {
+      "id": 30,
+      "name": "pillows",
+      "categories": [
+        "details"
+      ],
+      "dependencies": [
+        "pillows"
+      ]
+    },
+    {
+      "id": 0,
+      "name": "wooden_table",
+      "categories": [
+        "furniture",
+        "table"
+      ],
+      "dependencies": [
+        "wooden_table"
+      ]
+    },
+    {
+      "id": 16,
+      "name": "alarm_clock",
+      "categories": [
+        "details"
+      ],
+      "dependencies": [
+        "alarm_clock"
+      ]
+    }
+  ]
+}

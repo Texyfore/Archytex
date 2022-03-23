@@ -19,14 +19,14 @@ use archyrt_core::{
     }, utilities::ray::Intersectable,
 };
 use dotenv::dotenv;
-use futures::StreamExt;
+use futures::{StreamExt, future::JoinAll, Future};
 use lapin::{message::Delivery, Channel, Connection, ConnectionProperties};
 use lru::LruCache;
 use redis::AsyncCommands;
 
 use crate::shifted_view::ShiftedView;
 
-struct SceneData(BVH, JitterCamera<PerspectiveCamera>, Vec<PropRequest>);
+struct SceneData(Option<BVH>, JitterCamera<PerspectiveCamera>, Vec<PropRequest>);
 
 async fn render(
     texture_repo: &TextureRepository,
@@ -54,10 +54,9 @@ async fn render(
             let scene: Vec<u8> =
                 redis::Cmd::get(format!("archyrt:{}:scene", task)).query(redis_client)?;
             let scene = ASCNLoader::from_bytes(&scene)?;
-            let bvh = BVH::from_triangles(scene.get_triangles())
-                .ok_or_else(|| anyhow!("Unable to create BVH"))?;
-                let camera = scene.get_camera().clone();
-                let camera = JitterCamera::new(camera, width, height);
+            let bvh = BVH::from_triangles(scene.get_triangles());
+            let camera = scene.get_camera().clone();
+            let camera = JitterCamera::new(camera, width, height);
             let prop_requests = scene.get_prop_requests().clone();
             let data = SceneData(bvh, camera, prop_requests);
             cache.put(task.clone(), data);
@@ -135,25 +134,29 @@ fn main() -> Result<()> {
 
     let amqp_addr = env::var("AMQP_ADDR").unwrap();
     let redis_addr = env::var("REDIS_ADDR").unwrap();
-    async_global_executor::block_on(async {
+    let mut textures = TextureRepository::new();
+    amdl_textures::load_into(&mut textures, "../assets")?;
+    texture_repo::exr::load_into(
+        &mut textures,
+        "../assets",
+        &[(TextureID::new(&"skybox"), "skybox.exr")],
+    )?;
+
+    let mut props = PropRepository::new();
+    amdl::repo::load_into(&mut props, &textures, "../assets")?;
+    
+    let cores = num_cpus::get();
+    let f = futures::future::join_all((0..cores).map(|instance| async {
+        
+        let uuid = uuid::Uuid::new_v4().to_string();
         let mut cache: LruCache<String, SceneData> = LruCache::new(5);
         let rabbitmq_client = Connection::connect(
             &amqp_addr,
             ConnectionProperties::default().with_default_executor(8),
         )
         .await?;
-        let mut redis_client = redis::Client::open(redis_addr)?;
+        let mut redis_client = redis::Client::open(redis_addr.clone())?;
 
-        let mut textures = TextureRepository::new();
-        amdl_textures::load_into(&mut textures, "../assets")?;
-        texture_repo::exr::load_into(
-            &mut textures,
-            "../assets",
-            &[(TextureID::new(&"skybox"), "skybox.exr")],
-        )?;
-
-        let mut props = PropRepository::new();
-        amdl::repo::load_into(&mut props, "../assets")?;
 
         let channel = rabbitmq_client.create_channel().await?;
         let task_queue = channel
@@ -162,7 +165,7 @@ fn main() -> Result<()> {
         let mut consumer = channel
             .basic_consume(
                 task_queue.name().as_str(),
-                "consumer_TODONUMBER",
+                &format!("consumer_{}", uuid),
                 Default::default(),
                 Default::default(),
             )
@@ -174,6 +177,11 @@ fn main() -> Result<()> {
                 println!("Error: {}", err);
             }
         }
-        Ok(())
-    })
+        let r: Result<(), anyhow::Error> = anyhow::Result::Ok(());
+        r
+    }));
+    let res = async_global_executor::block_on(f);
+    let res: Result<Vec<()>> = res.into_iter().collect();
+    res?;
+    Ok(())
 }

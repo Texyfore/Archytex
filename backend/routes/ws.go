@@ -1,11 +1,11 @@
 package routes
 
 import (
+	"net/http"
+
 	"github.com/Texyfore/Archytex/backend/database"
 	"github.com/Texyfore/Archytex/backend/logging"
 	"github.com/gorilla/websocket"
-	"go.mongodb.org/mongo-driver/bson/primitive"
-	"net/http"
 )
 
 var upgrader = websocket.Upgrader{
@@ -28,12 +28,7 @@ func Ws(w http.ResponseWriter, r *http.Request) {
 		logging.ErrorWs(r, ws, err, err.Error(), http.StatusBadRequest)
 		return
 	}
-	oid, err := primitive.ObjectIDFromHex(sess)
-	if err != nil {
-		logging.ErrorWs(r, ws, err, "Invalid token", http.StatusBadRequest)
-		return
-	}
-	session, err := database.CurrentDatabase.GetSession(oid)
+	session, err := database.CurrentDatabase.GetSession(sess)
 	if err != nil {
 		logging.ErrorWs(r, ws, err, "Invalid token", http.StatusBadRequest)
 		return

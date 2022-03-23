@@ -11,8 +11,8 @@ use archyrt_core::intersectables::apply_matrix::ApplyMatrix;
 use archyrt_core::intersectables::bvh::BVH;
 use archyrt_core::intersectables::sphere::Sphere;
 use archyrt_core::intersectables::transform::Transform;
-use archyrt_core::loaders::amdl::{AMDLLoader, self};
 use archyrt_core::loaders::amdl::repo::{PropRepository, PropType};
+use archyrt_core::loaders::amdl::{self, AMDLLoader};
 use archyrt_core::loaders::ascn::{amdl_textures, ASCNLoader};
 use archyrt_core::renderers::basic_renderer::BasicRenderer;
 use archyrt_core::renderers::path_tracer::{Material, PathTracer};
@@ -21,7 +21,7 @@ use archyrt_core::renderers::solid_renderers::albedo::AlbedoRenderer;
 use archyrt_core::renderers::solid_renderers::normal::NormalRenderer;
 use archyrt_core::textures::texture_repo::{self, TextureRepository};
 use archyrt_core::tonemapping::tonemap_fragment;
-use archyrt_core::utilities::math::{Vec2, Vector, Matrix3x3};
+use archyrt_core::utilities::math::{Matrix3x3, Vec2, Vector};
 use archyrt_core::utilities::ray::{Intersectable, Ray};
 use archyrt_core::vector;
 use archyrt_core::{
@@ -46,7 +46,13 @@ impl<Renderer: FragmentRender + Sync + Send> FragmentRender for ParallelSampling
     }
 }
 
-fn render_pathtraced<O: Intersectable+Sync, C: Camera+Sync>(object: O, camera: C, mut repo: TextureRepository, w: usize, h: usize) -> image::ImageBuffer<Rgb<u8>, Vec<u8>> {
+fn render_pathtraced<O: Intersectable + Sync, C: Camera + Sync>(
+    object: O,
+    camera: C,
+    mut repo: TextureRepository,
+    w: usize,
+    h: usize,
+) -> image::ImageBuffer<Rgb<u8>, Vec<u8>> {
     let aa_camera = JitterCamera::new(&camera, w, h); //Camera used for anti-aliasing
     let skybox_id = TextureID::new(&"skybox");
     texture_repo::exr::load_into(&mut repo, "../assets", &[(skybox_id, "skybox.exr")]).unwrap();
@@ -131,13 +137,19 @@ fn render_pathtraced<O: Intersectable+Sync, C: Camera+Sync>(object: O, camera: C
     image
 }
 
-fn render_albedo<O: Intersectable, C: Camera>(object: O, camera: C, mut repo: TextureRepository, w: usize, h: usize) -> image::ImageBuffer<Rgb<u8>, Vec<u8>>{
-    let renderer = BasicRenderer{
+fn render_albedo<O: Intersectable, C: Camera>(
+    object: O,
+    camera: C,
+    mut repo: TextureRepository,
+    w: usize,
+    h: usize,
+) -> image::ImageBuffer<Rgb<u8>, Vec<u8>> {
+    let renderer = BasicRenderer {
         camera,
         object,
-        lamp: vector![3.0, 2.0, 0.0]
+        lamp: vector![3.0, 2.0, 0.0],
     };
-    let collector = RawCollector{};
+    let collector = RawCollector {};
     let mut image = RgbImage::new(w as u32, h as u32);
     let output = collector.collect(renderer, &repo, w, h);
 
@@ -179,12 +191,13 @@ fn main() {
     amdl_textures::load_into(&mut textures, "../assets").unwrap();
 
     let mut props = PropRepository::new();
-    amdl::repo::load_into(&mut props, "../assets").unwrap();
+    amdl::repo::load_into(&mut props, &textures, "../assets").unwrap();
 
     //Load model
-    let loader = ASCNLoader::from_path("../assets/house_inside.ascn").unwrap();
+    let loader = ASCNLoader::from_path("../assets/ottoman.ascn").unwrap();
     let camera = loader.get_camera();
     let object = loader.get_triangles();
+    let object = BVH::from_triangles(&object);
     let props = props.fulfill_all(loader.get_prop_requests()).unwrap();
     let object = object.union(props);
 

@@ -33,7 +33,7 @@ fn vertex(attribs: Attribs) -> Vertex {
     
     vertex.position = camera.world_to_clip * vec4<f32>(attribs.position, 1.0);
     vertex.position.z = vertex.position.z - 0.001;
-    vertex.color = attribs.color;
+    vertex.color = pow(attribs.color, vec3<f32>(2.2));
 
     return vertex;
 }

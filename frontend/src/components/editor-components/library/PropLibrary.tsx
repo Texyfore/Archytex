@@ -2,32 +2,32 @@ import React from "react";
 
 import Box from "@mui/material/Box";
 
-import LibraryCard from "./LibraryCard";
+import PropLibraryCard from "./PropLibraryCard";
 
-import Prop from "../../../services/types/Prop";
-import Category from "../../../services/libraries/Category";
-import getProps from "../../../services/libraries/PropItems";
+import { Prop } from "../../../services/Library";
 
 interface Props {
   selected: Prop | undefined;
   handleSelectionChange: (prop: Prop | undefined) => void;
   query: string;
-  checkedCategories: Category[];
+  checkedCategories: string[];
+  props: Prop[];
 }
 export default function PropLibrary({
   selected,
   handleSelectionChange,
   query,
   checkedCategories,
+  props,
 }: Props) {
-  const props = getProps();
-
   const matchesFilter = (prop: Prop) => {
-    return prop.categories.some((category) =>
-      checkedCategories.some(
-        (checkedCategory) => checkedCategory.id === category.id
-      )
-    );
+    if (prop.categories.length !== 0) {
+      return prop.categories.some((category) =>
+        checkedCategories.some(
+          (checkedCategory) => checkedCategory === category
+        )
+      );
+    } else return false;
   };
   return (
     <Box
@@ -45,10 +45,9 @@ export default function PropLibrary({
             matchesFilter(p)
         )
         .map((prop, index) => (
-          <LibraryCard
+          <PropLibraryCard
             key={index}
-            cardType='prop'
-            item={prop}
+            prop={prop}
             isSelected={
               selected === undefined ? false : selected.id === prop.id
             }

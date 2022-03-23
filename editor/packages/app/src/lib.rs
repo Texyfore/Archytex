@@ -1,4 +1,6 @@
+mod ascn;
 mod button;
+mod color;
 mod data;
 mod graphics;
 mod logic;
@@ -6,7 +8,7 @@ mod math;
 
 use std::sync::mpsc::Receiver;
 
-use asset::{scene::Scene, PropID, TextureID};
+use asset::{PropID, TextureID};
 use data::PropInfoContainer;
 use graphics::LoadedResource;
 use instant::Instant;
@@ -19,6 +21,8 @@ use winit::{
 };
 
 use self::graphics::Canvas;
+
+pub use ascn::Ascn;
 
 pub fn run(init: Init) {
     let window = init.winit.window;
@@ -44,6 +48,7 @@ pub fn run(init: Init) {
 
     let mut before = Instant::now();
     let mut lock_pointer = false;
+    let mut winit_movement = None;
 
     event_loop.run(move |event, _, flow| {
         *flow = ControlFlow::Poll;
@@ -71,9 +76,7 @@ pub fn run(init: Init) {
                     position: PhysicalPosition { x, y },
                     ..
                 } => {
-                    if !lock_pointer {
-                        logic.movement(x as f32, y as f32);
-                    }
+                    winit_movement = Some((x as f32, y as f32));
                 }
                 WindowEvent::MouseWheel { delta, .. } => {
                     let delta = match delta {
@@ -108,8 +111,7 @@ pub fn run(init: Init) {
                                 id,
                             );
                         }
-                        FromHost::LoadScene(buf) => {
-                            let scene = Scene::decode(&buf).unwrap();
+                        FromHost::LoadScene(ascn) => {
                             logic.load_scene(
                                 logic::Context {
                                     host: host.as_ref(),
@@ -117,7 +119,7 @@ pub fn run(init: Init) {
                                     prop_infos: &prop_info,
                                     delta,
                                 },
-                                &scene,
+                                ascn.scene(),
                             );
                         }
                         FromHost::Texture(id) => {
@@ -176,10 +178,13 @@ pub fn run(init: Init) {
                             _ => (),
                         },
                         FromHost::Movement(x, y) => {
-                            logic.movement_override(x, y);
+                            if lock_pointer {
+                                logic.movement_override(x, y);
+                            }
                         }
                         FromHost::LockPointer(lock) => {
                             lock_pointer = lock;
+                            host.callback(ToHost::PointerLocked(lock));
                         }
                         FromHost::LoadResource(resource) => {
                             loader.push_job(resource);
@@ -199,6 +204,12 @@ pub fn run(init: Init) {
                         LoadedResource::Gizmo { id, mesh } => {
                             renderer.add_gizmo(id, mesh);
                         }
+                    }
+                }
+
+                if !lock_pointer {
+                    if let Some((x, y)) = winit_movement.take() {
+                        logic.movement(x, y);
                     }
                 }
 
@@ -236,12 +247,13 @@ pub trait Host {
 pub enum ToHost {
     SceneSaved(i32, Vec<u8>),
     Button(i32),
+    PointerLocked(bool),
 }
 
 pub enum FromHost {
     Resolution { width: u32, height: u32 },
     SaveScene(i32),
-    LoadScene(Vec<u8>),
+    LoadScene(Ascn),
     Prop(u32),
     Texture(u32),
     Button(i32),
@@ -266,7 +278,7 @@ macro_rules! resource {
     ($ty:ident $id:literal -> $path:literal) => {
         Resource {
             id: $id,
-            buf: include_bytes!(concat!("../../../assets/", $path)).to_vec(),
+            buf: include_bytes!(concat!("../../../builtin/", $path)).to_vec(),
             kind: ResourceKind::$ty,
         }
     };

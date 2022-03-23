@@ -5,7 +5,7 @@ use std::sync::mpsc;
 use js_sys::{Function, Uint8Array};
 use wasm_bindgen::{prelude::*, JsCast};
 
-use app::{builtin_resources, FromHost, Host, Init, ToHost, Winit};
+use app::{builtin_resources, Ascn, FromHost, Host, Init, Resource, ResourceKind, ToHost, Winit};
 use winit::{event_loop::EventLoop, platform::web::WindowBuilderExtWebSys, window::WindowBuilder};
 
 #[wasm_bindgen]
@@ -69,8 +69,8 @@ impl Sender {
     }
 
     #[wasm_bindgen(js_name = "loadScene")]
-    pub fn load_scene(&self, buf: Vec<u8>) {
-        self.tx.send(FromHost::LoadScene(buf)).unwrap();
+    pub fn load_scene(&self, scene: Scene) {
+        self.tx.send(FromHost::LoadScene(scene.inner)).unwrap();
     }
 
     #[wasm_bindgen(js_name = "setTexture")]
@@ -95,22 +95,46 @@ impl Sender {
     pub fn button(&self, index: i32) {
         self.tx.send(FromHost::Button(index)).unwrap();
     }
+
+    #[wasm_bindgen(js_name = "loadTexture")]
+    pub fn load_texture(&self, id: u32, buf: Vec<u8>) {
+        self.tx
+            .send(FromHost::LoadResource(Resource {
+                id,
+                buf,
+                kind: ResourceKind::Texture,
+            }))
+            .unwrap();
+    }
+
+    #[wasm_bindgen(js_name = "loadProp")]
+    pub fn load_prop(&self, id: u32, buf: Vec<u8>) {
+        self.tx
+            .send(FromHost::LoadResource(Resource {
+                id,
+                buf,
+                kind: ResourceKind::Prop,
+            }))
+            .unwrap();
+    }
 }
 
 #[wasm_bindgen]
 pub struct Callback {
     scene_saved: Function,
     button_feedback: Function,
+    pointer_locked: Function,
 }
 
 #[wasm_bindgen]
 impl Callback {
     #[allow(clippy::new_without_default)]
     #[wasm_bindgen(constructor)]
-    pub fn new(scene_saved: Function, button_feedback: Function) -> Self {
+    pub fn new(scene_saved: Function, button_feedback: Function, pointer_locked: Function) -> Self {
         Self {
             scene_saved,
             button_feedback,
+            pointer_locked,
         }
     }
 }
@@ -130,6 +154,11 @@ impl Host for Callback {
             ToHost::Button(button) => {
                 self.button_feedback
                     .call1(&JsValue::NULL, &JsValue::from(button))
+                    .ok();
+            }
+            ToHost::PointerLocked(locked) => {
+                self.pointer_locked
+                    .call1(&JsValue::NULL, &JsValue::from(locked))
                     .ok();
             }
         }
@@ -153,4 +182,25 @@ fn winit() -> Winit {
         .unwrap();
 
     Winit { event_loop, window }
+}
+
+#[wasm_bindgen]
+pub struct Scene {
+    inner: Ascn,
+}
+
+#[wasm_bindgen]
+impl Scene {
+    #[wasm_bindgen(constructor)]
+    pub fn new(buf: &[u8]) -> Option<Scene> {
+        Ascn::new(buf).map(|inner| Self { inner })
+    }
+
+    pub fn textures(&self) -> Vec<u32> {
+        self.inner.textures()
+    }
+
+    pub fn props(&self) -> Vec<u32> {
+        self.inner.props()
+    }
 }

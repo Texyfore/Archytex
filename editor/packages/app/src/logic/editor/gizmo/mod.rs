@@ -6,12 +6,10 @@ use winit::event::MouseButton;
 
 use crate::{
     graphics::{structures::LineVertex, Canvas, Graphics},
-    logic::{camera::Camera, input::Input},
+    logic::{camera::Camera, common::Axis, input::Input},
 };
 
 use self::collider::{ArcCollider, ArrowCollider, HoverCheckInfo};
-
-use super::common::Axis;
 
 pub use graphics::*;
 
@@ -82,8 +80,7 @@ impl Selection {
             Self::Plane(axis) => axis
                 .others()
                 .into_iter()
-                .map(|axis| axis.line_vertices(center).into_iter())
-                .flatten()
+                .flat_map(|axis| axis.line_vertices(center).into_iter())
                 .collect(),
         }
     }

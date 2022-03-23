@@ -40,12 +40,11 @@ interface Parameters {
 export default function RednerSetupModal({
   handleModalClose,
   modalOpen,
-  onRender
+  onRender,
 }: Parameters) {
   const { t } = useTranslation();
 
   const { addNotification } = useNotification();
-
 
   //Image width
   const [imageWidth, setImageWidth] = useState(1920);
@@ -80,23 +79,27 @@ export default function RednerSetupModal({
     setSamplesError(message);
   };
 
-  const onCreate = () => {
+  const onCreate = (e: any) => {
+    e.preventDefault();
+
     let errored = false;
-    if (samples < 1) {
-      handleSamplesError(t("invalid_sample_count"));
+    if (samples < 1 || samples > 128) {
+      handleSamplesError(t("invalid_sample_count") + " | MIN: 1, MAX: 128");
       errored = true;
     }
     if (imageWidth < 100 || imageWidth > 4096 || imageWidth % 4 !== 0) {
-      handleWidthError("invalid_image_width");
+      handleWidthError(t("invalid_image_width") + " | MIN: 100px, MAX: 8192px");
       errored = true;
     }
     if (imageHeight < 100 || imageHeight > 4096 || imageHeight % 4 !== 0) {
-      handleHeightError(t("invalid_image_height"));
+      handleHeightError(
+        t("invalid_image_height") + " | MIN: 100px, MAX: 8192px"
+      );
       errored = true;
     }
     if (!errored) {
       handleClose();
-      onRender(imageWidth, imageHeight, samples)
+      onRender(imageWidth, imageHeight, samples);
     }
     return;
   };
@@ -123,62 +126,63 @@ export default function RednerSetupModal({
       }}
     >
       <Fade in={modalOpen}>
-        <Box
-          sx={modalStyle}
-          borderRadius={4}
-          display='flex'
-          flexDirection='column'
-          justifyContent='space-between'
-        >
-          <Box display='flex' justifyContent='space-between'>
-            <Typography id='transition-modal-title' variant='h6' component='h2'>
-              {t("setup_render")}
-            </Typography>
-            <IconButton onClick={handleClose}>
-              <Close />
-            </IconButton>
-          </Box>
-          <Box display='flex' justifyContent='space-evenly' gap={2}>
-            <Box>
-              <FormInput
-                variant='number'
-                label={t("image_width")}
-                input={imageWidth}
-                inputChange={handleImageWidthChange}
-                error={widthError}
-              />
+        <form onSubmit={onCreate}>
+          <Box
+            sx={modalStyle}
+            borderRadius={4}
+            display='flex'
+            flexDirection='column'
+            justifyContent='space-between'
+          >
+            <Box display='flex' justifyContent='space-between'>
+              <Typography
+                id='transition-modal-title'
+                variant='h6'
+                component='h2'
+              >
+                {t("setup_render")}
+              </Typography>
+              <IconButton onClick={handleClose}>
+                <Close />
+              </IconButton>
             </Box>
-            <Box>
-              <FormInput
-                variant='number'
-                label={t("image_height")}
-                input={imageHeight}
-                inputChange={handleImageHeightChange}
-                error={heightError}
-              />
+            <Box display='flex' justifyContent='space-evenly' gap={2}>
+              <Box>
+                <FormInput
+                  variant='number'
+                  label={t("image_width")}
+                  input={imageWidth}
+                  inputChange={handleImageWidthChange}
+                  error={widthError}
+                />
+              </Box>
+              <Box>
+                <FormInput
+                  variant='number'
+                  label={t("image_height")}
+                  input={imageHeight}
+                  inputChange={handleImageHeightChange}
+                  error={heightError}
+                />
+              </Box>
+              <Box>
+                <FormInput
+                  variant='number'
+                  label={t("sample_count")}
+                  input={samples}
+                  inputChange={handleSamplesChange}
+                  error={samplesError}
+                />
+              </Box>
             </Box>
-            <Box>
-              <FormInput
-                variant='number'
-                label={t("sample_count")}
-                input={samples}
-                inputChange={handleSamplesChange}
-                error={samplesError}
-              />
-            </Box>
-          </Box>
 
-          <Box alignSelf='left' marginTop={2}>
-            <Button
-              type='submit'
-              size='large'
-              variant='contained'
-              onClick={onCreate}
-            >
-              {t("start_render")}
-            </Button>
+            <Box alignSelf='left' marginTop={2}>
+              <Button type='submit' size='large' variant='contained'>
+                {t("start_render")}
+              </Button>
+            </Box>
           </Box>
-        </Box>
+        </form>
       </Fade>
     </Modal>
   );

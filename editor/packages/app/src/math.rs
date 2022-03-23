@@ -284,17 +284,43 @@ impl MinMax for Vector3<f32> {
 
 pub trait Snap {
     fn snap(self, step: i32) -> Vector3<i32>;
+    fn round(self, step: i32) -> Vector3<i32>;
 }
 
 impl Snap for Vector3<f32> {
     fn snap(self, step: i32) -> Vector3<i32> {
         self.map(|e| {
-            let step = step as f32 / 100.0;
+            let step = step as f32 / 128.0;
             let scaled = e / step;
             let snapped = scaled.floor() * step;
-            let rescaled = (snapped * 100.0) as i32;
+            let rescaled = (snapped * 128.0) as i32;
             rescaled.clamp(-10000, 10000)
         })
+    }
+
+    fn round(self, step: i32) -> Vector3<i32> {
+        let step = step as f32 / 128.0;
+
+        Vector3::new(
+            {
+                let scaled = self.x / step;
+                let snapped = scaled.round() * step;
+                let rescaled = (snapped * 128.0) as i32;
+                rescaled.clamp(-10000, 10000)
+            },
+            {
+                let scaled = self.y / step;
+                let snapped = scaled.floor() * step;
+                let rescaled = (snapped * 128.0) as i32;
+                rescaled.clamp(-10000, 10000)
+            },
+            {
+                let scaled = self.z / step;
+                let snapped = scaled.round() * step;
+                let rescaled = (snapped * 128.0) as i32;
+                rescaled.clamp(-10000, 10000)
+            },
+        )
     }
 }
 

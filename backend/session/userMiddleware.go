@@ -1,11 +1,11 @@
 package session
 
 import (
-	"github.com/Texyfore/Archytex/backend/database"
-	"github.com/Texyfore/Archytex/backend/logging"
-	"go.mongodb.org/mongo-driver/bson/primitive"
 	"net/http"
 	"strings"
+
+	"github.com/Texyfore/Archytex/backend/database"
+	"github.com/Texyfore/Archytex/backend/logging"
 )
 
 func UserMiddleware(next http.Handler) http.Handler {
@@ -17,12 +17,7 @@ func UserMiddleware(next http.Handler) http.Handler {
 			logging.Error(w, r, nil, "missing Bearer token", http.StatusBadRequest)
 			return
 		}
-		objectid, err := primitive.ObjectIDFromHex(key)
-		if err != nil {
-			logging.Error(w, r, err, "invalid Bearer token", http.StatusBadRequest)
-			return
-		}
-		session, err := database.CurrentDatabase.GetSession(objectid)
+		session, err := database.CurrentDatabase.GetSession(key)
 		if err != nil {
 			logging.Error(w, r, err, "unauthorized", http.StatusUnauthorized)
 			return

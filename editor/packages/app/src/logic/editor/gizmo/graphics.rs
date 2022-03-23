@@ -3,7 +3,7 @@ use cgmath::{Matrix4, Vector3};
 
 use crate::{
     graphics::{structures::GizmoInstance, Canvas, GizmoGroup, GizmoInstances, Graphics, Share},
-    logic::editor::common::Axis,
+    logic::common::Axis,
 };
 
 use super::Selection;

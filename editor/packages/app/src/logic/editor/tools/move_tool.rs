@@ -4,7 +4,7 @@ use winit::event::{MouseButton, VirtualKeyCode};
 use crate::{
     graphics::{Canvas, LineMesh, LineMeshDescriptor, Share},
     logic::{
-        editor::{common::Axis, grid},
+        common::Axis,
         elements::{ElementKind, Movable},
         scene::{self, Action},
     },
@@ -106,8 +106,7 @@ where
         let verts = axis
             .others()
             .into_iter()
-            .map(|axis| axis.line_vertices(self.center))
-            .flatten()
+            .flat_map(|axis| axis.line_vertices(self.center))
             .collect::<Vec<_>>();
 
         self.line_mesh = Some(
@@ -124,8 +123,8 @@ where
     fn process(&mut self, ctx: Context) -> Option<Box<dyn Tool>> {
         for (axis, key) in [
             (Axis::X, VirtualKeyCode::X),
-            (Axis::Y, VirtualKeyCode::Y),
-            (Axis::Z, VirtualKeyCode::Z),
+            (Axis::Y, VirtualKeyCode::Z),
+            (Axis::Z, VirtualKeyCode::Y),
         ] {
             if ctx.input.is_key_down_once(key) {
                 if ctx.input.is_key_down(VirtualKeyCode::LShift) {
@@ -140,8 +139,8 @@ where
         let ray = ctx.camera.screen_ray(mouse_pos);
 
         if let Some(intersection) = ray.intersects(&self.plane) {
-            let start = self.start.snap(grid(*ctx.grid));
-            let end = (intersection.point + intersection.normal * 0.001).snap(grid(*ctx.grid));
+            let start = self.start.snap(*ctx.grid);
+            let end = (intersection.point + intersection.normal * 0.001).snap(*ctx.grid);
 
             let delta = self.snap.snap_vec(end - start);
             if delta != self.delta {
@@ -168,7 +167,7 @@ where
                 E::insert_move(ctx.scene, elements, self.delta, self.mask);
             }
 
-            return Some(Box::new(CameraTool::new(ctx.graphics, false)));
+            return Some(Box::new(CameraTool::new(ctx.graphics)));
         }
 
         if ctx.input.is_button_down_once(MouseButton::Right)
@@ -193,7 +192,7 @@ where
                 );
             }
 
-            return Some(Box::new(CameraTool::new(ctx.graphics, false)));
+            return Some(Box::new(CameraTool::new(ctx.graphics)));
         }
 
         None

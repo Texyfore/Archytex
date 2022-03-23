@@ -1,9 +1,12 @@
 [package]
 name = "archyrt_sub"
-version = "0.1.0"
+version = "1.0.0"
 edition = "2021"
+authors = ["Marton Zoltán"]
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+[profile.release]
+lto = true
+codegen-units = 1
 
 [dependencies]
 lapin = "1.9.0"
@@ -14,3 +17,5 @@ redis = {version="0.21.5", features=['aio', 'async-std-comp']}
 futures = "0.3.19"
 lru = "0.7.2"
 archyrt_core = {path="../archyrt-core"}
+uuid = {version="0.8.2", features=["v4"]}
+num_cpus = "1.13.1"

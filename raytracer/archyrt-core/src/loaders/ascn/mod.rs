@@ -27,7 +27,7 @@ pub struct ASCNLoader {
     prop_requests: Vec<PropRequest>
 }
 fn texcoord(position: Vec3, normal: Vec3) -> Vec2 {
-    (if normal.x().abs() > normal.y().abs() {
+    if normal.x().abs() > normal.y().abs() {
         if normal.x().abs() > normal.z().abs() {
           vector!(position.z(), position.y())
         } else {
@@ -37,7 +37,7 @@ fn texcoord(position: Vec3, normal: Vec3) -> Vec2 {
         vector!(position.x(), position.z())
       } else {
           vector!(position.x(), position.y())
-      }) / 4.0
+      }
 }
 
 impl ASCNLoader {
@@ -66,6 +66,9 @@ impl ASCNLoader {
         camera.matrix = camera.matrix.transpose();
         for solid in &scene.world.solids {
             for face in &solid.faces {
+                if face.texture.0 == 0 {
+                    continue;
+                }
                 //Counterclockwise
                 let points: Vec<&Point> = face
                     .indices
@@ -75,7 +78,7 @@ impl ASCNLoader {
                 let point_positions: Vec<Vec3> = points
                     .iter()
                     .map(|point| (point.position).into())
-                    .map(|point: Vec3| point/100.0)
+                    .map(|point: Vec3| point/128.0)
                     .collect();
                 let edge0 = point_positions[1] - point_positions[0];
                 let edge1 = point_positions[3] - point_positions[0];
@@ -125,7 +128,7 @@ impl ASCNLoader {
         let prop_requests: Vec<PropRequest> = scene.world.props.iter().map(|prop|{
             let mut pos: Vec3 = prop.position.into();
             pos.inner[2] = -pos.inner[2];
-            pos = pos/100.0;
+            pos = pos/128.0;
             let matrix: Matrix3<f32> = prop.rotation.into();
             let mut matrix = matrix.transpose();
             matrix.z = -matrix.z;

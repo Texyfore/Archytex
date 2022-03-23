@@ -8,6 +8,7 @@ import ListItem from "@mui/material/ListItem";
 import ListItemButton from "@mui/material/ListItemButton";
 import ListItemIcon from "@mui/material/ListItemIcon";
 import Tooltip from "@mui/material/Tooltip";
+import Box from "@mui/material/Box";
 
 import {
   KeyboardArrowDown,
@@ -65,12 +66,14 @@ export default function ProjectRow({
         <Typography
           noWrap
           variant='h6'
-          width={{ xs: "200px", md: "50%", lg: "unset" }}
+          width={{ xs: "150px", sm: "250px", md: "50%", lg: "unset" }}
         >
           {project.title}
         </Typography>
         <Typography variant='caption' marginLeft={2}>
-          ( {project.renders.length} {t("renders_count")} )
+          ( {project.renders.length}{" "}
+          <Box display={{ xs: "none", md: "inline" }}>{t("renders_count")}</Box>{" "}
+          )
         </Typography>
       </ListItemButton>
     </ListItem>

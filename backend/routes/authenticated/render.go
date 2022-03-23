@@ -96,7 +96,6 @@ func Render(w http.ResponseWriter, r *http.Request) {
 		task_id := id.(primitive.ObjectID).Hex()
 		ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
 		defer cancel()
-		//TODO: Get width, height and sample count from frontend
 		bytes, err := ioutil.ReadAll(r.Body)
 		if err != nil {
 			logging.Error(w, r, err, "couldn't create render", http.StatusBadGateway)

@@ -235,6 +235,19 @@ const RestProvider = ({
         );
         return new Uint8Array(await result.arrayBuffer());
       },
+      modifyUser: async(data) => {
+        await internal.fetch(
+          USER_URL,
+          {
+            method: "PATCH",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(data)
+          },
+          
+        );
+      }
     });
   }, [internal]);
   return value == null ? (
