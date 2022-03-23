@@ -84,7 +84,7 @@ export default function RenderCard({ render, project }: RenderCardProps) {
                     <CircularProgressWithLabel
                       size={80}
                       thickness={1}
-                      value={Math.floor(render.status) * 100}
+                      value={Math.floor(render.status * 100)}
                     />
                   )}
                 </Box>
