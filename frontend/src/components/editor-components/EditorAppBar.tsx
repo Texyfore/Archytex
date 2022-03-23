@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { Link as L } from "react-router-dom";
 
 import { useTranslation } from "react-i18next";
 
@@ -9,6 +10,8 @@ import Toolbar from "@mui/material/Toolbar";
 import Box from "@mui/material/Box";
 import Tooltip from "@mui/material/Tooltip";
 import Button from "@mui/material/Button";
+
+import { OpenInNew } from "@mui/icons-material";
 
 import Logo from "../general-components/Logo";
 import RenderSetupModal from "./RenderSetupModal";
@@ -82,6 +85,18 @@ export default function EditorAppBar({ onSave, onRender }: EditorAppBarProps) {
                   onClick={handleRenderSetupModalOpen}
                 >
                   {t("render")}
+                </Button>
+                <Button
+                  variant='text'
+                  color='inherit'
+                  sx={{ textTransform: "none" }}
+                  to='/dashboard'
+                  component={L}
+                  target='_blank'
+                  rel='noopener noreferrer'
+                  endIcon={<OpenInNew />}
+                >
+                  {t("dashboard")}
                 </Button>
               </Box>
             </Box>
