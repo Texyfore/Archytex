@@ -48,13 +48,13 @@ export default function RenderCard({ render, project }: RenderCardProps) {
             <Skeleton
               variant='rectangular'
               animation='wave'
-              sx={{ height: { xs: "150px", sm: "200px", md: "250px" } }}
+              sx={{ height: { xs: "150px", sm: "200px", md: "200px" } }}
             />
           ) : (
             <CardMedia
               component='img'
               sx={{
-                height: { xs: "150px", sm: "200px", md: "250px" },
+                height: { xs: "150px", sm: "200px", md: "200px" },
               }}
               image={
                 render.status < 1
@@ -69,8 +69,8 @@ export default function RenderCard({ render, project }: RenderCardProps) {
             <Box position='relative' width='100%' height={0}>
               <Box
                 position='absolute'
-                top={{ xs: "-150px", sm: "-200px", md: "-250px" }}
-                height={{ xs: "150px", sm: "200px", md: "250px" }}
+                top={{ xs: "-150px", sm: "-200px", md: "-200px" }}
+                height={{ xs: "150px", sm: "200px", md: "200px" }}
                 width='100%'
                 display='flex'
                 justifyContent='center'
