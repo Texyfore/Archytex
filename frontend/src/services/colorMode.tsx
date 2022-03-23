@@ -113,7 +113,7 @@ export const ForceDarkProvider = ({
   const theme = GetTheme(ColorMode.Light);
   return (
     <ThemeProvider theme={theme}>
-      <ColorModeContext.Provider value={[ColorMode.Light, () => {}]}>
+      <ColorModeContext.Provider value={[ColorMode.Light, () => { }]}>
         {children}
       </ColorModeContext.Provider>
     </ThemeProvider>

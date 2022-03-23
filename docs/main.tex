@@ -1,15 +1,127 @@
-\documentclass[a4paper, twoside]{report}
+\documentclass[12pt]{article}
 
+\usepackage[utf8]{inputenc}
 \usepackage{t1enc}
 \usepackage[hungarian]{babel}
-\usepackage[pdfborder={0 0 0}]{hyperref}
+\usepackage{graphicx}
+\usepackage{geometry}
+\usepackage{fancyhdr}
+\usepackage{hyperref}
+\usepackage{pdfpages}
+\usepackage{todonotes}
+\usepackage{listings}
+\usepackage{xcolor}
+\usepackage{float}
 
-\author{Gulyás Arnold \and Marton Zoltán \and Szabó Dániel}
-\title{Archytex}
+\definecolor{codegray}{rgb}{0.5,0.5,0.5}
+\definecolor{backcolour}{rgb}{1,1,1}
+
+\lstdefinestyle{codestyle}{
+    backgroundcolor=\color{backcolour},   
+    numberstyle=\tiny\color{codegray},
+    basicstyle=\ttfamily\footnotesize,
+    breakatwhitespace=false,         
+    breaklines=true,                 
+    captionpos=b,                    
+    keepspaces=true,                 
+    numbers=left,                    
+    numbersep=5pt,                  
+    showspaces=false,                
+    showstringspaces=false,
+    showtabs=false,                  
+    tabsize=2
+}
+
+\lstset{style=codestyle}
+
+\newgeometry{
+  top=2.5cm,
+  bottom=2.5cm,
+  outer=2.5cm,
+  inner=2.5cm
+}
+\linespread{1.25}
+\pagestyle{fancy}
+\headheight=14.5pt
+\fancyhead{}
+\lhead{Archytex}
+\fancyfoot[C]{\thepage}
+\hypersetup{
+    colorlinks,
+    citecolor=black,
+    filecolor=black,
+    linkcolor=black,
+    urlcolor=black
+}
+
 
 \begin{document}
-    \maketitle
-    \tableofcontents
-    \include{chapters/backend.tex}
-    \include{chapters/frontend.tex}
+
+\begin{titlepage}
+  \centering
+  \includegraphics[width=0.15\textwidth]{images/jedlik_logo.png}\par\vspace{1cm}
+  {\Large Győri Szakképzési Centrum Jedlik Ányos Gépipari és Informatikai Technikum és Kollégium\par}
+  \vspace{2cm}
+  \includegraphics[width=0.25\textwidth]{images/archytex_logo.png}\par\vspace{1cm}
+  {\huge\sffamily\textbf{ARCHYTEX}\par}
+  \vspace{1cm}
+  {\Large Szakdolgozat dokumentáció\par}
+  \vfill
+  Készítették:\par
+  Gulyás Arnold, Marton Zoltán, Szabó Dániel
+
+  \vfill
+
+  \vfill
+  % Bottom of the page
+  {\large \today\par}
+\end{titlepage}
+
+\thispagestyle{empty}
+\includepdf[pages=-,pagecommand={},width=\textwidth]{mandatory-1.pdf}
+\thispagestyle{empty}
+\includepdf[pages=-,pagecommand={},width=\textwidth]{mandatory-2.pdf}
+
+
+\tableofcontents
+
+% Introduction
+\include{parts/part-Introduction.tex}
+
+\part{Felhasználói dokumentáció}
+\rhead{}
+
+% Account
+\include{parts/user-documentation/account/section-Account.tex}
+
+% Dashboard
+\include{parts/user-documentation/dashboard/section-Dashboard.tex}
+
+% Editor
+\include{parts/user-documentation/editor/section-Editor.tex}
+
+\part{Fejlesztői dokumentáció}
+\rhead{}
+
+% Work
+\include{parts/developer-documentation/work/section-Work.tex}
+
+% Frontend
+\include{parts/developer-documentation/frontend/section-Frontend.tex}
+
+% Backend
+\include{parts/developer-documentation/backend/section-Backend.tex}
+
+% Editor
+\include{parts/developer-documentation/editor/section-Editor.tex}
+
+% Ray-tracer
+\include{parts/developer-documentation/ray-tracer/section-Ray-tracer.tex}
+
+% Installation
+\include{parts/developer-documentation/installation/section-Installation.tex}
+
+\rhead{}
+\bibliographystyle{plain}
+\bibliography{ref}
 \end{document}
