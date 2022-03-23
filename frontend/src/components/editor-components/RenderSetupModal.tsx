@@ -47,7 +47,7 @@ export default function RednerSetupModal({
   const { addNotification } = useNotification();
 
   //Image width
-  const [imageWidth, setImageWidth] = useState(1920);
+  const [imageWidth, setImageWidth] = useState(1280);
   const handleImageWidthChange = (e: any) => {
     clearErrors();
     setImageWidth(e.target.value);
@@ -58,7 +58,7 @@ export default function RednerSetupModal({
   };
 
   //Image height
-  const [imageHeight, setImageHeight] = useState(1080);
+  const [imageHeight, setImageHeight] = useState(720);
   const handleImageHeightChange = (e: any) => {
     clearErrors();
     setImageHeight(e.target.value);
@@ -69,7 +69,7 @@ export default function RednerSetupModal({
   };
 
   //Sample count
-  const [samples, setSamples] = useState(32);
+  const [samples, setSamples] = useState(4);
   const handleSamplesChange = (e: any) => {
     clearErrors();
     setSamples(e.target.value);
