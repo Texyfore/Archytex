@@ -1,1 +1,14 @@
-{}
+{
+    "projects": "Projets",
+    "settings": "Paramètres",
+    "version": "version",
+    "login": "Connexion",
+    "register": "Inscription",
+    "product": "Produit",
+    "features": "Fonctionnalités",
+    "documentation": "Documentation",
+    "account": "Compte",
+    "about": "À propos",
+    "home": "Accueil",
+    "dashboard": "Tableau de bord"
+}
