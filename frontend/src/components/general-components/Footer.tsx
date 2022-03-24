@@ -65,6 +65,13 @@ export default function Footer() {
               </IconButton>
             </Tooltip>
           </Box>
+          {t("translator_name") !== "credit_here" && (
+            <Box>
+              <Typography variant='caption'>
+                {`${t("translated_by")}: ${t("translator_name")}`}
+              </Typography>
+            </Box>
+          )}
         </Box>
 
         {/* Product */}

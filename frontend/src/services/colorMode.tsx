@@ -14,7 +14,8 @@ function GetTheme(mode: ColorMode): any {
     switch (i18n.language) {
       case "jp":
         return "Noto Sans JP";
-
+      case "ua":
+        return "Noto Sans";
       default:
         return "Nagoda";
     }
@@ -112,7 +113,7 @@ export const ForceDarkProvider = ({
   const theme = GetTheme(ColorMode.Light);
   return (
     <ThemeProvider theme={theme}>
-      <ColorModeContext.Provider value={[ColorMode.Light, () => {}]}>
+      <ColorModeContext.Provider value={[ColorMode.Light, () => { }]}>
         {children}
       </ColorModeContext.Provider>
     </ThemeProvider>

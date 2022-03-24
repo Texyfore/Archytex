@@ -1,6 +1,6 @@
 [package]
 name = "asset"
-version = "0.1.0"
+version = "1.0.0"
 edition = "2021"
 description = "Asset loading library"
 authors = ["Gulyás Arnold"]

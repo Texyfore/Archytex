@@ -289,7 +289,7 @@ export default function Editor() {
         current_event++;
         listeners[n] = resolve;
         sender.saveScene(n);
-        addNotification(t("project_saved_successfully"), "success");
+        addNotification(t("project_saved_successfuly"), "success");
       }),
     [sender]
   );
