@@ -289,7 +289,6 @@ export default function Editor() {
         current_event++;
         listeners[n] = resolve;
         sender.saveScene(n);
-        addNotification(t("project_saved_successfuly"), "success");
       }),
     [sender]
   );
@@ -309,9 +308,12 @@ export default function Editor() {
     console.log("Got Save event");
     const data = await save();
     if (api?.state === "logged-in") {
-      await api.save(data, projectId).catch(() => {
-        addNotification(t("could_not_save_project"), "error");
-      });
+      await api
+        .save(data, projectId)
+        .then(() => addNotification(t("project_saved_successfuly"), "success"))
+        .catch(() => {
+          addNotification(t("could_not_save_project"), "error");
+        });
     } else {
       addNotification(t("you_are_not_logged_in"), "error");
     }

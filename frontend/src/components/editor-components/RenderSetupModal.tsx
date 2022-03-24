@@ -2,8 +2,6 @@ import React, { useState } from "react";
 
 import { useTranslation } from "react-i18next";
 
-import { AlertColor } from "@mui/material/Alert/Alert";
-
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
 import Button from "@mui/material/Button";
@@ -14,7 +12,6 @@ import Backdrop from "@mui/material/Backdrop";
 
 import { Close } from "@mui/icons-material";
 
-import useNotification from "../../services/hooks/useNotification";
 import FormInput from "../form-components/FormInput";
 
 const modalStyle = {
@@ -37,14 +34,12 @@ interface Parameters {
   onRender: (width: number, height: number, samples: number) => Promise<void>;
 }
 
-export default function RednerSetupModal({
+export default function RenderSetupModal({
   handleModalClose,
   modalOpen,
   onRender,
 }: Parameters) {
   const { t } = useTranslation();
-
-  const { addNotification } = useNotification();
 
   //Image width
   const [imageWidth, setImageWidth] = useState(1280);
