@@ -12,6 +12,9 @@ import translationJp from "./languages/jp_jp.json";
 import translationUa from "./languages/uk.json";
 import translationSe from "./languages/sv.json";
 import translationRo from "./languages/ro.json";
+import translationDe from "./languages/de.json";
+import translationFr from "./languages/fr.json";
+import translationBg from "./languages/bg.json";
 
 import { DummyProvider } from "./services/user/dummy";
 import { RestProvider } from "./services/user/rest";
@@ -42,6 +45,9 @@ i18n.use(initReactI18next).init({
     ua: { translation: translationUa },
     se: { translation: translationSe },
     ro: { translation: translationRo },
+    de: { translation: translationDe },
+    fr: { translation: translationFr },
+    bg: { translation: translationBg },
   },
   lng: "en",
   fallbackLng: "en",

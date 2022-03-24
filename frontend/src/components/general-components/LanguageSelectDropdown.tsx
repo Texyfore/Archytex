@@ -14,15 +14,15 @@ import Typography from "@mui/material/Typography";
 import { Language } from "@mui/icons-material";
 
 const languageOptions: { id: string; name: string }[] = [
-  {
-    id: "gb",
-    name: "English",
-  },
+  { id: "gb", name: "English" },
   { id: "hu", name: "Magyar" },
   { id: "ua", name: "український" },
   { id: "jp", name: "日本語" },
   { id: "ro", name: "Română" },
   { id: "se", name: "Svenska" },
+  { id: "bg", name: "български" },
+  { id: "fr", name: "Français" },
+  { id: "de", name: "Deutsch" },
 ];
 
 export default function LanguageSelectDropdown() {

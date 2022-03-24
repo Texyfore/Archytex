@@ -16,6 +16,8 @@ function GetTheme(mode: ColorMode): any {
         return "Noto Sans JP";
       case "ua":
         return "Noto Sans";
+      case "bg":
+        return "Noto Sans";
       default:
         return "Nagoda";
     }
@@ -113,7 +115,7 @@ export const ForceDarkProvider = ({
   const theme = GetTheme(ColorMode.Light);
   return (
     <ThemeProvider theme={theme}>
-      <ColorModeContext.Provider value={[ColorMode.Light, () => { }]}>
+      <ColorModeContext.Provider value={[ColorMode.Light, () => {}]}>
         {children}
       </ColorModeContext.Provider>
     </ThemeProvider>
