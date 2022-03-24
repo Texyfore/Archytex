@@ -125,10 +125,21 @@ const PROJECT_URL = `${Environment.base_url}auth/project`;
 const subscribe: (internal: Internal) => (callback: Callback) => {
   dispatch: ProjectsDispatch;
   dispose: () => void;
+  state: {ws: WebSocket}
 } = (internal: Internal) => (callback: Callback) => {
   const ws = new WebSocket(Environment.ws_url);
+  let state = {ws, closed: false};
   ws.addEventListener("open", () => {
     ws.send(JSON.stringify(internal?.token));
+  });
+  ws.addEventListener("close", ()=>{
+    if (state.closed) {
+      return;
+    }
+    setTimeout(() => {
+      let r = subscribe(internal)(callback);
+      state.ws = r.state.ws;
+    }, 3000);
   });
   ws.addEventListener("message", (ev: MessageEvent<string>) => {
     const data: Updates = JSON.parse(ev.data);
@@ -137,8 +148,10 @@ const subscribe: (internal: Internal) => (callback: Callback) => {
   });
   return {
     dispose: () => {
-      ws.close();
+      state.closed = true;
+      state.ws.close();
     },
+    state,
     dispatch: async (action: Action) => {
       switch (action.type) {
         case "create":
