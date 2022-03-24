@@ -16,7 +16,7 @@ import { Language } from "@mui/icons-material";
 const languageOptions: { id: string; name: string }[] = [
   { id: "gb", name: "English" },
   { id: "hu", name: "Magyar" },
-  { id: "ua", name: "український" },
+  { id: "ua", name: "Українська" },
   { id: "jp", name: "日本語" },
   { id: "ro", name: "Română" },
   { id: "se", name: "Svenska" },
