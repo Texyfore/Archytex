@@ -69,7 +69,7 @@
     "section4_cta": "Try rendering a scene",
     "about_section1_title": "The Team",
     "about_section1_subtitle": "Meet the team",
-    "about_section1_paragraph": "Archytex was made as the final project for our technical year in high school. We are Gulyás Arnold, Marton Zoltán and Szabó Dániel.",
+    "about_section1_paragraph": "Archytex was made as the final project for our technical year in high school. We are Arnold Gulyás, Zoltán Marton and Dániel Szabó.",
     "about_section2_title": "Technologies",
     "about_section2_subtitle": "What did we use?",
     "about_section2_paragraph": "We used many technologies for this project such as Rust, React, TypeScript, Material UI, WebGL, GO, Docker and MongoDB. Many of the challenges during the project came from the fact that we tried to use fairly new frameworks which aren't necessarily stable yet.",
