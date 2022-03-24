@@ -1,5 +1,5 @@
 package database
 
-import "github.com/streadway/amqp"
+import "github.com/isayme/go-amqp-reconnect/rabbitmq"
 
-var RabbitmqChannel *amqp.Channel
+var RabbitmqChannel *rabbitmq.Channel

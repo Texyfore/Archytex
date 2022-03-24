@@ -13,7 +13,7 @@ import (
 	"github.com/Texyfore/Archytex/backend/routes/authenticated"
 	"github.com/Texyfore/Archytex/backend/session"
 	"github.com/go-redis/redis/v8"
-	"github.com/streadway/amqp"
+	"github.com/isayme/go-amqp-reconnect/rabbitmq"
 
 	"github.com/Texyfore/Archytex/backend/database"
 	"github.com/Texyfore/Archytex/backend/logging"
@@ -39,7 +39,7 @@ func main() {
 		panic(err)
 	}
 
-	amqp, err := amqp.Dial(os.Getenv("AMQP_ADDR"))
+	amqp, err := rabbitmq.Dial(os.Getenv("AMQP_ADDR"))
 	if err != nil {
 		panic(err)
 	}
