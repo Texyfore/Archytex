@@ -66,8 +66,11 @@ export default function Footer() {
             </Tooltip>
           </Box>
           {t("translator_name") !== "credit_here" && (
-            <Box>
-              <Typography variant='caption'>
+            <Box display='flex' justifyContent={{ xs: "center", md: "left" }}>
+              <Typography
+                variant='caption'
+                textAlign={{ xs: "center", md: "left" }}
+              >
                 {`${t("translated_by")}: ${t("translator_name")}`}
               </Typography>
             </Box>
