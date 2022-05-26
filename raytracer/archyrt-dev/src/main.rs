@@ -1,4 +1,5 @@
 use std::f64::consts::PI;
+use std::time::Instant;
 
 use archyrt_core::api::camera::Camera;
 use archyrt_core::api::fragment_render::{FragmentContext, FragmentRender};
@@ -196,19 +197,21 @@ fn main() {
     let mut textures = TextureRepository::new();
     amdl_textures::load_into(&mut textures, "../assets").unwrap();
 
-    let mut props = PropRepository::new();
-    amdl::repo::load_into(&mut props, &textures, "../assets").unwrap();
+    //let mut props = PropRepository::new();
+    //amdl::repo::load_into(&mut props, &textures, "../assets").unwrap();
 
     //Load model
-    let loader = ASCNLoader::from_path("../assets/ottoman.ascn").unwrap();
+    let loader = ASCNLoader::from_path("../assets/demoscene.ascn").unwrap();
     let camera = loader.get_camera();
     let object = loader.get_triangles();
     let object = BVH::from_triangles(&object);
-    let props = props.fulfill_all(loader.get_prop_requests()).unwrap();
-    let object = object.union(props);
+    //let props = props.fulfill_all(loader.get_prop_requests()).unwrap();
+    //let object = object.union(props);
 
     println!("Render");
+    let start = Instant::now();
     let image = render_pathtraced(object, camera, textures, w, h);
     //let image = render_albedo(object, camera, textures, w, h);
+    println!("{:?}", start.elapsed());
     image.save("image.png").unwrap();
 }
