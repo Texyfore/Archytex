@@ -8,3 +8,4 @@ pub mod triangle;
 pub mod union;
 pub mod apply_matrix;
 pub mod transform;
+pub mod linear_bvh;

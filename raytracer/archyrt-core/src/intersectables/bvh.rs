@@ -56,6 +56,17 @@ impl BVH {
             aabb: bounds,
         })
     }
+
+    pub fn depth(&self) -> u32{
+        match self{
+            BVH::Branch { left, right, .. } => {
+                let l = left.depth();
+                let r = right.depth();
+                l.max(r)+1
+            },
+            BVH::Leaf(_) => 1,
+        }
+    }
 }
 
 impl Intersectable for BVH {

@@ -10,6 +10,7 @@ use archyrt_core::collector::image_collector::ImageCollector;
 use archyrt_core::collector::raw_collector::RawCollector;
 use archyrt_core::intersectables::apply_matrix::ApplyMatrix;
 use archyrt_core::intersectables::bvh::BVH;
+use archyrt_core::intersectables::linear_bvh::LinearBVH;
 use archyrt_core::intersectables::sphere::Sphere;
 use archyrt_core::intersectables::transform::Transform;
 use archyrt_core::loaders::amdl::repo::{PropRepository, PropType};
@@ -204,7 +205,10 @@ fn main() {
     let loader = ASCNLoader::from_path("../assets/demoscene.ascn").unwrap();
     let camera = loader.get_camera();
     let object = loader.get_triangles();
-    let object = BVH::from_triangles(&object);
+    println!("Triangle count: {}", object.len());
+    let object = BVH::from_triangles(&object).unwrap();
+    println!("Depth: {}", object.depth());
+    let object: LinearBVH = object.into();
     //let props = props.fulfill_all(loader.get_prop_requests()).unwrap();
     //let object = object.union(props);
 
