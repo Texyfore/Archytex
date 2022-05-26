@@ -87,25 +87,31 @@ fn render_pathtraced<O: Intersectable + Sync, C: Camera + Sync>(
     println!("Rendering image");
     let collector = RawCollector {};
     let pathtracer_image = collector.collect(&pathtracer, &repo, w, h);
-    let albedo_image = collector.collect(&albedo, &repo, w, h);
-    let normal_image = collector.collect(&normal, &repo, w, h);
 
     //Using OIDN for denoising
     println!("Denoising");
-    let mut output: Vec<f32> = (0..pathtracer_image.len())
-        .into_iter()
-        .map(|_| 0f32)
-        .collect();
-    let device = oidn::Device::new();
-    oidn::RayTracing::new(&device)
-        .srgb(false)
-        .hdr(true)
-        .image_dimensions(w, h)
-        .albedo_normal(&albedo_image, &normal_image)
-        .clean_aux(true)
-        .filter(&pathtracer_image, &mut output)
-        .unwrap();
-    //Collect OIDN image
+    let output = if cfg!(feature="oidn") {
+        let mut output: Vec<f32> = (0..pathtracer_image.len())
+            .into_iter()
+            .map(|_| 0f32)
+            .collect();
+        #[cfg(feature="oidn")]
+        {let albedo_image = collector.collect(&albedo, &repo, w, h);
+        let normal_image = collector.collect(&normal, &repo, w, h);
+        let device = oidn::Device::new();
+        oidn::RayTracing::new(&device)
+            .srgb(false)
+            .hdr(true)
+            .image_dimensions(w, h)
+            .albedo_normal(&albedo_image, &normal_image)
+            .clean_aux(true)
+            .filter(&pathtracer_image, &mut output)
+            .unwrap();}
+        output
+    }else{
+        pathtracer_image
+    };
+    //Collect image
     let mut image = RgbImage::new(w as u32, h as u32);
     //let output = pathtracer_image;
 
