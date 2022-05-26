@@ -67,6 +67,16 @@ impl BVH {
             BVH::Leaf(_) => 1,
         }
     }
+    pub fn count(&self) -> usize{
+        match self{
+            BVH::Branch { left, right, .. } => {
+                let l = left.count();
+                let r = right.count();
+                l+r
+            },
+            BVH::Leaf(_) => 1,
+        }
+    }
 }
 
 impl Intersectable for BVH {
